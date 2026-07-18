@@ -21,7 +21,7 @@
  * dashboard's checkinsCsvUrl, and the loop is closed: write here, read there, see everywhere.
  */
 
-var SHEET_ID = 'PASTE_YOUR_SPREADSHEET_ID_HERE';
+var SHEET_ID = '1iJMjvQYV5B5GfAb30qBf-CpbVJFk9iygPVi8x1OoLgo';  // your Master Dashboard sheet
 
 function doPost(e){
   try{
