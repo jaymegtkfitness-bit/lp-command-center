@@ -1,0 +1,1685 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Legacy Performance — Command Center</title>
+<!-- Add-to-home-screen (installable app tile) -->
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1C1C1C" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<meta name="apple-mobile-web-app-title" content="Legacy" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link rel="icon" type="image/png" href="icon-192.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- ============================================================= -->
+<!--  LEGACY PERFORMANCE — COMMAND CENTER (hosted dashboard)        -->
+<!--                                                                -->
+<!--  Reads your Google Sheets (published to web as CSV) and shows: -->
+<!--   • Business snapshot (Founding 25, MRR, active clients...)    -->
+<!--   • Client board (health signal, last check-in, consistency)  -->
+<!--   • Follow-ups (needs reply / review due / gone quiet)         -->
+<!--   • Community intelligence (avg markers, consistency spread)   -->
+<!--                                                                -->
+<!--  Ships in DEMO MODE with sample data so it works the moment    -->
+<!--  you deploy it. Paste your real CSV links in the CONFIG block  -->
+<!--  below (see README-DEPLOY.md) to go LIVE. Nothing else to do.  -->
+<!-- ============================================================= -->
+
+<script>
+/* =================== CONFIG — EDIT THIS BLOCK =================== */
+/* HOW TO FILL THESE (one-time, ~5 min): open README-DEPLOY.md.
+   In each Google Sheet: File → Share → Publish to web → pick the tab
+   → CSV → Publish → copy the link → paste it below (keep the quotes).
+   Leave a value as "" and the dashboard uses demo data for that piece. */
+const CONFIG = {
+  // The Weekly Check-In responses (raw Google Form responses tab).
+  checkinsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQChmKyLBXYU7-0BmEihUgVZAiMEMeWNpNDxsKJEOVXNNq0L5Agd6dwTyQGnDHJDY5Lfaz0-7_1gIZX/pub?gid=500497956&single=true&output=csv",
+
+  // Consolidated Clients roster — a local CSV deployed with the dashboard (Claude maintains it,
+  // merging the weekly Skool export). Columns: Name|Email|Status|Tier|Goal|Start|Amount|Frequency|MRR|Payment|Founding|Notes
+  rosterCsvUrl: "clients.csv",
+
+  // Business tiles are COMPUTED from the Clients sheet (MRR, active members, lead projection,
+  // founding counts) — no separate tab needed. Leave "" to keep the computed tiles.
+  businessCsvUrl: "",
+
+  // PR tracker read source: publish the "PRs" tab as CSV and paste it here.
+  prsCsvUrl: "https://docs.google.com/spreadsheets/d/e/2PACX-1vQChmKyLBXYU7-0BmEihUgVZAiMEMeWNpNDxsKJEOVXNNq0L5Agd6dwTyQGnDHJDY5Lfaz0-7_1gIZX/pub?gid=1891597947&single=true&output=csv",
+
+  // Revenue view reads from the same local Clients roster (Name/Amount/Frequency/Status).
+  revenueCsvUrl: "clients.csv",
+
+  // WRITE doorway: the Google Apps Script /exec URL (see apps-script.gs + README).
+  // When set, check-ins and notes save to your Sheet and sync to every dashboard.
+  // Leave "" and they save on-device only (fine for testing the experience).
+  writeUrl: "https://script.google.com/macros/s/AKfycbyjXJTz-Oa7TKSBJPY2BPsI4LjEcyp0YxRBHAifUZmH-UlWKYzT5GOENaEo3vuIoVfz/exec",
+
+  // ---- Tunable thresholds (safe to leave as-is) ----
+  goneQuietDays: 10,       // no check-in in this many days = "gone quiet"
+  reviewDueDays: 7,        // it's been this long since last check-in = review due
+  onTrackConsistency: 85,  // consistency % at/above this = on track
+  watchConsistency: 60,    // below onTrack but at/above this = watch; under = stalling
+  refreshMinutes: 30       // auto-refresh interval
+};
+/* Exercise list for the PR tracker — edit freely (grouped by movement pattern). */
+const EXERCISES = {
+  "Hinge": ["Barbell RDL","Dumbbell RDL","Trap-bar deadlift","Conventional deadlift","Hip thrust","Back extension"],
+  "Squat": ["Back squat","Front squat","Goblet squat","Bulgarian split squat","Leg press"],
+  "Horizontal push": ["Barbell bench press","Dumbbell bench press","Machine chest press","Push-up"],
+  "Vertical push": ["Overhead press","Dumbbell shoulder press"],
+  "Horizontal pull": ["Barbell row","Dumbbell row","Seated cable row","Chest-supported row"],
+  "Vertical pull": ["Pull-up","Lat pulldown"],
+  "Carry / core": ["Farmer carry","Plank (sec)","Weighted plank"]
+};
+
+/* =============== END CONFIG (stop editing here) =============== */
+</script>
+
+<style>
+/* ================================================================
+   LEGACY PERFORMANCE — brand theming.
+   Two modes, same palette, inverted by audience:
+   • MASCULINE / DARK  (this file — internal systems + men's-angle):
+       Charcoal bg · Parchment text/headlines · Gold emphasis · Olive touch
+   • FEMALE-FACING / LIGHT (the inverse — set data-theme="light" on <html>):
+       Parchment bg · Charcoal headlines · Olive emphasis · Gold touch
+   Raw palette is fixed; the semantic tokens below flip per mode.
+   ================================================================ */
+:root{
+  /* Fixed brand palette */
+  --charcoal:#1C1C1C;
+  --olive:#4A5C3E;
+  --olive-soft:#7c9268;
+  --parchment:#F2EDE4;
+  --gold:#C1AD72;
+  --lightgray:#D4D6D2;
+
+  /* ---- MASCULINE / DARK (default) ---- */
+  --bg:#1C1C1C;                 /* charcoal = primary background */
+  --header-bg:#141310;          /* near-black warm strip */
+  --surface:#26241f;            /* lifted warm-dark card */
+  --surface-2:#302d26;          /* hover / secondary */
+  --headline:#F2EDE4;           /* parchment headlines */
+  --ink:#EAE4D8;                /* primary text (parchment) */
+  --ink-soft:#cfc9bc;
+  --muted:#948d7e;              /* light-gray-family muted */
+  --line:rgba(242,237,228,.10);
+  --accent:#C1AD72;             /* GOLD = emphasis (lead accent) */
+  --accent-soft:rgba(193,173,114,.16);
+
+  /* Semantic health colors, tuned for dark */
+  --good:#8FA97A;               /* lifted olive (the "touch") */
+  --good-bg:rgba(74,92,62,.30);
+  --good-tx:#a9c090;
+  --watch:#C1AD72;
+  --watch-bg:rgba(193,173,114,.16);
+  --watch-tx:#d4c185;
+  --stall:#cf8b6b;              /* warm ember */
+  --stall-bg:rgba(180,102,74,.22);
+  --stall-tx:#e0a487;
+  --quiet:#9a958a;
+  --quiet-bg:rgba(148,141,126,.16);
+  --quiet-tx:#b3ada1;
+
+  --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.28);
+}
+/* ---- FEMALE-FACING / LIGHT (inverse) — activate with <html data-theme="light"> ---- */
+:root[data-theme="light"]{
+  --bg:#F2EDE4; --header-bg:#1C1C1C; --surface:#FBF9F4; --surface-2:#F2EDE4;
+  --headline:#1C1C1C; --ink:#242219; --ink-soft:#4a463c; --muted:#8a8578;
+  --line:#e4ddcf; --accent:#4A5C3E; --accent-soft:rgba(74,92,62,.12);
+  --good:#4A5C3E; --good-bg:rgba(74,92,62,.12); --good-tx:#4A5C3E;
+  --watch:#C1AD72; --watch-bg:rgba(193,173,114,.18); --watch-tx:#8a7526;
+  --stall:#b4664a; --stall-bg:rgba(180,102,74,.14); --stall-tx:#b4664a;
+  --quiet:#9a958a; --quiet-bg:rgba(154,149,138,.16); --quiet-tx:#6d685f;
+  --shadow:0 1px 2px rgba(28,28,28,.05),0 8px 24px rgba(28,28,28,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  font-family:'Montserrat',system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+  line-height:1.45;
+}
+a{color:var(--accent)}
+.wrap{max-width:1200px;margin:0 auto;padding:0 20px 64px}
+
+/* ---- App shell (sidebar + views) ---- */
+.app{display:flex;align-items:flex-start;max-width:1360px;margin:0 auto}
+.sidebar{flex:none;width:212px;padding:22px 12px 40px;position:sticky;top:0;align-self:flex-start}
+.nav-group{margin-bottom:18px}
+.nav-h{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:0 12px 8px}
+.nav-item{display:block;width:100%;text-align:left;background:transparent;border:none;color:var(--ink-soft);
+  font-family:inherit;font-size:13.5px;padding:9px 12px;border-radius:9px;cursor:pointer}
+.nav-item:hover{background:var(--surface);color:var(--headline)}
+.nav-item.on{background:var(--accent-soft);color:var(--gold);font-weight:600}
+.main{flex:1;min-width:0}
+.view{display:none} .view.active{display:block}
+.view-head{margin:24px 0 20px}
+.view-head h1{font-family:'Cinzel',serif;font-size:23px;font-weight:600;color:var(--headline);margin:0}
+.view-sub{color:var(--muted);font-size:13.5px;margin:8px 0 0;max-width:660px;line-height:1.6}
+.tool-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.tool-card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+.tool-n{font-weight:600;color:var(--headline);font-size:14.5px}
+.tool-d{color:var(--muted);font-size:12.5px;line-height:1.5;margin:7px 0 12px}
+.tool-c{display:inline-block;background:var(--bg);border:1px solid var(--line);color:var(--gold);
+  font-family:ui-monospace,monospace;font-size:12.5px;padding:4px 10px;border-radius:7px}
+.empty-box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:24px;color:var(--ink-soft);font-size:13.5px;line-height:1.75;max-width:660px}
+.empty-box b{color:var(--headline)} .empty-box .step{color:var(--gold);font-weight:700;margin-right:4px}
+.empty-box code{background:var(--bg);border:1px solid var(--line);color:var(--gold);padding:2px 7px;border-radius:6px;font-size:12px}
+.rev-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.intg-card{display:flex;align-items:center;gap:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin-bottom:12px}
+.intg-dot{width:9px;height:9px;border-radius:50%;flex:none}
+.intg-dot.ok{background:var(--good)} .intg-dot.wait{background:var(--gold)} .intg-dot.off{background:var(--quiet)}
+.intg-n{font-weight:600;color:var(--headline);font-size:14px}
+.intg-d{font-size:12px;color:var(--muted);margin-top:2px}
+@media(max-width:900px){
+  .app{flex-direction:column}
+  .sidebar{width:100%;position:static;display:flex;gap:6px;overflow-x:auto;padding:12px 14px}
+  .nav-group{margin-bottom:0;display:flex;gap:6px;align-items:center}
+  .nav-h{display:none}
+  .nav-item{width:auto;white-space:nowrap;padding:8px 12px}
+  .rev-tiles{grid-template-columns:1fr 1fr}
+}
+
+/* ---- Header (parchment logo band — light so the logo's black + gold read) ---- */
+/* Black safe-area bar at the very top so the logo/header clears the iPhone status bar
+   (time, battery, notch) when the dashboard runs as a home-screen app. 0px on desktop. */
+body::before{content:"";display:block;height:env(safe-area-inset-top,0px);background:var(--charcoal)}
+header.top{
+  background:var(--parchment);
+  color:var(--charcoal);
+  border-bottom:3px solid var(--gold);
+}
+.top-inner{max-width:1200px;margin:0 auto;padding:13px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:14px;margin-right:auto}
+.brand .logo{height:48px;width:auto;display:block}
+/* Fallback wordmark, shown only if logo.png isn't in the folder yet */
+.brand-fallback{display:flex;align-items:baseline;gap:9px;font-family:'Cinzel',serif;font-weight:600;letter-spacing:.11em;font-size:21px;line-height:1}
+.brand-fallback .lg{color:var(--charcoal)}
+.brand-fallback .pf{color:var(--gold)}
+.brand .divider{width:1px;height:30px;background:rgba(28,28,28,.16)}
+/* ---- Tasks / This Week ---- */
+.tasks-wrap{max-width:760px}
+.tgroup{margin-bottom:16px}
+.tgroup-h{display:flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px}
+.tgroup-h .cap{font-weight:500;text-transform:none;letter-spacing:0;color:var(--muted)}
+.stars{letter-spacing:1px;font-size:13px}.star3{color:var(--gold)}.star2{color:#bfa85f}.star1{color:var(--muted)}
+.task{display:flex;align-items:flex-start;gap:11px;background:var(--surface);border:1px solid var(--line);border-radius:11px;padding:12px 14px;margin-bottom:8px}
+.task.done{opacity:.5}.task.done .task-title{text-decoration:line-through}
+.task-check{width:22px;height:22px;border:2px solid var(--muted);border-radius:6px;flex:0 0 auto;cursor:pointer;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;color:transparent;background:transparent}
+.task.done .task-check{background:var(--gold);border-color:var(--gold);color:#1C1C1C}
+.task-body{flex:1;min-width:0}
+.task-title{font-size:15px;color:var(--headline);line-height:1.4}
+.task-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.task-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:15px;flex:0 0 auto;opacity:.45;padding:0 2px}
+.task-del:hover{opacity:1;color:#c0654a}
+.add-task{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;margin-top:16px}
+.add-task h4{font-size:13px;color:var(--headline);margin:0 0 10px;font-weight:600}
+.add-task input,.add-task select{width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--headline);font-size:14px;font-family:inherit;margin-bottom:8px}
+.add-task input:focus,.add-task select:focus{outline:none;border-color:var(--gold)}
+.add-row{display:flex;gap:8px;flex-wrap:wrap}.add-row>*{flex:1;min-width:130px}
+.add-btn{width:100%;background:var(--gold);color:#1C1C1C;border:none;border-radius:8px;padding:12px;font-weight:700;cursor:pointer;font-family:inherit;font-size:14px;margin-top:2px}
+.add-btn:hover{background:#d3c088}
+.task-msg{font-size:12px;margin-top:8px;min-height:16px}.task-msg.err{color:#e0a08a}.task-msg.ok{color:#a9c98f}
+.task-empty{color:var(--muted);font-size:13px;padding:6px 0 2px}
+.tsync{font-size:11px;color:var(--muted);margin-top:6px}
+.qbanner{background:rgba(193,173,114,.12);border:1px solid var(--gold);border-radius:11px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--ink);line-height:1.5}
+.qbanner code{background:rgba(242,237,228,.1);padding:1px 6px;border-radius:5px;font-size:12px}
+.scoreboard{display:flex;gap:10px;margin:0 0 20px;flex-wrap:wrap}
+.sb{flex:1;min-width:120px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 12px 10px;text-align:center}
+.sb-val{font-family:'Cinzel',serif;font-size:30px;font-weight:600;color:var(--gold);line-height:1}
+.sb-t{font-size:16px;color:var(--muted);font-weight:400}
+.sb-label{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.sb-btns{display:flex;gap:6px;justify-content:center;margin-top:8px}
+.sb-b{width:34px;height:30px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--headline);font-size:16px;cursor:pointer;line-height:1}
+.sb-b:hover{border-color:var(--gold);color:var(--gold)}
+.w-tablewrap{overflow-x:auto;margin-bottom:6px}
+.w-table{width:100%;border-collapse:collapse;font-size:14px;min-width:560px}
+.w-table th{text-align:left;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line)}
+.w-table td{padding:8px 10px;border-bottom:1px solid var(--line);color:var(--ink)}
+.w-table .w-label{font-weight:600;color:var(--headline);min-width:150px}
+.w-table input{width:74px;padding:7px 8px;border:1px solid var(--line);border-radius:7px;background:var(--bg);color:var(--headline);font-size:14px;font-family:inherit}
+.w-table input:focus{outline:none;border-color:var(--gold)}
+.w-table .w-rate{color:var(--gold);font-weight:600}
+.w-table tfoot td{font-weight:700;color:var(--headline);border-top:2px solid var(--line);border-bottom:none}
+.brand .tool-tag{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.24em;text-transform:uppercase;color:#5f5a4f;font-weight:500}
+.status-chip{
+  display:inline-flex;align-items:center;gap:7px;font-size:11px;font-weight:600;
+  letter-spacing:.08em;text-transform:uppercase;padding:6px 12px;border-radius:999px;
+  background:rgba(28,28,28,.05);border:1px solid rgba(28,28,28,.16);color:var(--charcoal)
+}
+.status-chip .dot{width:8px;height:8px;border-radius:50%}
+.dot.live{background:#4A5C3E;box-shadow:0 0 0 3px rgba(74,92,62,.18)}
+.dot.demo{background:var(--gold);box-shadow:0 0 0 3px rgba(193,173,114,.25)}
+.refresh-btn{
+  background:var(--charcoal);color:var(--parchment);border:none;border-radius:8px;padding:9px 14px;
+  font-family:inherit;font-weight:700;font-size:12.5px;letter-spacing:.03em;cursor:pointer;
+  display:inline-flex;align-items:center;gap:7px
+}
+.refresh-btn:hover{background:#2c2a25}
+.refresh-btn:disabled{opacity:.6;cursor:default}
+.updated{font-size:11px;color:#6b6559;letter-spacing:.04em}
+
+/* ---- Demo banner ---- */
+.demo-banner{
+  background:linear-gradient(90deg,rgba(193,173,114,.20),rgba(193,173,114,.05));
+  border-bottom:1px solid var(--line);color:var(--ink);font-size:13px
+}
+.demo-banner .di{max-width:1200px;margin:0 auto;padding:11px 20px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.demo-banner b{color:var(--gold)}
+.demo-banner.hidden{display:none}
+
+/* ---- Section scaffolding ---- */
+.section{margin-top:36px}
+.section-head{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.section-head h2{
+  font-family:'Cinzel',serif;font-weight:600;font-size:15px;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--headline);margin:0
+}
+.section-head .rule{flex:1;height:1px;background:var(--line)}
+.section-head .count{font-size:12px;color:var(--muted);letter-spacing:.05em}
+
+/* ---- Business stat tiles ---- */
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;margin-top:22px}
+.tile{
+  background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;
+  box-shadow:var(--shadow);position:relative;overflow:hidden
+}
+.tile::before{content:"";position:absolute;left:0;top:0;bottom:0;width:3px;background:var(--gold)}
+.tile .label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.tile .value{font-family:'Cinzel',serif;font-size:27px;font-weight:600;color:var(--headline);margin-top:6px;line-height:1}
+.tile .value small{font-size:14px;color:var(--muted);font-family:'Montserrat';font-weight:600}
+.tile .meta{font-size:11px;color:var(--good-tx);margin-top:6px;font-weight:600}
+
+/* ---- Two-column main ---- */
+.grid-main{display:grid;grid-template-columns:1.7fr 1fr;gap:22px;align-items:start}
+
+/* ---- Client board table ---- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);overflow:hidden}
+.tbl{width:100%;border-collapse:collapse;font-size:13.5px}
+.tbl thead th{
+  text-align:left;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);
+  font-weight:700;padding:12px 14px;border-bottom:1px solid var(--line);background:rgba(193,173,114,.06);white-space:nowrap
+}
+.tbl tbody td{padding:12px 14px;border-bottom:1px solid var(--line);vertical-align:middle}
+.tbl tbody tr:last-child td{border-bottom:none}
+.tbl tbody tr:hover{background:rgba(193,173,114,.07)}
+.client-name{font-weight:600;color:var(--headline)}
+.client-prog{font-size:11px;color:var(--muted);margin-top:1px}
+.pill{
+  display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;letter-spacing:.03em;
+  padding:4px 10px;border-radius:999px;white-space:nowrap
+}
+.pill .d{width:7px;height:7px;border-radius:50%}
+.pill.good{background:var(--good-bg);color:var(--good-tx)} .pill.good .d{background:var(--good)}
+.pill.watch{background:var(--watch-bg);color:var(--watch-tx)} .pill.watch .d{background:var(--watch)}
+.pill.stall{background:var(--stall-bg);color:var(--stall-tx)} .pill.stall .d{background:var(--stall)}
+.pill.quiet{background:var(--quiet-bg);color:var(--quiet-tx)} .pill.quiet .d{background:var(--quiet)}
+.pill.pipe{background:var(--accent-soft);color:var(--gold)}
+.pill.new{background:var(--quiet-bg);color:var(--quiet-tx)} .pill.new .d{background:var(--quiet)}
+/* ---- Pipeline filter chips ---- */
+.pipeline{display:flex;gap:9px;flex-wrap:wrap;margin-bottom:16px}
+.pchip{display:flex;align-items:center;gap:9px;background:var(--surface);border:1px solid var(--line);
+  border-radius:11px;padding:8px 14px;cursor:pointer}
+.pchip:hover{border-color:var(--gold)}
+.pchip.on{border-color:var(--gold);background:var(--accent-soft)}
+.pchip .pn{font-family:'Cinzel',serif;font-size:17px;font-weight:600;color:var(--headline);line-height:1}
+.pchip .pl{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.trend{font-weight:700;font-size:13px;white-space:nowrap}
+.trend.down{color:var(--good-tx)} .trend.up{color:var(--stall-tx)} .trend.flat{color:var(--muted)}
+.num{font-variant-numeric:tabular-nums}
+.daysago{color:var(--muted);font-size:12.5px}
+.daysago.warn{color:var(--stall-tx);font-weight:600}
+
+/* ---- Follow-ups panel ---- */
+.followups{display:flex;flex-direction:column;gap:16px}
+.fu-group{background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px}
+.fu-group h3{margin:0 0 10px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;display:flex;align-items:center;gap:8px;color:var(--headline)}
+.fu-group h3 .badge{margin-left:auto;background:var(--gold);color:var(--charcoal);font-size:11px;padding:2px 9px;border-radius:999px;font-weight:700}
+.fu-group h3 .ico{width:9px;height:9px;border-radius:50%}
+.fu-item{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.fu-item:last-child{border-bottom:none;padding-bottom:0}
+.fu-item .nm{font-weight:600;color:var(--headline)}
+.fu-item .why{margin-left:auto;color:var(--muted);font-size:11.5px;text-align:right}
+.fu-empty{color:var(--muted);font-size:12.5px;font-style:italic;padding:4px 0}
+
+/* ---- Community intelligence ---- */
+.comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:22px}
+.meter-row{display:flex;align-items:center;gap:12px;margin:9px 0}
+.meter-row .mlabel{width:150px;font-size:12.5px;color:var(--ink);flex:none}
+.meter-track{flex:1;height:9px;background:rgba(242,237,228,.08);border-radius:999px;overflow:hidden}
+.meter-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--gold),#d0bd85)}
+.meter-val{width:34px;text-align:right;font-size:12.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+.dist{display:flex;flex-direction:column;gap:8px;margin-top:4px}
+.dist-row{display:flex;align-items:center;gap:10px}
+.dist-row .dl{width:78px;font-size:12px;color:var(--muted);flex:none}
+.dist-track{flex:1;height:22px;background:rgba(242,237,228,.06);border-radius:6px;overflow:hidden;position:relative}
+.dist-bar{height:100%;border-radius:6px;display:flex;align-items:center;padding-left:8px;color:#1C1C1C;font-size:11px;font-weight:700;min-width:2px}
+.big-stat{display:flex;gap:26px;flex-wrap:wrap;margin-top:2px}
+.big-stat .bs{display:flex;flex-direction:column}
+.big-stat .bs .n{font-family:'Cinzel',serif;font-size:30px;font-weight:600;color:var(--headline);line-height:1}
+.big-stat .bs .l{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:5px}
+.card-pad{padding:18px}
+.card-pad h3{margin:0 0 12px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--headline)}
+
+/* ---- Loading / error ---- */
+.notice{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:26px;text-align:center;color:var(--muted);font-size:14px}
+.spinner{width:22px;height:22px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 12px}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+footer{margin-top:44px;text-align:center;color:var(--muted);font-size:11.5px;letter-spacing:.04em}
+
+/* ---- Client detail drawer ---- */
+.tbl tbody tr.crow{cursor:pointer}
+.drawer-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:opacity .2s;z-index:60}
+.drawer-overlay.open{opacity:1;pointer-events:auto}
+.drawer{position:fixed;top:0;right:0;height:100%;width:480px;max-width:94vw;background:var(--bg);border-left:1px solid var(--line);
+  box-shadow:-16px 0 50px rgba(0,0,0,.5);transform:translateX(100%);transition:transform .26s cubic-bezier(.4,0,.2,1);z-index:61;overflow-y:auto}
+.drawer.open{transform:translateX(0)}
+.d-head{padding:22px 24px 18px;border-bottom:1px solid var(--line);background:var(--surface);position:sticky;top:0;z-index:2}
+.d-close{position:absolute;top:18px;right:18px;background:transparent;border:1px solid var(--line);color:var(--ink);
+  width:30px;height:30px;border-radius:8px;cursor:pointer;font-size:13px;line-height:1}
+.d-close:hover{background:var(--surface-2)}
+.d-name{font-family:'Cinzel',serif;font-size:22px;font-weight:600;color:var(--headline);padding-right:36px;line-height:1.1}
+.d-sub{font-size:12.5px;color:var(--muted);margin-top:4px;text-transform:capitalize}
+.d-status{display:flex;align-items:center;gap:12px;margin-top:13px;flex-wrap:wrap}
+.d-since{font-size:12px;color:var(--muted)}
+.d-body{padding:20px 24px 44px}
+.d-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.ds{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 6px;text-align:center}
+.ds-n{display:block;font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--headline);line-height:1}
+.ds-n.pos{color:var(--good-tx)} .ds-n.neg{color:var(--stall-tx)}
+.ds-l{display:block;font-size:9px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-top:6px}
+.d-sec{margin-top:26px}
+.d-sec h4{margin:0 0 12px;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.spark{width:100%;height:auto;display:block}
+.spark-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+.detail-empty{font-size:12.5px;color:var(--muted);font-style:italic}
+.log{display:flex;flex-direction:column}
+.log-item{padding:13px 0;border-bottom:1px solid var(--line)}
+.log-item:last-child{border-bottom:none}
+.log-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.log-date{font-weight:700;font-size:12.5px;color:var(--headline)}
+.log-metrics{font-size:12.5px;color:var(--ink)}
+.log-metrics b{color:var(--headline)}
+.cbadge{background:var(--accent-soft);color:var(--gold);font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;margin-left:6px}
+.log-q{font-size:12.5px;color:var(--ink-soft);margin-top:7px;display:flex;gap:8px}
+.log-q .lq-l{flex:none;font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;width:38px;padding-top:2px}
+/* ---- Typeable note (input test) ---- */
+.note-sec .note-input{width:100%;min-height:92px;resize:vertical;background:var(--bg);border:1px solid var(--line);
+  border-radius:10px;color:var(--ink);font-family:inherit;font-size:14px;padding:11px 12px;line-height:1.5}
+.note-sec .note-input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--accent-soft)}
+.note-row{display:flex;align-items:center;gap:12px;margin-top:10px;flex-wrap:wrap}
+.note-save{background:var(--gold);color:var(--charcoal);border:none;border-radius:8px;padding:9px 16px;
+  font-family:inherit;font-weight:700;font-size:12.5px;letter-spacing:.02em;cursor:pointer}
+.note-save:hover{background:#d0bd85}
+.note-status{font-size:12px;color:var(--good-tx)}
+.note-log{margin-top:14px}
+.note-log-item{padding:10px 0;border-top:1px solid var(--line);display:flex;flex-direction:column;gap:3px}
+.nl-date{font-size:10px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.nl-text{font-size:13px;color:var(--ink-soft);line-height:1.45}
+/* ---- Weekly check-in form ---- */
+.ci-toggle{width:100%;background:var(--accent-soft);color:var(--gold);border:1px solid rgba(193,173,114,.35);
+  border-radius:10px;padding:12px;font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer;letter-spacing:.02em}
+.ci-toggle:hover{background:rgba(193,173,114,.22)}
+.ci-form{margin-top:14px;flex-direction:column;gap:15px}
+.ci-field{display:flex;flex-direction:column;gap:6px}
+.ci-field label{font-size:12px;color:var(--ink-soft);font-weight:600}
+.ci-input{background:var(--bg);border:1px solid var(--line);border-radius:9px;color:var(--ink);
+  font-family:inherit;font-size:14px;padding:10px 12px;width:100%}
+.ci-input:focus{outline:none;border-color:var(--gold)}
+.ci-block{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.ci-blocklabel{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px}
+.scl-row{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:9px 0}
+.scl-label{font-size:12.5px;color:var(--ink)}
+.scl-btns{display:flex;gap:5px}
+.scl-btns.wide{flex-wrap:wrap}
+.scl-btn{width:30px;height:30px;border-radius:7px;border:1px solid var(--line);background:var(--bg);
+  color:var(--muted);font-family:inherit;font-weight:700;font-size:12.5px;cursor:pointer}
+.scl-btn:hover{border-color:var(--gold)}
+.scl-btn.on{background:var(--gold);color:var(--charcoal);border-color:var(--gold)}
+.ci-chips{display:flex;flex-wrap:wrap;gap:6px}
+.ci-chip{border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:999px;
+  padding:7px 12px;font-family:inherit;font-size:12.5px;cursor:pointer}
+.ci-chip:hover{border-color:var(--gold)}
+.ci-chip.on{background:var(--gold);color:var(--charcoal);border-color:var(--gold);font-weight:700}
+.ci-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.ci-submit{background:var(--gold);color:var(--charcoal);border:none;border-radius:9px;padding:11px 20px;
+  font-family:inherit;font-weight:700;font-size:13.5px;cursor:pointer}
+.ci-submit:hover{background:#d0bd85}
+.ci-status{font-size:12px}
+select.ci-input{appearance:none;-webkit-appearance:none}
+/* ---- Personal records ---- */
+.pr-list{margin-top:14px}
+.pr-item{padding:12px 0;border-top:1px solid var(--line)}
+.pr-item:first-child{border-top:none}
+.pr-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pr-ex{font-weight:600;color:var(--headline);font-size:13.5px}
+.pr-best{font-family:'Cinzel',serif;color:var(--gold);font-weight:600;font-size:15px;white-space:nowrap}
+.pr-sub{display:flex;align-items:center;gap:12px;margin-top:6px;font-size:11.5px;color:var(--muted)}
+.pr-formwrap{margin-top:12px;display:flex;flex-direction:column;gap:14px}
+
+/* ---- Responsive ---- */
+@media(max-width:960px){
+  .tiles{grid-template-columns:repeat(2,1fr)}
+  .grid-main{grid-template-columns:1fr}
+  .comm-grid{grid-template-columns:1fr}
+}
+@media(max-width:560px){
+  .tiles{grid-template-columns:1fr 1fr;gap:10px}
+  .tile .value{font-size:22px}
+  .hide-sm{display:none}
+  .top-inner{gap:12px}
+  .brand{margin-right:0;width:100%}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <!-- Drop your logo file in this folder as  logo.png  and it appears here.
+           Until then, the on-brand text wordmark below shows automatically. -->
+      <img class="logo" src="logo.png" alt="Legacy Performance"
+           onerror="this.remove();document.getElementById('brandFallback').style.display='flex'" />
+      <span class="brand-fallback" id="brandFallback" style="display:none">
+        <span class="lg">LEGACY</span><span class="pf">PERFORMANCE</span>
+      </span>
+      <span class="divider"></span>
+      <span class="tool-tag">Command Center</span>
+    </div>
+    <span class="status-chip" id="statusChip"><span class="dot demo" id="statusDot"></span><span id="statusText">Demo</span></span>
+    <span class="updated" id="updatedAt"></span>
+    <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
+  </div>
+</header>
+
+<div class="demo-banner" id="demoBanner">
+  <div class="di">
+    <span>🎯</span>
+    <span><b>Demo mode.</b> You're seeing sample data so you can see the layout working. Paste your published-CSV links into the <b>CONFIG block</b> at the top of this file (see <b>README-DEPLOY.md</b>) to go live.</span>
+  </div>
+</div>
+
+<div class="app">
+<aside class="sidebar" id="sidebar"></aside>
+<main class="main">
+
+<section class="view" id="view-command"><div class="wrap">
+
+  <!-- BUSINESS SNAPSHOT -->
+  <div class="section">
+    <div class="section-head" style="margin-top:26px">
+      <h2>Business Snapshot</h2><div class="rule"></div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+  </div>
+
+  <!-- CLIENTS + FOLLOW-UPS -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Client Board</h2><div class="rule"></div>
+      <span class="count" id="clientCount"></span>
+    </div>
+    <div class="pipeline" id="pipeline"></div>
+    <div class="grid-main">
+      <div class="card" id="clientCard">
+        <div class="notice"><div class="spinner"></div>Loading clients…</div>
+      </div>
+      <div class="followups" id="followups"></div>
+    </div>
+  </div>
+
+  <!-- COMMUNITY INTELLIGENCE -->
+  <div class="section">
+    <div class="section-head">
+      <h2>Community Intelligence</h2><div class="rule"></div>
+      <span class="count" id="commMeta"></span>
+    </div>
+    <div class="comm-grid">
+      <div class="card card-pad">
+        <h3>This week at a glance</h3>
+        <div class="big-stat" id="commBig"></div>
+        <div style="margin-top:20px"><h3>Consistency spread</h3><div class="dist" id="commDist"></div></div>
+      </div>
+      <div class="card card-pad">
+        <h3>Average biofeedback markers (1–5)</h3>
+        <div id="commMarkers"></div>
+      </div>
+    </div>
+  </div>
+
+  <footer>Legacy Performance · built for mission-driven leaders · reads live from Google Sheets</footer>
+</div></section>
+
+<section class="view active" id="view-tasks"><div class="wrap tasks-wrap" id="tasksView"></div></section>
+<section class="view" id="view-revenue"><div class="wrap" id="revenueView"></div></section>
+<section class="view" id="view-workshops"><div class="wrap" id="workshopsView"></div></section>
+<section class="view" id="view-metrics"><div class="wrap" id="metricsView"></div></section>
+<section class="view" id="view-content"><div class="wrap" id="contentView"></div></section>
+<section class="view" id="view-toolkit"><div class="wrap" id="toolkitView"></div></section>
+<section class="view" id="view-integrations"><div class="wrap" id="integrationsView"></div></section>
+
+</main>
+</div>
+
+<!-- Client detail drawer (slides in when a client row is clicked) -->
+<div class="drawer-overlay" id="drawerOverlay" onclick="closeClient()"></div>
+<aside class="drawer" id="drawer" aria-label="Client detail"><div id="drawerBody"></div></aside>
+
+<script>
+/* ============================ SAMPLE DATA (demo mode) ============================ */
+/* Mirrors your real Weekly Check-In columns so the layout matches live data exactly. */
+const DEMO = {
+  business: [
+    ["Founding 25 filled","12 / 25"],
+    ["Active clients","18"],
+    ["MRR","$4,820"],
+    ["New leads this week","7"],
+    ["Assessment calls booked","3"]
+  ],
+  roster: [
+    // Name, Email, Program, Goal, Start, Status
+    ["Marcus Bell","marcus@ex.com","Live Lean","Lose","2026-05-20","Active"],
+    ["David Cho","david@ex.com","Live Strong","Lose","2026-04-11","Active"],
+    ["Aaron Webb","aaron@ex.com","Live Lean","Lose","2026-06-02","Active"],
+    ["Paul Ramos","paul@ex.com","Foundations","Maintain","2026-06-18","Active"],
+    ["Ben Ortiz","ben@ex.com","Live Long","Lose","2026-03-30","Active"],
+    ["Chris Nolan","chris@ex.com","Live Lean","Lose","2026-05-05","Active"],
+    ["Sam Hughes","sam@ex.com","Live Strong","Gain","2026-06-25","Active"]
+  ],
+  // Weekly check-in rows: timestamp,email,name,weight,consistency,energy,sleep,mood,food(1-10),victory,focus,notes
+  checkins: (function(){
+    const now = Date.now(), d = n => new Date(now - n*86400000);
+    return [
+      // Marcus — on track, losing
+      [d(2),"marcus@ex.com","Marcus Bell",211.4,"95–100%",5,4,5,9,"Fit into my old suit jacket","Keep protein at breakfast","Best week yet, energy is high"],
+      [d(9),"marcus@ex.com","Marcus Bell",213.1,"85–95%",4,4,4,8,"Walked 10k steps every day","Cut the late-night snacking",""],
+      [d(16),"marcus@ex.com","Marcus Bell",214.8,"85–95%",4,3,4,7,"Meal prepped the whole week","Get to bed earlier",""],
+      // David — watch, consistency slipping
+      [d(3),"david@ex.com","David Cho",198.2,"70–85%",3,3,3,6,"Still hit the gym 3x","Get back on track with meals","Travel threw me off midweek"],
+      [d(10),"david@ex.com","David Cho",198.0,"70–85%",3,2,3,6,"Said no to the office donuts","More consistent sleep",""],
+      [d(17),"david@ex.com","David Cho",198.9,"85–95%",4,3,4,7,"Down a notch on my belt","Drink more water",""],
+      // Aaron — stalling, low consistency
+      [d(4),"aaron@ex.com","Aaron Webb",176.5,"Under 60%",2,2,2,4,"Made it to one workout","Just show up daily","Rough week, work stress high"],
+      [d(12),"aaron@ex.com","Aaron Webb",176.2,"60–70%",3,3,3,5,"Cooked at home twice","Plan meals ahead",""],
+      // Paul — on track maintain
+      [d(1),"paul@ex.com","Paul Ramos",184.0,"95–100%",5,5,5,9,"Coached my son's game with energy to spare","Maintain the routine","Feeling dialed in"],
+      [d(8),"paul@ex.com","Paul Ramos",184.3,"95–100%",4,4,5,8,"Steady all week","Keep it going",""],
+      // Ben — gone quiet (14 days)
+      [d(14),"ben@ex.com","Ben Ortiz",229.0,"85–95%",4,3,4,7,"Started morning walks","Be consistent with check-ins","Busy season at church is starting"],
+      // Chris — watch, weight up against goal
+      [d(2),"chris@ex.com","Chris Nolan",203.6,"85–95%",4,3,3,7,"Strongest lifts yet","Tighten up nutrition","Weight is up but so is strength"],
+      [d(9),"chris@ex.com","Chris Nolan",201.9,"85–95%",4,4,4,8,"Trained all 4 days","Watch portions on weekends",""],
+      // Sam — gaining (goal), on track
+      [d(3),"sam@ex.com","Sam Hughes",168.4,"95–100%",5,4,4,8,"Added 10 lbs to my bench","Keep eating enough","Gaining the right way"],
+      [d(10),"sam@ex.com","Sam Hughes",166.9,"85–95%",4,4,4,7,"Hit my calorie target daily","More sleep",""]
+    ];
+  })()
+};
+
+/* ============================ CSV PARSER ============================ */
+function parseCSV(text){
+  const rows=[]; let row=[], cur="", q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){
+      if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; }
+      else cur+=c;
+    }else{
+      if(c==='"') q=true;
+      else if(c===','){ row.push(cur); cur=""; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=""; }
+      else if(c==='\r'){ /* skip */ }
+      else cur+=c;
+    }
+  }
+  if(cur.length||row.length){ row.push(cur); rows.push(row); }
+  return rows.filter(r=>r.length>1 || (r.length===1 && r[0].trim()!==""));
+}
+
+/* Find a column index by fuzzy header match (case-insensitive contains). */
+function col(headers, ...needles){
+  const H = headers.map(h=>(h||"").toLowerCase());
+  for(const n of needles){
+    const k=n.toLowerCase();
+    const i=H.findIndex(h=>h.includes(k));
+    if(i>=0) return i;
+  }
+  return -1;
+}
+
+/* ============================ HELPERS ============================ */
+const normDash = s => (s||"").replace(/[‒–—−]/g,"-");
+function consistencyToNum(v){
+  const s=normDash(String(v)).toLowerCase();
+  if(s.includes("under 60")||s.includes("<60")) return 55;
+  if(s.includes("60-70")) return 65;
+  if(s.includes("70-85")) return 78;
+  if(s.includes("85-95")) return 90;
+  if(s.includes("95-100")) return 98;
+  const m=s.match(/(\d+)/); return m?+m[1]:null;
+}
+function parseTs(v){
+  if(v instanceof Date) return v.getTime();
+  const t=Date.parse(v); return isNaN(t)?null:t;
+}
+const daysSince = ms => Math.floor((Date.now()-ms)/86400000);
+const num = v => { const n=parseFloat(String(v).replace(/[^0-9.\-]/g,"")); return isNaN(n)?null:n; };
+
+/* ============================ FETCH ============================ */
+async function fetchCsv(url){
+  const res = await fetch(url, {cache:"no-store"});
+  if(!res.ok) throw new Error("HTTP "+res.status);
+  return parseCSV(await res.text());
+}
+
+/* ============================ DATA SHAPING ============================ */
+function shapeCheckins(rows){
+  // rows[0] = headers. Map by fuzzy header.
+  const h=rows[0];
+  const iTs=col(h,"timestamp"), iEmail=col(h,"email"), iName=col(h,"name"),
+        iW=col(h,"weight"), iCons=col(h,"hit this week","consistency","% of your plan","plan did you"),
+        iEnergy=col(h,"energy"), iSleep=col(h,"sleep"), iMood=col(h,"mood"),
+        iFood=col(h,"food quality"),
+        iVic=col(h,"non-scale","victory"), iNext=col(h,"focus next","focus on next","one thing you"),
+        iNote=col(h,"anything else","should i know");
+  return rows.slice(1).map(r=>({
+    ts: parseTs(r[iTs]) ?? Date.now(),
+    email:(r[iEmail]||"").trim().toLowerCase(),
+    name:(r[iName]||"").trim(),
+    weight:num(r[iW]),
+    cons:consistencyToNum(r[iCons]),
+    energy:num(r[iEnergy]), sleep:num(r[iSleep]), mood:num(r[iMood]),
+    food:num(r[iFood]),
+    victory:(r[iVic]||"").trim(), focus:(r[iNext]||"").trim(), notes:(r[iNote]||"").trim()
+  })).filter(x=>x.email);
+}
+function shapeRoster(rows){
+  const h=rows[0];
+  const iName=col(h,"name"), iEmail=col(h,"email"), iProg=col(h,"program","tier"),
+        iGoal=col(h,"goal"), iStatus=col(h,"status"),
+        iAmt=col(h,"amount"), iFreq=col(h,"frequency"), iMrr=col(h,"mrr"),
+        iFound=col(h,"founding"), iPay=col(h,"payment");
+  return rows.slice(1).map(r=>({
+    name:(r[iName]||"").trim(), email:(r[iEmail]||"").trim().toLowerCase(),
+    program:(r[iProg]||"").trim(), goal:(r[iGoal]||"Lose").trim(),
+    status:(r[iStatus]||"Active").trim(),
+    amount:num(r[iAmt]), frequency:(r[iFreq]||"").trim(), mrr:num(r[iMrr]),
+    founding:(r[iFound]||"").trim(), payment:(r[iPay]||"").trim()
+  })).filter(x=>x.email);
+}
+function shapePRs(rows){
+  const h=rows[0];
+  const iTs=col(h,"timestamp"), iEmail=col(h,"email"), iEx=col(h,"exercise"),
+        iW=col(h,"weight"), iR=col(h,"reps");
+  return rows.slice(1).map(r=>({
+    ts:parseTs(r[iTs]) ?? Date.now(), email:(r[iEmail]||"").trim().toLowerCase(),
+    exercise:(r[iEx]||"").trim(), weight:num(r[iW]), reps:num(r[iR])
+  })).filter(x=>x.email && x.exercise);
+}
+function shapeRevenue(rows){
+  const h=rows[0];
+  const iName=col(h,"client","name"), iAmt=col(h,"amount","price","payment","mrr"),
+        iFreq=col(h,"frequency","billing","cadence","plan"), iStatus=col(h,"status");
+  return rows.slice(1).map(r=>({
+    name:(r[iName]||"").trim(), amount:num(r[iAmt]),
+    freq:(r[iFreq]||"Monthly").trim(), status:(r[iStatus]||"Active").trim()
+  })).filter(x=>x.amount!=null);
+}
+// Compute the Business Snapshot tiles from the Clients roster (MRR, active, lead projection, founding).
+const PER_LEAD_VALUE = 54.70; // expected recurring $/mo per lead (tunable conversion model)
+function normalizeMonthly(r){
+  if(r.mrr!=null && !isNaN(r.mrr) && r.mrr>0) return r.mrr; // trust the sheet's MRR column first
+  const a=r.amount; if(a==null||isNaN(a)) return 0;
+  const f=(r.frequency||"monthly").toLowerCase();
+  if(f.includes("year")||f.includes("annual")) return a/12;
+  if(f.includes("semi")||f.includes("6")) return a/6;
+  if(f.includes("quarter")) return a/3;
+  if(f.includes("week")) return a*52/12;
+  return a; // monthly (one-time also treated as its monthly-equivalent = amount)
+}
+function computeBusiness(roster){
+  const active    = roster.filter(r=>/^active/i.test(r.status));
+  const community = roster.filter(r=>/community/i.test(r.status));
+  const pool      = roster.filter(r=>/community|prospect|lead/i.test(r.status)); // free members + cold leads = conversion pool
+  const mrr = active.reduce((s,r)=>s+normalizeMonthly(r),0);
+  const poolProjection = pool.length*PER_LEAD_VALUE;
+  const fStd  = roster.filter(r=>/standard/i.test(r.founding)).length;
+  const fPrem = roster.filter(r=>/premium/i.test(r.founding)).length;
+  const money = n=>"$"+Math.round(n).toLocaleString();
+  return [
+    ["MRR", money(mrr)],
+    ["Active members", String(active.length)],
+    ["Community (free)", String(community.length)],
+    ["Conversion pool ("+pool.length+") projection", money(poolProjection)+"/mo"],
+    ["Value per lead", "$"+Math.round(PER_LEAD_VALUE)+"/mo"],
+    ["Founding Standard", fStd+" / 25"],
+    ["Founding Premium", fPrem+" / 25"]
+  ];
+}
+function shapeBusiness(rows){ // two-column Metric | Value (skip header if present)
+  const out=[];
+  rows.forEach((r,i)=>{
+    if(i===0 && /metric|label|kpi/i.test(r[0]||"")) return;
+    if((r[0]||"").trim()==="") return;
+    out.push([r[0].trim(), (r[1]||"").trim()]);
+  });
+  return out;
+}
+
+/* Convert demo arrays -> same shape as shaped CSV */
+function demoShape(){
+  const checkins = DEMO.checkins.map(r=>({
+    ts:(r[0] instanceof Date)?r[0].getTime():parseTs(r[0]),
+    email:r[1].toLowerCase(), name:r[2], weight:r[3], cons:consistencyToNum(r[4]),
+    energy:r[5], sleep:r[6], mood:r[7], food:r[8],
+    victory:r[9]||"", focus:r[10]||"", notes:r[11]||""
+  }));
+  const roster = DEMO.roster.map(r=>({name:r[0],email:r[1].toLowerCase(),program:r[2],goal:r[3],status:r[5]}));
+  return {checkins, roster, business:DEMO.business};
+}
+
+/* ============================ CLIENT MODEL ============================ */
+function buildClients(checkins, roster){
+  const byEmail={};
+  checkins.forEach(c=>{ (byEmail[c.email]=byEmail[c.email]||[]).push(c); });
+  Object.values(byEmail).forEach(list=>list.sort((a,b)=>a.ts-b.ts));
+
+  // Roster is the source of truth for who exists; fall back to check-in names.
+  const emails = new Set([...roster.map(r=>r.email), ...Object.keys(byEmail)]);
+  const rmap={}; roster.forEach(r=>rmap[r.email]=r);
+
+  return [...emails].map(email=>{
+    const list=byEmail[email]||[];
+    const last=list[list.length-1];
+    const r=rmap[email]||{};
+    const name=(r.name)||(last&&last.name)||email;
+    const goal=(r.goal||"Lose").toLowerCase();
+    const dSince = last? daysSince(last.ts): null;
+
+    // weight trend over last up-to-3 check-ins
+    let trend=null, trendDir="flat";
+    if(list.length>=2){
+      const recent=list.slice(-3);
+      const delta = recent[recent.length-1].weight - recent[0].weight;
+      if(delta!=null && !isNaN(delta)){
+        trend=delta;
+        const goodDown = goal.includes("lose");
+        const goodUp = goal.includes("gain");
+        if(Math.abs(delta)<0.4) trendDir="flat";
+        else if(delta<0) trendDir = goodDown?"down": (goodUp?"up-bad":"down");
+        else trendDir = goodUp?"down-good": (goodDown?"up":"up");
+      }
+    }
+    // normalize trendDir into good/bad/flat for coloring
+    const trendGood = (goal.includes("lose")&&trend<-0.4) || (goal.includes("gain")&&trend>0.4);
+    const trendBad  = (goal.includes("lose")&&trend>0.4)  || (goal.includes("gain")&&trend<-0.4);
+
+    // health signal
+    let signal="quiet";
+    if(dSince==null){ signal="quiet"; }
+    else if(dSince>=CONFIG.goneQuietDays){ signal="quiet"; }
+    else{
+      const c=last.cons??0;
+      if(c>=CONFIG.onTrackConsistency && !trendBad) signal="good";
+      else if(c>=CONFIG.watchConsistency || trendBad) signal="watch";
+      else signal="stall";
+    }
+    // watch override: consistency high but trend fighting the goal
+    if(signal==="good" && trendBad) signal="watch";
+
+    return {
+      email,name,program:r.program||"",goal:r.goal||"Lose",
+      status:(r.status||"Active").trim(),
+      last,dSince,cons:last?last.cons:null,
+      weight:last?last.weight:null,trend,trendGood,trendBad,signal,
+      history:list
+    };
+  }).sort((a,b)=>{
+    const order={quiet:0,stall:1,watch:2,good:3};
+    if(order[a.signal]!==order[b.signal]) return order[a.signal]-order[b.signal];
+    return (b.dSince??-1)-(a.dSince??-1);
+  });
+}
+
+/* ============================ RENDER ============================ */
+const SIGNAL_LABEL={good:"On track",watch:"Watch",stall:"Stalling",quiet:"Gone quiet"};
+let CLIENT_FILTER="Active";
+
+function renderPipeline(all){
+  const order=["Active","Prospect","Lead","Paused","Cancelled"];
+  const counts={}; all.forEach(c=>{ counts[c.status]=(counts[c.status]||0)+1; });
+  const present=order.filter(s=>counts[s]).concat(Object.keys(counts).filter(s=>!order.includes(s)));
+  const chips=[["All",all.length]].concat(present.map(s=>[s,counts[s]]));
+  document.getElementById("pipeline").innerHTML = chips.map(([s,n])=>
+    `<div class="pchip ${CLIENT_FILTER===s?'on':''}" onclick="setFilter('${s}')">
+       <span class="pn">${n}</span><span class="pl">${s}</span></div>`).join("");
+}
+function setFilter(s){ CLIENT_FILTER=s; renderPipeline(window.__clients||[]); renderClients(window.__clients||[]); }
+
+function renderTiles(business){
+  const el=document.getElementById("tiles");
+  el.innerHTML = business.slice(0,8).map(([label,value])=>`
+    <div class="tile">
+      <div class="label">${esc(label)}</div>
+      <div class="value">${esc(value)}</div>
+    </div>`).join("");
+}
+
+function renderClients(all){
+  const list = CLIENT_FILTER==="All" ? all : all.filter(c=>c.status===CLIENT_FILTER);
+  const label = CLIENT_FILTER==="All" ? "clients" : CLIENT_FILTER.toLowerCase();
+  document.getElementById("clientCount").textContent = list.length+" "+label+" · click a client for full history";
+  if(!list.length){
+    document.getElementById("clientCard").innerHTML=`<div class="notice">No ${label} to show.</div>`;
+    return;
+  }
+  const rows=list.map(c=>{
+    const days = c.dSince==null?"—":(c.dSince+"d ago");
+    const warn = c.dSince!=null && c.dSince>=CONFIG.reviewDueDays;
+    let trendHtml='<span class="trend flat">—</span>';
+    if(c.trend!=null && !isNaN(c.trend)){
+      const arrow = c.trend<0?"▼":(c.trend>0?"▲":"—");
+      const cls = c.trendGood?"down":(c.trendBad?"up":"flat");
+      trendHtml=`<span class="trend ${cls}">${arrow} ${Math.abs(c.trend).toFixed(1)}</span>`;
+    }
+    let pill;
+    if(c.status!=="Active") pill = `<span class="pill pipe">${esc(c.status)}</span>`;
+    else if(c.dSince==null) pill = `<span class="pill new"><span class="d"></span>No check-in yet</span>`;
+    else pill = `<span class="pill ${c.signal}"><span class="d"></span>${SIGNAL_LABEL[c.signal]}</span>`;
+    return `<tr class="crow" onclick="openClient('${c.email}')">
+      <td>
+        <div class="client-name">${esc(c.name)}</div>
+        <div class="client-prog">${esc(c.program)||"—"} · ${esc(c.goal)}</div>
+      </td>
+      <td>${pill}</td>
+      <td class="daysago ${warn?'warn':''} hide-sm">${days}</td>
+      <td class="num hide-sm">${c.cons!=null?c.cons+"%":"—"}</td>
+      <td class="num hide-sm">${c.weight!=null?c.weight:"—"}</td>
+      <td>${trendHtml}</td>
+    </tr>`;
+  }).join("");
+  document.getElementById("clientCard").innerHTML=`
+    <table class="tbl">
+      <thead><tr>
+        <th>Client</th><th>Status</th>
+        <th class="hide-sm">Last check-in</th><th class="hide-sm">Consistency</th>
+        <th class="hide-sm">Weight</th><th>Trend</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+function renderFollowups(all){
+  const clients = all.filter(c=>c.status==="Active");
+  const goneQuiet = clients.filter(c=>c.signal==="quiet" && c.dSince!=null);
+  const stalling  = clients.filter(c=>c.signal==="stall");
+  const reviewDue = clients.filter(c=>c.signal!=="quiet" && c.dSince!=null && c.dSince>=CONFIG.reviewDueDays);
+  const noCheckin = clients.filter(c=>c.dSince==null);
+
+  const grp=(title,color,items,render)=>`
+    <div class="fu-group">
+      <h3><span class="ico" style="background:${color}"></span>${title}<span class="badge">${items.length}</span></h3>
+      ${items.length? items.map(render).join("") : '<div class="fu-empty">Nothing here — nice.</div>'}
+    </div>`;
+
+  document.getElementById("followups").innerHTML =
+    grp("Gone quiet · reach out","var(--quiet)",goneQuiet,c=>
+        `<div class="fu-item"><span class="nm">${esc(c.name)}</span><span class="why">${c.dSince??"?"}d since check-in</span></div>`) +
+    grp("Stalling · needs a nudge","var(--stall)",stalling,c=>
+        `<div class="fu-item"><span class="nm">${esc(c.name)}</span><span class="why">${c.cons!=null?c.cons+"% consistency":"low consistency"}</span></div>`) +
+    grp("Review due","var(--gold)",reviewDue,c=>
+        `<div class="fu-item"><span class="nm">${esc(c.name)}</span><span class="why">${c.dSince}d ago</span></div>`) +
+    (noCheckin.length? grp("No check-in yet","var(--good)",noCheckin,c=>
+        `<div class="fu-item"><span class="nm">${esc(c.name)}</span><span class="why">never checked in</span></div>`):"");
+}
+
+function renderCommunity(all, checkins){
+  const clients = all.filter(c=>c.status==="Active");
+  // This-week glance: who checked in within 7 days
+  const active = clients.filter(c=>c.signal!=="quiet"||c.dSince!=null);
+  const rosterN = clients.length;
+  const checkedThisWeek = clients.filter(c=>c.dSince!=null && c.dSince<=7).length;
+  const rate = rosterN? Math.round(checkedThisWeek/rosterN*100):0;
+
+  // avg weight change (latest vs prior) across those with 2+ check-ins
+  const deltas = clients.map(c=>c.trend).filter(t=>t!=null && !isNaN(t));
+  const avgDelta = deltas.length? (deltas.reduce((a,b)=>a+b,0)/deltas.length):null;
+
+  document.getElementById("commMeta").textContent = checkedThisWeek+" of "+rosterN+" checked in this week";
+  document.getElementById("commBig").innerHTML=`
+    <div class="bs"><span class="n">${rate}%</span><span class="l">Check-in rate</span></div>
+    <div class="bs"><span class="n">${checkedThisWeek}</span><span class="l">Checked in</span></div>
+    <div class="bs"><span class="n">${avgDelta!=null?(avgDelta>0?"+":"")+avgDelta.toFixed(1):"—"}</span><span class="l">Avg wt change (lb)</span></div>`;
+
+  // consistency spread from latest check-in per client
+  const buckets={"Under 60":0,"60–70":0,"70–85":0,"85–95":0,"95–100":0};
+  clients.forEach(c=>{
+    const v=c.cons; if(v==null) return;
+    if(v<60) buckets["Under 60"]++;
+    else if(v<70) buckets["60–70"]++;
+    else if(v<85) buckets["70–85"]++;
+    else if(v<95) buckets["85–95"]++;
+    else buckets["95–100"]++;
+  });
+  const maxB=Math.max(1,...Object.values(buckets));
+  const colors={"Under 60":"var(--stall)","60–70":"#c98a4a","70–85":"var(--gold)","85–95":"var(--olive-soft)","95–100":"var(--good)"};
+  document.getElementById("commDist").innerHTML = Object.entries(buckets).map(([k,v])=>`
+    <div class="dist-row">
+      <span class="dl">${k}%</span>
+      <div class="dist-track"><div class="dist-bar" style="width:${Math.max(4,v/maxB*100)}%;background:${colors[k]}">${v||""}</div></div>
+    </div>`).join("");
+
+  // avg biofeedback markers (energy/sleep/mood/digestion + food quality scaled)
+  const recent = checkins.filter(c=>c.ts && daysSince(c.ts)<=14);
+  const avg = key => { const xs=recent.map(c=>c[key]).filter(n=>n!=null&&!isNaN(n)); return xs.length? xs.reduce((a,b)=>a+b,0)/xs.length:null; };
+  const markers=[["Energy",avg("energy"),5],["Sleep quality",avg("sleep"),5],["Mood & resilience",avg("mood"),5],["Digestion",avg("food")?avg("food")/2:null,5]];
+  document.getElementById("commMarkers").innerHTML = markers.map(([label,val,max])=>{
+    const pct = val!=null? Math.min(100,val/max*100):0;
+    return `<div class="meter-row">
+      <span class="mlabel">${label}</span>
+      <div class="meter-track"><div class="meter-fill" style="width:${pct}%"></div></div>
+      <span class="meter-val">${val!=null?val.toFixed(1):"—"}</span>
+    </div>`;
+  }).join("");
+}
+
+function esc(s){return String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+
+/* ============================ CLIENT DETAIL DRAWER ============================ */
+function openClient(email){
+  const c=(window.__clients||[]).find(x=>x.email===email);
+  if(!c) return;
+  document.getElementById("drawerBody").innerHTML = clientDetail(c);
+  document.getElementById("drawerOverlay").classList.add("open");
+  document.getElementById("drawer").classList.add("open");
+  document.body.style.overflow="hidden";
+  document.getElementById("drawer").scrollTop=0;
+}
+function closeClient(){
+  document.getElementById("drawerOverlay").classList.remove("open");
+  document.getElementById("drawer").classList.remove("open");
+  document.body.style.overflow="";
+}
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") closeClient(); });
+
+const fmtDate = ts => new Date(ts).toLocaleDateString(undefined,{month:"short",day:"numeric"});
+
+/* WRITE doorway. POSTs to the Google Apps Script when CONFIG.writeUrl is set;
+   otherwise returns {local:true} and we save on-device so the experience still works. */
+async function postToSheet(payload){
+  if(!CONFIG.writeUrl) return {ok:false, local:true};
+  try{
+    await fetch(CONFIG.writeUrl, {method:"POST", mode:"no-cors",
+      headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(payload)});
+    return {ok:true};
+  }catch(e){ return {ok:false, error:e.message}; }
+}
+
+/* ============================ TASKS / THIS WEEK ============================ */
+const IMP = {
+  '3':{label:'Priority',stars:'★★★',cls:'star3',cap:'max 1 / day',limit:1},
+  '2':{label:'Important',stars:'★★',cls:'star2',cap:'max 3 / day',limit:3},
+  '1':{label:'Standard',stars:'★',cls:'star1',cap:'',limit:Infinity},
+  'couch':{label:'Couch work',stars:'🛋️',cls:'',cap:'end of day',limit:Infinity}
+};
+const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const DOW =['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+function lsLoad(k,def){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
+function lsSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+let SCORE = lsLoad('lp_score', {});         // { weekKey: {dms,posts,calls} } — weekly, auto-resets
+let WORKSHOPS = lsLoad('lp_workshops', []); // [ {id,label,reg,att,calls} ] — monthly log
+/* The operating rhythm (seeds on first open; edit freely after).
+   recur: daily (Mon–Sat) · weekly (a weekday) · monthly (Nth weekday) · once (a punch-list item).
+   Days: 0 Sun (Sabbath — empty) · 1 Mon · 2 Tue · 3 Wed · 4 Thu · 5 Fri · 6 Sat */
+const SEED_TASKS = [
+  // DAILY growth engine (Mike & Caleb's DM-first method) — every day but Sunday
+  {title:"Get in the DMs — app, Skool + Fitbody community", imp:"2", recur:"daily"},
+  {title:"Post to social", imp:"1", recur:"daily"},
+  // Monday — Command & Plan
+  {title:"Weekly Command Center review — numbers, at-risk clients, set the week", imp:"3", day:1},
+  {title:"11:00 AM coaching call", imp:"2", day:1},
+  {title:"Book 3 assessment calls this week (your #1 leverage — ~2 of 3 convert)", imp:"2", day:1},
+  {title:"Map this week's content", imp:"1", day:1},
+  {title:"Load the Skool CSV → send to Claude to update the roster", imp:"couch", day:1},
+  // Tuesday — Deliver
+  {title:"Coaching calls", imp:"3", day:2},
+  {title:"Client Loom feedback + weekly reviews", imp:"2", day:2},
+  // Wednesday — Deliver
+  {title:"Coaching calls", imp:"3", day:3},
+  {title:"Client nutrition reviews + plan adjustments (hold vs. advance)", imp:"2", day:3},
+  // Thursday — Content / Growth
+  {title:"Create content — record reels / batch posts", imp:"3", day:4},
+  {title:"Nurture the community — engage your free members (the conversion pool)", imp:"2", day:4},
+  {title:"Boost a winning post to ~4,000 reach (2× your followers), then work the DMs + follows", imp:"1", day:4},
+  {title:"Review ads — kill / scale", imp:"1", day:4},
+  // Friday — Marketing / Money
+  {title:"Ad scripts / campaign work", imp:"3", day:5},
+  {title:"Follow up leads + unconverted community members", imp:"2", day:5},
+  {title:"Skool value post + community engagement", imp:"2", day:5},
+  {title:"Financial check — payments in, Jen's 20% out", imp:"couch", day:5},
+  // Saturday — light
+  {title:"Prep + plan next week", imp:"1", day:6},
+  {title:"Canva tiles + batch simple content", imp:"couch", day:6},
+  // WORKSHOP build (one-off punch list — rolls over until done)
+  {title:"Build the workshop (/workshop-builder)", imp:"2", recur:"once"},
+  {title:"Write the workshop ads (/ad-stack)", imp:"2", recur:"once"},
+  {title:"Set up workshop landing page + email sequence", imp:"2", recur:"once"},
+  {title:"Launch the workshop ads", imp:"2", recur:"once"},
+  // The Collective — monthly Tuesday rotation (+ same-morning prep so you show up with questions)
+  {title:"Collective call — Lead Gen focus", imp:"2", recur:"monthly", day:2, nth:1},
+  {title:"Prep questions for today's Collective (Lead Gen)", imp:"1", recur:"monthly", day:2, nth:1},
+  {title:"Collective call — Lead Nurture focus", imp:"2", recur:"monthly", day:2, nth:2},
+  {title:"Prep questions for today's Collective (Lead Nurture)", imp:"1", recur:"monthly", day:2, nth:2},
+  {title:"Collective call — Conversion focus", imp:"2", recur:"monthly", day:2, nth:3},
+  {title:"Prep questions for today's Collective (Conversion)", imp:"1", recur:"monthly", day:2, nth:3},
+  {title:"Collective call — Plan next month's content calendar", imp:"2", recur:"monthly", day:2, nth:4},
+  {title:"Draft next month's content calendar (for today's Collective)", imp:"1", recur:"monthly", day:2, nth:4}
+  // Sunday = Sabbath — intentionally empty
+];
+/* Titles retired in newer seeds (purged on upgrade so they don't linger). */
+const SEED_RETIRED = ["Post content", "Review client check-ins → who needs a nudge (gone quiet / review due)"];
+const SEED_VERSION = 3;   // bump when the seeded rhythm changes → cleanly re-installs (keeps YOUR own tasks)
+let TASKS;
+(function initTasks(){
+  function mk(s){
+    const t={id:uidT(), title:s.title, imp:s.imp, recur:s.recur||'weekly', seed:true};
+    if(t.recur==='monthly'){ t.day=s.day; t.nth=s.nth; t.done={}; }
+    else if(t.recur==='daily'){ t.done={}; }
+    else if(t.recur==='once'){ t.date=s.date||dstr(); t.done=false; }
+    else { t.day=s.day; t.done={}; }
+    return t;
+  }
+  const raw=localStorage.getItem('lp_tasks'); let changed=false;
+  try{ TASKS = raw===null ? [] : (JSON.parse(raw)||[]); }catch(e){ TASKS=[]; }
+  const sv=+(localStorage.getItem('lp_tasks_sv')||0);
+  if(sv<SEED_VERSION){
+    // Re-install the seeded rhythm: drop everything we've ever seeded (by title), keep tasks YOU added.
+    const managed=new Set(SEED_TASKS.map(s=>s.title).concat(SEED_RETIRED));
+    const mine=TASKS.filter(t=>!managed.has(t.title));
+    TASKS=SEED_TASKS.map(mk).concat(mine);
+    try{ localStorage.setItem('lp_tasks_sv', String(SEED_VERSION)); }catch(e){}
+    changed=true;
+  }
+  if(changed){ try{ localStorage.setItem('lp_tasks', JSON.stringify(TASKS)); }catch(e){} if(CONFIG.writeUrl) postToSheet({type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS}); }
+})();
+
+function saveTasksLocal(){ try{localStorage.setItem('lp_tasks',JSON.stringify(TASKS));}catch(e){} }
+function pushTasks(){ saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS); postToSheet({type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS}); }
+function uidT(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function dstr(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function wkey(d){ d=d||new Date(); const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3); const f=new Date(Date.UTC(t.getUTCFullYear(),0,4)); const wk=1+Math.round(((t-f)/86400000-3+((f.getUTCDay()+6)%7))/7); return t.getUTCFullYear()+'-W'+String(wk).padStart(2,'0'); }
+function nthOf(d){ return Math.ceil(d.getDate()/7); }              // which Nth weekday of the month
+function mkey(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0'); }
+const ORD=['','1st','2nd','3rd','4th','5th'];
+function onDate(t,dateStr,wd){
+  const d=new Date(dateStr+'T00:00:00');
+  if(t.recur==='daily')   return wd!==0;                              // every day but Sunday (Sabbath)
+  if(t.recur==='weekly')  return String(t.day)===String(wd);
+  if(t.recur==='monthly') return String(t.day)===String(wd) && nthOf(d)===t.nth;
+  return t.date===dateStr;
+}
+function periodKey(t,dateStr){ const d=new Date(dateStr+'T00:00:00'); if(t.recur==='monthly')return mkey(d); if(t.recur==='daily')return dateStr; return wkey(d); }
+function isDone(t,dateStr){ return t.recur==='once' ? !!t.done : !!(t.done && t.done[periodKey(t,dateStr)]); }
+function setDone(t,dateStr,v){ if(t.recur==='once'){ t.done=v; } else { t.done=t.done||{}; const k=periodKey(t,dateStr); if(v) t.done[k]=true; else delete t.done[k]; } }
+function countForDay(imp,dateStr,wd){ return TASKS.filter(t=>t.imp===imp && onDate(t,dateStr,wd) && !isDone(t,dateStr)).length; }
+
+function renderTasks(){
+  const el=document.getElementById('tasksView'); if(!el) return;
+  const now=new Date(), dateStr=dstr(now), wd=now.getDay();
+  const sched=TASKS.filter(t=>onDate(t,dateStr,wd) && t.recur!=='once');   // recurring focus for today
+  const projects=TASKS.filter(t=>t.recur==='once' && !t.done).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+  let html=`<div class="view-head"><h1>This Week</h1><p class="view-sub">${DOW[wd]} · ${now.toLocaleDateString(undefined,{month:'long',day:'numeric'})} — your focus for today</p></div>`;
+  html+=scoreHtml();
+  // Quarterly planning window: the last 7 days of a quarter-ending month (Mar/Jun/Sep/Dec)
+  const lastDom=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+  if([2,5,8,11].includes(now.getMonth()) && (lastDom-now.getDate())<7){
+    html+=`<div class="qbanner">📅 <b>Quarterly week.</b> Review this quarter and plan the next together — run <code>/method-coach</code>. Trim this week's load to make the margin for it.</div>`;
+  }
+  ['3','2','1','couch'].forEach(imp=>{
+    const info=IMP[imp];
+    const list=sched.filter(t=>t.imp===imp).sort((a,b)=>isDone(a,dateStr)-isDone(b,dateStr));
+    html+=`<div class="tgroup"><div class="tgroup-h"><span class="stars ${info.cls}">${info.stars}</span> ${info.label}${info.cap?' <span class="cap">· '+info.cap+'</span>':''}</div>`;
+    html+= list.length ? list.map(t=>taskRow(t,dateStr)).join('') : `<div class="task-empty">Nothing here yet.</div>`;
+    html+=`</div>`;
+  });
+  if(projects.length){
+    html+=`<div class="tgroup"><div class="tgroup-h">📋 Projects &amp; punch-list <span class="cap">· work these when you have room</span></div>`+projects.map(t=>taskRow(t,dateStr)).join('')+`</div>`;
+  }
+  html+=`<div class="add-task">
+    <h4>Add a task</h4>
+    <input id="ntTitle" type="text" placeholder="What needs doing?" onkeydown="if(event.key==='Enter')addTask()">
+    <div class="add-row">
+      <select id="ntImp"><option value="3">★★★ Priority (1/day)</option><option value="2">★★ Important (3/day)</option><option value="1" selected>★ Standard</option><option value="couch">🛋️ Couch work</option></select>
+      <select id="ntWhen"><option value="once">Just today</option><option value="daily">Every day</option><option value="weekly">Every ${DAYS[wd]} (weekly)</option><option value="monthly">${ORD[nthOf(now)]} ${DAYS[wd]} (monthly)</option></select>
+    </div>
+    <button class="add-btn" onclick="addTask()">Add task</button>
+    <div id="ntMsg" class="task-msg"></div>
+    <div class="tsync">${CONFIG.writeUrl?'Syncs across your phone and desktop.':'Saved on this device (turn on sync to share across devices).'}</div>
+  </div>`;
+  el.innerHTML=html;
+}
+/* Weekly scoreboard — manual tap counters, auto-resets each week */
+function scoreHtml(){
+  const wk=wkey(new Date()); const s=SCORE[wk]||{dms:0,posts:0,calls:0};
+  const tile=(k,label,val,target)=>`<div class="sb">
+    <div class="sb-val">${val}${target?`<span class="sb-t">/${target}</span>`:''}</div>
+    <div class="sb-label">${label}</div>
+    <div class="sb-btns"><button class="sb-b" onclick="bump('${k}',-1)">−</button><button class="sb-b" onclick="bump('${k}',1)">＋</button></div>
+  </div>`;
+  return `<div class="scoreboard">${tile('dms','DMs sent',s.dms)}${tile('posts','Posts',s.posts)}${tile('calls','Calls booked',s.calls,3)}</div>`;
+}
+function bump(k,d){ const wk=wkey(new Date()); SCORE[wk]=SCORE[wk]||{dms:0,posts:0,calls:0}; SCORE[wk][k]=Math.max(0,(SCORE[wk][k]||0)+d); pushTasks(); renderTasks(); }
+
+/* Workshops — month-by-month log of registrants / attendees / assessment calls booked */
+function renderWorkshops(){
+  const el=document.getElementById('workshopsView'); if(!el) return;
+  const pct=(a,b)=> (+b>0) ? Math.round(a/b*100)+'%' : '—';
+  const rows=WORKSHOPS.map(w=>`<tr>
+    <td class="w-label">${esc(w.label||'')}</td>
+    <td><input type="number" min="0" value="${+w.reg||0}" onchange="editWk('${w.id}','reg',this.value)"></td>
+    <td><input type="number" min="0" value="${+w.att||0}" onchange="editWk('${w.id}','att',this.value)"></td>
+    <td><input type="number" min="0" value="${+w.calls||0}" onchange="editWk('${w.id}','calls',this.value)"></td>
+    <td class="w-rate">${pct(w.att,w.reg)}</td>
+    <td class="w-rate">${pct(w.calls,w.att)}</td>
+    <td><button class="task-del" onclick="delWk('${w.id}')" title="Delete">✕</button></td>
+  </tr>`).join('');
+  const tot=WORKSHOPS.reduce((a,w)=>({reg:a.reg+(+w.reg||0),att:a.att+(+w.att||0),calls:a.calls+(+w.calls||0)}),{reg:0,att:0,calls:0});
+  el.innerHTML=`<div class="view-head"><h1>Workshops</h1><p class="view-sub">Log each workshop month by month — registrants, attendees, and assessment calls booked.</p></div>
+    <div class="w-tablewrap"><table class="w-table">
+      <thead><tr><th>Workshop</th><th>Reg.</th><th>Attended</th><th>Calls booked</th><th>Show-up</th><th>Call rate</th><th></th></tr></thead>
+      <tbody>${rows||`<tr><td colspan="7" class="task-empty">No workshops logged yet — add your first below.</td></tr>`}</tbody>
+      ${WORKSHOPS.length?`<tfoot><tr><td>Total</td><td>${tot.reg}</td><td>${tot.att}</td><td>${tot.calls}</td><td>${pct(tot.att,tot.reg)}</td><td>${pct(tot.calls,tot.att)}</td><td></td></tr></tfoot>`:''}
+    </table></div>
+    <div class="add-task">
+      <h4>Add a workshop</h4>
+      <input id="wkLabel" type="text" placeholder="e.g., July 2026 — Built For More">
+      <div class="add-row">
+        <input id="wkReg" type="number" min="0" placeholder="Registrants">
+        <input id="wkAtt" type="number" min="0" placeholder="Attendees">
+        <input id="wkCalls" type="number" min="0" placeholder="Calls booked">
+      </div>
+      <button class="add-btn" onclick="addWk()">Add workshop</button>
+      <div id="wkMsg" class="task-msg"></div>
+    </div>`;
+}
+function addWk(){
+  const label=(document.getElementById('wkLabel').value||'').trim(), msg=document.getElementById('wkMsg');
+  if(!label){ msg.className='task-msg err'; msg.textContent='Give the workshop a name (the month works great).'; return; }
+  WORKSHOPS.push({id:uidT(), label, reg:+document.getElementById('wkReg').value||0, att:+document.getElementById('wkAtt').value||0, calls:+document.getElementById('wkCalls').value||0});
+  pushTasks(); renderWorkshops();
+}
+function editWk(id,field,val){ const w=WORKSHOPS.find(x=>x.id===id); if(w){ w[field]=Math.max(0,+val||0); pushTasks(); renderWorkshops(); } }
+function delWk(id){ WORKSHOPS=WORKSHOPS.filter(x=>x.id!==id); pushTasks(); renderWorkshops(); }
+
+function taskRow(t,dateStr){
+  const done=isDone(t,dateStr);
+  const meta = t.recur==='daily' ? 'Daily'
+    : t.recur==='weekly' ? ('Every '+DAYS[t.day])
+    : t.recur==='monthly' ? (ORD[t.nth]+' '+DAYS[t.day]+' · monthly')
+    : (t.date&&t.date<dateStr?('Was due '+t.date):'Today');
+  const couch = t.imp==='couch' ? '🛋️ ' : '';
+  return `<div class="task ${done?'done':''}">
+    <div class="task-check" onclick="toggleTask('${t.id}')">✓</div>
+    <div class="task-body"><div class="task-title">${couch}${esc(t.title)}</div><div class="task-meta">${meta}</div></div>
+    <button class="task-del" onclick="delTask('${t.id}')" title="Delete">✕</button>
+  </div>`;
+}
+function addTask(){
+  const title=(document.getElementById('ntTitle').value||'').trim();
+  const imp=document.getElementById('ntImp').value, when=document.getElementById('ntWhen').value, msg=document.getElementById('ntMsg');
+  if(!title){ msg.className='task-msg err'; msg.textContent='Give the task a name.'; return; }
+  const now=new Date(), dateStr=dstr(now), wd=now.getDay();
+  if(countForDay(imp,dateStr,wd) >= IMP[imp].limit){
+    msg.className='task-msg err';
+    msg.textContent = imp==='3' ? 'You already have your one Priority today — bump it first, or pick a lower level.' : 'That’s already 3 Important tasks today. Keep the focus tight.';
+    return;
+  }
+  const t={id:uidT(), title, imp, recur:when};
+  if(when==='daily'){ t.done={}; }
+  else if(when==='weekly'){ t.day=wd; t.done={}; }
+  else if(when==='monthly'){ t.day=wd; t.nth=nthOf(now); t.done={}; }
+  else { t.date=dateStr; t.done=false; }
+  TASKS.push(t); pushTasks();
+  document.getElementById('ntTitle').value=''; document.getElementById('ntImp').value='1';
+  msg.className='task-msg ok'; msg.textContent='Added.';
+  renderTasks();
+}
+function toggleTask(id){ const t=TASKS.find(x=>x.id===id); if(!t) return; setDone(t,dstr(),!isDone(t,dstr())); pushTasks(); renderTasks(); }
+function delTask(id){ TASKS=TASKS.filter(x=>x.id!==id); pushTasks(); renderTasks(); }
+/* Cross-device pull via JSONP (works once the Apps Script doGet below is deployed). */
+function syncTasks(){
+  if(!CONFIG.writeUrl) return;
+  const cb='__lpT'+Date.now(); const s=document.createElement('script');
+  window[cb]=function(data){ try{ if(data&&typeof data==='object'&&!Array.isArray(data)){
+      if(Array.isArray(data.tasks)&&data.tasks.length) TASKS=data.tasks;
+      if(data.score&&typeof data.score==='object') SCORE=data.score;
+      if(Array.isArray(data.workshops)) WORKSHOPS=data.workshops;
+      saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS);
+      const v=document.getElementById('view-tasks'); if(v&&v.classList.contains('active')) renderTasks();
+      const w=document.getElementById('view-workshops'); if(w&&w.classList.contains('active')) renderWorkshops();
+    } }catch(e){} delete window[cb]; s.remove(); };
+  s.onerror=function(){ delete window[cb]; s.remove(); };
+  s.src=CONFIG.writeUrl+'?action=tasks&callback='+cb;
+  document.head.appendChild(s);
+}
+
+/* ---- Coach notes (running history) ---- */
+function getNotes(email){ try{ return JSON.parse(localStorage.getItem("lp_notes_"+email)||"[]"); }catch(e){ return []; } }
+function saveNote(email){
+  const ta=document.getElementById("noteInput");
+  if(!ta || !ta.value.trim()) return;
+  const rec={text:ta.value.trim(), ts:Date.now()};
+  const notes=getNotes(email); notes.unshift(rec);
+  try{ localStorage.setItem("lp_notes_"+email, JSON.stringify(notes)); }catch(e){}
+  postToSheet({type:"note", email, ts:new Date(rec.ts).toISOString(), text:rec.text});
+  ta.value="";
+  const c=(window.__clients||[]).find(x=>x.email===email);
+  if(c) document.getElementById("drawerBody").innerHTML=clientDetail(c);
+}
+
+/* ---- Weekly check-in form ---- */
+function pickScale(btn){ const w=btn.parentElement; w.dataset.val=btn.dataset.v;
+  [...w.children].forEach(b=>b.classList.toggle("on", b===btn)); }
+function pickChip(btn){ const w=btn.parentElement; w.dataset.val=btn.dataset.v;
+  [...w.children].forEach(b=>b.classList.toggle("on", b===btn)); }
+function scaleRow(key,label){
+  let b=""; for(let i=1;i<=5;i++) b+=`<button type="button" class="scl-btn" data-v="${i}" onclick="pickScale(this)">${i}</button>`;
+  return `<div class="scl-row"><span class="scl-label">${label}</span><div class="scl-btns" id="scl-${key}" data-val="">${b}</div></div>`;
+}
+function toggleCheckin(){ const f=document.getElementById("ciForm"); f.style.display = f.style.display==="none"?"flex":"none"; }
+function checkinForm(c){
+  const markers=[["energy","Energy"],["sleep","Sleep quality"],["acuity","Mental acuity & focus"],
+    ["strength","Strength & performance"],["digestion","Digestion"],["hunger","Hunger & cravings"],
+    ["libido","Libido"],["inflammation","Inflammation"],["mood","Mood & resilience"],["recovery","Training recovery"]];
+  const food=Array.from({length:10},(_,i)=>`<button type="button" class="scl-btn" data-v="${i+1}" onclick="pickScale(this)">${i+1}</button>`).join("");
+  const cons=["Under 60%","60–70%","70–85%","85–95%","95–100%"].map(x=>`<button type="button" class="ci-chip" data-v="${x}" onclick="pickChip(this)">${x}</button>`).join("");
+  return `<div class="ci-form" id="ciForm" style="display:none">
+    <div class="ci-field"><label>This week's average weight (lb)</label>
+      <input type="number" inputmode="decimal" id="ci_weight" class="ci-input" placeholder="read it off Everfit, e.g. 211.4"></div>
+    <div class="ci-block"><div class="ci-blocklabel">Rate each 1–5 · 1 rough, 5 great</div>${markers.map(m=>scaleRow(m[0],m[1])).join("")}</div>
+    <div class="ci-field"><label>Food quality (1–10)</label><div class="scl-btns wide" id="scl-food" data-val="">${food}</div></div>
+    <div class="ci-field"><label>How much of your plan did you actually hit this week?</label><div class="ci-chips" id="ci_cons" data-val="">${cons}</div></div>
+    <div class="ci-field"><label>One non-scale victory this week</label><input type="text" id="ci_victory" class="ci-input"></div>
+    <div class="ci-field"><label>One thing you'll focus on next week</label><input type="text" id="ci_focus" class="ci-input"></div>
+    <div class="ci-field"><label>Anything else I should know? (optional)</label><textarea id="ci_notes" class="ci-input" rows="2"></textarea></div>
+    <div class="ci-actions"><button class="ci-submit" onclick="submitCheckin('${c.email}')">Submit check-in</button><span class="ci-status" id="ciStatus"></span></div>
+  </div>`;
+}
+async function submitCheckin(email){
+  const g=id=>document.getElementById(id);
+  const weight=parseFloat(g("ci_weight").value);
+  const keys=["energy","sleep","acuity","strength","digestion","hunger","libido","inflammation","mood","recovery"];
+  const markers={}; keys.forEach(k=>{ const el=g("scl-"+k); markers[k]=el&&el.dataset.val?+el.dataset.val:null; });
+  const food=g("scl-food").dataset.val?+g("scl-food").dataset.val:null;
+  const consistency=g("ci_cons").dataset.val, st=g("ciStatus");
+  if(isNaN(weight)||!consistency){ st.textContent="Add your weight and consistency to submit."; st.style.color="var(--stall-tx)"; return; }
+  const payload={type:"checkin", email, ts:new Date().toISOString(), weight, food, consistency,
+    victory:g("ci_victory").value, focus:g("ci_focus").value, notes:g("ci_notes").value, ...markers};
+  st.textContent="Saving…"; st.style.color="var(--muted)";
+  const res=await postToSheet(payload);
+  // Live: append to this client's history so their trend updates instantly (the "gives back" moment).
+  const c=(window.__clients||[]).find(x=>x.email===email);
+  if(c) c.history.push({ts:Date.now(), email, weight, cons:consistencyToNum(consistency),
+    energy:markers.energy, sleep:markers.sleep, mood:markers.mood, food,
+    victory:payload.victory, focus:payload.focus, notes:payload.notes});
+  st.textContent = res.ok ? "Saved to your sheet ✓ synced everywhere" : "Saved on this device ✓ (connect the sheet to sync everywhere)";
+  st.style.color="var(--good-tx)";
+  setTimeout(()=>{ if(c) document.getElementById("drawerBody").innerHTML=clientDetail(c); }, 1000);
+}
+
+/* ---- Personal records (PRs) ---- */
+let PRS=[];
+function togglePR(){ const f=document.getElementById("prForm"); f.style.display = f.style.display==="none"?"block":"none"; }
+function prForm(c){
+  const opts = Object.entries(EXERCISES).map(([grp,list])=>
+    `<optgroup label="${grp}">${list.map(x=>`<option>${esc(x)}</option>`).join("")}</optgroup>`).join("");
+  return `<div class="pr-formwrap" id="prForm" style="display:none">
+    <div class="ci-field"><label>Exercise</label><select id="pr_ex" class="ci-input">${opts}</select></div>
+    <div style="display:flex;gap:10px">
+      <div class="ci-field" style="flex:1"><label>Weight (lb)</label>
+        <input type="number" inputmode="decimal" id="pr_weight" class="ci-input" placeholder="e.g. 225"></div>
+      <div class="ci-field" style="flex:1"><label>Reps (optional)</label>
+        <input type="number" inputmode="numeric" id="pr_reps" class="ci-input" placeholder="e.g. 5"></div>
+    </div>
+    <div class="ci-actions"><button class="ci-submit" onclick="submitPR('${c.email}')">Save PR</button><span class="ci-status" id="prStatus"></span></div>
+  </div>`;
+}
+async function submitPR(email){
+  const ex=document.getElementById("pr_ex").value;
+  const weight=parseFloat(document.getElementById("pr_weight").value);
+  const reps=parseInt(document.getElementById("pr_reps").value,10);
+  const st=document.getElementById("prStatus");
+  if(!ex || isNaN(weight)){ st.textContent="Pick an exercise and enter a weight."; st.style.color="var(--stall-tx)"; return; }
+  st.textContent="Saving…"; st.style.color="var(--muted)";
+  const res=await postToSheet({type:"pr", email, ts:new Date().toISOString(), exercise:ex, weight, reps:isNaN(reps)?"":reps});
+  PRS.push({ts:Date.now(), email:email.toLowerCase(), exercise:ex, weight, reps:isNaN(reps)?null:reps});
+  st.textContent = res.ok ? "PR saved ✓ synced everywhere" : "Saved on this device ✓";
+  st.style.color="var(--good-tx)";
+  const c=(window.__clients||[]).find(x=>x.email===email);
+  setTimeout(()=>{ if(c) document.getElementById("drawerBody").innerHTML=clientDetail(c); }, 900);
+}
+function miniSpark(vals){
+  if(vals.length<2) return "";
+  const min=Math.min(...vals), max=Math.max(...vals), rng=(max-min)||1, W=110,H=26,n=vals.length;
+  const pts=vals.map((v,i)=>`${(i/(n-1)*(W-4)+2).toFixed(1)},${(H-3-((v-min)/rng)*(H-6)).toFixed(1)}`).join(" ");
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="display:block;flex:none"><polyline points="${pts}" fill="none" stroke="var(--gold)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+function prRecords(email){
+  const mine=PRS.filter(p=>p.email===email.toLowerCase() && p.weight!=null);
+  if(!mine.length) return `<div class="detail-empty">No PRs logged yet.</div>`;
+  const byEx={}; mine.forEach(p=>{ (byEx[p.exercise]=byEx[p.exercise]||[]).push(p); });
+  return `<div class="pr-list">`+Object.entries(byEx).map(([ex,list])=>{
+    list.sort((a,b)=>a.ts-b.ts);
+    const best=list.reduce((m,p)=>p.weight>m.weight?p:m, list[0]);
+    return `<div class="pr-item">
+      <div class="pr-top"><span class="pr-ex">${esc(ex)}</span>
+        <span class="pr-best">${best.weight}${best.reps?` × ${best.reps}`:""} lb</span></div>
+      <div class="pr-sub">${miniSpark(list.map(p=>p.weight))}<span>${list.length} log${list.length>1?"s":""} · last ${fmtDate(list[list.length-1].ts)}</span></div>
+    </div>`;
+  }).join("")+`</div>`;
+}
+
+/* Simple inline weight-trend line chart from a client's check-in history. */
+function weightSpark(history){
+  const pts=history.filter(h=>h.weight!=null);
+  if(pts.length<2) return `<div class="detail-empty">Weight trend appears once there are 2+ check-ins.</div>`;
+  const ws=pts.map(p=>p.weight), min=Math.min(...ws), max=Math.max(...ws);
+  const pad=(max-min)*0.25||1, lo=min-pad, hi=max+pad, W=400,H=110,n=pts.length;
+  const x=i=>(i/(n-1))*(W-24)+12, y=v=>H-16-((v-lo)/(hi-lo))*(H-32);
+  const line=pts.map((p,i)=>`${x(i).toFixed(1)},${y(p.weight).toFixed(1)}`).join(" ");
+  const area=`12,${H-16} ${line} ${x(n-1).toFixed(1)},${H-16}`;
+  const dots=pts.map((p,i)=>`<circle cx="${x(i).toFixed(1)}" cy="${y(p.weight).toFixed(1)}" r="3.2" fill="var(--gold)"/>`).join("");
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}">
+      <polygon points="${area}" fill="rgba(193,173,114,.10)"/>
+      <polyline points="${line}" fill="none" stroke="var(--gold)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
+      ${dots}
+    </svg>
+    <div class="spark-labels"><span>${fmtDate(pts[0].ts)} · ${pts[0].weight} lb</span><span>${fmtDate(pts[n-1].ts)} · ${pts[n-1].weight} lb</span></div>`;
+}
+
+function clientDetail(c){
+  const h=c.history||[];
+  const notes=getNotes(c.email);
+  const first=h[0], last=h[h.length-1];
+  const change=(first&&last&&first.weight!=null&&last.weight!=null)?(last.weight-first.weight):null;
+  const goal=(c.goal||"Lose").toLowerCase();
+  const chGood=change!=null && ((goal.includes("lose")&&change<0)||(goal.includes("gain")&&change>0));
+  const chBad =change!=null && ((goal.includes("lose")&&change>0)||(goal.includes("gain")&&change<0));
+  const consVals=h.map(x=>x.cons).filter(v=>v!=null);
+  const avgCons=consVals.length?Math.round(consVals.reduce((a,b)=>a+b,0)/consVals.length):null;
+  const markers=[["Energy",last?last.energy:null],["Sleep",last?last.sleep:null],
+                 ["Mood",last?last.mood:null],["Food quality",last&&last.food!=null?last.food/2:null]];
+  const log=[...h].reverse().map(e=>{
+    const q=[e.victory&&`<div class="log-q"><span class="lq-l">Win</span><span>${esc(e.victory)}</span></div>`,
+             e.focus&&`<div class="log-q"><span class="lq-l">Focus</span><span>${esc(e.focus)}</span></div>`,
+             e.notes&&`<div class="log-q"><span class="lq-l">Note</span><span>${esc(e.notes)}</span></div>`].filter(Boolean).join("");
+    return `<div class="log-item">
+      <div class="log-top">
+        <span class="log-date">${fmtDate(e.ts)}</span>
+        <span class="log-metrics">${e.weight!=null?`<b>${e.weight}</b> lb`:""}${e.cons!=null?`<span class="cbadge">${e.cons}%</span>`:""}</span>
+      </div>${q}</div>`;
+  }).join("");
+
+  return `
+  <div class="d-head">
+    <button class="d-close" onclick="closeClient()" aria-label="Close">✕</button>
+    <div class="d-name">${esc(c.name)}</div>
+    <div class="d-sub">${esc(c.program)||"—"} · ${esc(c.goal)} goal</div>
+    <div class="d-status">
+      ${c.status!=="Active"
+        ? `<span class="pill pipe">${esc(c.status)}</span>`
+        : c.dSince==null
+          ? `<span class="pill new"><span class="d"></span>No check-in yet</span>`
+          : `<span class="pill ${c.signal}"><span class="d"></span>${SIGNAL_LABEL[c.signal]}</span>`}
+      <span class="d-since">${c.dSince!=null?("Last check-in "+c.dSince+"d ago"):""}</span>
+    </div>
+  </div>
+  <div class="d-body">
+    <div class="d-stats">
+      <div class="ds"><span class="ds-n">${last&&last.weight!=null?last.weight:"—"}</span><span class="ds-l">Current lb</span></div>
+      <div class="ds"><span class="ds-n ${chGood?'pos':chBad?'neg':''}">${change!=null?(change>0?"+":"")+change.toFixed(1):"—"}</span><span class="ds-l">Since start</span></div>
+      <div class="ds"><span class="ds-n">${avgCons!=null?avgCons+"%":"—"}</span><span class="ds-l">Avg consist.</span></div>
+      <div class="ds"><span class="ds-n">${h.length}</span><span class="ds-l">Check-ins</span></div>
+    </div>
+    <div class="d-sec">
+      <button class="ci-toggle" onclick="toggleCheckin()">＋ Log this week's check-in</button>
+      ${checkinForm(c)}
+    </div>
+    <div class="d-sec"><h4>Weight trend</h4>${weightSpark(h)}</div>
+    <div class="d-sec"><h4>Latest biofeedback</h4>
+      ${markers.map(([l,v])=>`<div class="meter-row"><span class="mlabel">${l}</span>
+        <div class="meter-track"><div class="meter-fill" style="width:${v!=null?Math.min(100,v/5*100):0}%"></div></div>
+        <span class="meter-val">${v!=null?v.toFixed(1):"—"}</span></div>`).join("")}
+    </div>
+    <div class="d-sec"><h4>Check-in history</h4>
+      ${h.length?`<div class="log">${log}</div>`:`<div class="detail-empty">No check-ins recorded yet.</div>`}
+    </div>
+    <div class="d-sec">
+      <h4>Personal records</h4>
+      <button class="ci-toggle" onclick="togglePR()">＋ Log a PR</button>
+      ${prForm(c)}
+      ${prRecords(c.email)}
+    </div>
+    <div class="d-sec note-sec">
+      <h4>Coach notes</h4>
+      <textarea class="note-input" id="noteInput" placeholder="Add a note about this client..."></textarea>
+      <div class="note-row"><button class="note-save" onclick="saveNote('${c.email}')">Add note</button>
+        <span class="note-status" id="noteStatus"></span></div>
+      ${notes.length?`<div class="note-log">${notes.map(n=>`<div class="note-log-item">
+        <span class="nl-date">${new Date(n.ts).toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"})}</span>
+        <span class="nl-text">${esc(n.text)}</span></div>`).join("")}</div>`:""}
+    </div>
+  </div>`;
+}
+
+/* ============================ NAVIGATION + BUSINESS VIEWS ============================ */
+const NAV = [
+  {group:"Plan", items:[["tasks","This Week"]]},
+  {group:"Fulfillment", items:[["command","Client Dashboard"]]},
+  {group:"Grow", items:[["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
+  {group:"Toolkit", items:[["toolkit","Toolkit"]]},
+  {group:"System", items:[["integrations","Integrations"]]}
+];
+function renderSidebar(active){
+  document.getElementById("sidebar").innerHTML = NAV.map(g=>
+    `<div class="nav-group"><div class="nav-h">${g.group}</div>`+
+    g.items.map(([id,label])=>`<button class="nav-item ${id===active?"on":""}" onclick="showTab('${id}')">${esc(label)}</button>`).join("")+
+    `</div>`).join("");
+}
+function showTab(id){
+  document.querySelectorAll(".view").forEach(v=>v.classList.remove("active"));
+  const v=document.getElementById("view-"+id); if(v) v.classList.add("active");
+  renderSidebar(id);
+  if(id==="tasks"){ syncTasks(); renderTasks(); }
+  else if(id==="workshops"){ syncTasks(); renderWorkshops(); }
+  else if(id==="revenue") renderRevenue();
+  else if(id==="metrics") renderMetrics();
+  else if(id==="content") renderContent();
+  else if(id==="toolkit") renderToolkit();
+  else if(id==="integrations") renderIntegrations();
+  window.scrollTo(0,0);
+}
+
+/* Your PFA tools — these run in Claude Code. Type the command to launch one. */
+const TOOLS = [
+  {n:"Brand Engine", d:"Your voice, ICA, story, offers — the foundation every other tool reads from.", c:"/brand-engine"},
+  {n:"Copy Skill", d:"Emails, IG captions, carousels, DMs, sales-page copy in your voice.", c:"/copy-skill"},
+  {n:"Visual Studio", d:"Render B-roll reels, carousels, image posts, story templates.", c:"/visual-studio"},
+  {n:"Ad Stack", d:"Full Meta ad campaigns — workshop or direct-to-coaching.", c:"/ad-stack"},
+  {n:"Workshop Builder", d:"Complete workshop: outline, scripts, emails, landing page.", c:"/workshop-builder"},
+  {n:"Page Builder", d:"Landing, sales, opt-in, application, thank-you pages.", c:"/page-builder"},
+  {n:"Call Doctor", d:"Audit a sales call → scorecard + timestamped fixes.", c:"/call-doctor"},
+  {n:"Funnel Doctor", d:"Diagnose funnel leaks and what to fix first.", c:"/funnel-doctor"},
+  {n:"Method Coach", d:"Your meta-coach — strategy, quarterly planning, scholarships.", c:"/method-coach"},
+  {n:"LP Social", d:"On-brand IG/FB posts, reels, hooks, campaign content.", c:"/legacy-performance-social"},
+  {n:"Content from Calls", d:"Mine call transcripts for hooks + content ideas.", c:"/mine-calls"},
+  {n:"Nutrition System", d:"Build a client's Power Food System + run weekly reviews.", c:"/nutrition-system-manager"}
+];
+function renderToolkit(){
+  document.getElementById("toolkitView").innerHTML =
+    `<div class="view-head"><h1>Toolkit</h1>
+      <p class="view-sub">Your PFA tools. These run in Claude Code, not in this page — type the command to launch one. This is your interim toolkit until Ascend.</p></div>
+     <div class="tool-grid">`+TOOLS.map(t=>
+      `<div class="tool-card"><div class="tool-n">${esc(t.n)}</div>
+        <div class="tool-d">${esc(t.d)}</div><code class="tool-c">${esc(t.c)}</code></div>`).join("")+`</div>`;
+}
+
+/* ---- Revenue view (normalized MRR) ---- */
+let REVENUE=[];
+function normMonthly(r){
+  const f=(r.freq||"").toLowerCase();
+  if(f.includes("year")||f.includes("annual")) return r.amount/12;
+  if(f.includes("quart")) return r.amount/3;
+  if(f.includes("week")) return r.amount*4.333;
+  return r.amount; // monthly default
+}
+function money(n){ return "$"+Math.round(n).toLocaleString(); }
+function renderRevenue(){
+  const el=document.getElementById("revenueView");
+  if(!REVENUE.length){
+    el.innerHTML = `<div class="view-head"><h1>Revenue</h1>
+      <p class="view-sub">Normalized MRR from your monthly, quarterly, and annual payers — one honest number.</p></div>
+      <div class="empty-box">
+        <p><b>To turn this on,</b> add a tab named <b>Revenue</b> to your Master Dashboard with these columns:</p>
+        <p><code>Client</code> &nbsp; <code>Amount</code> &nbsp; <code>Frequency</code> &nbsp; <code>Status</code></p>
+        <p>Frequency = <b>Monthly</b>, <b>Quarterly</b>, or <b>Annual</b>. I'll normalize quarterly ÷ 3 and annual ÷ 12 so your MRR is apples-to-apples.</p>
+        <p><span class="step">Then</span> publish that tab as CSV and send me the link — I'll wire it in.</p>
+      </div>`;
+    return;
+  }
+  const active=REVENUE.filter(r=>!r.status || /active/i.test(r.status));
+  const mrr=active.reduce((s,r)=>s+normMonthly(r),0);
+  const byFreq={}; active.forEach(r=>{ const k=r.freq||"monthly"; byFreq[k]=(byFreq[k]||0)+normMonthly(r); });
+  const rows=[...active].sort((a,b)=>normMonthly(b)-normMonthly(a)).map(r=>`<tr>
+      <td><div class="client-name">${esc(r.name||"—")}</div></td>
+      <td class="hide-sm">${esc(r.freq||"monthly")}</td>
+      <td class="num">${money(r.amount)}</td>
+      <td class="num">${money(normMonthly(r))}/mo</td></tr>`).join("");
+  el.innerHTML = `<div class="view-head"><h1>Revenue</h1>
+      <p class="view-sub">Normalized MRR across ${active.length} paying clients.</p></div>
+    <div class="rev-tiles">
+      <div class="tile"><div class="label">MRR</div><div class="value">${money(mrr)}</div></div>
+      <div class="tile"><div class="label">Annual run rate</div><div class="value">${money(mrr*12)}</div></div>
+      <div class="tile"><div class="label">Paying clients</div><div class="value">${active.length}</div></div>
+      <div class="tile"><div class="label">Avg / client</div><div class="value">${money(active.length?mrr/active.length:0)}</div></div>
+    </div>
+    <div class="card"><table class="tbl">
+      <thead><tr><th>Client</th><th class="hide-sm">Billing</th><th>Amount</th><th>Monthly value</th></tr></thead>
+      <tbody>${rows}</tbody></table></div>`;
+}
+
+function renderMetrics(){
+  const cs=window.__clients||[];
+  const c=s=>cs.filter(x=>x.status===s).length;
+  const active=cs.filter(x=>x.status==="Active");
+  const checkedIn=active.filter(x=>x.dSince!=null && x.dSince<=7).length;
+  const rate=active.length?Math.round(checkedIn/active.length*100):0;
+  const mrr=REVENUE.length?REVENUE.filter(r=>!r.status||/active/i.test(r.status)).reduce((s,r)=>s+normMonthly(r),0):null;
+  const tile=(label,val)=>`<div class="tile"><div class="label">${label}</div><div class="value">${val}</div></div>`;
+  document.getElementById("metricsView").innerHTML =
+    `<div class="view-head"><h1>Metrics</h1><p class="view-sub">The health of the business at a glance — pulled live from your roster, check-ins, and revenue.</p></div>
+     <div class="rev-tiles">
+       ${tile("Active clients", active.length)}
+       ${tile("Prospects", c("Prospect"))}
+       ${tile("Leads", c("Lead"))}
+       ${tile("Paused", c("Paused"))}
+     </div>
+     <div class="rev-tiles">
+       ${tile("Check-in rate", rate+"%")}
+       ${tile("Checked in (7d)", checkedIn)}
+       ${tile("MRR", mrr!=null?money(mrr):"—")}
+       ${tile("Total contacts", cs.length)}
+     </div>`;
+}
+
+function renderContent(){
+  document.getElementById("contentView").innerHTML =
+    `<div class="view-head"><h1>Content Calendar</h1>
+      <p class="view-sub">A simple schedule of what's going out and when, feeding straight from a sheet.</p></div>
+     <div class="empty-box">
+       <p><b>To turn this on,</b> add a tab named <b>Content</b> with columns:</p>
+       <p><code>Date</code> &nbsp; <code>Platform</code> &nbsp; <code>Hook</code> &nbsp; <code>Format</code> &nbsp; <code>Status</code></p>
+       <p>Publish it as CSV and send me the link. Tip: <code>/mine-calls</code> and <code>/legacy-performance-social</code> can fill this with ready-to-post ideas.</p>
+     </div>`;
+}
+
+function renderIntegrations(){
+  const w=!!CONFIG.writeUrl, r=!!CONFIG.rosterCsvUrl, ck=!!CONFIG.checkinsCsvUrl, pr=!!CONFIG.prsCsvUrl;
+  const row=(state,n,d)=>`<div class="intg-card"><span class="intg-dot ${state}"></span>
+     <div><div class="intg-n">${n}</div><div class="intg-d">${d}</div></div></div>`;
+  document.getElementById("integrationsView").innerHTML =
+    `<div class="view-head"><h1>Integrations</h1><p class="view-sub">Where your data flows in and out. Green = connected.</p></div>
+     ${row(r?"ok":"wait","Google Sheets — Roster", r?"Connected · your client list feeds the board":"Not wired yet")}
+     ${row(ck?"ok":"wait","Google Sheets — Check-ins", ck?"Connected · reads + writes weekly check-ins":"Not wired yet")}
+     ${row(pr?"ok":"wait","Google Sheets — PRs", pr?"Connected · reads + writes personal records":"Not wired yet")}
+     ${row(w?"ok":"wait","Write doorway (Apps Script)", w?"Connected · saves check-ins, PRs, notes to your sheet":"Not wired yet")}
+     ${row("wait","Google Sheets — Revenue", "Add a Revenue tab to light up the Revenue view")}
+     ${row("off","GoHighLevel", "Planned — leads + payments → sheet via Zapier")}
+     ${row("off","Everfit", "Dashboard embeds inside Everfit; data is entered here, not pulled from Everfit")}`;
+}
+
+/* ============================ ORCHESTRATION ============================ */
+function setStatus(live){
+  document.getElementById("statusDot").className="dot "+(live?"live":"demo");
+  document.getElementById("statusText").textContent = live?"Live":"Demo";
+  document.getElementById("demoBanner").classList.toggle("hidden", live);
+}
+
+async function loadAll(){
+  const btn=document.getElementById("refreshBtn"); btn.disabled=true; btn.textContent="↻ Loading…";
+  let checkins, roster, business, live=false;
+  try{
+    const haveLive = CONFIG.checkinsCsvUrl || CONFIG.rosterCsvUrl || CONFIG.businessCsvUrl || CONFIG.prsCsvUrl || CONFIG.revenueCsvUrl;
+    if(haveLive){
+      const [ck,rs,bz,pr,rv] = await Promise.all([
+        CONFIG.checkinsCsvUrl? fetchCsv(CONFIG.checkinsCsvUrl).then(shapeCheckins).catch(()=>null):null,
+        CONFIG.rosterCsvUrl?   fetchCsv(CONFIG.rosterCsvUrl).then(shapeRoster).catch(()=>null):null,
+        CONFIG.businessCsvUrl? fetchCsv(CONFIG.businessCsvUrl).then(shapeBusiness).catch(()=>null):null,
+        CONFIG.prsCsvUrl?      fetchCsv(CONFIG.prsCsvUrl).then(shapePRs).catch(()=>null):null,
+        CONFIG.revenueCsvUrl?  fetchCsv(CONFIG.revenueCsvUrl).then(shapeRevenue).catch(()=>null):null
+      ]);
+      // Use whatever loaded; fall back to demo for the rest.
+      const d=demoShape();
+      checkins = ck||d.checkins; roster = rs||d.roster;
+      business = bz || (rs ? computeBusiness(rs) : d.business);
+      if(pr) PRS = pr;
+      if(rv) REVENUE = rv;
+      live = !!(ck||rs||bz);
+    }else{
+      const d=demoShape(); checkins=d.checkins; roster=d.roster; business=d.business;
+    }
+  }catch(e){
+    const d=demoShape(); checkins=d.checkins; roster=d.roster; business=d.business; live=false;
+    console.warn("Falling back to demo data:",e);
+  }
+
+  const clients = buildClients(checkins, roster);
+  window.__clients = clients;
+  renderTiles(business);
+  renderPipeline(clients);
+  renderClients(clients);
+  renderFollowups(clients);
+  renderCommunity(clients, checkins);
+  setStatus(live);
+
+  document.getElementById("updatedAt").textContent = "Updated "+new Date().toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
+  btn.disabled=false; btn.textContent="↻ Refresh";
+}
+
+showTab("tasks");
+loadAll();
+setInterval(loadAll, (CONFIG.refreshMinutes||30)*60000);
+</script>
+</body>
+</html>
