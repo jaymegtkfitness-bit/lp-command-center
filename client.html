@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en" data-theme="woman">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Legacy Performance — Your Dashboard</title>
+<meta name="theme-color" content="#1C1C1C" />
+<link rel="apple-touch-icon" href="apple-touch-icon.png" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+/* =====================================================================
+   LEGACY PERFORMANCE — Client Dashboard
+   Same brand + same check-in payload + same doorway as the Command Center.
+   GENDER drives the palette:
+     • MAN   → charcoal + GOLD (primary), GREEN as the touch on every page
+     • WOMAN → parchment + GREEN (primary), GOLD as the touch on every page
+   ===================================================================== */
+:root, :root[data-theme="man"]{
+  --charcoal:#1C1C1C; --olive:#4A5C3E; --olive-soft:#7c9268; --parchment:#F2EDE4; --gold:#C1AD72;
+  --bg:#1C1C1C; --header-bg:#141310; --surface:#26241f; --surface-2:#302d26;
+  --headline:#F2EDE4; --ink:#EAE4D8; --ink-soft:#cfc9bc; --muted:#948d7e; --line:rgba(242,237,228,.10);
+  --accent:#C1AD72; --accent-ink:#1C1C1C; --accent-soft:rgba(193,173,114,.16);  /* GOLD primary */
+  --touch:#8FA97A; --touch-soft:rgba(124,146,104,.20);                          /* GREEN touch */
+  --good:#8FA97A; --good-bg:rgba(74,92,62,.30); --good-tx:#a9c090;
+  --stall:#cf8b6b; --stall-bg:rgba(180,102,74,.22); --stall-tx:#e0a487;
+  --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.28);
+}
+:root[data-theme="woman"]{
+  --bg:#F2EDE4; --header-bg:#1C1C1C; --surface:#FBF9F4; --surface-2:#F2EDE4;
+  --headline:#1C1C1C; --ink:#242219; --ink-soft:#4a463c; --muted:#8a8578; --line:#e4ddcf;
+  --accent:#4A5C3E; --accent-ink:#FBF9F4; --accent-soft:rgba(74,92,62,.12);    /* GREEN primary */
+  --touch:#C1AD72; --touch-soft:rgba(193,173,114,.22);                          /* GOLD touch */
+  --good:#4A5C3E; --good-bg:rgba(74,92,62,.12); --good-tx:#4A5C3E;
+  --stall:#b4664a; --stall-bg:rgba(180,102,74,.14); --stall-tx:#b4664a;
+  --shadow:0 1px 2px rgba(28,28,28,.05),0 8px 24px rgba(28,28,28,.06);
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+  -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh}
+.safe{background:var(--header-bg);height:env(safe-area-inset-top)}
+
+/* Header — parchment band (light on purpose) so the black+gold logo always reads,
+   in both themes; the touch color (green for men / gold for women) underlines it. */
+header{background:var(--parchment);padding:14px 20px;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;border-bottom:2px solid var(--touch)}
+.brand{display:flex;align-items:center;gap:12px}
+.brand img{height:40px;width:auto;display:block}
+.gear{background:transparent;border:1px solid rgba(28,28,28,.20);color:#1C1C1C;
+  border-radius:8px;padding:6px 10px;font-family:inherit;font-size:16px;line-height:1;cursor:pointer}
+
+/* Layout */
+.wrap{max-width:640px;margin:0 auto;padding:20px 18px 64px}
+.eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headline);margin:6px 0 0;line-height:1.15}
+.sub{color:var(--muted);font-size:13px;margin:8px 0 0;line-height:1.6}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:17px 17px;margin-top:15px;box-shadow:var(--shadow)}
+.sec-h{display:flex;align-items:center;gap:9px;margin:0 0 12px}
+.sec-h h2{font-family:'Cinzel',serif;font-size:15.5px;font-weight:600;color:var(--headline);margin:0}
+.sec-h::before{content:"";width:4px;height:16px;border-radius:3px;background:var(--touch);flex:none} /* green(men)/gold(women) touch on every section */
+
+/* Stat tiles */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 12px;text-align:center;position:relative;overflow:hidden}
+.stat::after{content:"";position:absolute;left:16px;right:16px;bottom:10px;height:2px;border-radius:2px;background:var(--touch-soft)}
+.stat .n{font-family:'Cinzel',serif;font-size:26px;font-weight:600;color:var(--accent);line-height:1}
+.stat .n.pos{color:var(--good-tx)} .stat .n.neg{color:var(--stall-tx)}
+.stat .l{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:9px;font-weight:600}
+
+/* Charts */
+.chart svg{width:100%;height:120px;display:block}
+.chart .labels{display:flex;justify-content:space-between;color:var(--muted);font-size:11.5px;margin-top:7px}
+.empty{color:var(--muted);font-size:12.5px;text-align:center;padding:16px 0;line-height:1.6}
+
+/* Biofeedback rows */
+.bf-row{display:grid;grid-template-columns:96px 1fr 26px;align-items:center;gap:10px;margin-bottom:9px}
+.bf-row .bl{font-size:12.5px;color:var(--ink-soft)}
+.bf-row .bv{font-size:13px;font-weight:700;color:var(--accent);text-align:right}
+.bf-spark{height:24px}
+
+/* Coach note */
+.coachnote{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:10px;padding:12px 13px;margin-bottom:10px}
+.coachnote .cn-meta{font-size:10.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:5px}
+.coachnote .cn-body{font-size:13.5px;color:var(--ink);line-height:1.55}
+
+/* Notes / PR list */
+.note-item,.pr-item{border-top:1px solid var(--line);padding:11px 0}
+.note-item:first-child,.pr-item:first-child{border-top:none}
+.note-item .ni-date,.log-date{font-size:11px;color:var(--muted)}
+.note-item .ni-body{font-size:13.5px;color:var(--ink);margin-top:3px}
+.pr-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.pr-ex{font-size:13.5px;font-weight:600;color:var(--ink)}
+.pr-best{font-size:13.5px;font-weight:700;color:var(--accent)}
+.pr-sub{display:flex;align-items:center;gap:9px;margin-top:5px;color:var(--muted);font-size:11.5px}
+
+/* Log */
+.log-item{border-top:1px solid var(--line);padding:11px 0}
+.log-item:first-child{border-top:none}
+.log-top{display:flex;justify-content:space-between;align-items:baseline}
+.log-metrics{font-size:13px;color:var(--ink)}
+.cbadge{display:inline-block;background:var(--touch-soft);color:var(--ink-soft);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
+.log-q{display:flex;gap:8px;margin-top:5px;font-size:12.5px;color:var(--ink-soft)}
+.log-q .lq-l{color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.04em;text-transform:uppercase;flex:none;width:42px;padding-top:1px}
+
+/* Buttons */
+.btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
+.btn-primary{background:var(--accent);color:var(--accent-ink)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);font-weight:600;font-size:13px;padding:11px}
+.toggle{background:var(--surface-2);border:1px solid var(--line);color:var(--ink-soft);border-radius:10px;
+  padding:11px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;width:100%;text-align:left}
+
+/* Forms */
+.field{margin-top:14px}
+.field label{display:block;font-size:13px;font-weight:600;color:var(--ink-soft);margin-bottom:7px}
+.field .hint{color:var(--muted);font-weight:400;font-size:11.5px}
+.input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 13px;font-family:inherit;font-size:15px;color:var(--ink)}
+.input:focus{outline:none;border-color:var(--accent)}
+textarea.input{resize:vertical;min-height:52px}
+select.input{appearance:none}
+
+/* Gender picker */
+.gender{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gender button{border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);border-radius:12px;padding:14px;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer}
+.gender button.on{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:700}
+
+.block{margin-top:15px;border-top:1px solid var(--line);padding-top:13px}
+.blocklabel{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
+.scalerow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.scalerow .name{font-size:13px;color:var(--ink-soft);flex:1}
+.scl{display:flex;gap:5px}
+.scl-btn{width:34px;height:34px;border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);border-radius:8px;font-family:inherit;font-size:13px;cursor:pointer}
+.scl-btn.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+.scl.wide{flex-wrap:wrap}
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);border-radius:20px;padding:8px 13px;font-family:inherit;font-size:12.5px;cursor:pointer}
+.chip.on{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);font-weight:700}
+
+.actions{margin-top:18px}
+.status{display:block;text-align:center;margin-top:11px;font-size:13px;min-height:18px}
+.hidden{display:none!important}
+.foot{text-align:center;color:var(--muted);font-size:11px;margin-top:26px;line-height:1.6}
+.pill{display:inline-block;background:var(--good-bg);color:var(--good-tx);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div class="safe"></div>
+<header>
+  <div class="brand"><img src="logo.png" alt="Legacy Performance" /></div>
+  <button class="gear" onclick="editIdentity()" id="gearBtn" title="Settings">⚙</button>
+</header>
+
+<div class="wrap">
+
+  <!-- ============ ONBOARD ============ -->
+  <section id="onboard" class="hidden">
+    <div class="eyebrow">Welcome to</div>
+    <h1>Your Legacy Dashboard</h1>
+    <p class="sub">A little setup so your dashboard is yours and your numbers reach your coach. 30 seconds, once on this device.</p>
+    <div class="card">
+      <div class="field"><label>Your name</label>
+        <input class="input" id="ob_name" placeholder="First and last" autocomplete="name" /></div>
+      <div class="field"><label>Your email <span class="hint">— the same email you signed up with</span></label>
+        <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
+      <div class="field"><label>This dashboard is styled for…</label>
+        <div class="gender" id="ob_gender" data-val="">
+          <button type="button" data-v="man" onclick="pickGender(this)">A man</button>
+          <button type="button" data-v="woman" onclick="pickGender(this)">A woman</button>
+        </div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-primary" onclick="saveIdentity()">Enter my dashboard</button>
+        <div class="status" id="obStatus"></div>
+      </div>
+    </div>
+    <p class="foot">Your email is the key that links your check-ins to your coaching. It stays on your device.</p>
+  </section>
+
+  <!-- ============ HOME ============ -->
+  <section id="home" class="hidden">
+    <div class="eyebrow" id="homeEyebrow">This week</div>
+    <h1 id="greeting">Welcome back</h1>
+    <p class="sub" id="homeSub">Your dashboard updates every time you check in — and it's the same view your coach sees.</p>
+
+    <div class="stats">
+      <div class="stat"><div class="n" id="stWeight">—</div><div class="l">Current weight</div></div>
+      <div class="stat"><div class="n" id="stCons">—</div><div class="l">Consistency</div></div>
+      <div class="stat"><div class="n" id="stChange">—</div><div class="l">Since start</div></div>
+      <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Check-ins</div></div>
+    </div>
+
+    <div class="actions" style="margin-top:16px">
+      <button class="btn btn-primary" onclick="showCheckin()" id="ciCta">Start this week's check-in</button>
+    </div>
+
+    <!-- Coach note -->
+    <div class="card" id="coachCard">
+      <div class="sec-h"><h2>From your coach</h2></div>
+      <div id="coachBox"><div class="empty">Notes from Jayme show up here.</div></div>
+    </div>
+
+    <!-- Weight trend -->
+    <div class="card chart">
+      <div class="sec-h"><h2>Weight trend</h2></div>
+      <div id="trendBox"><div class="empty">Your trend line appears after a couple of check-ins.</div></div>
+    </div>
+
+    <!-- Biofeedback -->
+    <div class="card">
+      <div class="sec-h"><h2>Biofeedback trends</h2></div>
+      <div id="bfBox"><div class="empty">Rate how you feel each week and your trends build here.</div></div>
+    </div>
+
+    <!-- PRs -->
+    <div class="card">
+      <div class="sec-h"><h2>Personal records</h2></div>
+      <button class="toggle" onclick="togglePR()" id="prToggle">＋ Log a PR</button>
+      <div id="prFormBox" class="hidden"></div>
+      <div id="prBox" style="margin-top:12px"></div>
+    </div>
+
+    <!-- My notes -->
+    <div class="card">
+      <div class="sec-h"><h2>My notes</h2></div>
+      <button class="toggle" onclick="toggleNote()" id="noteToggle">＋ Add a note</button>
+      <div id="noteFormBox" class="hidden"></div>
+      <div id="noteBox" style="margin-top:12px"></div>
+    </div>
+
+    <!-- History -->
+    <div class="card">
+      <div class="sec-h"><h2>Check-in history</h2></div>
+      <div id="logBox"><div class="empty">Your first check-in sets the baseline.</div></div>
+    </div>
+
+    <div style="margin-top:12px"><button class="btn btn-ghost" onclick="editIdentity()">Update name / email / style</button></div>
+    <p class="foot" id="syncNote"></p>
+  </section>
+
+  <!-- ============ CHECK-IN ============ -->
+  <section id="checkin" class="hidden">
+    <div class="eyebrow">Weekly check-in</div>
+    <h1>How did this week go?</h1>
+    <p class="sub">Be honest — this is the data your coach uses to adjust your plan. Only weight and consistency are required.</p>
+    <div class="card">
+      <div class="field"><label>This week's average weight (lb) <span class="hint">— read it off Everfit</span></label>
+        <input class="input" type="number" inputmode="decimal" id="ci_weight" placeholder="e.g. 211.4" /></div>
+      <div class="block"><div class="blocklabel">Rate each 1–5 · 1 rough, 5 great</div><div id="markerRows"></div></div>
+      <div class="field"><label>Food quality (1–10)</label><div class="scl wide" id="scl-food" data-val=""></div></div>
+      <div class="field"><label>How much of your plan did you actually hit this week?</label><div class="chips" id="ci_cons" data-val=""></div></div>
+      <div class="field"><label>One non-scale victory this week</label><input class="input" id="ci_victory" placeholder="More energy, better sleep, hit the gym 4x…" /></div>
+      <div class="field"><label>One thing you'll focus on next week</label><input class="input" id="ci_focus" placeholder="Protein at breakfast, walk after dinner…" /></div>
+      <div class="field"><label>Anything else your coach should know? <span class="hint">(optional)</span></label><textarea class="input" id="ci_notes" rows="2"></textarea></div>
+      <div class="actions"><button class="btn btn-primary" onclick="submitCheckin()" id="ciSubmit">Submit check-in</button><div class="status" id="ciStatus"></div></div>
+    </div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+  </section>
+
+</div>
+
+<script>
+/* =================== CONFIG — EDIT THIS BLOCK ===================
+   writeUrl = the SAME Apps Script doorway the Command Center uses. The
+   client's check-ins/notes/PRs POST here; the page also READS this client's
+   own data back from it (?action=clientData&email=…). EMAIL is the key that
+   links everything to their row on the coach roster.
+   writeUrl "" → everything saves/reads on this device only (demo/testing).   */
+var CONFIG = {
+  writeUrl: "https://script.google.com/macros/s/AKfycbxLSx45XpEnSM-O02O56eFyYn1oRWOvO7dScddaiQaFGOKX4EbQX-Om-t_Wj3cJBJuH/exec",
+  coachName: "Jayme"
+};
+/* =============== END CONFIG (stop editing here) =============== */
+
+/* ============================ MODEL / STATE ============================ */
+var MARKERS = [
+  ["energy","Energy","Energy"],["sleep","Sleep","Sleep quality"],["acuity","Mental focus","Mental acuity & focus"],
+  ["strength","Strength","Strength & performance"],["digestion","Digestion","Digestion"],["hunger","Hunger","Hunger & cravings"],
+  ["libido","Libido","Libido"],["inflammation","Inflammation","Inflammation"],["mood","Mood","Mood & resilience"],["recovery","Recovery","Training recovery"]
+];
+var CONS = ["Under 60%","60–70%","70–85%","85–95%","95–100%"];
+var ID = null;                 // {name,email,gender}
+var M = { checkins:[], coachNotes:[], clientNotes:[], prs:[] };  // merged model
+var serverOk = false;
+var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note";
+
+/* ============================ HELPERS ============================ */
+function g(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function num(v){ var n=parseFloat(String(v).replace(/[^0-9.\-]/g,"")); return isNaN(n)?null:n; }
+function ts(v){ if(v==null||v==="") return null; var t=Date.parse(v); return isNaN(t)?null:t; }
+function daysSince(ms){ return Math.floor((Date.now()-ms)/864e5); }
+function fmtDate(ms){ return new Date(ms).toLocaleDateString(undefined,{month:"short",day:"numeric"}); }
+function consistencyToNum(v){
+  var s=String(v==null?"":v).toLowerCase().replace(/[–—]/g,"-");
+  if(s.indexOf("under 60")>=0||s.indexOf("<60")>=0) return 55;
+  if(s.indexOf("60-70")>=0) return 65; if(s.indexOf("70-85")>=0) return 78;
+  if(s.indexOf("85-95")>=0) return 90; if(s.indexOf("95-100")>=0) return 98;
+  var m=s.match(/(\d+)/); return m?+m[1]:null;
+}
+function loadLS(k,d){ try{ return JSON.parse(localStorage.getItem(k)||d); }catch(e){ return JSON.parse(d); } }
+function saveLS(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+
+/* ============================ IDENTITY ============================ */
+function loadIdentity(){ try{ return JSON.parse(localStorage.getItem(LS_ID)||"null"); }catch(e){ return null; } }
+function applyGender(gen){ document.documentElement.setAttribute("data-theme", gen==="man"?"man":"woman"); }
+function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; applyGender(b.dataset.v); }
+function saveIdentity(){
+  var name=g("ob_name").value.trim(), email=g("ob_email").value.trim().toLowerCase(), gender=g("ob_gender").dataset.val, st=g("obStatus");
+  if(!name){ st.textContent="Add your name to continue."; st.style.color="var(--stall-tx)"; return; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ st.textContent="That email doesn't look right — double-check it."; st.style.color="var(--stall-tx)"; return; }
+  if(!gender){ st.textContent="Pick a style so your dashboard fits you."; st.style.color="var(--stall-tx)"; return; }
+  ID={name:name,email:email,gender:gender}; saveLS(LS_ID, ID); applyGender(gender);
+  boot();
+}
+function editIdentity(){
+  if(ID){ g("ob_name").value=ID.name; g("ob_email").value=ID.email;
+    Array.from(g("ob_gender").children).forEach(function(b){ b.classList.toggle("on", b.dataset.v===ID.gender); });
+    g("ob_gender").dataset.val=ID.gender||""; }
+  show("onboard");
+}
+
+/* ============================ NAVIGATION ============================ */
+function show(idOn){ ["onboard","home","checkin"].forEach(function(s){ g(s).classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
+function showHome(){ renderHome(); show("home"); }
+function showCheckin(){ buildForm(); show("checkin"); }
+
+/* ============================ SCOPED READ (JSONP) ============================ */
+/* Reads THIS client's own rows from the doorway. Same cross-origin JSONP the
+   Command Center uses for tasks. Falls back to local data if unavailable. */
+function loadClientData(cb){
+  if(!CONFIG.writeUrl || !ID){ cb(null); return; }
+  var done=false, name="__cd"+Date.now();
+  var s=document.createElement("script");
+  window[name]=function(data){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(data); };
+  s.onerror=function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } };
+  s.src=CONFIG.writeUrl+"?action=clientData&email="+encodeURIComponent(ID.email)+"&callback="+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } }, 8000);
+}
+
+/* Build the merged model from server rows (authoritative) + local (instant). */
+function buildModel(server){
+  serverOk = !!(server && server.ok);
+  // ---- check-ins ----
+  var sc = (server&&server.checkins||[]).map(function(r){
+    var e={ts:ts(r["Timestamp"])||Date.now(), weight:num(r["Weight"]), food:num(r["Food quality"]),
+      cons:consistencyToNum(r["Consistency"]), consLabel:r["Consistency"],
+      victory:r["Non-scale victory"], focus:r["Focus next week"], notes:r["Anything else"]};
+    MARKERS.forEach(function(m){ e[m[0]]=num(r[m[2]]); });
+    return e;
+  });
+  var local=loadLS(LS_LOG,"[]");
+  var checkins;
+  if(serverOk){
+    var latest=sc.reduce(function(a,e){return Math.max(a,e.ts);},0);
+    checkins=sc.concat(local.filter(function(e){ return e.ts>latest+1000; }));  // keep just-submitted, unpropagated
+  } else { checkins=local.slice(); }
+  checkins.sort(function(a,b){return a.ts-b.ts;});
+  M.checkins=checkins;
+  // ---- coach notes (read-only) ----
+  M.coachNotes=(server&&server.coachNotes||[]).map(function(r){ return {ts:ts(r["Timestamp"])||0, text:r["Note"]}; })
+    .filter(function(n){return n.text;}).sort(function(a,b){return b.ts-a.ts;});
+  // ---- client notes ----
+  var scn=(server&&server.clientNotes||[]).map(function(r){ return {ts:ts(r["Timestamp"])||0, text:r["Note"]}; });
+  var lcn=loadLS(LS_NOTE,"[]");
+  M.clientNotes=(serverOk?scn.concat(lcn.filter(function(n){return n.ts> (scn.reduce(function(a,x){return Math.max(a,x.ts);},0))+1000;})):lcn)
+    .filter(function(n){return n.text;}).sort(function(a,b){return b.ts-a.ts;});
+  // ---- PRs ----
+  var spr=(server&&server.prs||[]).map(function(r){ return {ts:ts(r["Timestamp"])||0, exercise:r["Exercise"], weight:num(r["Weight"]), reps:num(r["Reps"])}; });
+  var lpr=loadLS(LS_PR,"[]");
+  M.prs=(serverOk?spr.concat(lpr.filter(function(p){return p.ts>(spr.reduce(function(a,x){return Math.max(a,x.ts);},0))+1000;})):lpr)
+    .filter(function(p){return p.weight!=null;});
+}
+
+/* ============================ RENDER ============================ */
+function renderHome(){
+  g("greeting").textContent="Welcome back, "+ID.name.split(" ")[0];
+  var h=M.checkins, first=h[0], last=h[h.length-1];
+  g("stWeight").textContent = last&&last.weight!=null ? last.weight : "—";
+  g("stTotal").textContent = h.length;
+  var cv=h.map(function(x){return x.cons;}).filter(function(v){return v!=null;});
+  g("stCons").textContent = cv.length ? Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length)+"%" : "—";
+  var chEl=g("stChange");
+  if(first&&last&&first.weight!=null&&last.weight!=null){
+    var ch=last.weight-first.weight; chEl.textContent=(ch>0?"+":"")+ch.toFixed(1);
+    chEl.className="n "+(ch<0?"pos":ch>0?"neg":"");
+  } else { chEl.textContent="—"; chEl.className="n"; }
+  // due nudge
+  if(last){ var d=daysSince(last.ts);
+    g("homeEyebrow").innerHTML = d>=7?'<span class="pill">Due now</span>':"This week";
+    g("ciCta").textContent = d>=7?"You're due — start this week's check-in":"Start this week's check-in";
+  }
+  drawTrend(h);
+  drawBiofeedback(h);
+  renderCoachNotes();
+  renderPRs();
+  renderClientNotes();
+  renderLog(h);
+  g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
+}
+
+function drawTrend(log){
+  var box=g("trendBox"), pts=log.filter(function(e){return e.weight!=null;}).map(function(e){return {t:e.ts,w:e.weight};});
+  if(pts.length<2){ box.innerHTML='<div class="empty">Your trend line appears after a couple of check-ins.</div>'; return; }
+  var W=600,H=120,pad=10, ws=pts.map(function(p){return p.w;}), mn=Math.min.apply(null,ws), mx=Math.max.apply(null,ws);
+  var padv=(mx-mn)*0.25||1, lo=mn-padv, hi=mx+padv, rng=hi-lo;
+  var xs=function(i){return pad+i*(W-2*pad)/(pts.length-1);}, ys=function(w){return pad+(1-(w-lo)/rng)*(H-2*pad);};
+  var line=pts.map(function(p,i){return xs(i).toFixed(1)+","+ys(p.w).toFixed(1);}).join(" ");
+  var area=pad+","+(H-pad)+" "+line+" "+(W-pad)+","+(H-pad);
+  var dots=pts.map(function(p,i){return '<circle cx="'+xs(i).toFixed(1)+'" cy="'+ys(p.w).toFixed(1)+'" r="3.4" fill="var(--touch)"/>';}).join("");
+  box.innerHTML='<svg viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none">'
+    +'<polygon points="'+area+'" fill="var(--accent-soft)"/>'
+    +'<polyline points="'+line+'" fill="none" stroke="var(--accent)" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>'
+    +dots+'</svg><div class="labels"><span>'+fmtDate(pts[0].t)+' · '+pts[0].w+' lb</span><span>'+fmtDate(pts[pts.length-1].t)+' · '+pts[pts.length-1].w+' lb</span></div>';
+}
+
+function sparkline(vals){
+  var v=vals.filter(function(x){return x!=null;});
+  if(v.length<2) return '<span style="color:var(--muted);font-size:11px">—</span>';
+  var W=140,H=24,mn=Math.min.apply(null,v),mx=Math.max.apply(null,v),rng=(mx-mn)||1,n=v.length;
+  var pts=v.map(function(x,i){return (2+i/(n-1)*(W-4)).toFixed(1)+","+(H-3-((x-mn)/rng)*(H-6)).toFixed(1);}).join(" ");
+  return '<svg class="bf-spark" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none" style="width:100%"><polyline points="'+pts+'" fill="none" stroke="var(--accent)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+}
+function drawBiofeedback(log){
+  var box=g("bfBox");
+  if(!log.length){ box.innerHTML='<div class="empty">Rate how you feel each week and your trends build here.</div>'; return; }
+  box.innerHTML=MARKERS.map(function(m){
+    var series=log.map(function(e){return e[m[0]];});
+    var last=null; for(var i=series.length-1;i>=0;i--){ if(series[i]!=null){ last=series[i]; break; } }
+    return '<div class="bf-row"><span class="bl">'+m[1]+'</span><span>'+sparkline(series)+'</span><span class="bv">'+(last!=null?last:"—")+'</span></div>';
+  }).join("")+'<div style="color:var(--muted);font-size:11px;margin-top:8px">Latest rating shown at right · each line is your trend (1–5).</div>';
+}
+
+function renderCoachNotes(){
+  var box=g("coachBox");
+  if(!M.coachNotes.length){ box.innerHTML='<div class="empty">Notes from '+esc(CONFIG.coachName)+' show up here.</div>'; return; }
+  box.innerHTML=M.coachNotes.slice(0,5).map(function(n){
+    return '<div class="coachnote"><div class="cn-meta">'+esc(CONFIG.coachName)+(n.ts?' · '+fmtDate(n.ts):'')+'</div><div class="cn-body">'+esc(n.text)+'</div></div>';
+  }).join("");
+}
+function renderClientNotes(){
+  var box=g("noteBox");
+  if(!M.clientNotes.length){ box.innerHTML='<div class="empty">Jot down anything you want to remember or raise with your coach.</div>'; return; }
+  box.innerHTML=M.clientNotes.slice(0,20).map(function(n){
+    return '<div class="note-item"><div class="ni-date">'+(n.ts?fmtDate(n.ts):"")+'</div><div class="ni-body">'+esc(n.text)+'</div></div>';
+  }).join("");
+}
+function renderPRs(){
+  var box=g("prBox");
+  if(!M.prs.length){ box.innerHTML='<div class="empty">Log a lift and your bests + progress show here.</div>'; return; }
+  var byEx={}; M.prs.forEach(function(p){ (byEx[p.exercise]=byEx[p.exercise]||[]).push(p); });
+  box.innerHTML=Object.keys(byEx).map(function(ex){
+    var list=byEx[ex].slice().sort(function(a,b){return a.ts-b.ts;});
+    var best=list.reduce(function(m,p){return p.weight>m.weight?p:m;}, list[0]);
+    return '<div class="pr-item"><div class="pr-top"><span class="pr-ex">'+esc(ex)+'</span><span class="pr-best">'+best.weight+(best.reps?' × '+best.reps:'')+' lb</span></div>'
+      +'<div class="pr-sub"><span style="flex:1">'+sparkline(list.map(function(p){return p.weight;}))+'</span><span>'+list.length+' log'+(list.length>1?'s':'')+'</span></div></div>';
+  }).join("");
+}
+function renderLog(h){
+  var box=g("logBox");
+  if(!h.length){ box.innerHTML='<div class="empty">Your first check-in sets the baseline.</div>'; return; }
+  box.innerHTML=h.slice().reverse().map(function(e){
+    var q=[e.victory&&'<div class="log-q"><span class="lq-l">Win</span><span>'+esc(e.victory)+'</span></div>',
+           e.focus&&'<div class="log-q"><span class="lq-l">Focus</span><span>'+esc(e.focus)+'</span></div>',
+           e.notes&&'<div class="log-q"><span class="lq-l">Note</span><span>'+esc(e.notes)+'</span></div>'].filter(Boolean).join("");
+    return '<div class="log-item"><div class="log-top"><span class="log-date">'+fmtDate(e.ts)+'</span>'
+      +'<span class="log-metrics">'+(e.weight!=null?'<b>'+e.weight+'</b> lb':'')+(e.cons!=null?'<span class="cbadge">'+e.cons+'%</span>':'')+'</span></div>'+q+'</div>';
+  }).join("");
+}
+
+/* ============================ CHECK-IN FORM ============================ */
+function buildForm(){
+  g("markerRows").innerHTML=MARKERS.map(function(m){
+    var b=[1,2,3,4,5].map(function(v){return '<button type="button" class="scl-btn" data-v="'+v+'" onclick="pickScale(this)">'+v+'</button>';}).join("");
+    return '<div class="scalerow"><span class="name">'+m[1]+'</span><div class="scl" id="scl-'+m[0]+'" data-val="">'+b+'</div></div>';
+  }).join("");
+  g("scl-food").innerHTML=Array.from({length:10},function(_,i){return '<button type="button" class="scl-btn" data-v="'+(i+1)+'" onclick="pickScale(this)">'+(i+1)+'</button>';}).join("");
+  g("ci_cons").innerHTML=CONS.map(function(x){return '<button type="button" class="chip" data-v="'+x+'" onclick="pickChip(this)">'+x+'</button>';}).join("");
+  ["ci_weight","ci_victory","ci_focus","ci_notes"].forEach(function(id){ g(id).value=""; });
+  g("ciStatus").textContent="";
+}
+function pickScale(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; }
+function pickChip(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; }
+
+async function submitCheckin(){
+  var weight=parseFloat(g("ci_weight").value), consistency=g("ci_cons").dataset.val, st=g("ciStatus");
+  if(isNaN(weight)||!consistency){ st.textContent="Add your weight and consistency to submit."; st.style.color="var(--stall-tx)"; return; }
+  var mk={}; MARKERS.forEach(function(m){ var el=g("scl-"+m[0]); mk[m[0]]=el&&el.dataset.val?+el.dataset.val:null; });
+  var food=g("scl-food").dataset.val?+g("scl-food").dataset.val:null;
+  var payload={type:"checkin", email:ID.email, ts:new Date().toISOString(), weight:weight, food:food, consistency:consistency,
+    victory:g("ci_victory").value, focus:g("ci_focus").value, notes:g("ci_notes").value};
+  MARKERS.forEach(function(m){ payload[m[0]]=mk[m[0]]; });
+  st.textContent="Sending to your coach…"; st.style.color="var(--muted)"; g("ciSubmit").disabled=true;
+  var ok=await postToSheet(payload);
+  var local=loadLS(LS_LOG,"[]");
+  var entry={ts:Date.now(), weight:weight, food:food, cons:consistencyToNum(consistency), consLabel:consistency,
+    victory:payload.victory, focus:payload.focus, notes:payload.notes};
+  MARKERS.forEach(function(m){ entry[m[0]]=mk[m[0]]; });
+  local.push(entry); saveLS(LS_LOG, local);
+  M.checkins.push(entry); M.checkins.sort(function(a,b){return a.ts-b.ts;});
+  st.textContent = ok ? "Sent ✓ Your coach can see this week." : "Saved on your device ✓ (syncs when back online).";
+  st.style.color="var(--good-tx)"; g("ciSubmit").disabled=false;
+  setTimeout(showHome, 1300);
+}
+
+/* ============================ PR + NOTE ADD ============================ */
+var EXERCISES={
+  "Hinge":["Barbell RDL","Dumbbell RDL","Trap-bar deadlift","Conventional deadlift","Hip thrust","Back extension"],
+  "Squat":["Back squat","Front squat","Goblet squat","Bulgarian split squat","Leg press"],
+  "Horizontal push":["Barbell bench press","Dumbbell bench press","Machine chest press","Push-up"],
+  "Vertical push":["Overhead press","Dumbbell shoulder press"],
+  "Horizontal pull":["Barbell row","Dumbbell row","Seated cable row","Chest-supported row"],
+  "Vertical pull":["Pull-up","Lat pulldown"],
+  "Carry / core":["Farmer carry","Plank (sec)","Weighted plank"]
+};
+function togglePR(){
+  var box=g("prFormBox");
+  if(box.classList.contains("hidden")){
+    var opts=Object.keys(EXERCISES).map(function(grp){ return '<optgroup label="'+grp+'">'+EXERCISES[grp].map(function(x){return '<option>'+esc(x)+'</option>';}).join("")+'</optgroup>'; }).join("");
+    box.innerHTML='<div class="field"><label>Exercise</label><select class="input" id="pr_ex">'+opts+'</select></div>'
+      +'<div style="display:flex;gap:10px"><div class="field" style="flex:1"><label>Weight (lb)</label><input class="input" type="number" inputmode="decimal" id="pr_weight" placeholder="e.g. 225"></div>'
+      +'<div class="field" style="flex:1"><label>Reps <span class="hint">(opt)</span></label><input class="input" type="number" inputmode="numeric" id="pr_reps" placeholder="5"></div></div>'
+      +'<div class="actions"><button class="btn btn-primary" onclick="submitPR()">Save PR</button><div class="status" id="prStatus"></div></div>';
+    box.classList.remove("hidden");
+  } else { box.classList.add("hidden"); }
+}
+async function submitPR(){
+  var ex=g("pr_ex").value, weight=parseFloat(g("pr_weight").value), reps=parseInt(g("pr_reps").value,10), st=g("prStatus");
+  if(!ex||isNaN(weight)){ st.textContent="Pick an exercise and enter a weight."; st.style.color="var(--stall-tx)"; return; }
+  st.textContent="Saving…"; st.style.color="var(--muted)";
+  var ok=await postToSheet({type:"pr", email:ID.email, ts:new Date().toISOString(), exercise:ex, weight:weight, reps:isNaN(reps)?"":reps});
+  var lpr=loadLS(LS_PR,"[]"); var rec={ts:Date.now(), exercise:ex, weight:weight, reps:isNaN(reps)?null:reps}; lpr.push(rec); saveLS(LS_PR,lpr);
+  M.prs.push(rec);
+  st.textContent = ok?"PR saved ✓":"Saved on your device ✓"; st.style.color="var(--good-tx)";
+  setTimeout(function(){ togglePR(); renderPRs(); }, 900);
+}
+function toggleNote(){
+  var box=g("noteFormBox");
+  if(box.classList.contains("hidden")){
+    box.innerHTML='<div class="field"><textarea class="input" id="note_text" rows="3" placeholder="What\'s on your mind this week?"></textarea></div>'
+      +'<div class="actions"><button class="btn btn-primary" onclick="submitNote()">Save note</button><div class="status" id="noteStatus"></div></div>';
+    box.classList.remove("hidden");
+  } else { box.classList.add("hidden"); }
+}
+async function submitNote(){
+  var text=g("note_text").value.trim(), st=g("noteStatus");
+  if(!text){ st.textContent="Write something first."; st.style.color="var(--stall-tx)"; return; }
+  st.textContent="Saving…"; st.style.color="var(--muted)";
+  var ok=await postToSheet({type:"clientnote", email:ID.email, ts:new Date().toISOString(), text:text});
+  var lcn=loadLS(LS_NOTE,"[]"); var rec={ts:Date.now(), text:text}; lcn.push(rec); saveLS(LS_NOTE,lcn);
+  M.clientNotes.unshift(rec);
+  st.textContent = ok?"Saved ✓":"Saved on your device ✓"; st.style.color="var(--good-tx)";
+  setTimeout(function(){ toggleNote(); renderClientNotes(); }, 800);
+}
+
+/* ============================ WRITE DOORWAY ============================ */
+async function postToSheet(payload){
+  if(!CONFIG.writeUrl) return false;
+  try{ await fetch(CONFIG.writeUrl,{method:"POST", mode:"no-cors", headers:{"Content-Type":"text/plain;charset=utf-8"}, body:JSON.stringify(payload)}); return true; }
+  catch(e){ return false; }
+}
+
+/* ============================ BOOT ============================ */
+function boot(){
+  // render immediately from local so it's never blank, then hydrate from server
+  buildModel(null); showHome();
+  loadClientData(function(server){ if(server){ buildModel(server); renderHome(); } });
+}
+(function(){
+  ID=loadIdentity();
+  if(ID && ID.gender) applyGender(ID.gender);
+  if(ID && ID.email){ boot(); } else { show("onboard"); }
+})();
+</script>
+</body>
+</html>
