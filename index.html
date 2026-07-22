@@ -499,6 +499,18 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .goal-edit input:focus{outline:none;border-color:var(--accent)}
 .goal-edit button{background:var(--accent);color:#1C1C1C;border:none;border-radius:9px;padding:9px 15px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
 .goal-note{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.5}
+/* ---- Client Links ---- */
+.link-row{display:flex;justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap;
+  background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:9px}
+.link-who{min-width:180px}
+.link-name{font-weight:600;color:var(--headline)}
+.link-email{color:var(--muted);font-size:12.5px;margin-top:2px}
+.link-copy{display:flex;gap:8px;align-items:center;flex:1;min-width:260px;max-width:520px}
+.link-copy input{flex:1;background:var(--bg);border:1px solid var(--line);border-radius:8px;
+  padding:8px 10px;font-family:inherit;font-size:12px;color:var(--ink-soft)}
+.link-copy button{background:var(--accent);color:#1C1C1C;border:none;border-radius:8px;
+  padding:8px 14px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.link-row .pill{margin-left:8px}
 </style>
 </head>
 <body>
@@ -588,6 +600,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-content"><div class="wrap" id="contentView"></div></section>
 <section class="view" id="view-toolkit"><div class="wrap" id="toolkitView"></div></section>
 <section class="view" id="view-integrations"><div class="wrap" id="integrationsView"></div></section>
+<section class="view" id="view-links"><div class="wrap" id="linksView"></div></section>
 
 </main>
 </div>
@@ -1512,7 +1525,7 @@ function clientDetail(c){
 const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
-  {group:"Fulfillment", items:[["command","Client Dashboard"]]},
+  {group:"Fulfillment", items:[["command","Client Dashboard"],["links","Client Links"]]},
   {group:"Grow", items:[["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
@@ -1535,6 +1548,7 @@ function showTab(id){
   else if(id==="content") renderContent();
   else if(id==="toolkit") renderToolkit();
   else if(id==="integrations") renderIntegrations();
+  else if(id==="links") renderLinks();
   window.scrollTo(0,0);
 }
 
@@ -1576,6 +1590,45 @@ function setGoal(k){
 function saveGoals(){
   lsSave('lp_goals', GOALS);
   if(CONFIG.writeUrl) postToSheet({type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS, goals:GOALS});
+}
+
+/* ---- Client Links — each member's private magic-link dashboard URL (from the Roster tokens) ---- */
+var CLIENT_BASE = "https://jaymegtkfitness-bit.github.io/lp-command-center/client.html";
+var __rosterCache = null;
+function fetchRoster(cb){
+  if(__rosterCache){ cb(__rosterCache); return; }
+  if(!CONFIG.writeUrl){ cb(null); return; }
+  var name='__lpR'+Date.now(), s=document.createElement('script'), done=false;
+  window[name]=function(d){ done=true; try{delete window[name];}catch(e){} s.remove(); __rosterCache=(d&&d.rows)||[]; cb(__rosterCache); };
+  s.onerror=function(){ if(!done){ done=true; s.remove(); cb(null); } };
+  s.src=CONFIG.writeUrl+'?action=roster&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){ done=true; s.remove(); cb(null); } }, 9000);
+}
+function rv(r,k){ return (r[k]!=null?r[k]:(r[k+' ']!=null?r[k+' ']:'')); } // tolerate trailing-space headers
+function renderLinks(){
+  var box=document.getElementById("linksView");
+  box.innerHTML='<div class="view-head"><h1>Client Links</h1><p class="view-sub">Each client’s private dashboard link. Copy it and send — they open it and they’re in, no login, no typing.</p></div><div id="linksList"><p class="tool-d">Loading roster…</p></div>';
+  fetchRoster(function(rows){
+    var list=document.getElementById("linksList");
+    if(!rows){ list.innerHTML='<p class="tool-d">Couldn’t load the roster. Hit Refresh and try again.</p>'; return; }
+    var real=rows.filter(function(r){ return String(rv(r,'Email')).trim(); });
+    if(!real.length){ list.innerHTML='<p class="tool-d">No clients in the Roster yet.</p>'; return; }
+    list.innerHTML=real.map(function(r){
+      var email=String(rv(r,'Email')).trim(), token=String(rv(r,'Token')).trim(),
+          name=String(rv(r,'Name')).trim()||email, status=String(rv(r,'Status')).trim();
+      var link=token?(CLIENT_BASE+"?k="+token):"";
+      var cls=/active/i.test(status)?'good':'quiet';
+      return '<div class="link-row"><div class="link-who"><span class="link-name">'+esc(name)+'</span>'
+        +'<span class="pill '+cls+'">'+esc(status||'—')+'</span><div class="link-email">'+esc(email)+'</div></div>'
+        +(link?('<div class="link-copy"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy link</button></div>')
+              :'<div class="tool-d">No token yet — open once, it auto-generates.</div>')+'</div>';
+    }).join("");
+  });
+}
+function copyLink(btn, link){
+  try{ navigator.clipboard.writeText(link).then(function(){ var t=btn.textContent; btn.textContent='Copied ✓'; setTimeout(function(){ btn.textContent=t; },1400); }); }
+  catch(e){ var i=btn.previousElementSibling; if(i){ i.select(); document.execCommand('copy'); } }
 }
 
 /* Your PFA tools — these run in Claude Code. Type the command to launch one. */
