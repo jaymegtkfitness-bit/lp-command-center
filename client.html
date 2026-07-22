@@ -786,7 +786,8 @@ function boot(){
     buildModel(null);
     loadClientData(function(server){
       if(server && server.email){
-        ID = { email:server.email, name:server.name||(ID&&ID.name)||"", gender:(ID&&ID.gender)||"woman" };
+        var gsv = /^m/i.test(server.gender||"") ? "man" : (/^f/i.test(server.gender||"") ? "woman" : ((ID&&ID.gender)||"woman"));
+        ID = { email:server.email, name:server.name||(ID&&ID.name)||"", gender:gsv };
         saveLS(LS_ID, ID); applyGender(ID.gender);
         if(server.active===false){ showLocked(); return; }
         buildModel(server); showHome();
