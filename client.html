@@ -1017,8 +1017,10 @@ function boot(){
   });
 }
 (function(){
+  // ?fresh=1 → wipe this device's saved data and start a brand-new experience (for testing/demos).
+  if(getParam('fresh')){ try{ ['lp_client_id','lp_client_token','lp_client_log','lp_client_pr','lp_client_note','lp_client_monthly','lp_client_quarterly','lp_client_intake'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} }
   // Identity by magic-link token first (no typing), then remembered token, then email fallback.
-  TOKEN = getParam('k') || (function(){ try{ return localStorage.getItem(LS_TOKEN); }catch(e){ return null; } })();
+  TOKEN = getParam('fresh') ? null : (getParam('k') || (function(){ try{ return localStorage.getItem(LS_TOKEN); }catch(e){ return null; } })());
   if(TOKEN){ try{ localStorage.setItem(LS_TOKEN, TOKEN); }catch(e){} }
   ID = loadIdentity();
   if(ID && ID.gender) applyGender(ID.gender);
