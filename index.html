@@ -480,6 +480,25 @@ select.ci-input{appearance:none;-webkit-appearance:none}
   .top-inner{gap:12px}
   .brand{margin-right:0;width:100%}
 }
+/* ---- Big Goals ---- */
+.goals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
+.goal-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px;box-shadow:var(--shadow)}
+.goal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.goal-label{font-family:'Cinzel',serif;font-size:15px;font-weight:600;color:var(--headline)}
+.goal-tag{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:3px 9px}
+.goal-tag.live{color:var(--gold);border-color:var(--accent-soft)}
+.goal-nums{display:flex;align-items:baseline;gap:8px;margin-bottom:10px}
+.goal-cur{font-family:'Cinzel',serif;font-size:28px;font-weight:600;color:var(--accent)}
+.goal-tgt{font-size:14px;color:var(--muted);font-weight:600}
+.goal-track{height:9px;background:var(--surface-2);border-radius:6px;overflow:hidden}
+.goal-fill{height:100%;background:var(--accent);border-radius:6px;transition:width .4s ease}
+.goal-fill.done{background:var(--good)}
+.goal-foot{display:flex;justify-content:space-between;margin-top:8px;font-size:12px;color:var(--muted);font-weight:600}
+.goal-edit{display:flex;gap:8px;margin-top:14px}
+.goal-edit input{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-family:inherit;font-size:14px;color:var(--ink)}
+.goal-edit input:focus{outline:none;border-color:var(--accent)}
+.goal-edit button{background:var(--accent);color:#1C1C1C;border:none;border-radius:9px;padding:9px 15px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer}
+.goal-note{margin-top:12px;font-size:12px;color:var(--muted);line-height:1.5}
 </style>
 </head>
 <body>
@@ -562,6 +581,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 </div></section>
 
 <section class="view active" id="view-tasks"><div class="wrap tasks-wrap" id="tasksView"></div></section>
+<section class="view" id="view-goals"><div class="wrap" id="goalsView"></div></section>
 <section class="view" id="view-revenue"><div class="wrap" id="revenueView"></div></section>
 <section class="view" id="view-workshops"><div class="wrap" id="workshopsView"></div></section>
 <section class="view" id="view-metrics"><div class="wrap" id="metricsView"></div></section>
@@ -753,6 +773,7 @@ function computeBusiness(roster){
   const community = roster.filter(r=>/community/i.test(r.status));
   const pool      = roster.filter(r=>/community|prospect|lead/i.test(r.status)); // free members + cold leads = conversion pool
   const mrr = active.reduce((s,r)=>s+normalizeMonthly(r),0);
+  window.__mrr = mrr;   // raw number so the Big Goals view can auto-track the $20K MRR goal
   const poolProjection = pool.length*PER_LEAD_VALUE;
   const fStd  = roster.filter(r=>/standard/i.test(r.founding)).length;
   const fPrem = roster.filter(r=>/premium/i.test(r.founding)).length;
@@ -1038,6 +1059,8 @@ const DOW =['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturda
 function lsLoad(k,def){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
 function lsSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 let SCORE = lsLoad('lp_score', {});         // { weekKey: {dms,posts,calls} } — weekly, auto-resets
+const GOAL_TARGETS = { cash:100000, mrr:20000, house:50000 };   // the 3 Big Goals
+let GOALS = lsLoad('lp_goals', {cash:0, house:0});   // manual: cash-in-bank + house down payment (MRR is auto)
 let WORKSHOPS = lsLoad('lp_workshops', []); // [ {id,label,reg,att,calls} ] — monthly log
 /* The operating rhythm (seeds on first open; edit freely after).
    recur: daily (Mon–Sat) · weekly (a weekday) · monthly (Nth weekday) · once (a punch-list item).
@@ -1265,7 +1288,9 @@ function syncTasks(){
       if(Array.isArray(data.tasks)&&data.tasks.length) TASKS=data.tasks;
       if(data.score&&typeof data.score==='object') SCORE=data.score;
       if(Array.isArray(data.workshops)) WORKSHOPS=data.workshops;
+      if(data.goals&&typeof data.goals==='object') { GOALS=data.goals; lsSave('lp_goals',GOALS); }  // syncs once the doorway persists goals (batched redeploy)
       saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS);
+      const gv=document.getElementById('view-goals'); if(gv&&gv.classList.contains('active')) renderGoals();
       const v=document.getElementById('view-tasks'); if(v&&v.classList.contains('active')) renderTasks();
       const w=document.getElementById('view-workshops'); if(w&&w.classList.contains('active')) renderWorkshops();
     } }catch(e){} delete window[cb]; s.remove(); };
@@ -1485,6 +1510,7 @@ function clientDetail(c){
 
 /* ============================ NAVIGATION + BUSINESS VIEWS ============================ */
 const NAV = [
+  {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
   {group:"Fulfillment", items:[["command","Client Dashboard"]]},
   {group:"Grow", items:[["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
@@ -1502,6 +1528,7 @@ function showTab(id){
   const v=document.getElementById("view-"+id); if(v) v.classList.add("active");
   renderSidebar(id);
   if(id==="tasks"){ syncTasks(); renderTasks(); }
+  else if(id==="goals") renderGoals();
   else if(id==="workshops"){ syncTasks(); renderWorkshops(); }
   else if(id==="revenue") renderRevenue();
   else if(id==="metrics") renderMetrics();
@@ -1509,6 +1536,46 @@ function showTab(id){
   else if(id==="toolkit") renderToolkit();
   else if(id==="integrations") renderIntegrations();
   window.scrollTo(0,0);
+}
+
+/* ---- Big Goals (Personal) — MRR auto-tracks from clients; cash + house are manual ---- */
+function renderGoals(){
+  const money = n => "$"+Math.round(n||0).toLocaleString();
+  const mrr = window.__mrr || 0;
+  const goals = [
+    {k:"cash",  label:"Cash in the bank",           target:GOAL_TARGETS.cash,  current:GOALS.cash||0,  edit:true,  note:"Bills paid, cards at zero. Cars excluded."},
+    {k:"mrr",   label:"Monthly recurring revenue",  target:GOAL_TARGETS.mrr,   current:mrr,            edit:false, note:"Auto-updated from your active clients."},
+    {k:"house", label:"House down payment",         target:GOAL_TARGETS.house, current:GOALS.house||0, edit:true,  note:"Saved toward the down payment."}
+  ];
+  const card = g => {
+    const pct = g.target ? Math.max(0, Math.min(100, g.current/g.target*100)) : 0;
+    const done = g.current >= g.target;
+    return `<div class="goal-card">
+      <div class="goal-head">
+        <span class="goal-label">${g.label}</span>
+        <span class="goal-tag ${g.edit?'':'live'}">${g.edit?'manual':'auto'}</span>
+      </div>
+      <div class="goal-nums"><span class="goal-cur">${money(g.current)}</span><span class="goal-tgt">/ ${money(g.target)}</span></div>
+      <div class="goal-track"><div class="goal-fill ${done?'done':''}" style="width:${pct.toFixed(1)}%"></div></div>
+      <div class="goal-foot"><span>${pct.toFixed(0)}%</span><span>${done?'Reached ✓':money(g.target-g.current)+' to go'}</span></div>
+      ${g.edit ? `<div class="goal-edit"><input type="number" inputmode="decimal" id="goal_${g.k}" placeholder="Update amount" value="${g.current||''}"/><button onclick="setGoal('${g.k}')">Update</button></div>` : ''}
+      <div class="goal-note">${esc(g.note)}</div>
+    </div>`;
+  };
+  document.getElementById("goalsView").innerHTML =
+    `<div class="view-head"><h1>Big Goals</h1>
+       <p class="view-sub">The three numbers that matter. MRR updates itself from your active clients; cash and the house you update as they move.</p></div>
+     <div class="goals-grid">${goals.map(card).join("")}</div>`;
+}
+function setGoal(k){
+  const el=document.getElementById("goal_"+k); if(!el) return;
+  const v=parseFloat(String(el.value).replace(/[^0-9.\-]/g,""));
+  if(isNaN(v)) return;
+  GOALS[k]=v; saveGoals(); renderGoals();
+}
+function saveGoals(){
+  lsSave('lp_goals', GOALS);
+  if(CONFIG.writeUrl) postToSheet({type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS, goals:GOALS});
 }
 
 /* Your PFA tools — these run in Claude Code. Type the command to launch one. */
