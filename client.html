@@ -101,13 +101,15 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .log-metrics{font-size:13px;color:var(--ink)}
 .cbadge{display:inline-block;background:var(--touch-soft);color:var(--ink-soft);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
 .log-q{display:flex;gap:8px;margin-top:5px;font-size:12.5px;color:var(--ink-soft)}
-.log-q .lq-l{color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.04em;text-transform:uppercase;flex:none;width:42px;padding-top:1px}
+.log-q .lq-l{color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.04em;text-transform:uppercase;flex:none;width:58px;padding-top:1px}
 
 /* Buttons */
 .btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
 .btn-primary{background:var(--accent);color:var(--accent-ink)}
 .btn-primary:active{transform:translateY(1px)}
 .btn-ghost{background:transparent;border:1px solid var(--line);color:var(--ink-soft);font-weight:600;font-size:13px;padding:11px}
+.btn-month{background:transparent;border:1.5px solid var(--touch);color:var(--headline)}
+.btn-month:active{transform:translateY(1px)}
 .toggle{background:var(--surface-2);border:1px solid var(--line);color:var(--ink-soft);border-radius:10px;
   padding:11px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;width:100%;text-align:left}
 
@@ -192,6 +194,7 @@ select.input{appearance:none}
 
     <div class="actions" style="margin-top:16px">
       <button class="btn btn-primary" onclick="showCheckin()" id="ciCta">Start this week's check-in</button>
+      <button class="btn btn-month" onclick="showMonthly()" id="moCta" style="margin-top:10px">Start this month's debrief</button>
     </div>
 
     <!-- Coach note -->
@@ -234,6 +237,12 @@ select.input{appearance:none}
       <div id="logBox"><div class="empty">Your first check-in sets the baseline.</div></div>
     </div>
 
+    <!-- Monthly debriefs -->
+    <div class="card">
+      <div class="sec-h"><h2>Monthly debriefs</h2></div>
+      <div id="monthlyBox"><div class="empty">Your monthly zoom-outs land here — the bigger picture, once a month.</div></div>
+    </div>
+
     <div style="margin-top:12px"><button class="btn btn-ghost" onclick="editIdentity()">Update name / email / style</button></div>
     <p class="foot" id="syncNote"></p>
   </section>
@@ -257,6 +266,28 @@ select.input{appearance:none}
     <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
   </section>
 
+  <!-- ============ MONTHLY DEBRIEF ============ -->
+  <section id="monthly" class="hidden">
+    <div class="eyebrow">Monthly debrief</div>
+    <h1>Your monthly zoom-out</h1>
+    <p class="sub">Step back from the weeks and look at the whole month — celebrate the wins, name what got in the way, and set your focus. About 5 minutes.</p>
+    <div class="card">
+      <div class="field"><label>This month's average weight (lb) <span class="hint">(optional)</span></label>
+        <input class="input" type="number" inputmode="decimal" id="mo_weight" placeholder="e.g. 209.0" /></div>
+      <div class="block"><div class="blocklabel">This month overall · rate each 1–5</div><div id="moMarkerRows"></div></div>
+      <div class="field"><label>Food quality this month (1–10)</label><div class="scl wide" id="mo-food" data-val=""></div></div>
+      <div class="field"><label>How consistent were you this month, overall?</label><div class="chips" id="mo_cons" data-val=""></div></div>
+      <div class="field"><label>Your biggest win this month <span class="hint">— on or off the scale</span></label><textarea class="input" id="mo_win" rows="2"></textarea></div>
+      <div class="field"><label>What worked this month?</label><textarea class="input" id="mo_worked" rows="2"></textarea></div>
+      <div class="field"><label>What got in your way most this month?</label><textarea class="input" id="mo_obstacle" rows="2"></textarea></div>
+      <div class="field"><label>Is your current track still the right one?</label><div class="chips" id="mo_track" data-val=""></div></div>
+      <div class="field"><label>Your one focus for next month</label><textarea class="input" id="mo_focus" rows="2"></textarea></div>
+      <div class="field"><label>Anything you want help with? <span class="hint">(optional)</span></label><textarea class="input" id="mo_help" rows="2"></textarea></div>
+      <div class="actions"><button class="btn btn-primary" onclick="submitMonthly()" id="moSubmit">Submit monthly debrief</button><div class="status" id="moStatus"></div></div>
+    </div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+  </section>
+
 </div>
 
 <script>
@@ -267,7 +298,7 @@ select.input{appearance:none}
    links everything to their row on the coach roster.
    writeUrl "" → everything saves/reads on this device only (demo/testing).   */
 var CONFIG = {
-  writeUrl: "https://script.google.com/macros/s/AKfycbxLSx45XpEnSM-O02O56eFyYn1oRWOvO7dScddaiQaFGOKX4EbQX-Om-t_Wj3cJBJuH/exec",
+  writeUrl: "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
   coachName: "Jayme"
 };
 /* =============== END CONFIG (stop editing here) =============== */
@@ -279,10 +310,11 @@ var MARKERS = [
   ["libido","Libido","Libido"],["inflammation","Inflammation","Inflammation"],["mood","Mood","Mood & resilience"],["recovery","Recovery","Training recovery"]
 ];
 var CONS = ["Under 60%","60–70%","70–85%","85–95%","95–100%"];
+var TRACK_OPTS = ["Yes, staying","Thinking about a change","Not sure"];
 var ID = null;                 // {name,email,gender}
-var M = { checkins:[], coachNotes:[], clientNotes:[], prs:[] };  // merged model
+var M = { checkins:[], monthly:[], coachNotes:[], clientNotes:[], prs:[] };  // merged model
 var serverOk = false;
-var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note";
+var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly";
 
 /* ============================ HELPERS ============================ */
 function g(id){ return document.getElementById(id); }
@@ -321,9 +353,10 @@ function editIdentity(){
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ ["onboard","home","checkin"].forEach(function(s){ g(s).classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
+function show(idOn){ ["onboard","home","checkin","monthly"].forEach(function(s){ g(s).classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
 function showHome(){ renderHome(); show("home"); }
 function showCheckin(){ buildForm(); show("checkin"); }
+function showMonthly(){ buildMonthlyForm(); show("monthly"); }
 
 /* ============================ SCOPED READ (JSONP) ============================ */
 /* Reads THIS client's own rows from the doorway. Same cross-origin JSONP the
@@ -371,6 +404,18 @@ function buildModel(server){
   var lpr=loadLS(LS_PR,"[]");
   M.prs=(serverOk?spr.concat(lpr.filter(function(p){return p.ts>(spr.reduce(function(a,x){return Math.max(a,x.ts);},0))+1000;})):lpr)
     .filter(function(p){return p.weight!=null;});
+  // ---- monthly debriefs ----
+  var smo=(server&&server.monthly||[]).map(function(r){
+    var e={ts:ts(r["Timestamp"])||0, weight:num(r["Weight"]), food:num(r["Food quality"]),
+      cons:consistencyToNum(r["Consistency"]), consLabel:r["Consistency"],
+      win:r["Biggest win"], worked:r["What worked"], obstacle:r["What got in the way"],
+      track:r["Track still right"], focus:r["Focus next month"], help:r["Help needed"]};
+    MARKERS.forEach(function(m){ e[m[0]]=num(r[m[2]]); });
+    return e;
+  });
+  var lmo=loadLS(LS_MONTHLY,"[]");
+  M.monthly=(serverOk?smo.concat(lmo.filter(function(x){return x.ts>(smo.reduce(function(a,y){return Math.max(a,y.ts);},0))+1000;})):lmo)
+    .sort(function(a,b){return b.ts-a.ts;});
 }
 
 /* ============================ RENDER ============================ */
@@ -397,6 +442,7 @@ function renderHome(){
   renderPRs();
   renderClientNotes();
   renderLog(h);
+  renderMonthly();
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
 }
 
@@ -502,6 +548,60 @@ async function submitCheckin(){
   st.textContent = ok ? "Sent ✓ Your coach can see this week." : "Saved on your device ✓ (syncs when back online).";
   st.style.color="var(--good-tx)"; g("ciSubmit").disabled=false;
   setTimeout(showHome, 1300);
+}
+
+/* ============================ MONTHLY DEBRIEF ============================ */
+function buildMonthlyForm(){
+  g("moMarkerRows").innerHTML=MARKERS.map(function(m){
+    var b=[1,2,3,4,5].map(function(v){return '<button type="button" class="scl-btn" data-v="'+v+'" onclick="pickScale(this)">'+v+'</button>';}).join("");
+    return '<div class="scalerow"><span class="name">'+m[1]+'</span><div class="scl" id="mo-'+m[0]+'" data-val="">'+b+'</div></div>';
+  }).join("");
+  g("mo-food").innerHTML=Array.from({length:10},function(_,i){return '<button type="button" class="scl-btn" data-v="'+(i+1)+'" onclick="pickScale(this)">'+(i+1)+'</button>';}).join("");
+  g("mo_cons").innerHTML=CONS.map(function(x){return '<button type="button" class="chip" data-v="'+x+'" onclick="pickChip(this)">'+x+'</button>';}).join("");
+  g("mo_track").innerHTML=TRACK_OPTS.map(function(x){return '<button type="button" class="chip" data-v="'+x+'" onclick="pickChip(this)">'+x+'</button>';}).join("");
+  ["mo_weight","mo_win","mo_worked","mo_obstacle","mo_focus","mo_help"].forEach(function(id){ g(id).value=""; });
+  g("moStatus").textContent="";
+}
+async function submitMonthly(){
+  var st=g("moStatus");
+  var consistency=g("mo_cons").dataset.val, track=g("mo_track").dataset.val;
+  var win=g("mo_win").value.trim(), focus=g("mo_focus").value.trim();
+  if(!consistency){ st.textContent="Pick how consistent you were this month."; st.style.color="var(--stall-tx)"; return; }
+  if(!win){ st.textContent="Name at least one win — even a small one counts."; st.style.color="var(--stall-tx)"; return; }
+  if(!track){ st.textContent="Let your coach know if your track still fits."; st.style.color="var(--stall-tx)"; return; }
+  if(!focus){ st.textContent="Set one focus for next month."; st.style.color="var(--stall-tx)"; return; }
+  var mk={}; MARKERS.forEach(function(m){ var el=g("mo-"+m[0]); mk[m[0]]=el&&el.dataset.val?+el.dataset.val:null; });
+  var weight=parseFloat(g("mo_weight").value); if(isNaN(weight)) weight=null;
+  var food=g("mo-food").dataset.val?+g("mo-food").dataset.val:null;
+  var payload={type:"monthly", email:ID.email, ts:new Date().toISOString(), weight:weight, food:food, consistency:consistency,
+    win:win, worked:g("mo_worked").value, obstacle:g("mo_obstacle").value, track:track, focus:focus, help:g("mo_help").value};
+  MARKERS.forEach(function(m){ payload[m[0]]=mk[m[0]]; });
+  st.textContent="Sending to your coach…"; st.style.color="var(--muted)"; g("moSubmit").disabled=true;
+  var ok=await postToSheet(payload);
+  var lmo=loadLS(LS_MONTHLY,"[]");
+  var entry={ts:Date.now(), weight:weight, food:food, cons:consistencyToNum(consistency), consLabel:consistency,
+    win:win, worked:payload.worked, obstacle:payload.obstacle, track:track, focus:focus, help:payload.help};
+  MARKERS.forEach(function(m){ entry[m[0]]=mk[m[0]]; });
+  lmo.push(entry); saveLS(LS_MONTHLY,lmo);
+  M.monthly.unshift(entry);
+  st.textContent = ok ? "Sent ✓ Your monthly zoom-out is in." : "Saved on your device ✓ (syncs when back online).";
+  st.style.color="var(--good-tx)"; g("moSubmit").disabled=false;
+  setTimeout(showHome, 1400);
+}
+function renderMonthly(){
+  // due nudge on the CTA (monthly ~ every 28+ days)
+  var last=M.monthly[0];
+  var due = !last || daysSince(last.ts)>=28;
+  g("moCta").textContent = due ? "You're due — start this month's debrief" : "Start this month's debrief";
+  var box=g("monthlyBox");
+  if(!M.monthly.length){ box.innerHTML='<div class="empty">Your monthly zoom-outs land here — the bigger picture, once a month.</div>'; return; }
+  box.innerHTML=M.monthly.slice(0,12).map(function(e){
+    var rows=[["Win",e.win],["Worked",e.worked],["Blocker",e.obstacle],["Track",e.track],["Focus",e.focus],["Help",e.help]]
+      .filter(function(r){return r[1];})
+      .map(function(r){ return '<div class="log-q"><span class="lq-l">'+r[0]+'</span><span>'+esc(r[1])+'</span></div>'; }).join("");
+    return '<div class="log-item"><div class="log-top"><span class="log-date">'+fmtDate(e.ts)+'</span>'
+      +'<span class="log-metrics">'+(e.weight!=null?'<b>'+e.weight+'</b> lb':'')+(e.cons!=null?'<span class="cbadge">'+e.cons+'%</span>':'')+'</span></div>'+rows+'</div>';
+  }).join("");
 }
 
 /* ============================ PR + NOTE ADD ============================ */
