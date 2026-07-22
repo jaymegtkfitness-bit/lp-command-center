@@ -2,3 +2,6 @@
 .DS_Store
 
 *.gs
+
+# internal ops docs (contain sheet IDs / not for the public site)
+SYSTEM-MAP.md
