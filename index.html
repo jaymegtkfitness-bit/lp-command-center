@@ -601,6 +601,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-toolkit"><div class="wrap" id="toolkitView"></div></section>
 <section class="view" id="view-integrations"><div class="wrap" id="integrationsView"></div></section>
 <section class="view" id="view-links"><div class="wrap" id="linksView"></div></section>
+<section class="view" id="view-journey"><div class="wrap" id="journeyView"></div></section>
 
 </main>
 </div>
@@ -1525,7 +1526,7 @@ function clientDetail(c){
 const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
-  {group:"Fulfillment", items:[["command","Client Dashboard"],["links","Client Links"]]},
+  {group:"Fulfillment", items:[["journey","Member Journey"],["links","Client Links"]]},
   {group:"Grow", items:[["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
@@ -1549,6 +1550,7 @@ function showTab(id){
   else if(id==="toolkit") renderToolkit();
   else if(id==="integrations") renderIntegrations();
   else if(id==="links") renderLinks();
+  else if(id==="journey") renderJourney();
   window.scrollTo(0,0);
 }
 
@@ -1629,6 +1631,93 @@ function renderLinks(){
 function copyLink(btn, link){
   try{ navigator.clipboard.writeText(link).then(function(){ var t=btn.textContent; btn.textContent='Copied ✓'; setTimeout(function(){ btn.textContent=t; },1400); }); }
   catch(e){ var i=btn.previousElementSibling; if(i){ i.select(); document.execCommand('copy'); } }
+}
+
+/* ---- Member Journey — click a member, see their whole picture ---- */
+function fetchClient(email, cb){
+  if(!CONFIG.writeUrl){ cb(null); return; }
+  var name='__lpC'+Date.now(), s=document.createElement('script'), done=false;
+  window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt); };
+  s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
+  s.src=CONFIG.writeUrl+'?action=clientData&email='+encodeURIComponent(email)+'&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
+}
+function renderJourney(){
+  var box=document.getElementById("journeyView");
+  box.innerHTML='<div class="view-head"><h1>Member Journey</h1><p class="view-sub">Click a member to see their whole picture — setup, this month, and where they’re at.</p></div><div id="journeyList"><p class="tool-d">Loading members…</p></div>';
+  fetchRoster(function(rows){
+    var list=document.getElementById("journeyList");
+    if(!rows){ list.innerHTML='<p class="tool-d">Couldn’t load. Hit Refresh.</p>'; return; }
+    var real=rows.filter(function(r){ return String(rv(r,'Email')).trim(); });
+    list.innerHTML=real.map(function(r){
+      var email=String(rv(r,'Email')).trim(), name=String(rv(r,'Name')).trim()||email, status=String(rv(r,'Status')).trim();
+      return '<div class="link-row" style="cursor:pointer" onclick="openJourney(\''+esc(email)+'\')"><div class="link-who"><span class="link-name">'+esc(name)+'</span><span class="pill '+(/active/i.test(status)?'good':'quiet')+'">'+esc(status||'—')+'</span><div class="link-email">'+esc(email)+'</div></div><span style="color:var(--muted);font-weight:600">View →</span></div>';
+    }).join("");
+  });
+}
+function openJourney(email){
+  var back='<div class="view-head"><button class="nav-item" style="width:auto;display:inline-block;padding:6px 14px;background:var(--surface-2);border:1px solid var(--line)" onclick="renderJourney()">← All members</button></div>';
+  var box=document.getElementById("journeyView");
+  box.innerHTML=back+'<p class="tool-d">Loading '+esc(email)+'…</p>';
+  fetchClient(email, function(d){
+    box.innerHTML = back + ((d&&d.ok) ? journeyPanel(d, email) : '<p class="tool-d">Couldn’t load this member’s data.</p>');
+  });
+}
+function journeyPanel(d, email){
+  var ci=(d.checkins||[]).map(function(r){ return {ts:parseTs(r['Timestamp']), w:num(r['Weight']), cons:consistencyToNum(r['Consistency']),
+      energy:num(r['Energy']), sleep:num(r['Sleep quality']), mood:num(r['Mood & resilience'])}; })
+    .filter(function(x){return x.ts;}).sort(function(a,b){return a.ts-b.ts;});
+  var last=ci[ci.length-1], first=ci[0];
+  var now=new Date(), mStart=new Date(now.getFullYear(),now.getMonth(),1).getTime();
+  var ciMonth=ci.filter(function(x){return x.ts>=mStart;}).length;
+  var moMonth=(d.monthly||[]).filter(function(r){var t=parseTs(r['Timestamp']);return t&&t>=mStart;}).length;
+  var qy=(d.quarterly||[]).length;
+  var intk=(d.intake&&d.intake.length)?d.intake[d.intake.length-1]:null;
+  var ob=(d.onboarding&&d.onboarding.length)?String(d.onboarding[d.onboarding.length-1]['Completed']||''):'';
+  var obN=ob?ob.split(',').filter(Boolean).length:0;
+  var tok=''; (__rosterCache||[]).forEach(function(r){ if(String(rv(r,'Email')).trim().toLowerCase()===String(email).toLowerCase()) tok=String(rv(r,'Token')).trim(); });
+  var link=tok?(CLIENT_BASE+"?k="+tok):"";
+  var week1 = intk && first && daysSince(first.ts)>=6;
+  // interest flags
+  var interests = intk ? String(intk['Interests']||'') : '';
+  var flagPills = interests ? interests.split(',').map(function(s){return s.trim();}).filter(Boolean).map(function(x){ return '<span class="pill watch" style="margin:0 6px 6px 0;display:inline-block">interested: '+esc(x)+'</span>'; }).join('') : '';
+
+  var h='<div class="view-head" style="margin-top:4px"><h1>'+esc(d.name||email)+'</h1><p class="view-sub">'+esc(d.tier||'—')+' · '
+    +(d.active===false?'<b style="color:var(--stall-tx)">inactive</b>':(d.active?'active':'not in roster'))+'</p></div>';
+
+  // week-1 banner
+  if(week1) h+='<div class="tile" style="background:var(--good-bg);border-color:var(--good);margin-bottom:14px"><b style="color:var(--good-tx)">Ready for the week-1 review + Blueprint offer</b><div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+ci.length+' check-ins over '+(daysSince(first.ts))+' days. Pull their real data, give the read, offer the build.</div></div>';
+
+  // setup / track
+  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Setup</div>';
+  if(intk) h+='<div style="font-size:15px"><b>'+esc(intk['Track']||'—')+'</b> <span class="pill quiet">'+esc(intk['Signal']||'')+' signal</span></div>'
+    +'<div style="font-size:12.5px;color:var(--muted);margin-top:4px">Goal weight '+esc(intk['Goal wt']||'—')+' lb · '+esc(intk['Sex']||'')+' · '+esc(intk['Activity']||'')+'</div>'
+    +(String(intk['Reverse flags']||'')?'<div style="font-size:12px;color:var(--stall-tx);margin-top:4px">flags: '+esc(intk['Reverse flags'])+'</div>':'')
+    +(flagPills?'<div style="margin-top:8px">'+flagPills+'</div>':'');
+  else h+='<div class="tool-d">Hasn’t completed setup yet.</div>';
+  h+='</div>';
+
+  // this month
+  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">This month</div>'
+    +'<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px">'
+    +'<span><b style="font-size:18px;color:var(--gold)">'+ciMonth+'</b> check-ins</span>'
+    +'<span>Monthly debrief: '+(moMonth?'<b style="color:var(--good-tx)">done ✓</b>':'<span style="color:var(--muted)">not yet</span>')+'</span>'
+    +'<span>Quarterly: '+(qy?'<b style="color:var(--good-tx)">set ✓</b>':'<span style="color:var(--muted)">not yet</span>')+'</span>'
+    +'<span>Onboarding: '+obN+'/8</span></div></div>';
+
+  // latest
+  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Latest</div>';
+  if(last) h+='<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px">'
+    +'<span><b style="font-size:18px;color:var(--gold)">'+(last.w!=null?last.w:'—')+'</b> lb</span>'
+    +'<span><b style="font-size:18px;color:var(--gold)">'+(last.cons!=null?last.cons+'%':'—')+'</b> consistency</span>'
+    +'<span style="color:var(--muted)">last check-in '+(last.ts?fmtDate(last.ts):'—')+'</span></div>';
+  else h+='<div class="tool-d">No check-ins yet.</div>';
+  h+='</div>';
+
+  // link
+  if(link) h+='<div class="link-copy" style="max-width:none"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy their link</button></div>';
+  return h;
 }
 
 /* Your PFA tools — these run in Claude Code. Type the command to launch one. */
