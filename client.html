@@ -1062,7 +1062,7 @@ async function wizSubmit(){
     pregnant:WIZ.pregnant||"", diethistory:WIZ.diethistory, fueling:WIZ.fueling, flags:WIZ.flags||[],
     priorities:WIZ.priorities||[], extragoals:WIZ.extragoals||[], interests:WIZ.interests||[], filters:WIZ.filters||[]};
   await postToSheet(payload);
-  var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, filters:WIZ.filters||[]};
+  var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, weight:WIZ.weight, goalweight:WIZ.goalweight, sex:WIZ.sex, filters:WIZ.filters||[]};
   saveLS(LS_INTAKE, rec);
   M.intake = rec;
   showHome();
