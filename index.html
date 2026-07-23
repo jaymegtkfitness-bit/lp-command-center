@@ -64,7 +64,19 @@ const CONFIG = {
   reviewDueDays: 7,        // it's been this long since last check-in = review due
   onTrackConsistency: 85,  // consistency % at/above this = on track
   watchConsistency: 60,    // below onTrack but at/above this = watch; under = stalling
-  refreshMinutes: 30       // auto-refresh interval
+  refreshMinutes: 30,      // auto-refresh interval
+
+  // ---- Growth engine + operating rhythm (STARTING values; edit them in-app after) ----
+  // These seed the tunable settings the Grow / This Week / Fulfillment Calls views use.
+  // Once the app runs you change them right in those views — your edits sync across devices.
+  followerCount:   1800,   // your current follower count (the boost trigger keys off this)
+  boostMultiplier: 2,      // a post whose reach hits this × followers = "boost it" (≈3,600)
+  dailyBizDevMins: 240,    // the 4-hour/day business-development envelope (fulfillment sits on top)
+  weeklyBizDevMins:1200,   // the 20-hour/week business-development envelope
+  skoolMembers:    0,      // Skool community size — crossing 50 flags "split coaching vs community calls"
+  splitAtMembers:  50,     // member count that trips the split-the-calls flag
+  addonRateLow:    50,     // paid add-on call — low end $/hr (revenue, kept OUT of MRR)
+  addonRateHigh:   75      // paid add-on call — high end $/hr
 };
 /* Exercise list for the PR tracker — edit freely (grouped by movement pattern). */
 const EXERCISES = {
@@ -182,6 +194,9 @@ a{color:var(--accent)}
 .intg-d{font-size:12px;color:var(--muted);margin-top:2px}
 @media(max-width:900px){
   .app{flex-direction:column}
+  /* Column layout uses align-items:flex-start, so main would shrink-wrap to its widest child
+     (e.g. the Conveyor Belt) and push the page sideways — pin it to the viewport instead. */
+  .main{width:100%;min-width:0}
   .sidebar{width:100%;position:static;display:flex;gap:6px;overflow-x:auto;padding:12px 14px}
   .nav-group{margin-bottom:0;display:flex;gap:6px;align-items:center}
   .nav-h{display:none}
@@ -511,6 +526,87 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .link-copy button{background:var(--accent);color:#1C1C1C;border:none;border-radius:8px;
   padding:8px 14px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
 .link-row .pill{margin-left:8px}
+/* ---- Growth engine: conveyor belt, reach, DM queue, budget, triggers ---- */
+.toggle-row{display:flex;gap:6px;margin:0 0 16px}
+.tgl{background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);border-radius:8px;
+  padding:7px 14px;font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.tgl.on{background:var(--accent-soft);border-color:var(--gold);color:var(--gold)}
+.belt{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:4px 2px 10px;margin-bottom:8px}
+.stage{flex:0 0 auto;min-width:104px;background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:12px 12px 10px;text-align:center;position:relative}
+.stage.src{border-color:rgba(193,173,114,.4)}
+.stage.roster{border-color:rgba(74,92,62,.5)}
+.stage .sn{font-family:'Cinzel',serif;font-size:26px;font-weight:600;color:var(--headline);line-height:1}
+.stage .sl{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:5px;line-height:1.3}
+.stage .ssrc{font-size:9px;letter-spacing:.05em;text-transform:uppercase;margin-top:5px;color:var(--gold);opacity:.8}
+.stage .ssrc.rost{color:var(--good-tx)}
+.stage-step{display:flex;gap:5px;justify-content:center;margin-top:8px}
+.stage-step button{width:26px;height:24px;border:1px solid var(--line);border-radius:6px;background:var(--bg);
+  color:var(--headline);font-size:14px;cursor:pointer;line-height:1}
+.stage-step button:hover{border-color:var(--gold);color:var(--gold)}
+.belt-arrow{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-width:52px;padding:0 2px}
+.belt-arrow .ac{font-family:'Cinzel',serif;font-size:13px;font-weight:600;color:var(--gold)}
+.belt-arrow .aa{color:var(--muted);font-size:16px;line-height:1}
+.leak-note{font-size:12px;color:var(--muted);line-height:1.6;background:var(--surface);border:1px dashed var(--line);
+  border-radius:10px;padding:11px 13px;margin-top:4px}
+.leak-note b{color:var(--good-tx)}
+.boosted-box{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:10px}
+.boosted-item{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;color:var(--ink);padding:5px 0;border-bottom:1px solid var(--line)}
+.boosted-item:last-child{border-bottom:none}
+.boosted-item .bi-meta{font-size:11.5px;color:var(--muted);white-space:nowrap}
+/* Pomodoro timer */
+.pomo{display:flex;align-items:center;gap:16px;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:16px}
+.pomo.work{border-color:rgba(193,173,114,.45)} .pomo.rest{border-color:rgba(74,92,62,.5)}
+.pomo-phase{font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:20px}
+.pomo-phase.work{background:var(--accent-soft);color:var(--gold)} .pomo-phase.rest{background:var(--good-bg);color:var(--good-tx)} .pomo-phase.idle{background:rgba(148,141,126,.16);color:var(--muted)}
+.pomo-clock{font-family:'Cinzel',serif;font-size:34px;font-weight:600;color:var(--headline);line-height:1;font-variant-numeric:tabular-nums;min-width:104px}
+.pomo-btns{display:flex;gap:7px}
+.pomo-b{background:var(--bg);border:1px solid var(--line);color:var(--headline);border-radius:8px;padding:8px 14px;font-family:inherit;font-weight:600;font-size:13px;cursor:pointer}
+.pomo-b:hover{border-color:var(--gold);color:var(--gold)}
+.pomo-b.go{background:var(--gold);color:#1C1C1C;border-color:var(--gold)}
+.pomo-worked{margin-left:auto;text-align:right;font-size:12px;color:var(--muted)}
+.pomo-worked b{font-family:'Cinzel',serif;font-size:19px;color:var(--headline);font-weight:600}
+.pomo-lens{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
+.pomo-lens input{width:44px}
+@media(max-width:560px){.pomo-worked{margin-left:0;width:100%;text-align:left}}
+/* Trigger banners */
+.trig{display:flex;align-items:flex-start;gap:10px;border-radius:11px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.5}
+.trig.boost{background:rgba(193,173,114,.14);border:1px solid var(--gold);color:var(--ink)}
+.trig.split{background:var(--good-bg);border:1px solid var(--good);color:var(--ink)}
+.trig .ti{font-size:16px;flex:none;line-height:1.3}
+.trig b{color:var(--headline)}
+/* Biz-dev envelope budget */
+.budget{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin-bottom:16px}
+.budget-top{display:flex;align-items:baseline;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.budget-l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.budget-v{font-family:'Cinzel',serif;font-size:19px;font-weight:600;color:var(--headline)}
+.budget-v.over{color:var(--stall-tx)}
+.budget-track{height:10px;background:rgba(242,237,228,.08);border-radius:999px;overflow:hidden;margin:9px 0 6px}
+.budget-fill{height:100%;border-radius:999px;background:linear-gradient(90deg,var(--olive-soft),var(--good));transition:width .3s}
+.budget-fill.over{background:linear-gradient(90deg,#cf8b6b,#b4664a)}
+.budget-sub{font-size:11.5px;color:var(--muted)}
+.budget-sub b{color:var(--ink)}
+.budget-week{font-size:11.5px;color:var(--muted);margin-top:7px;display:flex;align-items:center;gap:8px}
+.budget-week .wk-track{flex:1;height:6px;background:rgba(242,237,228,.08);border-radius:999px;overflow:hidden;max-width:220px}
+.budget-week .wk-fill{height:100%;background:var(--gold);border-radius:999px}
+/* task kind/mins chips */
+.kind-tag{display:inline-block;font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;
+  padding:2px 7px;border-radius:20px;margin-right:6px;vertical-align:middle}
+.kind-tag.bizdev{background:var(--accent-soft);color:var(--gold)}
+.kind-tag.fulfillment{background:var(--good-bg);color:var(--good-tx)}
+.task.overcap{opacity:.72;border-style:dashed}
+.task.bumped{opacity:.5}
+.mini-input{background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--headline);
+  font-family:inherit;font-size:13px;padding:6px 9px;width:90px}
+.mini-input:focus{outline:none;border-color:var(--gold)}
+.set-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:13px;color:var(--ink-soft);margin-bottom:8px}
+.call-status{display:flex;gap:6px}
+.cs-btn{border:1px solid var(--line);background:var(--bg);color:var(--muted);border-radius:7px;padding:6px 11px;
+  font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.cs-btn:hover{border-color:var(--gold)}
+.cs-btn.on-sched{background:var(--watch-bg);color:var(--watch-tx);border-color:var(--watch)}
+.cs-btn.on-done{background:var(--good-bg);color:var(--good-tx);border-color:var(--good)}
 </style>
 </head>
 <body>
@@ -602,6 +698,8 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-integrations"><div class="wrap" id="integrationsView"></div></section>
 <section class="view" id="view-links"><div class="wrap" id="linksView"></div></section>
 <section class="view" id="view-journey"><div class="wrap" id="journeyView"></div></section>
+<section class="view" id="view-grow"><div class="wrap" id="growView"></div></section>
+<section class="view" id="view-calls"><div class="wrap" id="callsView"></div></section>
 
 </main>
 </div>
@@ -1063,11 +1161,12 @@ async function postToSheet(payload){
 
 /* ============================ TASKS / THIS WEEK ============================ */
 const IMP = {
-  '3':{label:'Priority',stars:'★★★',cls:'star3',cap:'max 1 / day',limit:1},
-  '2':{label:'Important',stars:'★★',cls:'star2',cap:'max 3 / day',limit:3},
+  '3':{label:'Priority',stars:'★★★',cls:'star3',cap:'1 biz-dev + 1 fulfillment / day',limit:1},
+  '2':{label:'Important',stars:'★★',cls:'star2',cap:'3 per lane / day',limit:3},
   '1':{label:'Standard',stars:'★',cls:'star1',cap:'',limit:Infinity},
   'couch':{label:'Couch work',stars:'🛋️',cls:'',cap:'end of day',limit:Infinity}
 };
+const LANE_LABEL={bizdev:'biz-dev',fulfillment:'fulfillment'};
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DOW =['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 function lsLoad(k,def){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
@@ -1076,61 +1175,106 @@ let SCORE = lsLoad('lp_score', {});         // { weekKey: {dms,posts,calls} } �
 const GOAL_TARGETS = { cash:100000, mrr:20000, house:50000 };   // the 3 Big Goals
 let GOALS = lsLoad('lp_goals', {cash:0, house:0});   // manual: cash-in-bank + house down payment (MRR is auto)
 let WORKSHOPS = lsLoad('lp_workshops', []); // [ {id,label,reg,att,calls} ] — monthly log
+/* ---- Growth engine state (all sync via the App State blob once the doorway is redeployed) ---- */
+let FUNNEL   = lsLoad('lp_funnel', {});   // { weekKey: {boosted,followers,pfs,trials} } — the tracked conveyor-belt stages
+let REACH    = lsLoad('lp_reach', []);    // [ {id,ts,label,reach} ] — each post's reach (drives the boost trigger)
+let DMQ      = lsLoad('lp_dmq', []);      // [ {id,ts,name,status,note} ] — the DM queue (new → sent → replied → pfs)
+let CALLS    = lsLoad('lp_calls', {});    // { emailLower: { 'YYYY-MM': 'scheduled'|'completed' } } — monthly 1:1s
+let ADDONS   = lsLoad('lp_addons', []);   // [ {id,ts,client,hours,rate,amount,note} ] — paid add-on calls (NOT MRR)
+let BUMPED   = lsLoad('lp_bumped', {});   // { 'YYYY-MM-DD': [taskId,...] } — biz-dev tasks pushed past the 4-hour cap
+/* Pomodoro work/rest timer — device-local (NOT synced; a timer running on desktop shouldn't tick your phone).
+   phaseElapsed is banked seconds this phase; worked = actual work-phase seconds per day. */
+let TIMER = lsLoad('lp_timer', {phase:'idle', running:false, phaseElapsed:0, worked:{}, workMin:25, restMin:5});
+TIMER._lastTick = Date.now();   // reset on load so time spent with the app closed is NOT counted
+/* Jayme-editable operating settings (start from CONFIG; overridden in-app; synced under the `config` key). */
+let SETTINGS = Object.assign({
+  followerCount:CONFIG.followerCount, boostMultiplier:CONFIG.boostMultiplier,
+  dailyBizDevMins:CONFIG.dailyBizDevMins, weeklyBizDevMins:CONFIG.weeklyBizDevMins,
+  skoolMembers:CONFIG.skoolMembers, splitAtMembers:CONFIG.splitAtMembers,
+  addonRateLow:CONFIG.addonRateLow, addonRateHigh:CONFIG.addonRateHigh,
+  scheduleHours:""   // OPEN: which clock-hours are your biz-dev block (e.g. "9am–1pm") — left blank on purpose
+}, lsLoad('lp_settings', {}));
+function saveSetting(k,v){ SETTINGS[k]=v; pushTasks(); }
+/* Tier → conveyor stage. Built Today=$39 · Built to Last/VIP=$97 · Built for More=Coaching. */
+function tierStage(t){ t=String(t||'').toLowerCase();
+  if(t.includes('for more')||t.includes('coaching')||t.includes('vip coaching')) return 'coaching';
+  if(t.includes('to last')||t.includes('vip')) return 'b97';
+  if(t.includes('today')) return 'b39';
+  return ''; }
+function rosterTierCounts(rows){
+  var out={b39:0,b97:0,coaching:0,bfm:[]};
+  (rows||[]).forEach(function(r){
+    if(!/active/i.test(String(rv(r,'Status')))) return;
+    var stg=tierStage(rv(r,'Tier'));
+    if(stg==='b39') out.b39++; else if(stg==='b97') out.b97++;
+    else if(stg==='coaching'){ out.coaching++; out.bfm.push(r); }
+  });
+  return out;
+}
 /* The operating rhythm (seeds on first open; edit freely after).
    recur: daily (Mon–Sat) · weekly (a weekday) · monthly (Nth weekday) · once (a punch-list item).
    Days: 0 Sun (Sabbath — empty) · 1 Mon · 2 Tue · 3 Wed · 4 Thu · 5 Fri · 6 Sat */
+/* Every task is tagged kind:'bizdev'|'fulfillment' + mins (estimate) so This Week can hold the
+   4-hour/day biz-dev envelope. Fulfillment (coaching, client care) sits ON TOP — never capped. */
 const SEED_TASKS = [
-  // DAILY growth engine (Mike & Caleb's DM-first method) — every day but Sunday
-  {title:"Get in the DMs — app, Skool + Fitbody community", imp:"2", recur:"daily"},
-  {title:"Post to social", imp:"1", recur:"daily"},
+  // DAILY — content (non-negotiable), DMs, check-in triage
+  {title:"Post to social (1 post — non-negotiable)", imp:"2", recur:"daily", kind:"bizdev", mins:30},
+  {title:"Get in the DMs — app, Skool + Fitbody community", imp:"2", recur:"daily", kind:"bizdev", mins:30},
+  {title:"Triage new check-ins — Green / Yellow / Red", imp:"1", recur:"daily", kind:"fulfillment", mins:20},
   // Monday — Command & Plan
-  {title:"Weekly Command Center review — numbers, at-risk clients, set the week", imp:"3", day:1},
-  {title:"11:00 AM coaching call", imp:"2", day:1},
-  {title:"Book 3 assessment calls this week (your #1 leverage — ~2 of 3 convert)", imp:"2", day:1},
-  {title:"Map this week's content", imp:"1", day:1},
-  {title:"Load the Skool CSV → send to Claude to update the roster", imp:"couch", day:1},
+  {title:"Weekly Command Center review — numbers, at-risk clients, set the week", imp:"3", day:1, kind:"fulfillment", mins:45},
+  {title:"Review the Conveyor Belt — stage counts + conversion %", imp:"1", day:1, kind:"bizdev", mins:15},
+  {title:"11:00 AM coaching call", imp:"2", day:1, kind:"fulfillment", mins:60},
+  {title:"Book 3 assessment calls this week (your #1 leverage — ~2 of 3 convert)", imp:"2", day:1, kind:"bizdev", mins:30},
+  {title:"Map this week's content", imp:"1", day:1, kind:"bizdev", mins:30},
+  {title:"Load the Skool CSV → send to Claude to update the roster", imp:"couch", day:1, kind:"fulfillment", mins:15},
   // Tuesday — Deliver
-  {title:"Coaching calls", imp:"3", day:2},
-  {title:"Client Loom feedback + weekly reviews", imp:"2", day:2},
+  {title:"Coaching calls", imp:"3", day:2, kind:"fulfillment", mins:120},
+  {title:"Client Loom feedback + weekly reviews", imp:"2", day:2, kind:"fulfillment", mins:60},
   // Wednesday — Deliver
-  {title:"Coaching calls", imp:"3", day:3},
-  {title:"Client nutrition reviews + plan adjustments (hold vs. advance)", imp:"2", day:3},
+  {title:"Coaching calls", imp:"3", day:3, kind:"fulfillment", mins:120},
+  {title:"Client nutrition reviews + plan adjustments (hold vs. advance)", imp:"2", day:3, kind:"fulfillment", mins:60},
   // Thursday — Content / Growth
-  {title:"Create content — record reels / batch posts", imp:"3", day:4},
-  {title:"Nurture the community — engage your free members (the conversion pool)", imp:"2", day:4},
-  {title:"Boost a winning post to ~4,000 reach (2× your followers), then work the DMs + follows", imp:"1", day:4},
-  {title:"Review ads — kill / scale", imp:"1", day:4},
+  {title:"Create content — record reels / batch posts", imp:"3", day:4, kind:"bizdev", mins:90},
+  {title:"Nurture the community — engage your free members (the conversion pool)", imp:"2", day:4, kind:"bizdev", mins:30},
+  {title:"Weekly reach review — boost any post past 2× your followers (see Conveyor Belt)", imp:"1", day:4, kind:"bizdev", mins:15},
+  {title:"Review ads — kill / scale", imp:"1", day:4, kind:"bizdev", mins:20},
   // Friday — Marketing / Money
-  {title:"Ad scripts / campaign work", imp:"3", day:5},
-  {title:"Follow up leads + unconverted community members", imp:"2", day:5},
-  {title:"Skool value post + community engagement", imp:"2", day:5},
-  {title:"Financial check — payments in, Jen's 20% out", imp:"couch", day:5},
+  {title:"Ad scripts / campaign work", imp:"3", day:5, kind:"bizdev", mins:60},
+  {title:"Follow up leads + unconverted community members", imp:"2", day:5, kind:"bizdev", mins:30},
+  {title:"Skool value post + community engagement", imp:"2", day:5, kind:"bizdev", mins:30},
+  {title:"Financial check — payments in, Jen's 20% out", imp:"couch", day:5, kind:"bizdev", mins:15},
   // Saturday — light
-  {title:"Prep + plan next week", imp:"1", day:6},
-  {title:"Canva tiles + batch simple content", imp:"couch", day:6},
+  {title:"Prep + plan next week", imp:"1", day:6, kind:"bizdev", mins:30},
+  {title:"Canva tiles + batch simple content", imp:"couch", day:6, kind:"bizdev", mins:30},
+  // MONTHLY — 1:1 calls, $39 Q&A, MRR review
+  {title:"Run this month's 1:1 calls (Built for More) — see Fulfillment Calls", imp:"2", recur:"monthly", day:1, nth:1, kind:"fulfillment", mins:30},
+  {title:"MRR + churn review", imp:"1", recur:"monthly", day:1, nth:1, kind:"bizdev", mins:20},
+  {title:"$39 tier — run the monthly Q&A (Built Today)", imp:"2", recur:"monthly", day:3, nth:2, kind:"fulfillment", mins:60},
   // WORKSHOP build (one-off punch list — rolls over until done)
-  {title:"Build the workshop (/workshop-builder)", imp:"2", recur:"once"},
-  {title:"Write the workshop ads (/ad-stack)", imp:"2", recur:"once"},
-  {title:"Set up workshop landing page + email sequence", imp:"2", recur:"once"},
-  {title:"Launch the workshop ads", imp:"2", recur:"once"},
+  {title:"Build the workshop (/workshop-builder)", imp:"2", recur:"once", kind:"bizdev", mins:60},
+  {title:"Write the workshop ads (/ad-stack)", imp:"2", recur:"once", kind:"bizdev", mins:60},
+  {title:"Set up workshop landing page + email sequence", imp:"2", recur:"once", kind:"bizdev", mins:60},
+  {title:"Launch the workshop ads", imp:"2", recur:"once", kind:"bizdev", mins:30},
   // The Collective — monthly Tuesday rotation (+ same-morning prep so you show up with questions)
-  {title:"Collective call — Lead Gen focus", imp:"2", recur:"monthly", day:2, nth:1},
-  {title:"Prep questions for today's Collective (Lead Gen)", imp:"1", recur:"monthly", day:2, nth:1},
-  {title:"Collective call — Lead Nurture focus", imp:"2", recur:"monthly", day:2, nth:2},
-  {title:"Prep questions for today's Collective (Lead Nurture)", imp:"1", recur:"monthly", day:2, nth:2},
-  {title:"Collective call — Conversion focus", imp:"2", recur:"monthly", day:2, nth:3},
-  {title:"Prep questions for today's Collective (Conversion)", imp:"1", recur:"monthly", day:2, nth:3},
-  {title:"Collective call — Plan next month's content calendar", imp:"2", recur:"monthly", day:2, nth:4},
-  {title:"Draft next month's content calendar (for today's Collective)", imp:"1", recur:"monthly", day:2, nth:4}
+  {title:"Collective call — Lead Gen focus", imp:"2", recur:"monthly", day:2, nth:1, kind:"bizdev", mins:60},
+  {title:"Prep questions for today's Collective (Lead Gen)", imp:"1", recur:"monthly", day:2, nth:1, kind:"bizdev", mins:20},
+  {title:"Collective call — Lead Nurture focus", imp:"2", recur:"monthly", day:2, nth:2, kind:"bizdev", mins:60},
+  {title:"Prep questions for today's Collective (Lead Nurture)", imp:"1", recur:"monthly", day:2, nth:2, kind:"bizdev", mins:20},
+  {title:"Collective call — Conversion focus", imp:"2", recur:"monthly", day:2, nth:3, kind:"bizdev", mins:60},
+  {title:"Prep questions for today's Collective (Conversion)", imp:"1", recur:"monthly", day:2, nth:3, kind:"bizdev", mins:20},
+  {title:"Collective call — Plan next month's content calendar", imp:"2", recur:"monthly", day:2, nth:4, kind:"bizdev", mins:60},
+  {title:"Draft next month's content calendar (for today's Collective)", imp:"1", recur:"monthly", day:2, nth:4, kind:"bizdev", mins:30}
   // Sunday = Sabbath — intentionally empty
 ];
 /* Titles retired in newer seeds (purged on upgrade so they don't linger). */
-const SEED_RETIRED = ["Post content", "Review client check-ins → who needs a nudge (gone quiet / review due)"];
-const SEED_VERSION = 3;   // bump when the seeded rhythm changes → cleanly re-installs (keeps YOUR own tasks)
+const SEED_RETIRED = ["Post content", "Review client check-ins → who needs a nudge (gone quiet / review due)",
+  "Post to social", "Boost a winning post to ~4,000 reach (2× your followers), then work the DMs + follows"];
+const SEED_VERSION = 4;   // bump when the seeded rhythm changes → cleanly re-installs (keeps YOUR own tasks)
 let TASKS;
 (function initTasks(){
   function mk(s){
-    const t={id:uidT(), title:s.title, imp:s.imp, recur:s.recur||'weekly', seed:true};
+    const t={id:uidT(), title:s.title, imp:s.imp, recur:s.recur||'weekly', kind:s.kind||'bizdev', mins:s.mins||0, seed:true};
     if(t.recur==='monthly'){ t.day=s.day; t.nth=s.nth; t.done={}; }
     else if(t.recur==='daily'){ t.done={}; }
     else if(t.recur==='once'){ t.date=s.date||dstr(); t.done=false; }
@@ -1148,11 +1292,17 @@ let TASKS;
     try{ localStorage.setItem('lp_tasks_sv', String(SEED_VERSION)); }catch(e){}
     changed=true;
   }
-  if(changed){ try{ localStorage.setItem('lp_tasks', JSON.stringify(TASKS)); }catch(e){} if(CONFIG.writeUrl) postToSheet({type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS}); }
+  if(changed){ try{ localStorage.setItem('lp_tasks', JSON.stringify(TASKS)); }catch(e){} if(CONFIG.writeUrl) postToSheet(stateBlob()); }
 })();
 
 function saveTasksLocal(){ try{localStorage.setItem('lp_tasks',JSON.stringify(TASKS));}catch(e){} }
-function pushTasks(){ saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS); postToSheet({type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS}); }
+/* The whole synced App State blob — one place so every writer + the doorway agree on the shape. */
+function stateBlob(){ return {type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS, goals:GOALS,
+  funnel:FUNNEL, reach:REACH, dmq:DMQ, calls:CALLS, config:SETTINGS, addons:ADDONS, bumped:BUMPED}; }
+function saveGrowthLocal(){ lsSave('lp_funnel',FUNNEL); lsSave('lp_reach',REACH); lsSave('lp_dmq',DMQ);
+  lsSave('lp_calls',CALLS); lsSave('lp_addons',ADDONS); lsSave('lp_settings',SETTINGS); lsSave('lp_bumped',BUMPED); }
+function pushTasks(){ saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS); lsSave('lp_goals',GOALS); saveGrowthLocal();
+  if(CONFIG.writeUrl) postToSheet(stateBlob()); }
 function uidT(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
 function dstr(d){ d=d||new Date(); return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
 function wkey(d){ d=d||new Date(); const t=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())); const day=(t.getUTCDay()+6)%7; t.setUTCDate(t.getUTCDate()-day+3); const f=new Date(Date.UTC(t.getUTCFullYear(),0,4)); const wk=1+Math.round(((t-f)/86400000-3+((f.getUTCDay()+6)%7))/7); return t.getUTCFullYear()+'-W'+String(wk).padStart(2,'0'); }
@@ -1169,7 +1319,7 @@ function onDate(t,dateStr,wd){
 function periodKey(t,dateStr){ const d=new Date(dateStr+'T00:00:00'); if(t.recur==='monthly')return mkey(d); if(t.recur==='daily')return dateStr; return wkey(d); }
 function isDone(t,dateStr){ return t.recur==='once' ? !!t.done : !!(t.done && t.done[periodKey(t,dateStr)]); }
 function setDone(t,dateStr,v){ if(t.recur==='once'){ t.done=v; } else { t.done=t.done||{}; const k=periodKey(t,dateStr); if(v) t.done[k]=true; else delete t.done[k]; } }
-function countForDay(imp,dateStr,wd){ return TASKS.filter(t=>t.imp===imp && onDate(t,dateStr,wd) && !isDone(t,dateStr)).length; }
+function countForDay(imp,kind,dateStr,wd){ return TASKS.filter(t=>t.imp===imp && (t.kind||'bizdev')===kind && onDate(t,dateStr,wd) && !isDone(t,dateStr)).length; }
 
 function renderTasks(){
   const el=document.getElementById('tasksView'); if(!el) return;
@@ -1178,20 +1328,42 @@ function renderTasks(){
   const projects=TASKS.filter(t=>t.recur==='once' && !t.done).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   let html=`<div class="view-head"><h1>This Week</h1><p class="view-sub">${DOW[wd]} · ${now.toLocaleDateString(undefined,{month:'long',day:'numeric'})} — your focus for today</p></div>`;
   html+=scoreHtml();
+  html+=pomoHtml();
   // Quarterly planning window: the last 7 days of a quarter-ending month (Mar/Jun/Sep/Dec)
   const lastDom=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
   if([2,5,8,11].includes(now.getMonth()) && (lastDom-now.getDate())<7){
     html+=`<div class="qbanner">📅 <b>Quarterly week.</b> Review this quarter and plan the next together — run <code>/method-coach</code>. Trim this week's load to make the margin for it.</div>`;
   }
+  // ---- 4-hour biz-dev envelope: live budget + overflow prioritization ----
+  const bumpedToday=new Set(BUMPED[dateStr]||[]);
+  const prioOrder={'3':0,'2':1,'1':2,'couch':3};
+  const bizList=sched.filter(t=>(t.kind||'bizdev')==='bizdev' && !isDone(t,dateStr) && !bumpedToday.has(t.id))
+    .sort((a,b)=>(prioOrder[a.imp]-prioOrder[b.imp])||((a.mins||0)-(b.mins||0)));
+  const cap=+SETTINGS.dailyBizDevMins||240; let run=0; const overcap=new Set();
+  bizList.forEach(t=>{ run+=(t.mins||0); if(run>cap) overcap.add(t.id); });   // the task that crosses the line + everything after
+  const bizMins=bizList.reduce((s,t)=>s+(t.mins||0),0);
+  html+=triggerBannersHtml();
+  html+=budgetHtml(bizMins, cap);
+  if(overcap.size){
+    html+=`<div class="trig boost"><span class="ti">⏳</span><div><b>You're ${bizMins-cap} min past the 4-hour cap.</b> Lowest-priority first — bump what can wait so fulfillment still fits:`
+      +[...overcap].map(id=>{ const t=TASKS.find(x=>x.id===id); return t?`<div style="margin-top:7px">• ${esc(t.title)} <span class="task-meta" style="margin:0 4px">${t.mins||0}m</span><button class="cs-btn" onclick="bumpTask('${id}')">Bump to another day</button></div>`:''; }).join('')
+      +`</div></div>`;
+  }
   ['3','2','1','couch'].forEach(imp=>{
     const info=IMP[imp];
-    const list=sched.filter(t=>t.imp===imp).sort((a,b)=>isDone(a,dateStr)-isDone(b,dateStr));
+    const list=sched.filter(t=>t.imp===imp && !bumpedToday.has(t.id)).sort((a,b)=>isDone(a,dateStr)-isDone(b,dateStr));
     html+=`<div class="tgroup"><div class="tgroup-h"><span class="stars ${info.cls}">${info.stars}</span> ${info.label}${info.cap?' <span class="cap">· '+info.cap+'</span>':''}</div>`;
-    html+= list.length ? list.map(t=>taskRow(t,dateStr)).join('') : `<div class="task-empty">Nothing here yet.</div>`;
+    html+= list.length ? list.map(t=>taskRow(t,dateStr, overcap.has(t.id)?'overcap':'')).join('') : `<div class="task-empty">Nothing here yet.</div>`;
     html+=`</div>`;
   });
+  const bumpedList=sched.filter(t=>bumpedToday.has(t.id));
+  if(bumpedList.length){
+    html+=`<div class="tgroup"><div class="tgroup-h">😴 Bumped off today <span class="cap">· pushed past your 4-hour cap</span></div>`
+      +bumpedList.map(t=>`<div class="task bumped"><div class="task-body"><div class="task-title">${esc(t.title)}</div><div class="task-meta">${t.mins||0}m · biz-dev</div></div><button class="task-del" style="opacity:1;color:var(--gold)" title="Put back on today" onclick="unbumpTask('${t.id}')">↩</button></div>`).join('')
+      +`</div>`;
+  }
   if(projects.length){
-    html+=`<div class="tgroup"><div class="tgroup-h">📋 Projects &amp; punch-list <span class="cap">· work these when you have room</span></div>`+projects.map(t=>taskRow(t,dateStr)).join('')+`</div>`;
+    html+=`<div class="tgroup"><div class="tgroup-h">📋 Projects &amp; punch-list <span class="cap">· outside the daily rhythm — work when you have room</span></div>`+projects.map(t=>taskRow(t,dateStr)).join('')+`</div>`;
   }
   html+=`<div class="add-task">
     <h4>Add a task</h4>
@@ -1199,6 +1371,10 @@ function renderTasks(){
     <div class="add-row">
       <select id="ntImp"><option value="3">★★★ Priority (1/day)</option><option value="2">★★ Important (3/day)</option><option value="1" selected>★ Standard</option><option value="couch">🛋️ Couch work</option></select>
       <select id="ntWhen"><option value="once">Just today</option><option value="daily">Every day</option><option value="weekly">Every ${DAYS[wd]} (weekly)</option><option value="monthly">${ORD[nthOf(now)]} ${DAYS[wd]} (monthly)</option></select>
+    </div>
+    <div class="add-row">
+      <select id="ntKind"><option value="bizdev">🎯 Biz-dev — counts toward the 4-hour cap</option><option value="fulfillment">🤝 Fulfillment — sits on top, not capped</option></select>
+      <input id="ntMins" type="number" min="0" step="5" placeholder="Est. minutes (e.g. 30)">
     </div>
     <button class="add-btn" onclick="addTask()">Add task</button>
     <div id="ntMsg" class="task-msg"></div>
@@ -1259,16 +1435,20 @@ function addWk(){
 function editWk(id,field,val){ const w=WORKSHOPS.find(x=>x.id===id); if(w){ w[field]=Math.max(0,+val||0); pushTasks(); renderWorkshops(); } }
 function delWk(id){ WORKSHOPS=WORKSHOPS.filter(x=>x.id!==id); pushTasks(); renderWorkshops(); }
 
-function taskRow(t,dateStr){
+function taskRow(t,dateStr,extraCls){
   const done=isDone(t,dateStr);
-  const meta = t.recur==='daily' ? 'Daily'
+  let meta = t.recur==='daily' ? 'Daily'
     : t.recur==='weekly' ? ('Every '+DAYS[t.day])
     : t.recur==='monthly' ? (ORD[t.nth]+' '+DAYS[t.day]+' · monthly')
     : (t.date&&t.date<dateStr?('Was due '+t.date):'Today');
+  if(t.mins) meta+=' · '+t.mins+'m';
+  if(extraCls==='overcap') meta+=' · past 4-hr cap';
   const couch = t.imp==='couch' ? '🛋️ ' : '';
-  return `<div class="task ${done?'done':''}">
+  const kind = (t.kind||'bizdev');
+  const tag = `<span class="kind-tag ${kind}">${kind==='fulfillment'?'Fulfill':'Biz-dev'}</span>`;
+  return `<div class="task ${done?'done':''} ${extraCls||''}">
     <div class="task-check" onclick="toggleTask('${t.id}')">✓</div>
-    <div class="task-body"><div class="task-title">${couch}${esc(t.title)}</div><div class="task-meta">${meta}</div></div>
+    <div class="task-body"><div class="task-title">${tag}${couch}${esc(t.title)}</div><div class="task-meta">${meta}</div></div>
     <button class="task-del" onclick="delTask('${t.id}')" title="Delete">✕</button>
   </div>`;
 }
@@ -1277,18 +1457,22 @@ function addTask(){
   const imp=document.getElementById('ntImp').value, when=document.getElementById('ntWhen').value, msg=document.getElementById('ntMsg');
   if(!title){ msg.className='task-msg err'; msg.textContent='Give the task a name.'; return; }
   const now=new Date(), dateStr=dstr(now), wd=now.getDay();
-  if(countForDay(imp,dateStr,wd) >= IMP[imp].limit){
+  const kind=(document.getElementById('ntKind')||{}).value||'bizdev';
+  const mins=+((document.getElementById('ntMins')||{}).value)||0;
+  if(countForDay(imp,kind,dateStr,wd) >= IMP[imp].limit){
+    const lane=LANE_LABEL[kind]||kind;
     msg.className='task-msg err';
-    msg.textContent = imp==='3' ? 'You already have your one Priority today — bump it first, or pick a lower level.' : 'That’s already 3 Important tasks today. Keep the focus tight.';
+    msg.textContent = imp==='3' ? `You already have your one ${lane} Priority today — bump it first, or pick a lower level.` : `That’s already 3 ${lane} Important tasks today. Keep the focus tight.`;
     return;
   }
-  const t={id:uidT(), title, imp, recur:when};
+  const t={id:uidT(), title, imp, recur:when, kind, mins};
   if(when==='daily'){ t.done={}; }
   else if(when==='weekly'){ t.day=wd; t.done={}; }
   else if(when==='monthly'){ t.day=wd; t.nth=nthOf(now); t.done={}; }
   else { t.date=dateStr; t.done=false; }
   TASKS.push(t); pushTasks();
   document.getElementById('ntTitle').value=''; document.getElementById('ntImp').value='1';
+  { const mel=document.getElementById('ntMins'); if(mel) mel.value=''; }
   msg.className='task-msg ok'; msg.textContent='Added.';
   renderTasks();
 }
@@ -1302,11 +1486,22 @@ function syncTasks(){
       if(Array.isArray(data.tasks)&&data.tasks.length) TASKS=data.tasks;
       if(data.score&&typeof data.score==='object') SCORE=data.score;
       if(Array.isArray(data.workshops)) WORKSHOPS=data.workshops;
-      if(data.goals&&typeof data.goals==='object') { GOALS=data.goals; lsSave('lp_goals',GOALS); }  // syncs once the doorway persists goals (batched redeploy)
-      saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS);
-      const gv=document.getElementById('view-goals'); if(gv&&gv.classList.contains('active')) renderGoals();
-      const v=document.getElementById('view-tasks'); if(v&&v.classList.contains('active')) renderTasks();
-      const w=document.getElementById('view-workshops'); if(w&&w.classList.contains('active')) renderWorkshops();
+      if(data.goals&&typeof data.goals==='object') GOALS=data.goals;
+      // Growth engine keys (present once the doorway is redeployed with the extended saveState)
+      if(data.funnel&&typeof data.funnel==='object') FUNNEL=data.funnel;
+      if(Array.isArray(data.reach)) REACH=data.reach;
+      if(Array.isArray(data.dmq)) DMQ=data.dmq;
+      if(data.calls&&typeof data.calls==='object') CALLS=data.calls;
+      if(Array.isArray(data.addons)) ADDONS=data.addons;
+      if(data.bumped&&typeof data.bumped==='object') BUMPED=data.bumped;
+      if(data.config&&typeof data.config==='object') SETTINGS=Object.assign(SETTINGS,data.config);
+      saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS); lsSave('lp_goals',GOALS); saveGrowthLocal();
+      const act=id=>{ const e=document.getElementById('view-'+id); return e&&e.classList.contains('active'); };
+      if(act('goals')) renderGoals();
+      if(act('tasks')) renderTasks();
+      if(act('workshops')) renderWorkshops();
+      if(act('grow')) renderGrow();
+      if(act('calls')) renderCalls();
     } }catch(e){} delete window[cb]; s.remove(); };
   s.onerror=function(){ delete window[cb]; s.remove(); };
   s.src=CONFIG.writeUrl+'?action=tasks&callback='+cb;
@@ -1522,12 +1717,232 @@ function clientDetail(c){
   </div>`;
 }
 
+/* ============================ GROWTH ENGINE (timer · envelope · conveyor belt · reach · DM · calls · add-ons) ============================ */
+
+/* ---- Pomodoro work/rest timer (This Week) — runs while the app is open, tracks actual worked time ---- */
+function timerSave(){ lsSave('lp_timer', TIMER); }
+function phaseLen(){ return (TIMER.phase==='rest'?(TIMER.restMin||5):(TIMER.workMin||25))*60; }   // seconds
+function fmtClock(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
+function fmtDur(s){ s=Math.round(s); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h?(h+'h '+m+'m'):(m+'m'); }
+function pomoHtml(){
+  const p=TIMER.phase, remain=Math.max(0, phaseLen()-(TIMER.phaseElapsed||0));
+  const label=p==='rest'?'Rest':(p==='work'?'Work':'Ready');
+  return `<div class="pomo ${p}" id="pomoCard">
+    <span class="pomo-phase ${p}" id="pomoPhase">${label}</span>
+    <span class="pomo-clock" id="pomoClock">${fmtClock(remain)}</span>
+    <div class="pomo-btns">
+      <button class="pomo-b go" id="pomoToggle" onclick="pomoToggle()">${TIMER.running?'Pause':'Start'}</button>
+      <button class="pomo-b" onclick="pomoSkip()">Skip</button>
+      <button class="pomo-b" onclick="pomoReset()">Reset</button>
+    </div>
+    <div class="pomo-lens">W<input class="mini-input" type="number" min="1" value="${TIMER.workMin||25}" onchange="pomoLens('workMin',+this.value||25)">R<input class="mini-input" type="number" min="1" value="${TIMER.restMin||5}" onchange="pomoLens('restMin',+this.value||5)"></div>
+    <div class="pomo-worked"><b id="pomoWorked">${fmtDur((TIMER.worked||{})[dstr()]||0)}</b><br>worked today</div>
+  </div>`;
+}
+function renderTimerDisplay(){
+  const clk=document.getElementById('pomoClock'); if(!clk) return;   // only when This Week is showing
+  const p=TIMER.phase;
+  clk.textContent=fmtClock(Math.max(0, phaseLen()-(TIMER.phaseElapsed||0)));
+  const ph=document.getElementById('pomoPhase'); if(ph){ ph.textContent=p==='rest'?'Rest':(p==='work'?'Work':'Ready'); ph.className='pomo-phase '+p; }
+  const card=document.getElementById('pomoCard'); if(card) card.className='pomo '+p;
+  const tg=document.getElementById('pomoToggle'); if(tg) tg.textContent=TIMER.running?'Pause':'Start';
+  const wk=document.getElementById('pomoWorked'); if(wk) wk.textContent=fmtDur((TIMER.worked||{})[dstr()]||0);
+}
+function pomoStart(){ if(TIMER.phase==='idle') TIMER.phase='work'; TIMER.running=true; TIMER._lastTick=Date.now(); timerSave(); renderTimerDisplay(); }
+function pomoPause(){ TIMER.running=false; timerSave(); renderTimerDisplay(); }
+function pomoToggle(){ TIMER.running?pomoPause():pomoStart(); }
+function pomoSkip(){ TIMER.phase=(TIMER.phase==='rest'?'work':'rest'); TIMER.phaseElapsed=0; TIMER._lastTick=Date.now(); timerSave(); renderTimerDisplay(); }
+function pomoReset(){ TIMER.phase='idle'; TIMER.running=false; TIMER.phaseElapsed=0; timerSave(); renderTimerDisplay(); }
+function pomoLens(k,v){ TIMER[k]=Math.max(1,v); timerSave(); renderTimerDisplay(); }
+function timerTick(){
+  if(TIMER.running){
+    const now=Date.now(), dt=(now-(TIMER._lastTick||now))/1000; TIMER._lastTick=now;
+    if(dt>0){
+      TIMER.phaseElapsed=(TIMER.phaseElapsed||0)+dt;
+      if(TIMER.phase==='work'){ const k=dstr(); TIMER.worked=TIMER.worked||{}; TIMER.worked[k]=(TIMER.worked[k]||0)+dt; }
+      if(TIMER.phaseElapsed>=phaseLen()){ TIMER.phase=(TIMER.phase==='work'?'rest':'work'); TIMER.phaseElapsed=0; }   // auto-switch work↔rest
+      timerSave();
+    }
+  }
+  renderTimerDisplay();
+}
+
+/* ---- 4-hour biz-dev envelope helpers (used by This Week) ---- */
+function weekDates(){ const now=new Date(), dow=(now.getDay()+6)%7, mon=new Date(now); mon.setDate(now.getDate()-dow);
+  const a=[]; for(let i=0;i<6;i++){ const d=new Date(mon); d.setDate(mon.getDate()+i); a.push(d); } return a; }   // Mon–Sat
+function weekBizMins(){ let tot=0; weekDates().forEach(function(d){ const ds=dstr(d), wd=d.getDay();
+  TASKS.forEach(function(t){ if((t.kind||'bizdev')==='bizdev' && t.recur!=='once' && onDate(t,ds,wd)) tot+=(t.mins||0); }); }); return tot; }
+function budgetHtml(bizMins, cap){
+  const pct=Math.min(100, cap? bizMins/cap*100:0), over=bizMins>cap;
+  const wk=weekBizMins(), wcap=+SETTINGS.weeklyBizDevMins||1200, wpct=Math.min(100, wcap? wk/wcap*100:0);
+  const hrs=m=>Math.round(m/6)/10;
+  return `<div class="budget">
+    <div class="budget-top"><span class="budget-l">Today's biz-dev — planned vs. cap</span>
+      <span class="budget-v ${over?'over':''}">${bizMins} / <input class="mini-input" style="width:58px;font-family:inherit" type="number" min="0" step="15" value="${cap}" title="Your daily biz-dev cap — edit it" onchange="saveSetting('dailyBizDevMins',+this.value||240); renderTasks()"> min</span></div>
+    <div class="budget-track"><div class="budget-fill ${over?'over':''}" style="width:${pct}%"></div></div>
+    <div class="budget-sub">${over?`<b>Over by ${bizMins-cap} min.</b> Bump the lowest-priority biz-dev below — fulfillment (coaching) sits on top and isn't capped.`:`<b>${cap-bizMins} min</b> of biz-dev planned today · fulfillment sits on top`}${SETTINGS.scheduleHours?` · block: ${esc(SETTINGS.scheduleHours)}`:''}</div>
+    <div class="budget-sub" style="margin-top:3px">This is the <b>plan</b> — the estimated minutes on today's biz-dev tasks. The timer above tracks what you actually work.</div>
+    <div class="budget-week"><span>This week ${hrs(wk)}h / ${hrs(wcap)}h</span><div class="wk-track"><div class="wk-fill" style="width:${wpct}%"></div></div></div>
+  </div>`;
+}
+function triggerBannersHtml(){
+  let h=''; const thr=(+SETTINGS.followerCount||0)*(+SETTINGS.boostMultiplier||2);
+  const toBoost=REACH.filter(r=>!r.boosted && +r.reach>=thr && thr>0);
+  if(toBoost.length) h+=`<div class="trig boost"><span class="ti">🚀</span><div><b>${toBoost.length} post${toBoost.length>1?'s':''} past ${thr.toLocaleString()} reach — boost ${toBoost.length>1?'them':'it'}.</b> Anything over 2× your followers is earning its spend. <button class="cs-btn" onclick="showTab('grow')">Open Conveyor Belt</button></div></div>`;
+  const mem=+SETTINGS.skoolMembers||0, split=+SETTINGS.splitAtMembers||50;
+  if(mem>split) h+=`<div class="trig split"><span class="ti">👥</span><div><b>Skool is at ${mem} members — split coaching vs. community calls.</b> One room can't serve both anymore. <button class="cs-btn" onclick="showTab('calls')">Open Fulfillment Calls</button></div></div>`;
+  return h;
+}
+function bumpTask(id){ const d=dstr(); BUMPED[d]=BUMPED[d]||[]; if(!BUMPED[d].includes(id)) BUMPED[d].push(id); pushTasks(); renderTasks(); }
+function unbumpTask(id){ const d=dstr(); BUMPED[d]=(BUMPED[d]||[]).filter(x=>x!==id); pushTasks(); renderTasks(); }
+
+/* ---- Conveyor Belt (Grow view) ---- */
+let GROW_RANGE='week';   // 'week' | 'all'
+function setGrowRange(r){ GROW_RANGE=r; renderGrow(); }
+function funWk(){ const k=wkey(new Date()); return FUNNEL[k]||(FUNNEL[k]={boosted:0,followers:0,pfs:0,trials:0}); }
+function bumpFunnel(key,d){ const w=funWk(); w[key]=Math.max(0,(w[key]||0)+d); pushTasks(); renderGrow(); }
+function sumFunnel(key){ let n=0; for(const k in FUNNEL){ n+=(FUNNEL[k]&&+FUNNEL[k][key])||0; } return n; }
+function sumScoreK(key){ let n=0; for(const k in SCORE){ n+=(SCORE[k]&&+SCORE[k][key])||0; } return n; }
+function grabScore(key){ const wk=wkey(new Date()); return GROW_RANGE==='all'?sumScoreK(key):((SCORE[wk]||{})[key]||0); }
+function grabFun(key){ const wk=wkey(new Date()); return GROW_RANGE==='all'?sumFunnel(key):((FUNNEL[wk]||{})[key]||0); }
+function boostedPosts(){ const wk=wkey(new Date());   // boosted posts from the reach log, honoring the week/all-time toggle
+  return REACH.filter(r=>r.boosted && (GROW_RANGE==='all' || (r.ts && wkey(new Date(r.ts))===wk))); }
+
+function renderGrow(){
+  const el=document.getElementById('growView'); if(!el) return;
+  el.innerHTML=`<div class="view-head"><h1>Conveyor Belt</h1>
+      <p class="view-sub">Every stage from first contact to a paying client — the count at each, and how well it hands off to the next. DMs come from your weekly scoreboard, boosted posts from your reach log, tiers live from your Roster; PFS setups you tap as they happen.</p></div>
+    <div class="toggle-row"><button class="tgl ${GROW_RANGE==='week'?'on':''}" onclick="setGrowRange('week')">This week</button><button class="tgl ${GROW_RANGE==='all'?'on':''}" onclick="setGrowRange('all')">All-time</button></div>
+    <div id="growBody"><p class="tool-d">Loading roster…</p></div>`;
+  fetchRoster(function(rows){ renderGrowBody(rows); });
+}
+function renderGrowBody(rows){
+  const body=document.getElementById('growBody'); if(!body) return;
+  const tc=rosterTierCounts(rows||[]);
+  const stages=[
+    {key:'boosted',   label:'Boosted',          val:boostedPosts().length, src:'reach'},
+    {key:'dms',       label:'DMs',              val:grabScore('dms'), src:'score'},
+    {key:'pfs',       label:'PFS setups',       val:grabFun('pfs'), track:true},
+    {key:'b39',       label:'$39 Built Today',  val:tc.b39, roster:true},
+    {key:'b97',       label:'$97 Built to Last',val:tc.b97, roster:true},
+    {key:'coaching',  label:'Coaching',         val:tc.coaching, roster:true}
+  ];
+  let belt='';
+  stages.forEach(function(s,i){
+    if(i>0){ // Boosted is a standalone quality metric — no "conversion" into DMs; show % only for real funnel hops
+      const prev=stages[i-1];
+      const conv = prev.key==='boosted' ? '' : (prev.val>0?Math.round(s.val/prev.val*100)+'%':'—');
+      belt+=`<div class="belt-arrow">${conv?`<span class="ac">${conv}</span>`:''}<span class="aa">→</span></div>`; }
+    const cls=s.roster?'roster':(s.src?'src':'');
+    const srcLbl=s.src==='score'?'<div class="ssrc">scoreboard</div>':(s.src==='reach'?'<div class="ssrc">from reach log</div>':(s.roster?'<div class="ssrc rost">from roster</div>':''));
+    const step=(s.track && GROW_RANGE==='week')?`<div class="stage-step"><button onclick="bumpFunnel('${s.key}',-1)">−</button><button onclick="bumpFunnel('${s.key}',1)">＋</button></div>`:'';
+    belt+=`<div class="stage ${cls}"><div class="sn">${s.val}</div><div class="sl">${s.label}</div>${srcLbl}${step}</div>`;
+  });
+  let h=`<div class="belt">${belt}</div>`;
+  h+=`<div class="leak-note">No dead ends: anyone who doesn't convert still keeps the free <b>Power Food System</b> PDF and stays in the community — a nurture list, not a leak. Roster tiers are your <b>current</b> members (all-time); the middle stages honor the ${GROW_RANGE==='week'?'this-week':'all-time'} toggle.</div>`;
+  h+=reachHtml();
+  h+=dmqHtml();
+  body.innerHTML=h;
+}
+
+/* ---- Reach & Boost trigger ---- */
+function reachHtml(){
+  const thr=(+SETTINGS.followerCount||0)*(+SETTINGS.boostMultiplier||2);
+  const rows=[...REACH].sort((a,b)=>b.ts-a.ts).slice(0,20).map(function(r){
+    const hit=+r.reach>=thr && thr>0;
+    return `<div class="link-row"><div class="link-who"><span class="link-name">${esc(r.label||'Post')}</span><div class="link-email">${(+r.reach).toLocaleString()} reach · ${fmtDate(r.ts)}</div></div>`
+      +(r.boosted?`<span class="pill good">boosted ✓</span>`:(hit?`<span class="pill watch">boost it</span> <button class="cs-btn" onclick="markBoosted('${r.id}')">Mark boosted</button>`:`<span class="pill quiet">building</span>`))
+      +` <button class="task-del" onclick="delReach('${r.id}')" title="Delete">✕</button></div>`;
+  }).join('') || '<div class="task-empty">No posts logged yet — add one below.</div>';
+  // Running list of what's been boosted (titles), for tracking
+  const boosted=REACH.filter(r=>r.boosted).sort((a,b)=>b.ts-a.ts);
+  const boostedList = boosted.length ? `<div class="boosted-box"><div class="ci-blocklabel" style="margin-bottom:8px">Boosted posts (${boosted.length})</div>`
+    + boosted.map(r=>`<div class="boosted-item"><span>✓ ${esc(r.label||'Post')}</span><span class="bi-meta">${(+r.reach).toLocaleString()} reach · ${fmtDate(r.ts)}</span></div>`).join('') + `</div>` : '';
+  return `<div class="section"><div class="section-head"><h2>Reach &amp; Boost</h2><div class="rule"></div></div>
+    <div class="set-row">Followers <input class="mini-input" type="number" value="${+SETTINGS.followerCount||0}" onchange="saveSetting('followerCount',+this.value||0)">
+      ×<input class="mini-input" style="width:52px" type="number" step="0.5" value="${+SETTINGS.boostMultiplier||2}" onchange="saveSetting('boostMultiplier',+this.value||2)">
+      → boost any post past <b style="color:var(--gold)">${thr.toLocaleString()}</b> reach</div>
+    ${rows}
+    ${boostedList}
+    <div class="add-task"><h4>Log a post's reach</h4>
+      <input id="rLabel" type="text" placeholder="Post (e.g. 'Reel — 3 lies about protein')">
+      <div class="add-row"><input id="rReach" type="number" min="0" placeholder="Reach (views)"></div>
+      <button class="add-btn" onclick="addReach()">Add reach</button></div></div>`;
+}
+function addReach(){ const label=(document.getElementById('rLabel').value||'').trim(), reach=+document.getElementById('rReach').value||0;
+  if(!reach) return; REACH.push({id:uidT(),ts:Date.now(),label:label||'Post',reach}); pushTasks(); renderGrow(); }
+function delReach(id){ REACH=REACH.filter(r=>r.id!==id); pushTasks(); renderGrow(); }
+function markBoosted(id){ const r=REACH.find(x=>x.id===id); if(r){ r.boosted=true; pushTasks(); renderGrow(); } } // Boosted stage derives from this flag
+
+/* ---- DM opener (the copyable script — new followers → free-value conversation) ---- */
+const DM_SCRIPT="Thanks for following. Are you working toward a specific goal, or here for free value through the content?";
+function dmqHtml(){
+  return `<div class="section"><div class="section-head"><h2>DM Opener</h2><div class="rule"></div></div>
+    <div class="leak-note">When someone new follows, open with this — <b>copy it</b>:<br>
+      <span style="color:var(--ink);display:inline-block;margin:6px 0">“${DM_SCRIPT}”</span>
+      <button class="cs-btn" onclick="copyLink(this,'${DM_SCRIPT}')">Copy</button><br>
+      Reply that shows a goal → send them the free <b>Power Food System</b> and log a PFS setup above.</div></div>`;
+}
+
+/* ---- Fulfillment Calls ---- */
+function renderCalls(){
+  const el=document.getElementById('callsView'); if(!el) return;
+  const mem=+SETTINGS.skoolMembers||0, split=+SETTINGS.splitAtMembers||50;
+  let h=`<div class="view-head"><h1>Fulfillment Calls</h1>
+      <p class="view-sub">Your live-coaching obligations, tracked. Built for More members each get one 1:1 a month; the $39 room gets a monthly Q&amp;A; paid add-on calls are logged as revenue but kept out of MRR.</p></div>`;
+  h+=`<div class="budget"><div class="set-row" style="margin:0">Skool members <input class="mini-input" type="number" value="${mem}" onchange="saveSetting('skoolMembers',+this.value||0)"> <span class="budget-sub">crossing ${split} flags “split coaching vs. community calls”</span></div></div>`;
+  if(mem>split) h+=`<div class="trig split"><span class="ti">👥</span><div><b>${mem} members — split the calls.</b> Run coaching calls and community calls as separate rooms so neither gets diluted.</div></div>`;
+  h+=`<div id="callsBody"><p class="tool-d">Loading Built for More members…</p></div>`;
+  el.innerHTML=h;
+  fetchRoster(function(rows){ renderCallsBody(rows); });
+}
+function renderCallsBody(rows){
+  const body=document.getElementById('callsBody'); if(!body) return;
+  const bfm=rosterTierCounts(rows||[]).bfm, m=mkey(new Date()), dom=new Date().getDate();
+  let sched=0, done=0, over=0;
+  const rowsHtml=bfm.map(function(r){
+    const email=String(rv(r,'Email')).trim(), name=String(rv(r,'Name')).trim()||email;
+    const st=(CALLS[email.toLowerCase()]||{})[m]||'';
+    if(st==='completed') done++; else if(st==='scheduled') sched++; else if(dom>=25) over++;
+    const overdue = !st && dom>=25;
+    return `<div class="link-row"><div class="link-who"><span class="link-name">${esc(name)}</span><div class="link-email">${esc(email)}${overdue?' · <span style="color:var(--stall-tx)">overdue this month</span>':''}</div></div>
+      <div class="call-status"><button class="cs-btn ${st==='scheduled'?'on-sched':''}" onclick="setCall('${esc(email)}','scheduled')">Scheduled</button><button class="cs-btn ${st==='completed'?'on-done':''}" onclick="setCall('${esc(email)}','completed')">Completed</button></div></div>`;
+  }).join('') || '<div class="task-empty">No Built for More members yet. Their monthly 1:1s show up here once you have them.</div>';
+  let h=`<div class="section"><div class="section-head"><h2>This month's 1:1s · Built for More</h2><div class="rule"></div><span class="count">${done} done · ${sched} scheduled · ${over} overdue</span></div>${rowsHtml}</div>`;
+  h+=addonHtml();
+  body.innerHTML=h;
+}
+function setCall(email,status){ email=String(email).toLowerCase(); const m=mkey(new Date());
+  CALLS[email]=CALLS[email]||{}; if(CALLS[email][m]===status) delete CALLS[email][m]; else CALLS[email][m]=status;
+  pushTasks(); renderCalls(); }
+
+/* ---- Paid add-on call ledger (revenue, separate from MRR) ---- */
+function addonHtml(){
+  const m=mkey(new Date());
+  const monthTotal=ADDONS.filter(a=>mkey(new Date(a.ts))===m).reduce((s,a)=>s+(+a.amount||0),0);
+  const allTotal=ADDONS.reduce((s,a)=>s+(+a.amount||0),0);
+  const list=[...ADDONS].sort((a,b)=>b.ts-a.ts).slice(0,20).map(a=>`<div class="link-row"><div class="link-who"><span class="link-name">${esc(a.client||'—')}</span><div class="link-email">${(+a.hours||0)} hr × $${+a.rate||0} · ${fmtDate(a.ts)}${a.note?' · '+esc(a.note):''}</div></div><span class="pr-best">$${(+a.amount||0).toLocaleString()}</span> <button class="task-del" onclick="delAddon('${a.id}')" title="Delete">✕</button></div>`).join('') || '<div class="task-empty">No add-on calls logged yet.</div>';
+  return `<div class="section"><div class="section-head"><h2>Paid add-on calls</h2><div class="rule"></div><span class="count">$${monthTotal.toLocaleString()} this month · $${allTotal.toLocaleString()} all-time</span></div>
+    <div class="leak-note">One-off paid calls at $${+SETTINGS.addonRateLow||50}–$${+SETTINGS.addonRateHigh||75}/hr. Logged as revenue but <b>kept out of MRR</b> on purpose — it isn't recurring.</div>
+    ${list}
+    <div class="add-task"><h4>Log an add-on call</h4>
+      <input id="aoClient" type="text" placeholder="Client / name">
+      <div class="add-row"><input id="aoHours" type="number" min="0" step="0.25" placeholder="Hours"><input id="aoRate" type="number" min="0" placeholder="$/hr" value="${+SETTINGS.addonRateLow||50}"><input id="aoNote" type="text" placeholder="Note (optional)"></div>
+      <button class="add-btn" onclick="addAddon()">Log call</button></div></div>`;
+}
+function addAddon(){ const client=(document.getElementById('aoClient').value||'').trim();
+  const hours=+document.getElementById('aoHours').value||0, rate=+document.getElementById('aoRate').value||0;
+  if(!client||!hours) return;
+  ADDONS.push({id:uidT(),ts:Date.now(),client,hours,rate,amount:Math.round(hours*rate),note:(document.getElementById('aoNote').value||'').trim()});
+  pushTasks(); renderCalls(); }
+function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCalls(); }
+
 /* ============================ NAVIGATION + BUSINESS VIEWS ============================ */
 const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
-  {group:"Fulfillment", items:[["journey","Member Journey"],["links","Client Links"]]},
-  {group:"Grow", items:[["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
+  {group:"Fulfillment", items:[["journey","Member Journey"],["calls","Fulfillment Calls"],["links","Client Links"]]},
+  {group:"Grow", items:[["grow","Conveyor Belt"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
 ];
@@ -1551,6 +1966,8 @@ function showTab(id){
   else if(id==="integrations") renderIntegrations();
   else if(id==="links") renderLinks();
   else if(id==="journey") renderJourney();
+  else if(id==="grow"){ syncTasks(); renderGrow(); }
+  else if(id==="calls"){ syncTasks(); renderCalls(); }
   window.scrollTo(0,0);
 }
 
@@ -1591,7 +2008,7 @@ function setGoal(k){
 }
 function saveGoals(){
   lsSave('lp_goals', GOALS);
-  if(CONFIG.writeUrl) postToSheet({type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS, goals:GOALS});
+  if(CONFIG.writeUrl) postToSheet(stateBlob());
 }
 
 /* ---- Client Links — each member's private magic-link dashboard URL (from the Roster tokens) ---- */
@@ -1783,6 +2200,8 @@ function renderRevenue(){
       <div class="tile"><div class="label">Paying clients</div><div class="value">${active.length}</div></div>
       <div class="tile"><div class="label">Avg / client</div><div class="value">${money(active.length?mrr/active.length:0)}</div></div>
     </div>
+    ${(function(){ const am=ADDONS.filter(a=>mkey(new Date(a.ts))===mkey(new Date())).reduce((s,a)=>s+(+a.amount||0),0);
+      return am?`<div class="budget-sub" style="margin:-8px 0 18px">Plus <b style="color:var(--gold)">${money(am)}</b> in paid add-on calls this month — one-off, <b>not</b> counted in MRR (see Fulfillment Calls).</div>`:''; })()}
     <div class="card"><table class="tbl">
       <thead><tr><th>Client</th><th class="hide-sm">Billing</th><th>Amount</th><th>Monthly value</th></tr></thead>
       <tbody>${rows}</tbody></table></div>`;
@@ -1889,6 +2308,7 @@ async function loadAll(){
 showTab("tasks");
 loadAll();
 setInterval(loadAll, (CONFIG.refreshMinutes||30)*60000);
+setInterval(timerTick, 1000);   // Pomodoro tick — keeps the work/rest timer + worked-today total running
 </script>
 </body>
 </html>
