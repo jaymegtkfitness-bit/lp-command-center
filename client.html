@@ -124,6 +124,12 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .wiz-rank .rk{width:22px;height:22px;border-radius:50%;background:var(--accent);color:var(--accent-ink);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
 .wiz-rank select{flex:1}
 .wiz-rank .rkd{font-size:11.5px;color:var(--muted)}
+.wiz-opts{display:flex;flex-direction:column;gap:8px}
+.wiz-opt{text-align:left;border:1px solid var(--line);background:var(--bg);border-radius:12px;padding:11px 13px;font-family:inherit;cursor:pointer}
+.wiz-opt.on{border-color:var(--accent);background:var(--accent-soft)}
+.wiz-opt b{display:block;font-size:14px;color:var(--headline);font-weight:700}
+.wiz-opt.on b{color:var(--accent)}
+.wiz-opt span{font-size:12px;color:var(--muted)}
 /* Result */
 .res-read{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:10px;padding:14px 15px;margin-bottom:14px}
 .res-track{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--headline)}
@@ -201,10 +207,10 @@ select.input{appearance:none}
         <input class="input" id="ob_name" placeholder="First and last" autocomplete="name" /></div>
       <div class="field"><label>Your email <span class="hint">— the same email you signed up with</span></label>
         <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
-      <div class="field"><label>This dashboard is styled for…</label>
+      <div class="field"><label>Gender</label>
         <div class="gender" id="ob_gender" data-val="">
-          <button type="button" data-v="man" onclick="pickGender(this)">A man</button>
-          <button type="button" data-v="woman" onclick="pickGender(this)">A woman</button>
+          <button type="button" data-v="man" onclick="pickGender(this)">Male</button>
+          <button type="button" data-v="woman" onclick="pickGender(this)">Female</button>
         </div>
       </div>
       <div class="actions">
@@ -426,14 +432,14 @@ function saveLS(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e)
 /* ============================ IDENTITY ============================ */
 function loadIdentity(){ try{ return JSON.parse(localStorage.getItem(LS_ID)||"null"); }catch(e){ return null; } }
 function applyGender(gen){ document.documentElement.setAttribute("data-theme", gen==="man"?"man":"woman"); }
-function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; applyGender(b.dataset.v); }
+function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; } // palette applies on dashboard entry, not on pick
 function saveIdentity(){
   var name=g("ob_name").value.trim(), email=g("ob_email").value.trim().toLowerCase(), gender=g("ob_gender").dataset.val, st=g("obStatus");
   if(!name){ st.textContent="Add your name to continue."; st.style.color="var(--stall-tx)"; return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ st.textContent="That email doesn't look right — double-check it."; st.style.color="var(--stall-tx)"; return; }
-  if(!gender){ st.textContent="Pick a style so your dashboard fits you."; st.style.color="var(--stall-tx)"; return; }
-  ID={name:name,email:email,gender:gender}; saveLS(LS_ID, ID); applyGender(gender);
-  boot();
+  if(!gender){ st.textContent="Pick Male or Female."; st.style.color="var(--stall-tx)"; return; }
+  ID={name:name,email:email,gender:gender}; saveLS(LS_ID, ID);
+  boot();  // palette applies when the dashboard renders, not now
 }
 function editIdentity(){
   if(ID){ g("ob_name").value=ID.name; g("ob_email").value=ID.email;
@@ -444,7 +450,7 @@ function editIdentity(){
 
 /* ============================ NAVIGATION ============================ */
 function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","locked"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
-function showHome(){ renderHome(); show("home"); }
+function showHome(){ if(ID&&ID.gender) applyGender(ID.gender); renderHome(); show("home"); }  // palette applies here, on dashboard entry
 function showCheckin(){ buildForm(); show("checkin"); }
 function showMonthly(){ buildMonthlyForm(); show("monthly"); }
 function showQuarterly(){ buildQuarterlyForm(); show("quarterly"); }
@@ -538,7 +544,7 @@ function buildModel(server){
 function renderHome(){
   g("greeting").textContent="Welcome back, "+ID.name.split(" ")[0];
   var h=M.checkins, first=h[0], last=h[h.length-1];
-  g("stWeight").textContent = last&&last.weight!=null ? last.weight : "—";
+  g("stWeight").textContent = (last&&last.weight!=null) ? last.weight : ((M.intake&&M.intake.weight) ? M.intake.weight : "—");
   g("stTotal").textContent = h.length;
   var cv=h.map(function(x){return x.cons;}).filter(function(v){return v!=null;});
   g("stCons").textContent = cv.length ? Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length)+"%" : "—";
@@ -817,6 +823,7 @@ async function submitNote(){
 var WIZ = {}, WIZ_I = 0;
 var WIZ_STEPS = ["about","history","priorities","interests","result"];
 var W_ACTIVITY = ["Sedentary","Lightly active","Active","Very active","Athlete"];
+var W_ACTIVITY2 = [["Sedentary","under ~5,000 steps/day, little or no training"],["Lightly active","~5,000–7,500 steps, 1–2 workouts/week"],["Active","~7,500–10,000 steps, 3–4 workouts/week"],["Very active","10,000+ steps, 5–6 workouts/week"],["Athlete","active all day, 6+ hard sessions/week or a physical job"]];
 var W_DIET = ["Not really","Under a year","1–3 years","3+ years","Most of my life"];
 var W_FUEL = ["Eating well","Eating pretty little — restricting","Not sure"];
 var W_FLAGS = ["Lost weight before, then hit a wall where nothing moved","I do a lot of cardio and still feel stuck","Diet hard, burn out, gain it back — on repeat","Constant food thoughts — good vs bad, guilt"];
@@ -825,7 +832,7 @@ var W_EXTRA = ["Improve bloodwork","Reduce visceral fat","Mental health","Mental
 var W_INTEREST = ["Peptides","Genetic testing","A done-for-you build"];
 var W_FILTER = ["Vegetarian","Lactose-free","Gluten-free"];
 
-function showWizard(){ WIZ={flags:[],extragoals:[],interests:[],filters:[]}; WIZ_I=0; renderWiz(); show("wizard"); }
+function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==='woman')?'Female':''), flags:[],extragoals:[],interests:[],filters:[]}; WIZ_I=0; renderWiz(); show("wizard"); }
 function renderPFS(){
   var box=g("pfsBox"), it=M.intake;
   if(!it || !it.pfs){
@@ -855,6 +862,12 @@ function wizPick(b){
   else { Array.from(p.children).forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); WIZ[key]=v;
     if(key==='sex') renderWiz(); }
 }
+function wizOptions(key, opts){
+  return '<div class="wiz-opts" data-key="'+key+'">'+opts.map(function(o){
+    return '<button type="button" class="wiz-opt'+(WIZ[key]===o[0]?' on':'')+'" data-v="'+esc(o[0])+'" onclick="wizPickOne(this)"><b>'+esc(o[0])+'</b><span>'+esc(o[1])+'</span></button>';
+  }).join("")+'</div>';
+}
+function wizPickOne(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); WIZ[p.dataset.key]=b.dataset.v; }
 function renderWiz(){
   var step=WIZ_STEPS[WIZ_I], last=WIZ_STEPS.length-1;
   g("wizFill").style.width=(WIZ_I/last*100).toFixed(0)+"%";
@@ -868,7 +881,7 @@ function renderWiz(){
       +'<div class="field"><label>Height</label><div style="display:flex;gap:6px"><input class="input" type="number" inputmode="numeric" id="w_ft" placeholder="ft" value="'+(WIZ.ft||"")+'"><input class="input" type="number" inputmode="numeric" id="w_in" placeholder="in" value="'+(WIZ.inch||"")+'"></div></div></div>';
     b+='<div class="wiz-two"><div class="field"><label>Current weight (lb)</label><input class="input" type="number" inputmode="decimal" id="w_cur" value="'+(WIZ.weight||"")+'"></div>'
       +'<div class="field"><label>Goal weight (lb)</label><input class="input" type="number" inputmode="decimal" id="w_goal" value="'+(WIZ.goalweight||"")+'"></div></div>';
-    b+='<div class="wiz-q">Activity level</div>'+wizChips("activity",W_ACTIVITY);
+    b+='<div class="wiz-q">Activity level</div>'+wizOptions("activity",W_ACTIVITY2);
     if(WIZ.sex==="Female") b+='<div class="wiz-q">Are you pregnant or trying to conceive? <span class="wiz-hint">— we focus on nourishment, never a deficit</span></div>'+wizChips("pregnant",["No","Yes"]);
   }
   else if(step==="history"){
@@ -957,10 +970,10 @@ function wizResult(){
   else why="Based on your goals and history, "+trackName+" is your starting lane. Nothing here is restrictive or extreme — it's a real, sustainable starting point built from your numbers.";
   var sigTxt={"strong":"Strong signal","moderate":"Worth watching","clear":"Your pick"}[sig]||"";
   var pace;
-  if(t==="Reverse Diet") pace='This is your <b>starting floor</b>, not a diet. In Foundations we add a little more each week to rebuild your metabolism — so fat loss finally sticks.';
-  else if(t==="Strong") pace='That\'s about '+Math.abs(p.delta)+' over your estimated burn (~'+p.tdee+' cal) — fuel to build.';
-  else if(t==="Long") pace='That\'s right around your estimated burn (~'+p.tdee+' cal) — steady, with a longevity focus.';
-  else pace='That\'s about '+Math.abs(p.delta)+' under your estimated burn (~'+p.tdee+' cal) — a sustainable deficit, not a crash.';
+  if(t==="Reverse Diet") pace='You\'re likely eating well under the ~'+p.tdee+' calories your body could handle. This '+p.calories+' is your <b>starting floor</b> — in Foundations we add a little more each week to rebuild your metabolism, so fat loss finally sticks.';
+  else if(t==="Strong") pace='You\'re likely around ~'+p.tdee+' to hold your current weight. We start you at '+p.calories+', a touch above that, to fuel building.';
+  else if(t==="Long") pace='We hold you near your ~'+p.tdee+' estimated maintenance at '+p.calories+' — steady, with a longevity focus.';
+  else pace='You\'re likely eating around ~'+p.tdee+' to hold your current weight. We start you at '+p.calories+' — a sustainable deficit, not a crash.';
   // filter-aware food notes
   var f=WIZ.filters||[];
   var protList = f.indexOf("Vegetarian")>=0 ? "eggs, Greek yogurt, cottage cheese, tofu/tempeh, lentils, protein powder" : "chicken breast, lean beef or turkey, eggs, Greek yogurt, white fish, shrimp, top sirloin";
@@ -974,7 +987,7 @@ function wizResult(){
     +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
     +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
     +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
-    +'<p class="wiz-hint">'+pace+' Protein first, every meal.</p>'
+    +'<p class="wiz-hint">'+pace+'</p><p class="wiz-hint">This is a starting <b>target and a guide</b>, not a hard rule — Foundations dials it in with your real data. Protein first, every meal.</p>'
     +'<div class="sec-h" style="margin-top:16px"><h2>Foods to build from</h2></div>'
     +'<div class="foodcol"><b>Proteins:</b> <span>'+esc(protList)+'</span></div>'
     +'<div class="foodcol"><b>Smart carbs:</b> <span>'+esc(carbList)+'</span></div>'
@@ -1006,13 +1019,13 @@ async function postToSheet(payload){
 
 /* ============================ BOOT ============================ */
 function boot(){
-  // render immediately from local so it's never blank, then hydrate from server
-  buildModel(null); showHome();
+  buildModel(null);
+  if(M.checkins.length || M.intake) showHome();  // returning user with data → show now; new users wait for the wizard
   loadClientData(function(server){
     if(server){
       if(server.active===false){ showLocked(); return; }
       buildModel(server);
-      if(!M.intake && !M.checkins.length){ showWizard(); } else { renderHome(); }
+      if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); }
     }
   });
 }
@@ -1023,14 +1036,13 @@ function boot(){
   TOKEN = getParam('fresh') ? null : (getParam('k') || (function(){ try{ return localStorage.getItem(LS_TOKEN); }catch(e){ return null; } })());
   if(TOKEN){ try{ localStorage.setItem(LS_TOKEN, TOKEN); }catch(e){} }
   ID = loadIdentity();
-  if(ID && ID.gender) applyGender(ID.gender);
   if(TOKEN){
     buildModel(null);
     loadClientData(function(server){
       if(server && server.email){
         var gsv = /^m/i.test(server.gender||"") ? "man" : (/^f/i.test(server.gender||"") ? "woman" : ((ID&&ID.gender)||"woman"));
         ID = { email:server.email, name:server.name||(ID&&ID.name)||"", gender:gsv };
-        saveLS(LS_ID, ID); applyGender(ID.gender);
+        saveLS(LS_ID, ID);
         if(server.active===false){ showLocked(); return; }
         buildModel(server);
         if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); }
