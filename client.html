@@ -130,6 +130,18 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .wiz-opt b{display:block;font-size:14px;color:var(--headline);font-weight:700}
 .wiz-opt.on b{color:var(--accent)}
 .wiz-opt span{font-size:12px;color:var(--muted)}
+/* Onboarding checklist */
+.ob-prog{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.ob-bar{flex:1;height:6px;background:var(--line);border-radius:6px;overflow:hidden}
+.ob-fill{height:100%;background:var(--accent);border-radius:6px;transition:width .3s}
+.ob-count{font-size:11.5px;color:var(--muted);font-weight:600;white-space:nowrap}
+.ob-step{display:flex;align-items:center;gap:11px;padding:10px 2px;border-top:1px solid var(--line);cursor:pointer}
+.ob-step:nth-of-type(1){border-top:none}
+.ob-check{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);flex:none;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:var(--accent-ink)}
+.ob-step.done .ob-check{background:var(--accent);border-color:var(--accent)}
+.ob-label{flex:1;font-size:13.5px;color:var(--ink)}
+.ob-step.done .ob-label{color:var(--muted);text-decoration:line-through}
+.ob-auto{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
 /* Result */
 .res-read{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:10px;padding:14px 15px;margin-bottom:14px}
 .res-track{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--headline)}
@@ -241,6 +253,9 @@ select.input{appearance:none}
     <div class="eyebrow" id="homeEyebrow">This week</div>
     <h1 id="greeting">Welcome back</h1>
     <p class="sub" id="homeSub">Your dashboard updates every time you check in — and it's the same view your coach sees.</p>
+
+    <!-- Onboarding checklist -->
+    <div class="card" id="obCard" style="display:none"><div id="obBox"></div></div>
 
     <div class="stats">
       <div class="stat"><div class="n" id="stWeight">—</div><div class="l">Current weight</div></div>
@@ -406,9 +421,9 @@ var QT_BODY    = ["A lot to lose","Close but stuck","Fueled and ready to build",
 var QT_GOAL    = ["Fat loss","Build muscle & strength","Maintain, protect & longevity"];
 var QT_TRACK   = ["Lean","Strong","Long"];
 var ID = null;                 // {name,email,gender}
-var M = { checkins:[], monthly:[], quarterly:[], coachNotes:[], clientNotes:[], prs:[], intake:null };  // merged model
+var M = { checkins:[], monthly:[], quarterly:[], coachNotes:[], clientNotes:[], prs:[], intake:null, onboardingDone:[] };  // merged model
 var serverOk = false;
-var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake";
+var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake", LS_ONBOARD="lp_client_onboard";
 var TOKEN=null;   // per-client magic-link token (?k=…) — identity without typing an email
 function getParam(k){ try{ var m=new RegExp('[?&]'+k+'=([^&]+)').exec(location.search); return m?decodeURIComponent(m[1]):null; }catch(e){ return null; } }
 
@@ -538,6 +553,12 @@ function buildModel(server){
     : ((lin&&lin.done)?lin:null);
   if(it && it.goalweight && !it.pfs) it.pfs = computePFS(it, it.track);
   M.intake = it;
+  // ---- onboarding checklist progress ----
+  var son=(server&&server.onboarding&&server.onboarding.length)?String(server.onboarding[server.onboarding.length-1]['Completed']||''):'';
+  var lon=loadLS(LS_ONBOARD,"[]"), doneSet={};
+  son.split(',').forEach(function(k){ k=k.trim(); if(k) doneSet[k]=1; });
+  (lon||[]).forEach(function(k){ doneSet[k]=1; });
+  M.onboardingDone = Object.keys(doneSet);
 }
 
 /* ============================ RENDER ============================ */
@@ -567,6 +588,7 @@ function renderHome(){
   renderMonthly();
   renderQuarterly();
   renderPFS();
+  renderOnboarding();
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
 }
 
@@ -833,6 +855,42 @@ var W_INTEREST = ["Peptides","Genetic testing","A done-for-you build"];
 var W_FILTER = ["Vegetarian","Lactose-free","Gluten-free"];
 
 function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==='woman')?'Female':''), flags:[],extragoals:[],interests:[],filters:[]}; WIZ_I=0; renderWiz(); show("wizard"); }
+var ONBOARD_STEPS=[
+  {k:'skool',       label:'Set up your Skool account'},
+  {k:'call',        label:'Schedule your onboarding call'},
+  {k:'starthere',   label:'Go through the Start Here course'},
+  {k:'everfit',     label:'Set up the Everfit app'},
+  {k:'direction',   label:'Set your direction & Power Food System', auto:'intake'},
+  {k:'foundations', label:'Begin the Foundations course'},
+  {k:'checkin',     label:'Complete your first weekly check-in', auto:'checkin'}
+];
+function stepDone(s){
+  if(M.onboardingDone.indexOf(s.k)>=0) return true;
+  if(s.auto==='intake' && M.intake) return true;
+  if(s.auto==='checkin' && M.checkins.length) return true;
+  return false;
+}
+function renderOnboarding(){
+  var card=g("obCard"), box=g("obBox");
+  var done=ONBOARD_STEPS.filter(stepDone).length, total=ONBOARD_STEPS.length;
+  if(done>=total){ card.style.display='none'; return; }
+  card.style.display='';
+  box.innerHTML='<div class="sec-h"><h2>Your setup</h2></div>'
+    +'<div class="ob-prog"><div class="ob-bar"><div class="ob-fill" style="width:'+(done/total*100).toFixed(0)+'%"></div></div><span class="ob-count">'+done+' of '+total+' done</span></div>'
+    +ONBOARD_STEPS.map(function(s){
+      var d=stepDone(s), autoDone = s.auto && d && M.onboardingDone.indexOf(s.k)<0;
+      return '<div class="ob-step'+(d?' done':'')+'"'+(autoDone?'':' onclick="toggleOnboardStep(\''+s.k+'\')"')+'>'
+        +'<span class="ob-check">'+(d?'✓':'')+'</span><span class="ob-label">'+esc(s.label)+'</span>'
+        +(autoDone?'<span class="ob-auto">auto</span>':'')+'</div>';
+    }).join("");
+}
+function toggleOnboardStep(k){
+  var i=M.onboardingDone.indexOf(k);
+  if(i>=0) M.onboardingDone.splice(i,1); else M.onboardingDone.push(k);
+  saveLS(LS_ONBOARD, M.onboardingDone);
+  if(CONFIG.writeUrl) postToSheet({type:'onboarding', email:ID.email, completed:M.onboardingDone});
+  renderOnboarding();
+}
 function renderPFS(){
   var box=g("pfsBox"), it=M.intake;
   if(!it || !it.pfs){
