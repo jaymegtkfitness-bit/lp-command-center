@@ -545,6 +545,8 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .bud-total.sub{border-top:1px dashed var(--line);margin-top:8px;padding-top:7px}
 .bud-total b.pos{color:var(--good-tx)} .bud-total b.neg{color:var(--stall-tx)}
 .bud-costs-h{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:14px 0 8px}
+.bud-subhead{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:10px 0 7px;opacity:.85}
+.bud-subhead:first-of-type{margin-top:2px}
 .bud-note{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-left:5px}
 .bud-hint{font-size:11.5px;color:var(--muted);line-height:1.45;margin:2px 0 4px}
 .bud-taxamt{margin-left:auto;color:var(--stall-tx);font-variant-numeric:tabular-nums}
@@ -2087,10 +2089,15 @@ function picBlock(label,income,incomeLabel,needs){
 }
 function moneyPanelHtml(){
   const mrr=window.__mrr||0;
+  const R=BUDGET.rev;
   const addonMonth=ADDONS.filter(a=>mkey(new Date(a.ts))===mkey(new Date())).reduce((s,a)=>s+(+a.amount||0),0);
-  const otherBiz=+BUDGET.otherIncome||0;
-  const revenue=mrr+addonMonth+otherBiz;
-  const costs=BUDGET.costs.reduce((s,l)=>s+(+l.amount||0),0);
+  const subs=(+R.b39||0)+(+R.b97||0);                        // the two affiliate-eligible subscription tiers
+  const mrrTotal=subs+(+R.bfm||0);                           // total monthly recurring revenue (subs + coaching)
+  const revenue=mrrTotal+(+R.accel||0)+addonMonth+(+R.other||0);
+  const affPct=+BUDGET.affiliatePct||0;
+  const affiliate=subs*affPct/100;                           // % given to gyms / other coaches, off Built Today + Built to Last
+  const fixedCosts=BUDGET.costs.reduce((s,l)=>s+(+l.amount||0),0);
+  const costs=affiliate+fixedCosts;
   const preTax=revenue-costs;
   const taxRate=+BUDGET.taxRate||0;
   const taxes=Math.max(0, preTax*taxRate/100);
@@ -2102,12 +2109,19 @@ function moneyPanelHtml(){
   const needs=BUDGET.personal.reduce((s,l)=>s+(+l.amount||0),0);
 
   const biz=`<div class="goal-card">
-    <div class="goal-head"><span class="goal-label">Business profit</span><span class="goal-tag live">auto + you</span></div>
-    <div class="bud-line"><span>Coaching MRR <span class="bud-auto">auto</span></span><span>${money(mrr)}</span></div>
+    <div class="goal-head"><span class="goal-label">Business income</span><span class="goal-tag live">what came in</span></div>
+    <div class="bud-subhead">Monthly recurring revenue</div>
+    ${revRow('Built Today subscriptions','b39',R.b39)}
+    ${revRow('Built to Last subscriptions','b97',R.b97)}
+    ${revRow('Built for More coaching','bfm',R.bfm)}
+    <div class="bud-subhead">One-time &amp; other</div>
+    ${revRow('Accelerators &amp; builds','accel',R.accel,'Blueprints, DFY, down payments this month')}
     <div class="bud-line"><span>Add-on calls this month <span class="bud-auto">auto</span></span><span>${money(addonMonth)}</span></div>
-    <div class="bud-row"><span class="bud-lbl">Other business income</span><span class="bud-cur">$</span><input class="mini-input bud-amt" type="number" min="0" step="10" value="${otherBiz}" onchange="budOther(this.value)"></div>
+    ${revRow('Other business income','other',R.other)}
     <div class="bud-total sub"><span>Revenue</span><b>${money(revenue)}</b></div>
+    ${mrr?`<div class="bud-hint">Roster shows ~${money(mrr)}/mo in active MRR — a cross-check for the subscription + coaching lines above.</div>`:''}
     <div class="bud-costs-h">Monthly business costs</div>
+    <div class="bud-row"><span class="bud-lbl">Affiliate cut <span class="bud-note">of Built Today + Built to Last</span></span><input class="mini-input" style="width:46px;text-align:right" type="number" min="0" max="100" value="${affPct}" onchange="budAffiliate(this.value)"><span class="bud-cur">%</span><span class="bud-taxamt">−${money(affiliate)}</span></div>
     ${BUDGET.costs.map(l=>budRow('costs',l)).join('')}
     <button class="bud-add" onclick="budAdd('costs')">+ Add cost</button>
     <div class="bud-total sub"><span>Pre-tax profit</span><b>${money(preTax)}</b></div>
@@ -2135,7 +2149,7 @@ function moneyPanelHtml(){
     ${picBlock('Full household — with Chelsea + other income', household, 'Household income', needs)}</div>`;
 
   return `<div class="section" style="margin-top:36px"><div class="section-head"><h2>Household &amp; Business Money</h2><div class="rule"></div></div>
-      <p class="view-sub" style="margin:-4px 0 16px">Everything coming in — business profit (revenue minus expenses and taxes) plus Chelsea's income and your other income — set against what the family needs. See the gap two ways: business alone, and the full household.</p>
+      <p class="view-sub" style="margin:-4px 0 16px">Business income broken out by tier (Built Today, Built to Last, Built for More) plus accelerators and other income — minus affiliate cut, expenses, and taxes — for true-north profit. Then Chelsea's income and your other income, set against what the family needs. See the gap two ways: business alone, and the full household.</p>
       <div class="goals-grid">${biz}${income}${family}${bottom}</div></div>`;
 }
 
