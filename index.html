@@ -1229,11 +1229,15 @@ TIMER._lastTick = Date.now();   // reset on load so time spent with the app clos
 /* Household + business budget (Big Goals) — personal expenses vs. business profit. Syncs under the `budget` key. */
 function makeDefaultBudget(){ const L=n=>({id:uidT(),name:n,amount:0}); return {
   personal:[L('Rent / Mortgage'),L('Car payment(s)'),L('Insurance'),L('Groceries'),L('Utilities'),L('Phone / Internet'),L('Subscriptions')],
-  costs:[L("Jen's affiliate cut"),L('Software (GHL, Skool, etc.)'),L('Ad spend')],
-  otherIncome:0, taxRate:25, chelsea:0,
+  costs:[L('Software (GHL, Skool, etc.)'),L('Ad spend')],
+  rev:{b39:0,b97:0,bfm:0,accel:0,other:0}, affiliatePct:20,   // revenue by bucket; affiliate = % of Built Today + Built to Last
+  taxRate:25, chelsea:0,
   household:[L('Part-time work'),L('Music students')] }; }
 function budgetShape(b){ b.personal=b.personal||[]; b.costs=b.costs||[]; b.household=b.household||[];
-  if(b.otherIncome==null)b.otherIncome=0; if(b.taxRate==null)b.taxRate=25; if(b.chelsea==null)b.chelsea=0; return b; }
+  if(b.taxRate==null)b.taxRate=25; if(b.chelsea==null)b.chelsea=0; if(b.affiliatePct==null)b.affiliatePct=20;
+  if(!b.rev||typeof b.rev!=='object') b.rev={b39:0,b97:0,bfm:0,accel:0,other:(+b.otherIncome||0)};   // migrate old single otherIncome
+  ['b39','b97','bfm','accel','other'].forEach(k=>{ if(b.rev[k]==null)b.rev[k]=0; });
+  return b; }
 let BUDGET = budgetShape(lsLoad('lp_budget', makeDefaultBudget()));
 /* Jayme-editable operating settings (start from CONFIG; overridden in-app; synced under the `config` key). */
 let SETTINGS = Object.assign({
@@ -2056,7 +2060,9 @@ function budAdd(section){ BUDGET[section].push({id:uidT(), name:'', amount:0}); 
 function budDel(section,id){ BUDGET[section]=BUDGET[section].filter(x=>x.id!==id); saveBudget(); renderGoals(); }
 function budEdit(section,id,field,val){ const l=BUDGET[section].find(x=>x.id===id); if(!l) return;
   l[field] = field==='amount' ? Math.max(0,+val||0) : val; saveBudget(); if(field==='amount') renderGoals(); }
-function budOther(val){ BUDGET.otherIncome=Math.max(0,+val||0); saveBudget(); renderGoals(); }
+function budRev(key,val){ BUDGET.rev[key]=Math.max(0,+val||0); saveBudget(); renderGoals(); }
+function budAffiliate(val){ BUDGET.affiliatePct=Math.max(0,Math.min(100,+val||0)); saveBudget(); renderGoals(); }
+function revRow(label,key,val,note){ return `<div class="bud-row"><span class="bud-lbl">${label}${note?` <span class="bud-note">${note}</span>`:''}</span><span class="bud-cur">$</span><input class="mini-input bud-amt" type="number" min="0" step="10" value="${+val||0}" onchange="budRev('${key}',this.value)"></div>`; }
 function budChelsea(val){ BUDGET.chelsea=Math.max(0,+val||0); saveBudget(); renderGoals(); }
 function budTax(val){ BUDGET.taxRate=Math.max(0,Math.min(100,+val||0)); saveBudget(); renderGoals(); }
 function budRow(section,l){
