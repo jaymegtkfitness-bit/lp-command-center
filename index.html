@@ -526,6 +526,38 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .link-copy button{background:var(--accent);color:#1C1C1C;border:none;border-radius:8px;
   padding:8px 14px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
 .link-row .pill{margin-left:8px}
+/* ---- Household + business money (Big Goals) ---- */
+.bud-row{display:flex;align-items:center;gap:6px;margin:0 0 6px}
+.bud-name{flex:1;text-align:left}
+.bud-amt{width:80px;text-align:right}
+.mini-input.bud-name,.mini-input.bud-amt{font-size:13px;width:auto}
+.mini-input.bud-amt{width:80px}
+.bud-cur{color:var(--muted);font-size:12px}
+.bud-lbl{flex:1;font-size:13px;color:var(--ink-soft)}
+.bud-del{background:none;border:none;color:var(--muted);cursor:pointer;font-size:13px;opacity:.5;padding:0 2px;flex:none}
+.bud-del:hover{opacity:1;color:#c0654a}
+.bud-add{background:none;border:1px dashed var(--line);color:var(--gold);border-radius:8px;padding:6px 11px;font-family:inherit;font-size:12px;cursor:pointer;margin:4px 0 2px}
+.bud-add:hover{border-color:var(--gold)}
+.bud-line{display:flex;justify-content:space-between;font-size:13px;color:var(--ink-soft);padding:4px 0}
+.bud-auto{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--gold);border:1px solid var(--accent-soft);border-radius:10px;padding:1px 6px;margin-left:5px}
+.bud-total{display:flex;justify-content:space-between;align-items:baseline;border-top:1px solid var(--line);margin-top:10px;padding-top:9px;font-size:13px;color:var(--ink)}
+.bud-total b{font-family:'Cinzel',serif;font-size:18px;color:var(--headline)}
+.bud-total.sub{border-top:1px dashed var(--line);margin-top:8px;padding-top:7px}
+.bud-total b.pos{color:var(--good-tx)} .bud-total b.neg{color:var(--stall-tx)}
+.bud-costs-h{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:14px 0 8px}
+.bud-note{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-left:5px}
+.bud-hint{font-size:11.5px;color:var(--muted);line-height:1.45;margin:2px 0 4px}
+.bud-taxamt{margin-left:auto;color:var(--stall-tx);font-variant-numeric:tabular-nums}
+.bud-bottom{grid-column:1/-1}
+.bud-pic{border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:12px}
+.bud-pic:first-of-type{margin-top:4px}
+.bud-pic.good{border-color:var(--good);background:var(--good-bg)}
+.bud-pic.gap{border-color:var(--stall);background:var(--stall-bg)}
+.bud-pic-h{font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--headline);font-weight:700;margin-bottom:10px}
+.bud-pic .big-stat{margin-top:2px}
+.bud-pic .bs .n.pos{color:var(--good-tx)} .bud-pic .bs .n.neg{color:var(--stall-tx)}
+.bud-cover{margin-top:12px;font-size:13.5px;color:var(--ink-soft);line-height:1.5}
+.bud-cover b{color:var(--headline)}
 /* ---- Growth engine: conveyor belt, reach, DM queue, budget, triggers ---- */
 .toggle-row{display:flex;gap:6px;margin:0 0 16px}
 .tgl{background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);border-radius:8px;
@@ -595,6 +627,13 @@ select.ci-input{appearance:none;-webkit-appearance:none}
   padding:2px 7px;border-radius:20px;margin-right:6px;vertical-align:middle}
 .kind-tag.bizdev{background:var(--accent-soft);color:var(--gold)}
 .kind-tag.fulfillment{background:var(--good-bg);color:var(--good-tx)}
+.mins-edit{color:var(--muted)}
+.mins-inline{width:34px;background:transparent;border:none;border-bottom:1px dashed var(--line);color:var(--muted);
+  font-family:inherit;font-size:11px;text-align:right;padding:0 1px;font-variant-numeric:tabular-nums;cursor:text}
+.mins-inline:hover{border-bottom-color:var(--gold);color:var(--ink)}
+.mins-inline:focus{outline:none;border-bottom-color:var(--gold);color:var(--headline)}
+.mins-inline::-webkit-inner-spin-button,.mins-inline::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+.mins-inline{-moz-appearance:textfield}
 .task.overcap{opacity:.72;border-style:dashed}
 .task.bumped{opacity:.5}
 .mini-input{background:var(--bg);border:1px solid var(--line);border-radius:7px;color:var(--headline);
@@ -689,6 +728,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 </div></section>
 
 <section class="view active" id="view-tasks"><div class="wrap tasks-wrap" id="tasksView"></div></section>
+<section class="view" id="view-launch"><div class="wrap" id="launchView"></div></section>
 <section class="view" id="view-goals"><div class="wrap" id="goalsView"></div></section>
 <section class="view" id="view-revenue"><div class="wrap" id="revenueView"></div></section>
 <section class="view" id="view-workshops"><div class="wrap" id="workshopsView"></div></section>
@@ -1186,6 +1226,15 @@ let BUMPED   = lsLoad('lp_bumped', {});   // { 'YYYY-MM-DD': [taskId,...] } — 
    phaseElapsed is banked seconds this phase; worked = actual work-phase seconds per day. */
 let TIMER = lsLoad('lp_timer', {phase:'idle', running:false, phaseElapsed:0, worked:{}, workMin:25, restMin:5});
 TIMER._lastTick = Date.now();   // reset on load so time spent with the app closed is NOT counted
+/* Household + business budget (Big Goals) — personal expenses vs. business profit. Syncs under the `budget` key. */
+function makeDefaultBudget(){ const L=n=>({id:uidT(),name:n,amount:0}); return {
+  personal:[L('Rent / Mortgage'),L('Car payment(s)'),L('Insurance'),L('Groceries'),L('Utilities'),L('Phone / Internet'),L('Subscriptions')],
+  costs:[L("Jen's affiliate cut"),L('Software (GHL, Skool, etc.)'),L('Ad spend')],
+  otherIncome:0, taxRate:25, chelsea:0,
+  household:[L('Part-time work'),L('Music students')] }; }
+function budgetShape(b){ b.personal=b.personal||[]; b.costs=b.costs||[]; b.household=b.household||[];
+  if(b.otherIncome==null)b.otherIncome=0; if(b.taxRate==null)b.taxRate=25; if(b.chelsea==null)b.chelsea=0; return b; }
+let BUDGET = budgetShape(lsLoad('lp_budget', makeDefaultBudget()));
 /* Jayme-editable operating settings (start from CONFIG; overridden in-app; synced under the `config` key). */
 let SETTINGS = Object.assign({
   followerCount:CONFIG.followerCount, boostMultiplier:CONFIG.boostMultiplier,
@@ -1217,9 +1266,12 @@ function rosterTierCounts(rows){
 /* Every task is tagged kind:'bizdev'|'fulfillment' + mins (estimate) so This Week can hold the
    4-hour/day biz-dev envelope. Fulfillment (coaching, client care) sits ON TOP — never capped. */
 const SEED_TASKS = [
-  // DAILY — content (non-negotiable), DMs, check-in triage
-  {title:"Post to social (1 post — non-negotiable)", imp:"2", recur:"daily", kind:"bizdev", mins:30},
-  {title:"Get in the DMs — app, Skool + Fitbody community", imp:"2", recur:"daily", kind:"bizdev", mins:30},
+  // DAILY RHYTHM — the highest-leverage non-negotiable daily reps (render in their own batch)
+  {title:"Post to social — 1 reel or carousel", imp:"2", recur:"daily", kind:"bizdev", mins:30},
+  {title:"Post in the Skool community", imp:"1", recur:"daily", kind:"bizdev", mins:15},
+  {title:"Get in the DMs — app, Skool + Fitbody", imp:"2", recur:"daily", kind:"bizdev", mins:30},
+  {title:"Message new followers", imp:"2", recur:"daily", kind:"bizdev", mins:15},
+  {title:"Nurture the community — engage your free members", imp:"2", recur:"daily", kind:"bizdev", mins:20},
   {title:"Triage new check-ins — Green / Yellow / Red", imp:"1", recur:"daily", kind:"fulfillment", mins:20},
   // Monday — Command & Plan
   {title:"Weekly Command Center review — numbers, at-risk clients, set the week", imp:"3", day:1, kind:"fulfillment", mins:45},
@@ -1236,13 +1288,11 @@ const SEED_TASKS = [
   {title:"Client nutrition reviews + plan adjustments (hold vs. advance)", imp:"2", day:3, kind:"fulfillment", mins:60},
   // Thursday — Content / Growth
   {title:"Create content — record reels / batch posts", imp:"3", day:4, kind:"bizdev", mins:90},
-  {title:"Nurture the community — engage your free members (the conversion pool)", imp:"2", day:4, kind:"bizdev", mins:30},
   {title:"Weekly reach review — boost any post past 2× your followers (see Conveyor Belt)", imp:"1", day:4, kind:"bizdev", mins:15},
   {title:"Review ads — kill / scale", imp:"1", day:4, kind:"bizdev", mins:20},
   // Friday — Marketing / Money
   {title:"Ad scripts / campaign work", imp:"3", day:5, kind:"bizdev", mins:60},
   {title:"Follow up leads + unconverted community members", imp:"2", day:5, kind:"bizdev", mins:30},
-  {title:"Skool value post + community engagement", imp:"2", day:5, kind:"bizdev", mins:30},
   {title:"Financial check — payments in, Jen's 20% out", imp:"couch", day:5, kind:"bizdev", mins:15},
   // Saturday — light
   {title:"Prep + plan next week", imp:"1", day:6, kind:"bizdev", mins:30},
@@ -1269,8 +1319,11 @@ const SEED_TASKS = [
 ];
 /* Titles retired in newer seeds (purged on upgrade so they don't linger). */
 const SEED_RETIRED = ["Post content", "Review client check-ins → who needs a nudge (gone quiet / review due)",
-  "Post to social", "Boost a winning post to ~4,000 reach (2× your followers), then work the DMs + follows"];
-const SEED_VERSION = 4;   // bump when the seeded rhythm changes → cleanly re-installs (keeps YOUR own tasks)
+  "Post to social", "Boost a winning post to ~4,000 reach (2× your followers), then work the DMs + follows",
+  // moved into the Daily Rhythm batch (v5)
+  "Post to social (1 post — non-negotiable)", "Get in the DMs — app, Skool + Fitbody community",
+  "Nurture the community — engage your free members (the conversion pool)", "Skool value post + community engagement"];
+const SEED_VERSION = 5;   // bump when the seeded rhythm changes → cleanly re-installs (keeps YOUR own tasks)
 let TASKS;
 (function initTasks(){
   function mk(s){
@@ -1287,8 +1340,10 @@ let TASKS;
   if(sv<SEED_VERSION){
     // Re-install the seeded rhythm: drop everything we've ever seeded (by title), keep tasks YOU added.
     const managed=new Set(SEED_TASKS.map(s=>s.title).concat(SEED_RETIRED));
+    const priorMins={}; TASKS.forEach(t=>{ if(t.minsEdited && t.title) priorMins[t.title]=t.mins; });   // remember any time estimates you tuned
     const mine=TASKS.filter(t=>!managed.has(t.title));
     TASKS=SEED_TASKS.map(mk).concat(mine);
+    TASKS.forEach(t=>{ if(t.seed && priorMins[t.title]!=null){ t.mins=priorMins[t.title]; t.minsEdited=true; } });   // carry them onto the re-seeded tasks
     try{ localStorage.setItem('lp_tasks_sv', String(SEED_VERSION)); }catch(e){}
     changed=true;
   }
@@ -1298,9 +1353,9 @@ let TASKS;
 function saveTasksLocal(){ try{localStorage.setItem('lp_tasks',JSON.stringify(TASKS));}catch(e){} }
 /* The whole synced App State blob — one place so every writer + the doorway agree on the shape. */
 function stateBlob(){ return {type:'state', tasks:TASKS, score:SCORE, workshops:WORKSHOPS, goals:GOALS,
-  funnel:FUNNEL, reach:REACH, dmq:DMQ, calls:CALLS, config:SETTINGS, addons:ADDONS, bumped:BUMPED}; }
+  funnel:FUNNEL, reach:REACH, dmq:DMQ, calls:CALLS, config:SETTINGS, addons:ADDONS, bumped:BUMPED, budget:BUDGET}; }
 function saveGrowthLocal(){ lsSave('lp_funnel',FUNNEL); lsSave('lp_reach',REACH); lsSave('lp_dmq',DMQ);
-  lsSave('lp_calls',CALLS); lsSave('lp_addons',ADDONS); lsSave('lp_settings',SETTINGS); lsSave('lp_bumped',BUMPED); }
+  lsSave('lp_calls',CALLS); lsSave('lp_addons',ADDONS); lsSave('lp_settings',SETTINGS); lsSave('lp_bumped',BUMPED); lsSave('lp_budget',BUDGET); }
 function pushTasks(){ saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS); lsSave('lp_goals',GOALS); saveGrowthLocal();
   if(CONFIG.writeUrl) postToSheet(stateBlob()); }
 function uidT(){ return 't'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
@@ -1312,19 +1367,25 @@ const ORD=['','1st','2nd','3rd','4th','5th'];
 function onDate(t,dateStr,wd){
   const d=new Date(dateStr+'T00:00:00');
   if(t.recur==='daily')   return wd!==0;                              // every day but Sunday (Sabbath)
+  if(t.recur==='until')   return wd!==0;                              // shows every working day until it's completed
   if(t.recur==='weekly')  return String(t.day)===String(wd);
   if(t.recur==='monthly') return String(t.day)===String(wd) && nthOf(d)===t.nth;
   return t.date===dateStr;
 }
 function periodKey(t,dateStr){ const d=new Date(dateStr+'T00:00:00'); if(t.recur==='monthly')return mkey(d); if(t.recur==='daily')return dateStr; return wkey(d); }
-function isDone(t,dateStr){ return t.recur==='once' ? !!t.done : !!(t.done && t.done[periodKey(t,dateStr)]); }
-function setDone(t,dateStr,v){ if(t.recur==='once'){ t.done=v; } else { t.done=t.done||{}; const k=periodKey(t,dateStr); if(v) t.done[k]=true; else delete t.done[k]; } }
-function countForDay(imp,kind,dateStr,wd){ return TASKS.filter(t=>t.imp===imp && (t.kind||'bizdev')===kind && onDate(t,dateStr,wd) && !isDone(t,dateStr)).length; }
+function isDone(t,dateStr){ return (t.recur==='once'||t.recur==='until') ? !!t.done : !!(t.done && t.done[periodKey(t,dateStr)]); }
+function setDone(t,dateStr,v){
+  if(t.recur==='once'){ t.done=v; }
+  else if(t.recur==='until'){ t.done=v; if(v){ t.doneDate=dateStr; } else { delete t.doneDate; } }   // complete once → sticks as done, then drops off tomorrow
+  else { t.done=t.done||{}; const k=periodKey(t,dateStr); if(v) t.done[k]=true; else delete t.done[k]; }
+}
+function countForDay(imp,kind,dateStr,wd){ return TASKS.filter(t=>t.imp===imp && (t.kind||'bizdev')===kind && t.recur!=='daily' && onDate(t,dateStr,wd) && !isDone(t,dateStr)).length; }  // daily rhythm is its own batch — doesn't count against the tier caps
 
 function renderTasks(){
   const el=document.getElementById('tasksView'); if(!el) return;
   const now=new Date(), dateStr=dstr(now), wd=now.getDay();
-  const sched=TASKS.filter(t=>onDate(t,dateStr,wd) && t.recur!=='once');   // recurring focus for today
+  const sched=TASKS.filter(t=>onDate(t,dateStr,wd) && t.recur!=='once'
+    && !(t.recur==='until' && t.done && t.doneDate!==dateStr));   // recurring focus for today (completed "until" tasks fall off the next day)
   const projects=TASKS.filter(t=>t.recur==='once' && !t.done).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   let html=`<div class="view-head"><h1>This Week</h1><p class="view-sub">${DOW[wd]} · ${now.toLocaleDateString(undefined,{month:'long',day:'numeric'})} — your focus for today</p></div>`;
   html+=scoreHtml();
@@ -1337,21 +1398,32 @@ function renderTasks(){
   // ---- 4-hour biz-dev envelope: live budget + overflow prioritization ----
   const bumpedToday=new Set(BUMPED[dateStr]||[]);
   const prioOrder={'3':0,'2':1,'1':2,'couch':3};
+  const isDaily=t=>t.recur==='daily';
   const bizList=sched.filter(t=>(t.kind||'bizdev')==='bizdev' && !isDone(t,dateStr) && !bumpedToday.has(t.id))
-    .sort((a,b)=>(prioOrder[a.imp]-prioOrder[b.imp])||((a.mins||0)-(b.mins||0)));
+    .sort((a,b)=>((isDaily(a)?0:1)-(isDaily(b)?0:1))||(prioOrder[a.imp]-prioOrder[b.imp])||((a.mins||0)-(b.mins||0)));   // daily rhythm counts first — it's protected
   const cap=+SETTINGS.dailyBizDevMins||240; let run=0; const overcap=new Set();
   bizList.forEach(t=>{ run+=(t.mins||0); if(run>cap) overcap.add(t.id); });   // the task that crosses the line + everything after
   const bizMins=bizList.reduce((s,t)=>s+(t.mins||0),0);
   html+=triggerBannersHtml();
   html+=budgetHtml(bizMins, cap);
-  if(overcap.size){
-    html+=`<div class="trig boost"><span class="ti">⏳</span><div><b>You're ${bizMins-cap} min past the 4-hour cap.</b> Lowest-priority first — bump what can wait so fulfillment still fits:`
-      +[...overcap].map(id=>{ const t=TASKS.find(x=>x.id===id); return t?`<div style="margin-top:7px">• ${esc(t.title)} <span class="task-meta" style="margin:0 4px">${t.mins||0}m</span><button class="cs-btn" onclick="bumpTask('${id}')">Bump to another day</button></div>`:''; }).join('')
+  const bumpable=[...overcap].filter(id=>{ const t=TASKS.find(x=>x.id===id); return t && !isDaily(t); });   // never bump the daily rhythm
+  if(bumpable.length){
+    html+=`<div class="trig boost"><span class="ti">⏳</span><div><b>You're ${bizMins-cap} min past the 4-hour cap.</b> Your daily rhythm is protected — bump the lowest-priority discretionary work so fulfillment still fits:`
+      +bumpable.map(id=>{ const t=TASKS.find(x=>x.id===id); return `<div style="margin-top:7px">• ${esc(t.title)} <span class="task-meta" style="margin:0 4px">${t.mins||0}m</span><button class="cs-btn" onclick="bumpTask('${id}')">Bump to another day</button></div>`; }).join('')
       +`</div></div>`;
+  } else if(bizMins>cap){
+    html+=`<div class="trig boost"><span class="ti">⏳</span><div><b>You're ${bizMins-cap} min over — and it's mostly your daily rhythm.</b> That's a heavy day; trim a rep or let a little fulfillment slide.</div></div>`;
   }
+  // ---- Daily Rhythm: the non-negotiable, highest-leverage daily reps ----
+  const rhythm=sched.filter(t=>isDaily(t)).sort((a,b)=>isDone(a,dateStr)-isDone(b,dateStr));
+  if(rhythm.length){
+    html+=`<div class="tgroup"><div class="tgroup-h">☀️ Daily Rhythm <span class="cap">· your non-negotiable daily reps</span></div>`
+      +rhythm.map(t=>taskRow(t,dateStr, overcap.has(t.id)?'overcap':'')).join('')+`</div>`;
+  }
+  // ---- Everything else, segregated by importance ----
   ['3','2','1','couch'].forEach(imp=>{
     const info=IMP[imp];
-    const list=sched.filter(t=>t.imp===imp && !bumpedToday.has(t.id)).sort((a,b)=>isDone(a,dateStr)-isDone(b,dateStr));
+    const list=sched.filter(t=>t.imp===imp && !isDaily(t) && !bumpedToday.has(t.id)).sort((a,b)=>isDone(a,dateStr)-isDone(b,dateStr));
     html+=`<div class="tgroup"><div class="tgroup-h"><span class="stars ${info.cls}">${info.stars}</span> ${info.label}${info.cap?' <span class="cap">· '+info.cap+'</span>':''}</div>`;
     html+= list.length ? list.map(t=>taskRow(t,dateStr, overcap.has(t.id)?'overcap':'')).join('') : `<div class="task-empty">Nothing here yet.</div>`;
     html+=`</div>`;
@@ -1370,7 +1442,7 @@ function renderTasks(){
     <input id="ntTitle" type="text" placeholder="What needs doing?" onkeydown="if(event.key==='Enter')addTask()">
     <div class="add-row">
       <select id="ntImp"><option value="3">★★★ Priority (1/day)</option><option value="2">★★ Important (3/day)</option><option value="1" selected>★ Standard</option><option value="couch">🛋️ Couch work</option></select>
-      <select id="ntWhen"><option value="once">Just today</option><option value="daily">Every day</option><option value="weekly">Every ${DAYS[wd]} (weekly)</option><option value="monthly">${ORD[nthOf(now)]} ${DAYS[wd]} (monthly)</option></select>
+      <select id="ntWhen"><option value="until">Until completed</option><option value="once">Just today</option><option value="daily">Every day</option><option value="weekly">Every ${DAYS[wd]} (weekly)</option><option value="monthly">${ORD[nthOf(now)]} ${DAYS[wd]} (monthly)</option></select>
     </div>
     <div class="add-row">
       <select id="ntKind"><option value="bizdev">🎯 Biz-dev — counts toward the 4-hour cap</option><option value="fulfillment">🤝 Fulfillment — sits on top, not capped</option></select>
@@ -1438,20 +1510,23 @@ function delWk(id){ WORKSHOPS=WORKSHOPS.filter(x=>x.id!==id); pushTasks(); rende
 function taskRow(t,dateStr,extraCls){
   const done=isDone(t,dateStr);
   let meta = t.recur==='daily' ? 'Daily'
+    : t.recur==='until' ? 'Until done'
     : t.recur==='weekly' ? ('Every '+DAYS[t.day])
     : t.recur==='monthly' ? (ORD[t.nth]+' '+DAYS[t.day]+' · monthly')
     : (t.date&&t.date<dateStr?('Was due '+t.date):'Today');
-  if(t.mins) meta+=' · '+t.mins+'m';
   if(extraCls==='overcap') meta+=' · past 4-hr cap';
   const couch = t.imp==='couch' ? '🛋️ ' : '';
   const kind = (t.kind||'bizdev');
   const tag = `<span class="kind-tag ${kind}">${kind==='fulfillment'?'Fulfill':'Biz-dev'}</span>`;
+  // Inline-editable time estimate — click the number and change it (feeds the biz-dev envelope)
+  const mins = `<span class="mins-edit">· <input class="mins-inline" type="number" min="0" step="5" value="${t.mins||0}" title="Adjust the time estimate" onclick="event.stopPropagation()" onchange="setTaskMins('${t.id}',this.value)">m</span>`;
   return `<div class="task ${done?'done':''} ${extraCls||''}">
     <div class="task-check" onclick="toggleTask('${t.id}')">✓</div>
-    <div class="task-body"><div class="task-title">${tag}${couch}${esc(t.title)}</div><div class="task-meta">${meta}</div></div>
+    <div class="task-body"><div class="task-title">${tag}${couch}${esc(t.title)}</div><div class="task-meta">${meta} ${mins}</div></div>
     <button class="task-del" onclick="delTask('${t.id}')" title="Delete">✕</button>
   </div>`;
 }
+function setTaskMins(id,val){ const t=TASKS.find(x=>x.id===id); if(!t) return; t.mins=Math.max(0,+val||0); t.minsEdited=true; pushTasks(); renderTasks(); }
 function addTask(){
   const title=(document.getElementById('ntTitle').value||'').trim();
   const imp=document.getElementById('ntImp').value, when=document.getElementById('ntWhen').value, msg=document.getElementById('ntMsg');
@@ -1467,6 +1542,7 @@ function addTask(){
   }
   const t={id:uidT(), title, imp, recur:when, kind, mins};
   if(when==='daily'){ t.done={}; }
+  else if(when==='until'){ t.done=false; }
   else if(when==='weekly'){ t.day=wd; t.done={}; }
   else if(when==='monthly'){ t.day=wd; t.nth=nthOf(now); t.done={}; }
   else { t.date=dateStr; t.done=false; }
@@ -1494,6 +1570,7 @@ function syncTasks(){
       if(data.calls&&typeof data.calls==='object') CALLS=data.calls;
       if(Array.isArray(data.addons)) ADDONS=data.addons;
       if(data.bumped&&typeof data.bumped==='object') BUMPED=data.bumped;
+      if(data.budget&&typeof data.budget==='object') BUDGET=budgetShape(data.budget);
       if(data.config&&typeof data.config==='object') SETTINGS=Object.assign(SETTINGS,data.config);
       saveTasksLocal(); lsSave('lp_score',SCORE); lsSave('lp_workshops',WORKSHOPS); lsSave('lp_goals',GOALS); saveGrowthLocal();
       const act=id=>{ const e=document.getElementById('view-'+id); return e&&e.classList.contains('active'); };
@@ -1941,6 +2018,7 @@ function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCa
 const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
+  {group:"Launch", items:[["launch","Fitbody Launch"]]},
   {group:"Fulfillment", items:[["journey","Member Journey"],["calls","Fulfillment Calls"],["links","Client Links"]]},
   {group:"Grow", items:[["grow","Conveyor Belt"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
@@ -1957,6 +2035,7 @@ function showTab(id){
   const v=document.getElementById("view-"+id); if(v) v.classList.add("active");
   renderSidebar(id);
   if(id==="tasks"){ syncTasks(); renderTasks(); }
+  else if(id==="launch") renderLaunch();
   else if(id==="goals") renderGoals();
   else if(id==="workshops"){ syncTasks(); renderWorkshops(); }
   else if(id==="revenue") renderRevenue();
@@ -1969,6 +2048,89 @@ function showTab(id){
   else if(id==="grow"){ syncTasks(); renderGrow(); }
   else if(id==="calls"){ syncTasks(); renderCalls(); }
   window.scrollTo(0,0);
+}
+
+/* ---- Household + business money (Big Goals): personal expenses vs. business profit ---- */
+function saveBudget(){ lsSave('lp_budget',BUDGET); if(CONFIG.writeUrl) postToSheet(stateBlob()); }
+function budAdd(section){ BUDGET[section].push({id:uidT(), name:'', amount:0}); saveBudget(); renderGoals(); }
+function budDel(section,id){ BUDGET[section]=BUDGET[section].filter(x=>x.id!==id); saveBudget(); renderGoals(); }
+function budEdit(section,id,field,val){ const l=BUDGET[section].find(x=>x.id===id); if(!l) return;
+  l[field] = field==='amount' ? Math.max(0,+val||0) : val; saveBudget(); if(field==='amount') renderGoals(); }
+function budOther(val){ BUDGET.otherIncome=Math.max(0,+val||0); saveBudget(); renderGoals(); }
+function budChelsea(val){ BUDGET.chelsea=Math.max(0,+val||0); saveBudget(); renderGoals(); }
+function budTax(val){ BUDGET.taxRate=Math.max(0,Math.min(100,+val||0)); saveBudget(); renderGoals(); }
+function budRow(section,l){
+  return `<div class="bud-row">
+    <input class="mini-input bud-name" value="${esc(l.name||'')}" placeholder="Item" onchange="budEdit('${section}','${l.id}','name',this.value)">
+    <span class="bud-cur">$</span><input class="mini-input bud-amt" type="number" min="0" step="10" value="${+l.amount||0}" onchange="budEdit('${section}','${l.id}','amount',this.value)">
+    <button class="bud-del" title="Remove" onclick="budDel('${section}','${l.id}')">✕</button></div>`;
+}
+function picBlock(label,income,incomeLabel,needs){
+  const delta=income-needs, cover=needs>0?Math.round(income/needs*100):(income>0?100:0);
+  const msg = delta>=0
+    ? `Covers <b>${cover}%</b> — fully carried, ${money(delta)}/mo to spare. 🎯`
+    : `Covers <b>${cover}%</b> of the family's needs. <b>${money(-delta)}/mo</b> short.`;
+  return `<div class="bud-pic ${delta>=0?'good':'gap'}">
+    <div class="bud-pic-h">${label}</div>
+    <div class="big-stat">
+      <div class="bs"><span class="n">${money(income)}</span><span class="l">${incomeLabel}</span></div>
+      <div class="bs"><span class="n">${money(needs)}</span><span class="l">Family needs</span></div>
+      <div class="bs"><span class="n ${delta>=0?'pos':'neg'}">${delta>=0?'+':''}${money(delta)}</span><span class="l">${delta>=0?'Surplus':'Gap to cover'}</span></div>
+    </div>
+    <div class="bud-cover">${msg}</div></div>`;
+}
+function moneyPanelHtml(){
+  const mrr=window.__mrr||0;
+  const addonMonth=ADDONS.filter(a=>mkey(new Date(a.ts))===mkey(new Date())).reduce((s,a)=>s+(+a.amount||0),0);
+  const otherBiz=+BUDGET.otherIncome||0;
+  const revenue=mrr+addonMonth+otherBiz;
+  const costs=BUDGET.costs.reduce((s,l)=>s+(+l.amount||0),0);
+  const preTax=revenue-costs;
+  const taxRate=+BUDGET.taxRate||0;
+  const taxes=Math.max(0, preTax*taxRate/100);
+  const bizProfit=preTax-taxes;                              // TRUE NORTH: profit = revenue − expenses − taxes
+  const chelsea=+BUDGET.chelsea||0;
+  const otherHome=BUDGET.household.reduce((s,l)=>s+(+l.amount||0),0);
+  const familyIncome=chelsea+otherHome;
+  const household=bizProfit+familyIncome;                    // everything coming in
+  const needs=BUDGET.personal.reduce((s,l)=>s+(+l.amount||0),0);
+
+  const biz=`<div class="goal-card">
+    <div class="goal-head"><span class="goal-label">Business profit</span><span class="goal-tag live">auto + you</span></div>
+    <div class="bud-line"><span>Coaching MRR <span class="bud-auto">auto</span></span><span>${money(mrr)}</span></div>
+    <div class="bud-line"><span>Add-on calls this month <span class="bud-auto">auto</span></span><span>${money(addonMonth)}</span></div>
+    <div class="bud-row"><span class="bud-lbl">Other business income</span><span class="bud-cur">$</span><input class="mini-input bud-amt" type="number" min="0" step="10" value="${otherBiz}" onchange="budOther(this.value)"></div>
+    <div class="bud-total sub"><span>Revenue</span><b>${money(revenue)}</b></div>
+    <div class="bud-costs-h">Monthly business costs</div>
+    ${BUDGET.costs.map(l=>budRow('costs',l)).join('')}
+    <button class="bud-add" onclick="budAdd('costs')">+ Add cost</button>
+    <div class="bud-total sub"><span>Pre-tax profit</span><b>${money(preTax)}</b></div>
+    <div class="bud-row"><span class="bud-lbl">Estimated taxes</span><input class="mini-input" style="width:46px;text-align:right" type="number" min="0" max="100" value="${taxRate}" onchange="budTax(this.value)"><span class="bud-cur">%</span><span class="bud-taxamt">−${money(taxes)}</span></div>
+    <div class="bud-total"><span>Net profit <span class="bud-note">take-home</span></span><b class="${bizProfit>=0?'pos':'neg'}">${money(bizProfit)}/mo</b></div></div>`;
+
+  const income=`<div class="goal-card">
+    <div class="goal-head"><span class="goal-label">Family income</span><span class="goal-tag">outside the business</span></div>
+    <div class="bud-row"><span class="bud-lbl">Chelsea <span class="bud-note">monthly</span></span><span class="bud-cur">$</span><input class="mini-input bud-amt" type="number" min="0" step="10" value="${chelsea}" onchange="budChelsea(this.value)"></div>
+    <div class="bud-hint">Paid the same amount twice a month — enter the monthly take-home total.</div>
+    <div class="bud-costs-h">Other income</div>
+    ${BUDGET.household.map(l=>budRow('household',l)).join('')}
+    <button class="bud-add" onclick="budAdd('household')">+ Add income</button>
+    <div class="bud-total"><span>Income outside the business</span><b>${money(familyIncome)}</b></div></div>`;
+
+  const family=`<div class="goal-card">
+    <div class="goal-head"><span class="goal-label">Family budget</span><span class="goal-tag">monthly</span></div>
+    ${BUDGET.personal.map(l=>budRow('personal',l)).join('')}
+    <button class="bud-add" onclick="budAdd('personal')">+ Add expense</button>
+    <div class="bud-total"><span>What your family needs</span><b>${money(needs)}/mo</b></div></div>`;
+
+  const bottom=`<div class="goal-card bud-bottom">
+    <div class="goal-head"><span class="goal-label">The picture — two ways</span></div>
+    ${picBlock('Business only', bizProfit, 'Business profit', needs)}
+    ${picBlock('Full household — with Chelsea + other income', household, 'Household income', needs)}</div>`;
+
+  return `<div class="section" style="margin-top:36px"><div class="section-head"><h2>Household &amp; Business Money</h2><div class="rule"></div></div>
+      <p class="view-sub" style="margin:-4px 0 16px">Everything coming in — business profit (revenue minus expenses and taxes) plus Chelsea's income and your other income — set against what the family needs. See the gap two ways: business alone, and the full household.</p>
+      <div class="goals-grid">${biz}${income}${family}${bottom}</div></div>`;
 }
 
 /* ---- Big Goals (Personal) — MRR auto-tracks from clients; cash + house are manual ---- */
@@ -1998,7 +2160,8 @@ function renderGoals(){
   document.getElementById("goalsView").innerHTML =
     `<div class="view-head"><h1>Big Goals</h1>
        <p class="view-sub">The three numbers that matter. MRR updates itself from your active clients; cash and the house you update as they move.</p></div>
-     <div class="goals-grid">${goals.map(card).join("")}</div>`;
+     <div class="goals-grid">${goals.map(card).join("")}</div>`
+    + moneyPanelHtml();
 }
 function setGoal(k){
   const el=document.getElementById("goal_"+k); if(!el) return;
@@ -2161,6 +2324,76 @@ function renderToolkit(){
         <div class="tool-d">${esc(t.d)}</div><code class="tool-c">${esc(t.c)}</code></div>`).join("")+`</div>`;
 }
 
+/* ============================ FITBODY LAUNCH TRACKER ============================ */
+const LAUNCH_GROUPS = [
+  {group:"1 · Build the founding link (GHL)", items:[
+    ["ghl-paste","Paste the founding-page HTML into a GHL custom-code element"],
+    ["ghl-whitebox","Fix the white box — section full-width, transparent/charcoal bg, zero padding (section + row + column)"],
+    ["ghl-fonts","Add the Google Fonts link (Cinzel / Montserrat)"],
+    ["ghl-form","Swap the demo form for your real GHL form — keep hidden fields source=Fitbody/Jen + tier_choice; capture → redirect to /plans"],
+    ["ghl-test","Test end-to-end: opt-in → tagged in GHL → /plans → trial start"]
+  ]},
+  {group:"2 · Skool cleanup", items:[
+    ["skool-method","Retire \"The Legacy Performance Method\" name on the Premium tier"],
+    ["skool-trial","Confirm trial length + that founders bill the founding price on day 8 (grandfather)"],
+    ["skool-onboard","Verify Start Here → Everfit onboarding routing from a fresh trial"]
+  ]},
+  {group:"3 · Jen's assets", items:[
+    ["jen-pack","Re-point Announcement Pack v5 to the founding page + new copy/naming"],
+    ["jen-loom","Record the Loom briefing for Jen"],
+    ["jen-deliver","Deliver pack + Loom to Jen; confirm her 5–7 day send window"]
+  ]},
+  {group:"4 · Agreement", items:[
+    ["agreement","Sign the Referral Partnership Agreement (you + Jen)"]
+  ]},
+  {group:"5 · Ready as members arrive", items:[
+    ["post-founding","Set the post-founding reminder: at 50, raise Standard → $49 and VIP → $149"],
+    ["counter","Wire the \"Founding 50: X/50\" counter into this dashboard"],
+    ["blueprint-email","Write the Day-3 Legacy Blueprint onboarding email"]
+  ]},
+  {group:"6 · Open decision", items:[
+    ["rebel-saint","Premium tier's \"Rebel & Saint identity work\" bullet — keep or reword to a result?"]
+  ]}
+];
+let LAUNCH_DONE = lsLoad('lp_launch_done', {});
+function toggleLaunch(id){ LAUNCH_DONE[id]=!LAUNCH_DONE[id]; lsSave('lp_launch_done',LAUNCH_DONE); renderLaunch(); }
+function launchCounts(){ let t=0,d=0; LAUNCH_GROUPS.forEach(g=>g.items.forEach(([id])=>{t++; if(LAUNCH_DONE[id])d++;})); return {t,d}; }
+function renderLaunch(){
+  if(!document.getElementById('lpLaunchCss')){
+    const s=document.createElement('style'); s.id='lpLaunchCss';
+    s.textContent=`
+      .lch-prog{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:20px}
+      .lch-bar{height:10px;border-radius:6px;background:var(--surface-2);overflow:hidden;margin-top:10px}
+      .lch-bar>i{display:block;height:100%;background:var(--good);border-radius:6px;transition:width .4s ease}
+      .lch-grp{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:6px 6px 8px;margin-bottom:16px}
+      .lch-grp-h{display:flex;justify-content:space-between;align-items:center;padding:12px 14px 8px;font-family:'Cinzel',serif;color:var(--headline);font-size:15px;letter-spacing:.02em}
+      .lch-grp-h .n{font-family:'Montserrat',sans-serif;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+      .lch-item{display:flex;gap:12px;align-items:flex-start;padding:11px 14px;border-radius:10px;cursor:pointer;transition:background .15s}
+      .lch-item:hover{background:var(--surface-2)}
+      .lch-box{flex:none;width:20px;height:20px;border-radius:6px;border:2px solid var(--muted);margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:13px;transition:all .15s}
+      .lch-item.done .lch-box{background:var(--good);border-color:var(--good);color:var(--parchment)}
+      .lch-item.done .lch-tx{color:var(--muted);text-decoration:line-through}
+      .lch-tx{font-size:14px;line-height:1.45;color:var(--ink)}
+    `;
+    document.head.appendChild(s);
+  }
+  const c=launchCounts(), pct=c.t?Math.round(c.d/c.t*100):0;
+  let html=`<div class="view-head"><h1>Fitbody Launch</h1>
+    <p class="view-sub">Everything standing between here and Jen hitting send. Tap a task to check it off.</p></div>
+    <div class="lch-prog"><div style="display:flex;justify-content:space-between;align-items:baseline">
+      <b style="font-family:'Cinzel',serif;color:var(--headline);font-size:18px">${c.d} of ${c.t} done</b>
+      <span style="color:var(--accent);font-weight:700">${pct}%</span></div>
+      <div class="lch-bar"><i style="width:${pct}%"></i></div></div>`;
+  html += LAUNCH_GROUPS.map(g=>{
+    const gt=g.items.length, gd=g.items.filter(([id])=>LAUNCH_DONE[id]).length;
+    return `<div class="lch-grp"><div class="lch-grp-h"><span>${esc(g.group)}</span><span class="n">${gd}/${gt}</span></div>`+
+      g.items.map(([id,label])=>`<div class="lch-item ${LAUNCH_DONE[id]?'done':''}" onclick="toggleLaunch('${id}')">
+        <span class="lch-box">${LAUNCH_DONE[id]?'✓':''}</span><span class="lch-tx">${esc(label)}</span></div>`).join("")+
+      `</div>`;
+  }).join("");
+  document.getElementById('launchView').innerHTML=html;
+}
+
 /* ---- Revenue view (normalized MRR) ---- */
 let REVENUE=[];
 function normMonthly(r){
@@ -2304,6 +2537,9 @@ async function loadAll(){
   document.getElementById("updatedAt").textContent = "Updated "+new Date().toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   btn.disabled=false; btn.textContent="↻ Refresh";
 }
+
+// Don't let a scroll change a focused number field (rent, minutes, tax %, etc.) — blur it first.
+window.addEventListener('wheel', function(){ var a=document.activeElement; if(a && a.tagName==='INPUT' && a.type==='number') a.blur(); }, {passive:true});
 
 showTab("tasks");
 loadAll();
