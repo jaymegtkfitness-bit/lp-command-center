@@ -188,6 +188,63 @@ select.input{appearance:none}
 .hidden{display:none!important}
 .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:26px;line-height:1.6}
 .pill{display:inline-block;background:var(--good-bg);color:var(--good-tx);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.04em}
+
+/* Nutrition system + roadmap */
+.lp-sub{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:15px 0 7px}
+.lp-steps{display:flex;flex-direction:column;gap:5px}
+.lp-steps div{font-size:12.5px;color:var(--ink-soft)}
+.lp-steps b{color:var(--accent)}
+.rm-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.rm-cell{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:9px 4px;text-align:center}
+.rm-cell .rn{font-family:'Cinzel',serif;font-size:15.5px;font-weight:600;color:var(--accent);line-height:1.05}
+.rm-cell .rl{font-size:8.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-top:4px;font-weight:600}
+.rm-tablewrap{overflow-x:auto}
+.rm-table{width:100%;border-collapse:collapse;font-size:12.5px}
+.rm-table th{font-size:9.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;text-align:right;padding:5px 6px;border-bottom:1px solid var(--line)}
+.rm-table th:first-child{text-align:left}
+.rm-table td{padding:7px 6px;text-align:right;color:var(--ink-soft);border-bottom:1px solid var(--line)}
+.rm-table td:first-child{text-align:left;color:var(--ink);font-weight:600}
+.rm-table tr.rm-now td{background:var(--accent-soft)}
+.rm-badge{display:inline-block;background:var(--accent);color:var(--accent-ink);font-size:8px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;border-radius:10px;padding:1px 6px;vertical-align:middle}
+.rm-rules{display:flex;flex-direction:column;gap:7px}
+.rm-rules div{display:flex;gap:9px;align-items:flex-start;font-size:12.5px;color:var(--ink-soft)}
+.rm-rules span{width:20px;height:20px;flex:none;border-radius:50%;background:var(--touch-soft);color:var(--ink);font-weight:700;font-size:11px;display:flex;align-items:center;justify-content:center}
+.rm-faq{border-top:1px solid var(--line);padding:9px 0}
+.rm-faq:first-of-type{border-top:none}
+.rm-faq b{display:block;font-size:12.5px;color:var(--headline);margin-bottom:3px}
+.rm-faq span{font-size:12px;color:var(--ink-soft);line-height:1.5}
+
+/* Print document (Save as PDF) */
+.print-only{display:none}
+@media print{
+  @page{margin:14mm}
+  .safe,header,.wrap{display:none!important}
+  html,body{background:#fff!important}
+  .no-print{display:none!important}
+  .print-only{display:block!important;color:#1C1C1C;max-width:730px;margin:0 auto;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .print-only *{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  .pd-head{display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid #C1AD72;padding-bottom:10px;margin-bottom:18px}
+  .pd-logo{height:38px;width:auto}
+  .pd-meta{font-size:11px;color:#8a8578}
+  .pd-cover{margin-bottom:18px}
+  .pd-eyebrow{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#4A5C3E;font-weight:700}
+  .pd-name{font-family:'Cinzel',serif;font-size:30px;color:#1C1C1C;margin:6px 0 4px}
+  .pd-tag{font-size:12.5px;color:#8a8578}
+  .pd-section{margin-bottom:14px}
+  .pd-section h2{font-family:'Cinzel',serif;font-size:17px;color:#4A5C3E;border-bottom:1px solid #e4ddcf;padding-bottom:5px;margin:0 0 10px}
+  .pd-break{page-break-before:always}
+  .pd-sign{margin-top:16px;font-size:13px;color:#1C1C1C}
+  .rm-grid,.macro-row{page-break-inside:avoid}
+  .rm-faq,.pd-section h2{page-break-after:avoid}
+  /* force a light card look on the printed page regardless of screen theme */
+  .print-only .macro,.print-only .rm-cell{background:#F7F4EE!important;border:1px solid #e4ddcf!important}
+  .print-only .macro .mn,.print-only .rm-cell .rn,.print-only .lp-sub,.print-only .lp-steps b{color:#4A5C3E!important}
+  .print-only .rm-table tr.rm-now td{background:#EFE9DC!important}
+  .print-only .rm-badge{background:#4A5C3E!important;color:#fff!important}
+  .print-only .rm-rules span{background:#EDE6D6!important;color:#1C1C1C!important}
+  .print-only .foodcol b,.print-only .rm-faq b,.print-only .macro .ml,.print-only .rm-cell .rl{color:#1C1C1C!important}
+  .print-only .foodcol span,.print-only .rm-faq span,.print-only .wiz-hint,.print-only .lp-steps div,.print-only .rm-rules div,.print-only .rm-table td{color:#3a372f!important}
+}
 </style>
 </head>
 <body>
@@ -274,6 +331,12 @@ select.input{appearance:none}
     <div class="card">
       <div class="sec-h"><h2>Your Power Food System</h2></div>
       <div id="pfsBox"></div>
+    </div>
+
+    <!-- Roadmap (1:1 only) -->
+    <div class="card" id="roadmapCard" style="display:none">
+      <div class="sec-h"><h2>Your Roadmap</h2></div>
+      <div id="roadmapBox"></div>
     </div>
 
     <!-- Coach note -->
@@ -392,6 +455,9 @@ select.input{appearance:none}
   </section>
 
 </div>
+
+<!-- Print-only branded roadmap document (Save as PDF) -->
+<div id="printDoc" class="print-only"></div>
 
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -553,6 +619,8 @@ function buildModel(server){
     : ((lin&&lin.done)?lin:null);
   if(it && it.goalweight && !it.pfs) it.pfs = computePFS(it, it.track);
   M.intake = it;
+  // ---- tier (drives 1:1-only roadmap) ----
+  M.tier = (server && server.tier) || M.tier || '';
   // ---- onboarding checklist progress ----
   var son=(server&&server.onboarding&&server.onboarding.length)?String(server.onboarding[server.onboarding.length-1]['Completed']||''):'';
   var lon=loadLS(LS_ONBOARD,"[]"), doneSet={};
@@ -588,6 +656,7 @@ function renderHome(){
   renderMonthly();
   renderQuarterly();
   renderPFS();
+  renderRoadmap();
   renderOnboarding();
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
 }
@@ -891,6 +960,77 @@ function toggleOnboardStep(k){
   if(CONFIG.writeUrl) postToSheet({type:'onboarding', email:ID.email, completed:M.onboardingDone});
   renderOnboarding();
 }
+/* ============================ NUTRITION SYSTEM + ROADMAP ============================ */
+var TRACK_NAME={"Lean":"Live Lean","Strong":"Live Strong","Long":"Live Long","Reverse Diet":"Reverse Diet"};
+function isOneToOne(tier){ return /built for more|coaching|1:1|one[- ]on[- ]one/i.test(String(tier||"")); }
+function mealsPerDay(){ return 3; }
+
+/* Full phase ladder — same math as computePFS(), walked across each phase multiplier. */
+var LADDER_MULT={"Lean":[15,14,13,12],"Strong":[15,16,17,18],"Long":[15],"Reverse Diet":[10,12,13,14,15]};
+function phaseLabels(track,n){
+  if(track==="Long") return ["Maintenance"];
+  var out=[]; for(var i=0;i<n;i++) out.push("Phase "+(i+1));
+  if(track==="Lean") out[n-1]="Floor";
+  if(track==="Strong") out[n-1]="Ceiling";
+  if(track==="Reverse Diet") out[0]="Phase 1 · start";
+  return out;
+}
+function computeLadder(it){
+  var track=it.track, gbw=+it.goalweight, mults=LADDER_MULT[track]||[15];
+  var ppl={"Lean":1.0,"Long":0.9,"Strong":0.8,"Reverse Diet":1.0}[track]||1.0;
+  var protein=Math.round(gbw*ppl), floor=/^m/i.test(it.sex)?55:40, labels=phaseLabels(track,mults.length);
+  return mults.map(function(m,i){
+    var cals=Math.round(gbw*m), rem=cals-protein*4;
+    var fat=Math.max(floor, Math.round(rem*0.40/9));
+    var carbs=Math.max(0, Math.round((rem-fat*9)/4));
+    return {label:labels[i], phase:i+1, mult:m, calories:cals, protein:protein, carbs:carbs, fat:fat, current:i===0};
+  });
+}
+/* filter-aware food lists (mirrors the setup result screen) */
+function foodListsFor(it){
+  var f=it.filters||[];
+  var prot=f.indexOf("Vegetarian")>=0?"eggs, Greek yogurt, cottage cheese, tofu/tempeh, lentils, protein powder":"chicken breast, lean beef or turkey, eggs, Greek yogurt, white fish, shrimp, top sirloin";
+  if(f.indexOf("Lactose-free")>=0) prot=prot.replace(/Greek yogurt, |cottage cheese, /g,"");
+  var carb="potatoes, white rice, oats"+(f.indexOf("Gluten-free")>=0?"":", sourdough")+", sweet potato, fruit";
+  var fat="avocado, olive oil, nuts & nut butter"+(f.indexOf("Lactose-free")>=0?"":", cheese")+", egg yolks";
+  return {prot:prot, carb:carb, fat:fat};
+}
+/* THE COMPLETE NUTRITION SYSTEM (rendered on-screen AND into the printable) */
+function nutritionHTML(it){
+  var p=it.pfs, m=mealsPerDay();
+  var pmCal=Math.round(p.calories/m), pmPro=Math.round(p.protein/m), pmCarb=Math.round(p.carbs/m), pmFat=Math.round(p.fat/m);
+  var lists=foodListsFor(it);
+  var chkOz=(pmPro/31*100/28.35/0.75).toFixed(1), riceG=Math.round(pmCarb/28*100), oilTbsp=(pmFat/14).toFixed(1);
+  var tn=TRACK_NAME[it.track]||it.track;
+  return ''
+    +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:6px">Starting targets · <b style="color:var(--accent)">'+esc(tn)+'</b></div>'
+    +'<div class="macro-row">'
+      +'<div class="macro"><div class="mn">'+p.calories+'</div><div class="ml">Calories</div></div>'
+      +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
+      +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
+      +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
+    +'<p class="wiz-hint" style="margin:2px 0 0">Protein is the anchor and never moves. Aim ~800g produce a day (480g veg / 320g fruit) and about half your bodyweight in ounces of water.</p>'
+    +'<div class="lp-sub">How to build every meal</div>'
+    +'<div class="lp-steps"><div><b>1.</b> Protein first — start the plate with it.</div>'
+      +'<div><b>2.</b> Add a smart carb (a fist).</div>'
+      +'<div><b>3.</b> Pile on veggies (a mountain — eat freely).</div>'
+      +'<div><b>4.</b> Add fat with intention (a thumb).</div>'
+      +'<div><b>5.</b> Ask: does this give me something, or just fill space?</div></div>'
+    +'<div class="lp-sub">Per meal · '+m+' meals a day</div>'
+    +'<div class="macro-row">'
+      +'<div class="macro"><div class="mn">'+pmCal+'</div><div class="ml">Calories</div></div>'
+      +'<div class="macro"><div class="mn">'+pmPro+'g</div><div class="ml">Protein</div></div>'
+      +'<div class="macro"><div class="mn">'+pmCarb+'g</div><div class="ml">Carbs</div></div>'
+      +'<div class="macro"><div class="mn">'+pmFat+'g</div><div class="ml">Fat</div></div></div>'
+    +'<div class="lp-sub">Foods to build from</div>'
+    +'<div class="foodcol"><b>Proteins:</b> <span>'+esc(lists.prot)+'</span></div>'
+    +'<div class="foodcol"><b>Smart carbs:</b> <span>'+esc(lists.carb)+'</span></div>'
+    +'<div class="foodcol"><b>Fats (keep moderate):</b> <span>'+esc(lists.fat)+'</span></div>'
+    +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — a big pile every meal</span></div>'
+    +'<div class="lp-sub">A sample meal (hits one meal target)</div>'
+    +'<p class="wiz-hint" style="margin:0">≈ '+chkOz+' oz raw chicken breast · '+riceG+'g cooked rice · '+oilTbsp+' tbsp olive oil over a mountain of veg. Swap any protein / carb / fat from your lists to the same targets.</p>'
+    +'<p class="wiz-hint">A protein shake (25–40g) counts toward your protein anytime. One day is noise; two weeks is a trend.</p>';
+}
 function renderPFS(){
   var box=g("pfsBox"), it=M.intake;
   if(!it || !it.pfs){
@@ -898,13 +1038,85 @@ function renderPFS(){
       +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showWizard()">Build my Power Food System →</button></div>';
     return;
   }
-  var p=it.pfs, tn={"Lean":"Live Lean","Strong":"Live Strong","Long":"Live Long","Reverse Diet":"Reverse Diet"}[it.track]||it.track;
-  box.innerHTML='<div style="font-size:12.5px;color:var(--muted);margin-bottom:8px">Starting targets · <b style="color:var(--accent)">'+esc(tn)+'</b></div>'
-    +'<div class="macro-row"><div class="macro"><div class="mn">'+p.calories+'</div><div class="ml">Calories</div></div>'
-    +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
-    +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
-    +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
-    +'<div class="empty" style="text-align:left;padding:2px 0;font-size:12px">Protein first, every meal. Foundations dials this in with your real data.</div>';
+  box.innerHTML=nutritionHTML(it);
+}
+
+/* ---- Roadmap (1:1 clients only) ---- */
+var FAQ_LIB={
+  universal:[
+    ["My weight went up this week — is it broken?","Daily weight is noise; the 7-day average is the signal. Water, sodium, stress, sleep, and cycle all move the scale without moving fat. We read two-week trends, never single days."],
+    ["What happens when I stall?","A stall at 85%+ consistency isn't failure — it's the exact trigger this plan waits for. Two weeks consistent, two weeks stalled → we move you a phase. The stall is the system working."],
+    ["Why is my protein the same every phase?","Protein is anchored to your goal bodyweight, not your calories. It protects muscle while everything else adjusts. It's the one number that never moves."]
+  ],
+  "Lean":[
+    ["Why not just start at the lowest calories?","Every phase you skip is a lever we lose later. Starting as high as results allow gives you more food for longer and keeps adjustments in reserve. Lowest-first is why past diets ended in rebound."],
+    ["I had a bad weekend. Do I restart?","No. There's no restart — only the next meal. One weekend inside an 85%-consistent month barely moves anything. The cycle does the damage, not one meal."]
+  ],
+  "Strong":[
+    ["The scale is going up — isn't that bad?","On Strong, a controlled upward trend is the goal. We watch the rate: slow gain with strength climbing is muscle. We read performance and biofeedback alongside the scale."]
+  ],
+  "Long":[
+    ["Maintenance feels like nothing. What's the win?","Maintenance is the hardest skill in nutrition — it's where the identity work becomes permanent. Holding steady through real life is proof the system is yours now."]
+  ],
+  "Reverse Diet":[
+    ["Why add food when I want to lose?","Your intake sat below your floor with no downward trend, so your body adapted to too little. Cutting from here has nothing to cut. We rebuild 75–100 cal/week so a future deficit actually works. Slower now, faster overall."]
+  ]
+};
+function faqsFor(track){ return (FAQ_LIB.universal||[]).concat(FAQ_LIB[track]||[]); }
+function rmCell(n,l){ return '<div class="rm-cell"><div class="rn">'+esc(n)+'</div><div class="rl">'+esc(l)+'</div></div>'; }
+function roadmapHTML(it){
+  var p=it.pfs, ladder=computeLadder(it), first=ladder[0];
+  var lastW=(M.checkins.length?M.checkins[M.checkins.length-1].weight:null);
+  var curW=(lastW!=null?lastW:it.weight);
+  var cv=M.checkins.map(function(x){return x.cons;}).filter(function(v){return v!=null;});
+  var cons=cv.length?Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length):null;
+  var deficit=p.tdee-first.calories, dir=(it.track==="Strong"||it.track==="Reverse Diet")?"surplus":"deficit";
+  var pace=Math.abs(deficit*7/3500).toFixed(1);
+  var snap='<div class="lp-sub">Where you are now</div>'
+    +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Maintenance")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
+    +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Phase 1 sits about '+Math.abs(deficit)+' cal/day '+(deficit>=0?"below":"above")+' your estimated maintenance, roughly '+pace+' lb a week. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
+  var targets='<div class="lp-sub">Your targets</div>'
+    +'<p class="wiz-hint" style="margin:0"><b style="color:var(--accent)">Protein '+p.protein+'g</b> — fixed in every phase, the anchor of every meal. Phase 1 starts at <b>'+first.calories+' cal</b> ('+first.carbs+'g carbs · '+first.fat+'g fat). ~800g produce and ~'+Math.round((curW||it.weight)/2)+' oz water a day.</p>';
+  var rows=ladder.map(function(ph){
+    return '<tr'+(ph.current?' class="rm-now"':'')+'><td>'+esc(ph.label)+(ph.current?' <span class="rm-badge">now</span>':'')+'</td><td>'+ph.calories+'</td><td>'+ph.protein+'g</td><td>'+ph.carbs+'g</td><td>'+ph.fat+'g</td></tr>';
+  }).join("");
+  var phaseNote=it.track==="Lean"?"You only touch Phase 1 for now. We step down a phase only when the plan says to — protein holds the whole way; carbs and fat do the stepping.":it.track==="Strong"?"We climb only when growth stalls. Protein holds; carbs and fat rise to fuel the build.":it.track==="Reverse Diet"?"We add food in small, earned steps to rebuild your metabolism before any cut.":"We hold steady — the win is keeping it through real life.";
+  var phases='<div class="lp-sub">The phases</div>'
+    +'<div class="rm-tablewrap"><table class="rm-table"><thead><tr><th>Phase</th><th>Cal</th><th>Pro</th><th>Carb</th><th>Fat</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
+    +'<p class="wiz-hint" style="margin-top:6px">'+phaseNote+'</p>';
+  var rules='<div class="lp-sub">The rules of movement</div>'
+    +'<div class="rm-rules"><div><span>1</span> Under 85% consistent → we hold and build consistency.</div>'
+    +'<div><span>2</span> 85%+ for two weeks AND stalled two weeks → we move a phase.</div>'
+    +'<div><span>3</span> 85%+ and still progressing → we stay the course.</div></div>'
+    +'<p class="wiz-hint" style="margin-top:6px">A stall while you\'re consistent is the signal we\'re waiting for, not failure.</p>';
+  var faqs='<div class="lp-sub">Common questions</div>'+faqsFor(it.track).map(function(q){
+    return '<div class="rm-faq"><b>'+esc(q[0])+'</b><span>'+esc(q[1])+'</span></div>';
+  }).join("");
+  var next='<div class="lp-sub">Your next actions</div>'
+    +'<div class="rm-rules"><div><span>1</span> Plug Phase 1 into your tracker: '+first.calories+' cal · '+first.protein+'g protein.</div>'
+    +'<div><span>2</span> Log your weekly check-in right here in the dashboard.</div>'
+    +'<div><span>3</span> Anchor protein every meal, hit your produce, water before coffee.</div>'
+    +'<div><span>4</span> Questions → message '+esc(CONFIG.coachName)+' in Everfit.</div></div>';
+  return snap+targets+phases+rules+faqs+next;
+}
+function renderRoadmap(){
+  var card=g("roadmapCard"), box=g("roadmapBox"), it=M.intake;
+  if(!it || !it.pfs || !isOneToOne(M.tier)){ if(card) card.style.display="none"; var pd=g("printDoc"); if(pd) pd.innerHTML=""; return; }
+  card.style.display="";
+  box.innerHTML=roadmapHTML(it)
+    +'<div class="actions no-print"><button class="btn btn-primary" onclick="window.print()">⬇ Download my roadmap (PDF)</button></div>';
+  fillPrintDoc(it);
+}
+function fillPrintDoc(it){
+  var pd=g("printDoc"); if(!pd) return;
+  var tn=TRACK_NAME[it.track]||it.track, name=(ID&&ID.name)||"";
+  var today=new Date().toLocaleDateString(undefined,{year:"numeric",month:"long",day:"numeric"});
+  pd.innerHTML=''
+    +'<div class="pd-head"><img src="logo.png" alt="Legacy Performance" class="pd-logo"/><div class="pd-meta">'+esc(today)+'</div></div>'
+    +'<div class="pd-cover"><div class="pd-eyebrow">Your Roadmap · '+esc(tn)+'</div><h1 class="pd-name">'+esc(name)+'</h1><div class="pd-tag">Your personalized path forward — built from your data.</div></div>'
+    +'<div class="pd-section"><h2>Your Roadmap</h2>'+roadmapHTML(it)+'</div>'
+    +'<div class="pd-section pd-break"><h2>Your Power Food System</h2>'+nutritionHTML(it)+'</div>'
+    +'<div class="pd-sign">Protein first. Every meal. Let\'s go to work.<br><b>— '+esc(CONFIG.coachName)+'</b></div>';
 }
 function wizChips(key, opts, multi){
   return '<div class="chips" data-key="'+key+'" data-multi="'+(multi?1:0)+'">'+opts.map(function(o){
