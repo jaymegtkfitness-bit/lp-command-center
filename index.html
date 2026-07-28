@@ -881,14 +881,16 @@ function shapeCheckins(rows){
 function shapeRoster(rows){
   const h=rows[0];
   const iName=col(h,"name"), iEmail=col(h,"email"), iProg=col(h,"program","tier"),
-        iGoal=col(h,"goal"), iStatus=col(h,"status"),
+        iGoal=col(h,"goal"), iStatus=col(h,"status"), iStart=col(h,"start"),
         iAmt=col(h,"amount"), iFreq=col(h,"frequency"), iMrr=col(h,"mrr"),
+        iDown=col(h,"down payment","downpayment"), iDownMo=col(h,"down months","downmonths"), iDownConc=col(h,"down concurrent","downconcurrent"),
         iFound=col(h,"founding"), iPay=col(h,"payment");
   return rows.slice(1).map(r=>({
     name:(r[iName]||"").trim(), email:(r[iEmail]||"").trim().toLowerCase(),
     program:(r[iProg]||"").trim(), goal:(r[iGoal]||"Lose").trim(),
-    status:(r[iStatus]||"Active").trim(),
+    status:(r[iStatus]||"Active").trim(), start:(r[iStart]||"").trim(),
     amount:num(r[iAmt]), frequency:(r[iFreq]||"").trim(), mrr:num(r[iMrr]),
+    down:num(r[iDown]), downMo:num(r[iDownMo]), downConc:/^y/i.test((r[iDownConc]||"").trim()),
     founding:(r[iFound]||"").trim(), payment:(r[iPay]||"").trim()
   })).filter(x=>x.email);
 }
@@ -922,22 +924,44 @@ function normalizeMonthly(r){
   if(f.includes("week")) return a*52/12;
   return a; // monthly (one-time also treated as its monthly-equivalent = amount)
 }
+/* Down-payment / accelerator handling: amortize the up-front amount over the months it covers,
+   only while the client is still inside that window. Concurrent = runs on top of the ongoing
+   subscription; deferred (concurrent=false) = the ongoing hasn't started yet, so it REPLACES it. */
+function inDownWindow(r){
+  if(!r.down || !r.downMo) return false;
+  const t=parseTs(r.start);
+  if(t==null) return true;                               // no clear start date → treat as still in the window
+  const monthsElapsed=(Date.now()-t)/(1000*60*60*24*30.44);
+  return monthsElapsed < r.downMo;
+}
+function effectiveMonthly(r){
+  const ongoing=normalizeMonthly(r);
+  if(!r.down || !r.downMo || !inDownWindow(r)) return ongoing;   // no active down payment → just the recurring
+  const amortized=r.down/r.downMo;
+  return r.downConc ? (ongoing+amortized) : amortized;           // concurrent adds; deferred replaces
+}
 function computeBusiness(roster){
   const active    = roster.filter(r=>/^active/i.test(r.status));
   const community = roster.filter(r=>/community/i.test(r.status));
   const pool      = roster.filter(r=>/community|prospect|lead/i.test(r.status)); // free members + cold leads = conversion pool
   const mrr = active.reduce((s,r)=>s+normalizeMonthly(r),0);
+  const effMrr = active.reduce((s,r)=>s+effectiveMonthly(r),0);  // MRR with amortized down payments counted
+  const avgClient = active.length ? effMrr/active.length : 0;
   window.__mrr = mrr;   // raw number so the Big Goals view can auto-track the $20K MRR goal
+  window.__effMrr = effMrr;
+  window.__avgClient = avgClient;   // effective MRR ÷ active paying clients (roster count, not the check-in model)
+  window.__activeCount = active.length;   // true active paying-client count from the roster (avoids phantom test-row inflation)
   const poolProjection = pool.length*PER_LEAD_VALUE;
   const fStd  = roster.filter(r=>/standard/i.test(r.founding)).length;
   const fPrem = roster.filter(r=>/premium/i.test(r.founding)).length;
   const money = n=>"$"+Math.round(n).toLocaleString();
   return [
-    ["MRR", money(mrr)],
+    ["MRR (recurring)", money(mrr)],
+    ["Effective MRR", money(effMrr)],
+    ["Avg / client", money(avgClient)],
     ["Active members", String(active.length)],
     ["Community (free)", String(community.length)],
     ["Conversion pool ("+pool.length+") projection", money(poolProjection)+"/mo"],
-    ["Value per lead", "$"+Math.round(PER_LEAD_VALUE)+"/mo"],
     ["Founding Standard", fStd+" / 25"],
     ["Founding Premium", fPrem+" / 25"]
   ];
@@ -2473,20 +2497,26 @@ function renderMetrics(){
   const active=cs.filter(x=>x.status==="Active");
   const checkedIn=active.filter(x=>x.dSince!=null && x.dSince<=7).length;
   const rate=active.length?Math.round(checkedIn/active.length*100):0;
-  const mrr=REVENUE.length?REVENUE.filter(r=>!r.status||/active/i.test(r.status)).reduce((s,r)=>s+normMonthly(r),0):null;
+  const recMrr=(window.__mrr!=null)?window.__mrr:(REVENUE.length?REVENUE.filter(r=>!r.status||/active/i.test(r.status)).reduce((s,r)=>s+normMonthly(r),0):null);
+  const effMrr=(window.__effMrr!=null)?window.__effMrr:recMrr;
+  const avg=(window.__avgClient!=null)?window.__avgClient:((active.length && effMrr!=null)?effMrr/active.length:null);
   const tile=(label,val)=>`<div class="tile"><div class="label">${label}</div><div class="value">${val}</div></div>`;
   document.getElementById("metricsView").innerHTML =
-    `<div class="view-head"><h1>Metrics</h1><p class="view-sub">The health of the business at a glance — pulled live from your roster, check-ins, and revenue.</p></div>
+    `<div class="view-head"><h1>Metrics</h1><p class="view-sub">The health of the business at a glance. <b>Effective MRR</b> and <b>Avg / client</b> count your up-front down payments (accelerators) amortized over the months they cover, and settle back to recurring as clients roll off their intro.</p></div>
      <div class="rev-tiles">
-       ${tile("Active clients", active.length)}
+       ${tile("Active clients", (window.__activeCount!=null)?window.__activeCount:active.length)}
        ${tile("Prospects", c("Prospect"))}
        ${tile("Leads", c("Lead"))}
        ${tile("Paused", c("Paused"))}
      </div>
      <div class="rev-tiles">
+       ${tile("MRR (recurring)", recMrr!=null?money(recMrr):"—")}
+       ${tile("Effective MRR", effMrr!=null?money(effMrr):"—")}
+       ${tile("Avg / client", avg!=null?money(avg):"—")}
        ${tile("Check-in rate", rate+"%")}
+     </div>
+     <div class="rev-tiles">
        ${tile("Checked in (7d)", checkedIn)}
-       ${tile("MRR", mrr!=null?money(mrr):"—")}
        ${tile("Total contacts", cs.length)}
      </div>`;
 }
