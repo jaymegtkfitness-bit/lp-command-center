@@ -72,6 +72,14 @@
   .price-anchor .now{font-family:'Cinzel';font-weight:700;font-size:2.4rem;color:var(--olive)}
   .price-note{font-size:.86rem;color:var(--muted);margin-bottom:22px}
 
+  /* ---- capacity / honest scarcity note ---- */
+  .capacity{max-width:600px;margin:26px auto 0;padding:18px 22px;background:#FBF8F1;border:1px solid var(--line);border-radius:12px;text-align:center}
+  .capacity .cap-lbl{font-size:.68rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--olive);margin-bottom:9px}
+  .capacity p{font-size:.92rem;color:var(--muted);margin:0 0 8px;line-height:1.55}
+  .capacity p:last-child{margin-bottom:0}
+  .capacity b{color:var(--charcoal)}
+  .capacity .spots{font-family:'Cinzel',serif;font-weight:700;color:var(--olive);font-size:1.08rem;margin:6px 0}
+
   /* ---- sections ---- */
   section{padding:44px 0;border-top:1px solid var(--line)}
   section.dark{background:var(--charcoal);border-top:none}
@@ -117,7 +125,7 @@
   /* ---- payment plan picker ---- */
   .pay-head{text-align:center;font-family:'Montserrat';font-weight:600;color:var(--charcoal);margin:6px 0 4px}
   .pay-sub{text-align:center;font-size:.88rem;color:var(--muted);margin-bottom:20px}
-  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  .plans{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin:8px auto 0;max-width:560px}
   .plan{background:#FBF8F1;border:1px solid var(--line);border-radius:14px;padding:24px 18px 20px;text-align:center;display:flex;flex-direction:column}
   .plan.best{border:2px solid var(--olive);background:#F2F4EE;position:relative}
   .plan .flag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--olive);color:#F6F1E8;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap}
@@ -240,7 +248,10 @@
 <script>
   const PIF_URL     = "https://link.fastpaydirect.com/payment-link/6a70cebea655fa0b802a7a30";  // Pay in full, $497 (one time)
   const PLAN_2X_URL = "https://link.fastpaydirect.com/payment-link/6a70cf90a655fa0b802a7a35";  // 2 payments of $275 (total $550)
-  const PLAN_4X_URL = "https://link.fastpaydirect.com/payment-link/6a70d16ba655fa0b802a7a3f";  // 4 payments of $175, every 2 weeks (total $700)
+
+  // Builds still open this month (10/month cap). Set to 0 when full — then also
+  // pause the 3 checkout links above so the page truthfully shows the waiting list.
+  const SPOTS_LEFT = 3;
 </script>
 <!-- =============================================================== -->
 
@@ -260,6 +271,13 @@
     </div>
     <div class="price-note">The done-for-you build, at the price for women who've already started with their Power Food System.</div>
     <a href="#price" class="cta js-buy">Build My Complete Nutrition System<small>One-time build · delivered to you</small></a>
+
+    <div class="capacity">
+      <div class="cap-lbl">A note on capacity</div>
+      <p>I take on <b>10 done-for-you builds a month</b>, no more. The first few weeks of a build are where the real coaching happens, and I won't stretch that thinner than it deserves.</p>
+      <p class="spots" id="spots">3 spots left this month.</p>
+      <p>After that, new names join the waiting list. So if the checkout below is still open, a spot is still open.</p>
+    </div>
   </div>
 </div>
 
@@ -428,7 +446,7 @@
     <div class="pay-sub">For women coming from their Power Food System. Choose how you'd like to pay.</div>
     <div class="plans">
       <div class="plan best">
-        <span class="flag">Best value · save $100+</span>
+        <span class="flag">Best value</span>
         <div class="name">Pay in full</div>
         <div class="amt">$497<small>one payment</small></div>
         <div class="cad">Paid once. Nothing else to think about.</div>
@@ -441,13 +459,6 @@
         <div class="cad">Then $275 in 30 days.</div>
         <div class="tot">Total $550</div>
         <a href="#" class="cta js-plan2">Choose this</a>
-      </div>
-      <div class="plan">
-        <div class="name">4 payments</div>
-        <div class="amt">$175<small>today</small></div>
-        <div class="cad">Then $175 every 2 weeks, three more times.</div>
-        <div class="tot">Total $700</div>
-        <a href="#" class="cta js-plan4">Choose this</a>
       </div>
     </div>
     <div class="pay-foot">One-time build. No subscription. Delivered to you after checkout.</div>
@@ -575,7 +586,14 @@
   }
   wire('.js-pif', PIF_URL);
   wire('.js-plan2', PLAN_2X_URL);
-  wire('.js-plan4', PLAN_4X_URL);
+
+  // Capacity note reads from SPOTS_LEFT (one number to keep it honest).
+  var spotsEl = document.getElementById('spots');
+  if(spotsEl){
+    spotsEl.textContent = (typeof SPOTS_LEFT === 'number' && SPOTS_LEFT > 0)
+      ? (SPOTS_LEFT === 1 ? '1 spot left this month.' : SPOTS_LEFT + ' spots left this month.')
+      : "This month's builds are full — the next names join the waiting list.";
+  }
 </script>
 
 </body>
