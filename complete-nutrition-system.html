@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Complete Nutrition System · Legacy Performance</title>
+<meta name="description" content="The done-for-you version of your Power Food System. Your full nutrition system and real meal plans, built around the foods you already eat.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     LEGACY PERFORMANCE :: Complete Nutrition System sales page
+     ------------------------------------------------------------
+     EDIT ONE THING TO GO LIVE:
+     Set CHECKOUT_URL below to your GoHighLevel / Stripe payment
+     link. Every "Build My Complete Nutrition System" button uses it.
+     ============================================================ */
+  :root{
+    --charcoal:#1C1C1C;
+    --olive:#4A5C3E;
+    --olive-dk:#3A4A31;
+    --parchment:#F2EDE4;
+    --parchment-2:#EAE3D6;
+    --gold:#C1AD72;
+    --ink:#20201C;
+    --muted:#6B675E;
+    --line:#DAD2C4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'Montserrat',system-ui,sans-serif;
+    color:var(--ink);
+    background:var(--parchment);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  h1,h2,h3,.display{font-family:'Cinzel',serif;font-weight:600;line-height:1.18;color:var(--charcoal)}
+  .wrap{max-width:760px;margin:0 auto;padding:0 22px}
+  .eyebrow{
+    font-family:'Montserrat';font-weight:600;letter-spacing:.18em;text-transform:uppercase;
+    font-size:.72rem;color:var(--olive);
+  }
+  .gold{color:var(--gold)}
+  .olive{color:var(--olive)}
+  em{font-style:italic}
+  strong{font-weight:700}
+
+  /* ---- buttons ---- */
+  .cta{
+    display:inline-block;background:var(--olive);color:#F6F1E8;
+    font-family:'Montserrat';font-weight:700;font-size:1.02rem;letter-spacing:.01em;
+    padding:17px 30px;border-radius:10px;text-decoration:none;text-align:center;
+    box-shadow:0 8px 22px rgba(74,92,62,.28);transition:transform .12s ease, background .15s ease;
+    border:1px solid var(--olive-dk);
+  }
+  .cta:hover{background:var(--olive-dk);transform:translateY(-2px)}
+  .cta small{display:block;font-weight:500;font-size:.74rem;opacity:.85;margin-top:3px;letter-spacing:.04em}
+
+  /* ---- header ---- */
+  header.top{padding:26px 0 6px;text-align:center}
+  header.top img{height:60px;width:auto;display:inline-block}
+
+  /* ---- hero ---- */
+  .hero{padding:26px 0 44px;text-align:center}
+  .hero .eyebrow{margin-bottom:14px}
+  .hero h1{font-size:2.15rem;margin-bottom:18px}
+  .hero .lede{font-size:1.12rem;color:var(--ink);max-width:600px;margin:0 auto 26px}
+  .price-anchor{display:flex;align-items:baseline;justify-content:center;gap:12px;margin-bottom:8px}
+  .price-anchor .was{font-size:1.15rem;color:var(--muted);text-decoration:line-through}
+  .price-anchor .now{font-family:'Cinzel';font-weight:700;font-size:2.4rem;color:var(--olive)}
+  .price-note{font-size:.86rem;color:var(--muted);margin-bottom:22px}
+
+  /* ---- sections ---- */
+  section{padding:44px 0;border-top:1px solid var(--line)}
+  section.dark{background:var(--charcoal);border-top:none}
+  section.dark h2,section.dark h3{color:#F3EEE4}
+  section.dark p,section.dark li{color:#D8D2C6}
+  .kicker{margin-bottom:12px}
+  h2.sec{font-size:1.65rem;margin-bottom:18px}
+  p.big{font-size:1.12rem;margin-bottom:16px}
+  p{margin-bottom:14px}
+  .hammer{font-family:'Cinzel';font-weight:600;font-size:1.35rem;color:var(--charcoal);line-height:1.3;margin:22px 0}
+  section.dark .hammer{color:var(--gold)}
+
+  /* ---- includes list ---- */
+  .incl{list-style:none;display:grid;gap:14px;margin:22px 0}
+  .incl li{display:flex;gap:13px;align-items:flex-start;background:#FBF8F1;border:1px solid var(--line);border-radius:12px;padding:16px 18px}
+  .incl .mk{flex:0 0 26px;height:26px;border-radius:50%;background:var(--olive);color:#F6F1E8;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:.9rem;margin-top:1px}
+  .incl b{display:block;font-family:'Montserrat';font-weight:700;color:var(--charcoal);margin-bottom:2px}
+  .incl span{font-size:.96rem;color:var(--muted)}
+
+  /* ---- proof ---- */
+  .proof{display:grid;gap:18px;margin-top:20px}
+  .story{background:#FBF8F1;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;padding:20px 22px}
+  .story h3{font-size:1.12rem;margin-bottom:8px}
+  .story .tag{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--olive);font-weight:600;display:block;margin-bottom:8px}
+  .story p{font-size:.98rem;margin-bottom:0;color:var(--ink)}
+
+  /* ---- value stack / price block ---- */
+  .stack{background:#FBF8F1;border:1px solid var(--line);border-radius:14px;padding:8px 22px;margin:22px 0}
+  .stack .row{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);font-size:.98rem}
+  .stack .row:last-child{border-bottom:none}
+  .stack .row span:first-child{color:var(--ink)}
+  .stack .row .v{color:var(--muted);white-space:nowrap;font-weight:600}
+  .stack .total{font-family:'Cinzel';font-weight:700}
+  .pricebox{text-align:center;background:var(--parchment-2);border:1px solid var(--line);border-radius:14px;padding:30px 22px;margin-top:8px}
+  .pricebox .was{font-size:1.1rem;color:var(--muted);text-decoration:line-through}
+  .pricebox .now{font-family:'Cinzel';font-weight:700;font-size:3rem;color:var(--olive);line-height:1;margin:6px 0 4px}
+  .pricebox .sub{font-size:.9rem;color:var(--muted);margin-bottom:22px}
+
+  /* ---- guarantee ---- */
+  .guarantee{background:var(--olive);color:#F3EEE4;border-radius:14px;padding:28px 24px;text-align:center}
+  .guarantee h3{color:#fff;font-size:1.4rem;margin-bottom:12px}
+  .guarantee p{color:#E8E4D8;margin-bottom:0}
+  .guarantee .seal{font-size:.74rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;display:block;margin-bottom:10px}
+
+  /* ---- for / not for ---- */
+  .cols{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+  .col{border-radius:12px;padding:20px;border:1px solid var(--line)}
+  .col.yes{background:#F2F4EE}
+  .col.no{background:#F6F0EC}
+  .col h3{font-size:1.05rem;margin-bottom:12px}
+  .col ul{list-style:none;display:grid;gap:9px}
+  .col li{font-size:.94rem;padding-left:24px;position:relative;color:var(--ink)}
+  .col.yes li:before{content:"✓";position:absolute;left:0;color:var(--olive);font-weight:700}
+  .col.no li:before{content:"✕";position:absolute;left:0;color:#B0654E;font-weight:700}
+
+  /* ---- FAQ ---- */
+  .faq details{border-bottom:1px solid var(--line);padding:6px 0}
+  .faq summary{font-family:'Montserrat';font-weight:600;font-size:1.02rem;color:var(--charcoal);cursor:pointer;padding:14px 30px 14px 2px;list-style:none;position:relative}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary:after{content:"+";position:absolute;right:4px;top:12px;font-size:1.4rem;color:var(--olive);font-weight:400}
+  .faq details[open] summary:after{content:"–"}
+  .faq details p{padding:0 2px 16px;color:var(--muted);font-size:.98rem;margin-bottom:0}
+
+  /* ---- final ---- */
+  .final{text-align:center}
+  .final .hammer{margin:0 auto 24px;max-width:560px}
+
+  /* ---- footer ---- */
+  footer{background:var(--charcoal);color:#B7B2A6;padding:34px 0;text-align:center;font-size:.82rem}
+  footer img{height:34px;opacity:.9;margin-bottom:14px}
+  footer .fine{font-size:.74rem;color:#8A857A;max-width:560px;margin:12px auto 0;line-height:1.5}
+
+  /* ---- sticky mobile CTA ---- */
+  .sticky{position:fixed;left:0;right:0;bottom:0;background:rgba(28,28,28,.97);backdrop-filter:blur(6px);
+    display:none;align-items:center;justify-content:space-between;gap:12px;padding:11px 16px;z-index:50;border-top:1px solid #333}
+  .sticky .p{color:#F3EEE4;font-family:'Cinzel';font-weight:700}
+  .sticky .p small{display:block;font-family:'Montserrat';font-weight:500;color:#A9A498;text-decoration:line-through;font-size:.72rem}
+  .sticky .cta{padding:12px 18px;font-size:.92rem;box-shadow:none}
+
+  @media (max-width:640px){
+    .hero h1{font-size:1.72rem}
+    h2.sec{font-size:1.4rem}
+    .hammer{font-size:1.18rem}
+    .cols{grid-template-columns:1fr}
+    .pricebox .now{font-size:2.5rem}
+    section{padding:36px 0}
+    body{padding-bottom:70px}
+    .sticky{display:flex}
+  }
+</style>
+</head>
+<body>
+
+<!-- ============ EDIT THIS ONE LINE TO GO LIVE ============ -->
+<script>
+  // Paste your GoHighLevel / Stripe checkout link between the quotes.
+  // Until you do, the buttons scroll to the price section.
+  const CHECKOUT_URL = "";
+</script>
+<!-- ======================================================= -->
+
+<header class="top">
+  <div class="wrap"><img src="logo.png" alt="Legacy Performance"></div>
+</header>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="wrap">
+    <div class="eyebrow">The Complete Nutrition System</div>
+    <h1>You built the map.<br>Now let me build the whole thing for you.</h1>
+    <p class="lede">Your Power Food System gave you your numbers. The Complete Nutrition System is the done-for-you version: your full nutrition system and real meal plans, built around the foods you already eat, your schedule, and your season. You stop guessing what to eat. You just follow it.</p>
+    <div class="price-anchor">
+      <span class="was">$997</span>
+      <span class="now">$497</span>
+    </div>
+    <div class="price-note">The done-for-you build, at the price for women who've already started with their Power Food System.</div>
+    <a href="#price" class="cta js-buy">Build My Complete Nutrition System<small>One-time build · delivered to you</small></a>
+  </div>
+</div>
+
+<!-- RECOGNITION -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow kicker">Where you are right now</div>
+    <p class="big">You already know your targets. That was the whole point of the Power Food System.</p>
+    <p>But knowing your macros and having a plan you actually follow on a Tuesday night, with three things on fire and everyone needing something from you, are two different things.</p>
+    <p>You've done the version where you white-knuckle someone else's meal plan until real life shows up and it falls apart. That isn't a discipline problem. You lead everyone in your life with excellence. You were handed a plan that was never built for your life.</p>
+    <p class="hammer">You will eat food every single day of your life. So the plan has to work on your worst days, not just your clean weeks.</p>
+    <p>That is what this is. Not another PDF of meals you'll never make. A system built around <em>you</em>.</p>
+  </div>
+</section>
+
+<!-- WHAT IT IS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow kicker">What I build for you</div>
+    <h2 class="sec">Your entire nutrition system, done for you.</h2>
+    <p>I take your numbers, your track, and the foods you actually like, and I build the whole thing. You open it and follow it.</p>
+    <ul class="incl">
+      <li><span class="mk">1</span><div><b>Your full Complete Nutrition System</b><span>Every phase mapped for your track (Lean, Strong, Long, or Reverse), calibrated to your goal weight, with protein anchored and calories that flex with your progress.</span></div></li>
+      <li><span class="mk">2</span><div><b>A real 14-day meal plan, in your foods</b><span>Built from the foods you already eat. Breakfasts, lunches, dinners, and snacks that hit your targets without asking you to cook two different meals or eat things you hate.</span></div></li>
+      <li><span class="mk">3</span><div><b>Your wine and your dessert, built in</b><span>The 4-2-1 structure and a dessert budget carved from carbs and fat, never protein. You keep the foods that make your life yours, and still hit your numbers.</span></div></li>
+      <li><span class="mk">4</span><div><b>Your food lists and portions</b><span>Tiered protein, carb, and fat lists in the foods you'll actually buy, with the portions that match your plan. Grocery-list simple.</span></div></li>
+      <li><span class="mk">5</span><div><b>Set up to run in your app</b><span>Built ready for Everfit or Cronometer so logging takes minutes, plus the weekly adjustment method so you always know the next move.</span></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- MECHANISM / DIFFERENT -->
+<section class="dark">
+  <div class="wrap">
+    <div class="eyebrow kicker" style="color:var(--gold)">Why this one holds</div>
+    <h2 class="sec">Most plans hand you someone else's meals and hope you comply. This is built the other way around.</h2>
+    <p>We start with the foods you already like, not a list of things you'll resent by Thursday.</p>
+    <p>We anchor every meal on protein, then let carbs and fat flex around your day. Protein is the constant. Energy is the layer that moves.</p>
+    <p>And we feed your <em>goal</em> weight, not a punishment version of it. For most women that means eating <em>more</em> than they are now, not less. Nourishment over restriction.</p>
+    <p class="hammer">Eat more of the right things. Feed the body so it stops fighting you.</p>
+    <p>That's the difference between a plan that works for a good week and a system that holds through a hard month.</p>
+  </div>
+</section>
+
+<!-- PROOF -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow kicker">This is what happens when the food finally fits</div>
+    <h2 class="sec">Real women. Fed more. Freed from the food noise.</h2>
+    <div class="proof">
+      <div class="story">
+        <span class="tag">Missy · 54</span>
+        <h3>Ate more, trained less, earned a pro card.</h3>
+        <p>Missy came in eating around 1,400 to 1,500 calories with the instinct to add a pile of cardio. We cut training to three days a week for recovery and raised her food up toward 2,000 calories by show day, with dog walks as her only cardio. She got shredded, earned her pro card in figure, and still eats waffles with her husband every Saturday.</p>
+      </div>
+      <div class="story">
+        <span class="tag">Kristen · Reverse diet</span>
+        <h3>From eating like a bird to 2,500 calories, cycle restored.</h3>
+        <p>Kristen was intermittent fasting, eating tiny, and had lost her period. We reverse-dieted her from about 1,400 calories to around 2,500 a day. Her cycle came back, her strength rebuilt, and after years of "clean vs. dirty," she can track her food again without obsessing over it.</p>
+      </div>
+      <div class="story">
+        <span class="tag">Britney · Food freedom</span>
+        <h3>15 pounds down in 6 months, with wine and dessert still on the table.</h3>
+        <p>Britney thought she was eating 1,400 calories and getting nowhere. She learned to actually fuel, ate 1,800 to 2,000 a day, trained three to five times a week, and kept her wine and dessert. Down about 15 pounds in six months, and walked away with almost every food restriction gone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- VALUE STACK + PRICE -->
+<section id="price">
+  <div class="wrap">
+    <div class="eyebrow kicker">What it costs</div>
+    <h2 class="sec">The whole system, built for you, once.</h2>
+    <div class="stack">
+      <div class="row"><span>Your full Complete Nutrition System (all phases)</span><span class="v">$497</span></div>
+      <div class="row"><span>Custom 14-day meal plan, in your foods</span><span class="v">$297</span></div>
+      <div class="row"><span>Your food lists, portions, and grocery setup</span><span class="v">$97</span></div>
+      <div class="row"><span>Wine + dessert budget and 4-2-1 structure</span><span class="v">Included</span></div>
+      <div class="row"><span>App-ready setup + the weekly adjustment method</span><span class="v">$106</span></div>
+      <div class="row total"><span>Regular build price</span><span class="v">$997</span></div>
+    </div>
+    <div class="pricebox">
+      <div class="was">$997 regular</div>
+      <div class="now">$497</div>
+      <div class="sub">Today, for women coming from their Power Food System. One-time. No subscription.</div>
+      <a href="#" class="cta js-buy">Build My Complete Nutrition System<small>One-time build · delivered to you</small></a>
+    </div>
+  </div>
+</section>
+
+<!-- GUARANTEE -->
+<section>
+  <div class="wrap">
+    <div class="guarantee">
+      <span class="seal">My promise to you</span>
+      <h3>You hold the standard. I hold the build.</h3>
+      <p>If the system I build isn't shaped around your real life, your real foods, and your real schedule, tell me and I rebuild it until it fits. My name is on it. That's not a slogan. That's the standard.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOR / NOT FOR -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow kicker">Is this you?</div>
+    <h2 class="sec">Built for the woman who's done starting over.</h2>
+    <div class="cols">
+      <div class="col yes">
+        <h3>This is for you if…</h3>
+        <ul>
+          <li>You've built your Power Food System and you want it done for you.</li>
+          <li>You're tired of guessing what to eat every day.</li>
+          <li>You want to keep your wine, dessert, and real life.</li>
+          <li>You want a plan that survives a hard week, not just a clean one.</li>
+          <li>You'd rather spend your energy living than rebuilding a plan.</li>
+        </ul>
+      </div>
+      <div class="col no">
+        <h3>This isn't for you if…</h3>
+        <ul>
+          <li>You're looking for a 30-day quick fix.</li>
+          <li>You want to eat less and do more cardio.</li>
+          <li>You want another rigid list of forbidden foods.</li>
+          <li>You won't log your food, even for a few minutes a day.</li>
+          <li>You're not ready to actually follow the plan.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq">
+  <div class="wrap">
+    <div class="eyebrow kicker">Before you decide</div>
+    <h2 class="sec">Questions women ask me first.</h2>
+
+    <details>
+      <summary>How is this different from the free Power Food System?</summary>
+      <p>The Power Food System gives you your targets and the framework to run yourself. The Complete Nutrition System is the done-for-you version. I build the entire plan and a real 14-day meal plan around the foods you already eat, so you follow it instead of figuring it out.</p>
+    </details>
+    <details>
+      <summary>I've always eaten less to lose weight. You want me to eat more?</summary>
+      <p>For most women 35 to 55, yes. Years of under-eating and heavy cardio adapt your metabolism down. We feed your goal weight, anchor protein, and let your body stop fighting you. Missy, Kristen, and Britney all ate more and got leaner. It's not a trick. It's the sequencing.</p>
+    </details>
+    <details>
+      <summary>Do I have to give up wine or dessert?</summary>
+      <p>No. Your dessert budget and a flexible day structure are built into the plan on purpose. You keep the foods that make your life yours. The system is built to hold with them in it, not to pretend they don't exist.</p>
+    </details>
+    <details>
+      <summary>How much time does this actually take?</summary>
+      <p>The build is done for you, so the work on your end is following it and logging your food, which takes a few minutes a day in your app. No cooking two separate meals. No spreadsheets.</p>
+    </details>
+    <details>
+      <summary>What if my foods or my schedule change?</summary>
+      <p>The plan is built to flex, and you get the weekly adjustment method so you always know the next move. And if the build itself doesn't fit your real life, I rebuild it until it does.</p>
+    </details>
+    <details>
+      <summary>Will this work for my hormones, my age, or my thyroid?</summary>
+      <p>The system is built around nourishing your body and your goal weight, which is exactly the approach that helped clients restore a cycle and rebuild energy. It is a nutrition system, not medical treatment. If you have a diagnosed condition, keep working with your physician alongside it.</p>
+    </details>
+  </div>
+</section>
+
+<!-- FINAL CTA -->
+<section class="dark final">
+  <div class="wrap">
+    <p class="hammer">You can keep rebuilding a plan every few weeks. Or you can have it built once, around your real life, and spend your energy actually living it.</p>
+    <p style="margin-bottom:26px">Consistency beats perfection. Every time. Let me hand you the system that makes it simple.</p>
+    <a href="#" class="cta js-buy">Build My Complete Nutrition System<small>$497 · one-time · delivered to you</small></a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <img src="logo.png" alt="Legacy Performance">
+    <div>Legacy Performance · Jayme Olson</div>
+    <div class="fine">Client stories are individual results shared with permission and are not a guarantee of your outcome. The Complete Nutrition System is a nutrition coaching resource, not medical advice or treatment. Consult your physician before making changes if you have a medical condition.</div>
+  </div>
+</footer>
+
+<!-- STICKY MOBILE CTA -->
+<div class="sticky">
+  <div class="p">$497 <small>$997</small></div>
+  <a href="#" class="cta js-buy">Build My System</a>
+</div>
+
+<script>
+  // Wire every CTA to the checkout link (or scroll to price if not set yet).
+  document.querySelectorAll('.js-buy').forEach(function(a){
+    if(CHECKOUT_URL){ a.setAttribute('href', CHECKOUT_URL); a.setAttribute('target','_blank'); a.setAttribute('rel','noopener'); }
+    else { a.setAttribute('href', '#price'); }
+  });
+</script>
+
+</body>
+</html>

@@ -468,7 +468,10 @@ select.input{appearance:none}
    writeUrl "" → everything saves/reads on this device only (demo/testing).   */
 var CONFIG = {
   writeUrl: "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
-  coachName: "Jayme"
+  coachName: "Jayme",
+  completeSystemUrl: "https://dashboard.legacyperformance.co/complete-nutrition-system.html",  // paid Complete Nutrition System build — landing page
+  completeSystemPrice: "$497",     // today's price shown on the upsell card
+  completeSystemCompare: "$997"    // regular price, shown struck through next to it (leave "" for no comparison)
 };
 /* =============== END CONFIG (stop editing here) =============== */
 
@@ -1097,7 +1100,26 @@ function roadmapHTML(it){
     +'<div><span>2</span> Log your weekly check-in right here in the dashboard.</div>'
     +'<div><span>3</span> Anchor protein every meal, hit your produce, water before coffee.</div>'
     +'<div><span>4</span> Questions → message '+esc(CONFIG.coachName)+' in Everfit.</div></div>';
-  return snap+targets+phases+rules+faqs+next;
+  return snap+targets+phases+rules+faqs+next+completeSystemCard();
+}
+/* Upsell: the done-for-you Complete Nutrition System build (paid add-on).
+   Hidden for 1:1 clients — they already get the full build inside coaching. */
+function completeSystemCard(){
+  if(isOneToOne(M.tier)) return "";
+  var url=CONFIG.completeSystemUrl||"#";
+  var priceLine;
+  if(CONFIG.completeSystemPrice){
+    var reg=CONFIG.completeSystemCompare?'<span style="text-decoration:line-through;color:var(--muted)">'+esc(CONFIG.completeSystemCompare)+'</span> ':'';
+    priceLine='One-time build — '+reg+'<b style="color:var(--accent)">'+esc(CONFIG.completeSystemPrice)+'</b>'+(CONFIG.completeSystemCompare?' <span style="color:var(--muted)">today</span>':'')+'.';
+  } else {
+    priceLine='Available as a one-time done-for-you add-on.';
+  }
+  return '<div class="card" style="margin-top:16px;border:1px solid var(--touch);background:var(--touch-soft)">'
+    +'<div class="lp-sub" style="color:var(--accent)">Want it done for you?</div>'
+    +'<p class="wiz-hint" style="margin-top:4px;color:var(--ink)">What you just built is your <b>Power Food System</b> — your targets and the framework to run yourself. The <b>Complete Nutrition System</b> is the done-for-you version: '+esc(CONFIG.coachName)+' builds your full plan <b>around the foods you actually eat</b> — real meal plans, your schedule, your track — so you stop guessing what to eat and just follow it.</p>'
+    +'<p class="wiz-hint" style="margin-top:6px;color:var(--muted)">'+priceLine+'</p>'
+    +'<div class="actions" style="margin-top:8px"><a class="btn btn-primary" href="'+url+'"'+(url==="#"?'':' target="_blank" rel="noopener"')+'>Build my Complete Nutrition System →</a></div>'
+    +'</div>';
 }
 function renderRoadmap(){
   var card=g("roadmapCard"), box=g("roadmapBox"), it=M.intake;
@@ -1265,6 +1287,7 @@ function wizResult(){
     +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — aim for a big pile at every meal (~800g produce/day)</span></div>'
     +'<p class="wiz-hint" style="margin-top:6px">Build every plate: a palm of protein + a fist of a smart carb + a mountain of veg. Keep it that simple to start.</p>'
     +'<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:14px"><div class="res-why" style="color:var(--ink)"><b>Your next step:</b> this is your starting point. Head into the <b>Foundations</b> course in Skool — that\'s where you collect the data and learn the system so we can refine this into exactly what your body needs.</div></div>'
+    +(isOneToOne(M.tier)?'':'<p class="wiz-hint" style="margin-top:10px">Want this <b>done for you</b> — real meal plans built around the foods you actually eat? Lock this in, then ask '+esc(CONFIG.coachName)+' about the <b>Complete Nutrition System</b> build on your dashboard.</p>')
     +'<div class="actions"><button class="btn btn-primary" onclick="wizSubmit()" id="wizDone">Lock it in & go to my dashboard →</button><div class="status" id="wizSubStatus"></div></div>';
 }
 async function wizSubmit(){
