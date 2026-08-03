@@ -238,9 +238,9 @@
      below. Until you do, the buttons just scroll to the plan picker.
      ================================================================ -->
 <script>
-  const PIF_URL     = "";  // Pay in full, $497 (one time)
-  const PLAN_2X_URL = "";  // 2 payments of $275 (monthly, total $550)
-  const PLAN_3X_URL = "";  // 3 payments of $200 (every 2 weeks, total $600)
+  const PIF_URL     = "https://link.fastpaydirect.com/payment-link/6a70cebea655fa0b802a7a30";  // Pay in full, $497 (one time)
+  const PLAN_2X_URL = "https://link.fastpaydirect.com/payment-link/6a70cf90a655fa0b802a7a35";  // 2 payments of $275 (total $550)
+  const PLAN_4X_URL = "https://link.fastpaydirect.com/payment-link/6a70d16ba655fa0b802a7a3f";  // 4 payments of $175, every 2 weeks (total $700)
 </script>
 <!-- =============================================================== -->
 
@@ -443,11 +443,11 @@
         <a href="#" class="cta js-plan2">Choose this</a>
       </div>
       <div class="plan">
-        <div class="name">3 payments</div>
-        <div class="amt">$200<small>today</small></div>
-        <div class="cad">Then $200 every 2 weeks, two more times.</div>
-        <div class="tot">Total $600</div>
-        <a href="#" class="cta js-plan3">Choose this</a>
+        <div class="name">4 payments</div>
+        <div class="amt">$175<small>today</small></div>
+        <div class="cad">Then $175 every 2 weeks, three more times.</div>
+        <div class="tot">Total $700</div>
+        <a href="#" class="cta js-plan4">Choose this</a>
       </div>
     </div>
     <div class="pay-foot">One-time build. No subscription. Delivered to you after checkout.</div>
@@ -575,7 +575,7 @@
   }
   wire('.js-pif', PIF_URL);
   wire('.js-plan2', PLAN_2X_URL);
-  wire('.js-plan3', PLAN_3X_URL);
+  wire('.js-plan4', PLAN_4X_URL);
 </script>
 
 </body>
