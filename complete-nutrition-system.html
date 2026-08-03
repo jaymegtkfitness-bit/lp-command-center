@@ -122,6 +122,52 @@
   .plan:not(.best) .cta:hover{background:#5C584E}
   .pay-foot{text-align:center;font-size:.82rem;color:var(--muted);margin-top:16px}
 
+  /* ---- Built for More credit callout ---- */
+  .bfm{background:#FBF8F1;border:1px solid var(--gold);border-radius:14px;padding:24px 24px;margin-top:24px;position:relative}
+  .bfm .lbl{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:8px}
+  .bfm h3{font-size:1.25rem;margin-bottom:10px}
+  .bfm p{margin-bottom:0;color:var(--ink)}
+  .bfm em{color:var(--olive);font-style:normal;font-weight:700}
+
+  /* ---- product previews (framed mockups) ---- */
+  .previews{display:grid;gap:28px;margin-top:26px}
+  .device{border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 12px 34px rgba(28,28,28,.12);background:#fff}
+  .device .bar{display:flex;align-items:center;gap:7px;padding:11px 14px;background:#EDE7DB;border-bottom:1px solid var(--line)}
+  .device .bar i{width:10px;height:10px;border-radius:50%;background:#CFC7B6;display:inline-block}
+  .device .bar b{margin-left:8px;font-family:'Montserrat';font-size:.72rem;letter-spacing:.05em;color:var(--muted);font-weight:600}
+  .cap{font-size:.86rem;color:var(--muted);text-align:center;margin-top:11px;padding:0 6px}
+  .screen{padding:22px 20px;background:var(--parchment)}
+  .mk-h{font-family:'Cinzel';font-weight:600;color:var(--charcoal);font-size:1.05rem;margin-bottom:14px}
+  .mk-macros{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:16px}
+  .mk-m{background:#fff;border:1px solid var(--line);border-radius:10px;padding:12px 6px;text-align:center}
+  .mk-m b{display:block;font-family:'Cinzel';font-weight:700;color:var(--olive);font-size:1.15rem}
+  .mk-m span{font-size:.64rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+  .mk-sub{font-size:.7rem;letter-spacing:.1em;text-transform:uppercase;color:var(--olive);font-weight:700;margin:4px 0 8px}
+  .mk-tbl{width:100%;border-collapse:collapse;font-size:.85rem;background:#fff;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+  .mk-tbl th,.mk-tbl td{padding:8px 10px;text-align:left;border-bottom:1px solid var(--line)}
+  .mk-tbl th{background:#EDE7DB;font-family:'Montserrat';font-weight:700;color:var(--charcoal);font-size:.7rem;letter-spacing:.04em;text-transform:uppercase}
+  .mk-tbl td:not(:first-child),.mk-tbl th:not(:first-child){text-align:right}
+  .mk-tbl tr:last-child td{border-bottom:none}
+  .mk-tbl .now td{background:#F2F4EE;font-weight:700;color:var(--charcoal)}
+  .meal{display:grid;grid-template-columns:92px 1fr auto;gap:10px;align-items:center;padding:11px 0;border-bottom:1px solid var(--line);font-size:.9rem}
+  .meal:last-child{border-bottom:none}
+  .meal-t{font-weight:700;color:var(--olive);font-size:.78rem;letter-spacing:.02em}
+  .meal-f{color:var(--ink)}
+  .meal-m{color:var(--muted);font-size:.76rem;white-space:nowrap}
+  .meal.total{border-top:2px solid var(--olive);margin-top:4px;padding-top:12px}
+  .meal.total .meal-t{color:var(--charcoal)}
+  .meal.total .meal-m{color:var(--charcoal);font-weight:700}
+  .flist{padding:12px 0;border-bottom:1px solid var(--line)}
+  .flist:last-child{border-bottom:none}
+  .flist b{display:block;color:var(--olive);font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+  .flist span{color:var(--ink);font-size:.9rem}
+  @media (max-width:640px){
+    .meal{grid-template-columns:80px 1fr}
+    .meal-m{grid-column:2;text-align:left;padding-top:2px}
+    .mk-macros{gap:6px}
+    .mk-m b{font-size:1rem}
+  }
+
   /* ---- guarantee ---- */
   .guarantee{background:var(--olive);color:#F3EEE4;border-radius:14px;padding:28px 24px;text-align:center}
   .guarantee h3{color:#fff;font-size:1.4rem;margin-bottom:12px}
@@ -183,7 +229,7 @@
      below. Until you do, the buttons just scroll to the plan picker.
      ================================================================ -->
 <script>
-  const PIF_URL     = "";  // Pay in full — $497 (one time)
+  const PIF_URL     = "";  // Pay in full, $497 (one time)
   const PLAN_2X_URL = "";  // 2 payments of $275 (monthly, total $550)
   const PLAN_3X_URL = "";  // 3 payments of $200 (every 2 weeks, total $600)
 </script>
@@ -197,8 +243,8 @@
 <div class="hero">
   <div class="wrap">
     <div class="eyebrow">The Complete Nutrition System</div>
-    <h1>You built the map.<br>Now let me build the whole thing for you.</h1>
-    <p class="lede">Your Power Food System gave you your numbers. The Complete Nutrition System is the done-for-you version: your full nutrition system and real meal plans, built around the foods you already eat, your schedule, and your season. You stop guessing what to eat. You just follow it.</p>
+    <h1>You've got your starting point.<br>Now let me build your roadmap for you.</h1>
+    <p class="lede">Your Power Food System gave you your starting numbers. The Complete Nutrition System is the done-for-you roadmap: your full nutrition system and real meal plans, built around the foods you already eat, your schedule, and your season. You stop guessing what to eat. You just follow it.</p>
     <div class="price-anchor">
       <span class="was">$997</span>
       <span class="now">$497</span>
@@ -232,7 +278,75 @@
       <li><span class="mk">3</span><div><b>Your wine and your dessert, built in</b><span>The 4-2-1 structure and a dessert budget carved from carbs and fat, never protein. You keep the foods that make your life yours, and still hit your numbers.</span></div></li>
       <li><span class="mk">4</span><div><b>Your food lists and portions</b><span>Tiered protein, carb, and fat lists in the foods you'll actually buy, with the portions that match your plan. Grocery-list simple.</span></div></li>
       <li><span class="mk">5</span><div><b>Set up to run in your app</b><span>Built ready for Everfit or Cronometer so logging takes minutes, plus the weekly adjustment method so you always know the next move.</span></div></li>
+      <li><span class="mk">6</span><div><b>A 90-minute 1:1 strategy session</b><span>We sit down together and walk through your entire build: your plan, your meals, your foods, and exactly how to run it through a real week. You leave knowing precisely what to do. A $297 value, included.</span></div></li>
     </ul>
+  </div>
+</section>
+
+<!-- PRODUCT PREVIEWS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow kicker">See exactly what you get</div>
+    <h2 class="sec">This is what lands in your hands.</h2>
+    <p>Not a generic PDF you'll never open. Your own nutrition system, your own meal plan, your own food lists, laid out and built around you. Here's a look.</p>
+    <div class="previews">
+
+      <div>
+        <div class="device">
+          <div class="bar"><i></i><i></i><i></i><b>Your Complete Nutrition System</b></div>
+          <div class="screen">
+            <div class="mk-h">Your Complete Nutrition System</div>
+            <div class="mk-macros">
+              <div class="mk-m"><b>1,950</b><span>Calories</span></div>
+              <div class="mk-m"><b>150g</b><span>Protein</span></div>
+              <div class="mk-m"><b>190g</b><span>Carbs</span></div>
+              <div class="mk-m"><b>62g</b><span>Fat</span></div>
+            </div>
+            <div class="mk-sub">Your phases</div>
+            <table class="mk-tbl">
+              <thead><tr><th>Phase</th><th>Cal</th><th>Pro</th><th>Carb</th><th>Fat</th></tr></thead>
+              <tbody>
+                <tr class="now"><td>Phase 1 · now</td><td>1,950</td><td>150g</td><td>190g</td><td>62g</td></tr>
+                <tr><td>Phase 2</td><td>1,800</td><td>150g</td><td>160g</td><td>56g</td></tr>
+                <tr><td>Phase 3</td><td>1,650</td><td>150g</td><td>130g</td><td>50g</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="cap">Your targets and every phase mapped out, so you always know the next move.</div>
+      </div>
+
+      <div>
+        <div class="device">
+          <div class="bar"><i></i><i></i><i></i><b>Your 14-day meal plan</b></div>
+          <div class="screen">
+            <div class="mk-h">Your 14-Day Meal Plan · Day 5</div>
+            <div class="meal"><div class="meal-t">Breakfast</div><div class="meal-f">Greek yogurt, berries, granola, whey</div><div class="meal-m">P40 · C48 · F9</div></div>
+            <div class="meal"><div class="meal-t">Lunch</div><div class="meal-f">Chicken, rice, roasted veg, olive oil</div><div class="meal-m">P42 · C55 · F14</div></div>
+            <div class="meal"><div class="meal-t">Snack</div><div class="meal-f">Apple with cottage cheese</div><div class="meal-m">P24 · C22 · F5</div></div>
+            <div class="meal"><div class="meal-t">Dinner</div><div class="meal-f">Salmon, potatoes, big salad</div><div class="meal-m">P38 · C50 · F24</div></div>
+            <div class="meal"><div class="meal-t">Dessert</div><div class="meal-f">Dark chocolate and berries</div><div class="meal-m">P6 · C15 · F10</div></div>
+            <div class="meal total"><div class="meal-t">Day total</div><div class="meal-f">On target</div><div class="meal-m">1,950 cal · P150 · C190 · F62</div></div>
+          </div>
+        </div>
+        <div class="cap">Real meals in the foods you already eat. Wine and dessert built right in.</div>
+      </div>
+
+      <div>
+        <div class="device">
+          <div class="bar"><i></i><i></i><i></i><b>Your foods &amp; portions</b></div>
+          <div class="screen">
+            <div class="mk-h">Your Foods &amp; Portions</div>
+            <div class="flist"><b>Proteins</b><span>Chicken breast 6 oz · Top sirloin 5 oz · Salmon 5 oz · Greek yogurt 1 cup · Eggs 3 plus whites · Whey 1 scoop</span></div>
+            <div class="flist"><b>Smart carbs</b><span>Potatoes 8 oz · White rice 1 cup · Oats ½ cup · Sourdough 2 slices · Fruit 1 to 2 servings</span></div>
+            <div class="flist"><b>Fats</b><span>Avocado ⅓ · Olive oil 1 tbsp · Nuts or nut butter 1 tbsp · Cheese 1 oz</span></div>
+            <div class="flist"><b>Veggies</b><span>Eat freely · a big pile every meal · about 800g produce a day</span></div>
+          </div>
+        </div>
+        <div class="cap">Your favorite foods, portioned to your numbers. Grocery-list simple.</div>
+      </div>
+
+    </div>
   </div>
 </section>
 
@@ -314,6 +428,18 @@
       </div>
     </div>
     <div class="pay-foot">One-time build. No subscription. Delivered to you after checkout.</div>
+
+    <div class="bfm">
+      <div class="lbl">Included with every plan today</div>
+      <h3>Your 90-minute 1:1 strategy session</h3>
+      <p>We get on a call together for 90 minutes and walk through your whole build: your plan, your meals, your foods, and exactly how to run it through a real week. You leave knowing your next move, not guessing. <em>A $297 value, yours at no extra cost.</em></p>
+    </div>
+
+    <div class="bfm" style="background:#F2F4EE;border-color:var(--olive)">
+      <div class="lbl" style="color:var(--olive)">And it all counts toward what's next</div>
+      <h3>Every dollar credits toward Built for More.</h3>
+      <p>If you decide to go all in, every dollar you put toward your Complete Nutrition System comes straight off the cost of your first round of <em>Built for More</em>, my 1:1 coaching program. Nothing you spend here is wasted. It's your first step in, already credited.</p>
+    </div>
   </div>
 </section>
 
@@ -402,7 +528,7 @@
 
 <footer>
   <div class="wrap">
-    <img src="logo.png" alt="Legacy Performance">
+    <img src="logo-white.png" alt="Legacy Performance">
     <div>Legacy Performance · Jayme Olson</div>
     <div class="fine">Client stories are individual results shared with permission and are not a guarantee of your outcome. The Complete Nutrition System is a nutrition coaching resource, not medical advice or treatment. Consult your physician before making changes if you have a medical condition.</div>
   </div>
