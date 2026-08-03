@@ -105,10 +105,22 @@
   .stack .row span:first-child{color:var(--ink)}
   .stack .row .v{color:var(--muted);white-space:nowrap;font-weight:600}
   .stack .total{font-family:'Cinzel';font-weight:700}
-  .pricebox{text-align:center;background:var(--parchment-2);border:1px solid var(--line);border-radius:14px;padding:30px 22px;margin-top:8px}
-  .pricebox .was{font-size:1.1rem;color:var(--muted);text-decoration:line-through}
-  .pricebox .now{font-family:'Cinzel';font-weight:700;font-size:3rem;color:var(--olive);line-height:1;margin:6px 0 4px}
-  .pricebox .sub{font-size:.9rem;color:var(--muted);margin-bottom:22px}
+  /* ---- payment plan picker ---- */
+  .pay-head{text-align:center;font-family:'Montserrat';font-weight:600;color:var(--charcoal);margin:6px 0 4px}
+  .pay-sub{text-align:center;font-size:.88rem;color:var(--muted);margin-bottom:20px}
+  .plans{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:8px}
+  .plan{background:#FBF8F1;border:1px solid var(--line);border-radius:14px;padding:24px 18px 20px;text-align:center;display:flex;flex-direction:column}
+  .plan.best{border:2px solid var(--olive);background:#F2F4EE;position:relative}
+  .plan .flag{position:absolute;top:-11px;left:50%;transform:translateX(-50%);background:var(--olive);color:#F6F1E8;font-size:.62rem;letter-spacing:.1em;text-transform:uppercase;font-weight:700;padding:4px 12px;border-radius:20px;white-space:nowrap}
+  .plan .name{font-family:'Montserrat';font-weight:700;color:var(--charcoal);font-size:.95rem;margin-bottom:10px}
+  .plan .amt{font-family:'Cinzel';font-weight:700;font-size:1.95rem;color:var(--olive);line-height:1}
+  .plan .amt small{font-family:'Montserrat';font-weight:600;font-size:.8rem;color:var(--muted);display:block;margin-top:3px}
+  .plan .cad{font-size:.84rem;color:var(--muted);margin:8px 0 6px;min-height:38px}
+  .plan .tot{font-size:.74rem;letter-spacing:.04em;color:var(--muted);margin-bottom:16px}
+  .plan .cta{width:100%;padding:13px 10px;font-size:.92rem;box-shadow:none;margin-top:auto}
+  .plan:not(.best) .cta{background:#6E6A5F;border-color:#5C584E}
+  .plan:not(.best) .cta:hover{background:#5C584E}
+  .pay-foot{text-align:center;font-size:.82rem;color:var(--muted);margin-top:16px}
 
   /* ---- guarantee ---- */
   .guarantee{background:var(--olive);color:#F3EEE4;border-radius:14px;padding:28px 24px;text-align:center}
@@ -165,13 +177,17 @@
 </head>
 <body>
 
-<!-- ============ EDIT THIS ONE LINE TO GO LIVE ============ -->
+<!-- ============ PASTE YOUR 3 CHECKOUT LINKS TO GO LIVE ============
+     In GoHighLevel, make ONE product ("Complete Nutrition System") with
+     three price options, then paste each option's payment/order-form link
+     below. Until you do, the buttons just scroll to the plan picker.
+     ================================================================ -->
 <script>
-  // Paste your GoHighLevel / Stripe checkout link between the quotes.
-  // Until you do, the buttons scroll to the price section.
-  const CHECKOUT_URL = "";
+  const PIF_URL     = "";  // Pay in full — $497 (one time)
+  const PLAN_2X_URL = "";  // 2 payments of $275 (monthly, total $550)
+  const PLAN_3X_URL = "";  // 3 payments of $200 (every 2 weeks, total $600)
 </script>
-<!-- ======================================================= -->
+<!-- =============================================================== -->
 
 <header class="top">
   <div class="wrap"><img src="logo.png" alt="Legacy Performance"></div>
@@ -271,12 +287,33 @@
       <div class="row"><span>App-ready setup + the weekly adjustment method</span><span class="v">$106</span></div>
       <div class="row total"><span>Regular build price</span><span class="v">$997</span></div>
     </div>
-    <div class="pricebox">
-      <div class="was">$997 regular</div>
-      <div class="now">$497</div>
-      <div class="sub">Today, for women coming from their Power Food System. One-time. No subscription.</div>
-      <a href="#" class="cta js-buy">Build My Complete Nutrition System<small>One-time build · delivered to you</small></a>
+    <div class="pay-head">Regular price $997. Today, $497.</div>
+    <div class="pay-sub">For women coming from their Power Food System. Choose how you'd like to pay.</div>
+    <div class="plans">
+      <div class="plan best">
+        <span class="flag">Best value · save $100+</span>
+        <div class="name">Pay in full</div>
+        <div class="amt">$497<small>one payment</small></div>
+        <div class="cad">Paid once. Nothing else to think about.</div>
+        <div class="tot">Total $497</div>
+        <a href="#" class="cta js-pif">Choose this</a>
+      </div>
+      <div class="plan">
+        <div class="name">2 payments</div>
+        <div class="amt">$275<small>today</small></div>
+        <div class="cad">Then $275 in 30 days.</div>
+        <div class="tot">Total $550</div>
+        <a href="#" class="cta js-plan2">Choose this</a>
+      </div>
+      <div class="plan">
+        <div class="name">3 payments</div>
+        <div class="amt">$200<small>today</small></div>
+        <div class="cad">Then $200 every 2 weeks, two more times.</div>
+        <div class="tot">Total $600</div>
+        <a href="#" class="cta js-plan3">Choose this</a>
+      </div>
     </div>
+    <div class="pay-foot">One-time build. No subscription. Delivered to you after checkout.</div>
   </div>
 </section>
 
@@ -378,11 +415,18 @@
 </div>
 
 <script>
-  // Wire every CTA to the checkout link (or scroll to price if not set yet).
-  document.querySelectorAll('.js-buy').forEach(function(a){
-    if(CHECKOUT_URL){ a.setAttribute('href', CHECKOUT_URL); a.setAttribute('target','_blank'); a.setAttribute('rel','noopener'); }
-    else { a.setAttribute('href', '#price'); }
-  });
+  // Hero, closing, and sticky buttons scroll down to the plan picker.
+  document.querySelectorAll('.js-buy').forEach(function(a){ a.setAttribute('href', '#price'); });
+  // Each plan button links to its own GHL checkout (or stays on the picker until set).
+  function wire(sel, url){
+    document.querySelectorAll(sel).forEach(function(a){
+      if(url){ a.setAttribute('href', url); a.setAttribute('target','_blank'); a.setAttribute('rel','noopener'); }
+      else { a.setAttribute('href', '#price'); }
+    });
+  }
+  wire('.js-pif', PIF_URL);
+  wire('.js-plan2', PLAN_2X_URL);
+  wire('.js-plan3', PLAN_3X_URL);
 </script>
 
 </body>
