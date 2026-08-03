@@ -249,7 +249,7 @@
   const PIF_URL     = "https://link.fastpaydirect.com/payment-link/6a70cebea655fa0b802a7a30";  // Pay in full, $497 (one time)
   const PLAN_2X_URL = "https://link.fastpaydirect.com/payment-link/6a70cf90a655fa0b802a7a35";  // 2 payments of $275 (total $550)
 
-  // Builds still open this month (10/month cap). Set to 0 when full — then also
+  // Builds still open this month (10/month cap). Set to 0 when full, then also
   // pause the 3 checkout links above so the page truthfully shows the waiting list.
   const SPOTS_LEFT = 3;
 </script>
@@ -592,7 +592,7 @@
   if(spotsEl){
     spotsEl.textContent = (typeof SPOTS_LEFT === 'number' && SPOTS_LEFT > 0)
       ? (SPOTS_LEFT === 1 ? '1 spot left this month.' : SPOTS_LEFT + ' spots left this month.')
-      : "This month's builds are full — the next names join the waiting list.";
+      : "This month's builds are full. The next names join the waiting list.";
   }
 </script>
 
