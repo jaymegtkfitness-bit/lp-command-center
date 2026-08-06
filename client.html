@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>Legacy Performance — Your Dashboard</title>
+<title>Legacy Performance — Client Dashboard</title>
 <meta name="theme-color" content="#1C1C1C" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
@@ -34,6 +34,17 @@
   --stall:#b4664a; --stall-bg:rgba(180,102,74,.14); --stall-tx:#b4664a;
   --shadow:0 1px 2px rgba(28,28,28,.05),0 8px 24px rgba(28,28,28,.06);
 }
+/* Live weekly auto-adjust verdict — "Your move this week" (Complete Nutrition System) */
+.verdict{border-radius:14px;padding:15px 17px;margin:2px 0 6px;border:1px solid var(--line);background:var(--surface-2)}
+.verdict .v-tag{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
+.verdict .v-title{font-family:'Cinzel',serif;font-weight:700;font-size:18px;line-height:1.25;color:var(--headline);margin-bottom:5px}
+.verdict .v-body{font-size:13.5px;line-height:1.55;color:var(--ink-soft)}
+.verdict.v-good{background:var(--good-bg);border-color:var(--good-tx)}
+.verdict.v-good .v-title{color:var(--good-tx)}
+.verdict.v-watch{background:var(--stall-bg);border-color:var(--stall-tx)}
+.verdict.v-watch .v-title{color:var(--stall-tx)}
+.verdict.v-accent{background:var(--accent-soft);border-color:var(--accent)}
+.verdict.v-accent .v-title{color:var(--accent)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--ink);
@@ -280,9 +291,9 @@ select.input{appearance:none}
 
   <!-- ============ ONBOARD ============ -->
   <section id="onboard" class="hidden">
-    <div class="eyebrow">Welcome to</div>
-    <h1>Your Legacy Dashboard</h1>
-    <p class="sub">A little setup so your dashboard is yours and your numbers reach your coach. 30 seconds, once on this device.</p>
+    <div class="eyebrow">Welcome to your</div>
+    <h1>Legacy Performance Client Dashboard</h1>
+    <p class="sub">Let's set up your dashboard — your home base for check-ins, progress, and your Power Food System. 30 seconds, once on this device.</p>
     <div class="card">
       <div class="field"><label>Your name</label>
         <input class="input" id="ob_name" placeholder="First and last" autocomplete="name" /></div>
@@ -355,6 +366,13 @@ select.input{appearance:none}
     <div class="card" id="coachCard">
       <div class="sec-h"><h2>From your coach</h2></div>
       <div id="coachBox"><div class="empty">Notes from Jayme show up here.</div></div>
+    </div>
+
+    <!-- Wellness (provider-guided catalog + order request) -->
+    <div class="card" id="wellnessCard">
+      <div class="sec-h"><h2>Wellness</h2></div>
+      <p class="empty" style="margin:0 0 10px">Provider-guided peptides, GLP-1s, and hormones — at cost, no markup. Browse and send your coach an order request; your provider reviews eligibility.</p>
+      <a class="btn btn-primary" id="wellnessLink" href="wellness.html">Browse wellness &amp; request →</a>
     </div>
 
     <!-- Dosing calculator -->
@@ -647,8 +665,12 @@ function buildModel(server){
     : ((lin&&lin.done)?lin:null);
   if(it && it.goalweight && !it.pfs) it.pfs = computePFS(it, it.track);
   M.intake = it;
-  // ---- tier (drives 1:1-only roadmap) ----
+  // ---- tier + Complete Nutrition System entitlement ----
   M.tier = (server && server.tier) || M.tier || '';
+  // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
+  // Built for More auto-qualifies via hasCNS(); until the doorway returns this, only BFM gets CNS.
+  M.complete = (server && (server.complete!=null ? server.complete : server.cns)) != null
+    ? String(server.complete!=null ? server.complete : server.cns) : (M.complete||'');
   // ---- onboarding checklist progress ----
   var son=(server&&server.onboarding&&server.onboarding.length)?String(server.onboarding[server.onboarding.length-1]['Completed']||''):'';
   var lon=loadLS(LS_ONBOARD,"[]"), doneSet={};
@@ -681,6 +703,7 @@ function renderHome(){
   renderPRs();
   renderClientNotes();
   renderRx();
+  var wl=g("wellnessLink"); if(wl) wl.href="wellness.html"+(TOKEN?("?k="+encodeURIComponent(TOKEN)):"");
   renderLog(h);
   renderMonthly();
   renderQuarterly();
@@ -1062,6 +1085,53 @@ function toggleOnboardStep(k){
 /* ============================ NUTRITION SYSTEM + ROADMAP ============================ */
 var TRACK_NAME={"Lean":"Live Lean","Strong":"Live Strong","Long":"Live Long","Reverse Diet":"Reverse Diet"};
 function isOneToOne(tier){ return /built for more|coaching|1:1|one[- ]on[- ]one/i.test(String(tier||"")); }
+/* Complete Nutrition System entitlement: Built for More (1:1) OR a "Complete" Roster flag
+   (Yes = bought an Accelerator on either base tier). Base tiers without it get PFS + the upsell. */
+function hasCNS(){ return isOneToOne(M.tier) || /^\s*(y|yes|true|1|complete|active|paid)/i.test(String(M.complete||"")); }
+
+/* ---- Live weekly auto-adjust verdict — "Your move this week" ---- */
+function goalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; if(track==="Long") return 0; return -1; }
+function weeklyVerdict(it){
+  var W=M.checkins.filter(function(c){return c.weight!=null;});
+  var n=W.length;
+  if(n<2) return {state:"building", weeks:n};
+  var avg=function(a){return a.reduce(function(s,x){return s+x.weight;},0)/a.length;};
+  var recent=W.slice(-2), prior=W.slice(-4,-2);
+  var rAvg=avg(recent), pAvg=prior.length?avg(prior):W[0].weight;
+  var delta=rAvg-pAvg;                    // + = weight rose over the last two weeks
+  var dir=goalDir(it.track), NOISE=0.6;   // within 0.6 lb = flat (daily noise)
+  var cv=recent.map(function(x){return x.cons;}).filter(function(v){return v!=null;});
+  var cons=cv.length?Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length):null;
+  var progressing = dir===0 ? Math.abs(delta)<=NOISE : (dir>0 ? delta>NOISE : delta<-NOISE);
+  var stalled     = dir===0 ? false      : (Math.abs(delta)<=NOISE || (dir>0 ? delta<-NOISE : delta>NOISE));
+  var state;
+  if(cons!=null && cons<85) state="hold";
+  else if(dir===0)          state="steady";
+  else if(progressing)      state="stay";
+  else if(stalled)          state="advance";
+  else                      state="stay";
+  return {state:state, cons:cons, delta:Math.round(delta*10)/10, rAvg:Math.round(rAvg*10)/10, weeks:n};
+}
+function verdictHTML(it){
+  var v=weeklyVerdict(it), c=esc(CONFIG.coachName), tone, tag="Your move this week", title, body;
+  if(v.state==="building"){
+    tone="watch"; title="Two check-ins away from your first read";
+    body="I read your two-week trend, not single days. Log this week"+String.fromCharCode(8217)+"s check-in — after two weeks, your move shows up right here, automatically.";
+  } else if(v.state==="hold"){
+    tone="watch"; title="Hold here — consistency first";
+    body="Your consistency is running "+v.cons+"%. Before we change a single number, we lock in the plan you"+String.fromCharCode(8217)+"ve got. Aim for 85%+ this week and the trend tells us the rest.";
+  } else if(v.state==="steady"){
+    tone="good"; title="Hold steady — that"+String.fromCharCode(8217)+"s the win";
+    body="You"+String.fromCharCode(8217)+"re on maintenance. Staying level through real life is the hardest skill in nutrition. Keep protein anchored and keep showing up.";
+  } else if(v.state==="stay"){
+    tone="good"; title="It"+String.fromCharCode(8217)+"s working — stay the course";
+    body="Your two-week average is moving the right way at "+v.cons+"% consistency. Don"+String.fromCharCode(8217)+"t touch the plan — we change nothing while it"+String.fromCharCode(8217)+"s working. Momentum is the point.";
+  } else {
+    tone="accent"; title="You"+String.fromCharCode(8217)+"ve earned a phase change";
+    body="You"+String.fromCharCode(8217)+"ve held 85%+ consistency and the scale has been flat for two weeks — that"+String.fromCharCode(8217)+"s exactly the signal we wait for, not a failure. "+c+" will confirm your next phase, then your targets update here. Nothing changes until "+c+" signs off.";
+  }
+  return '<div class="verdict v-'+tone+'"><div class="v-tag">'+esc(tag)+'</div><div class="v-title">'+title+'</div><div class="v-body">'+body+'</div></div>';
+}
 function mealsPerDay(){ return 3; }
 
 /* Full phase ladder — same math as computePFS(), walked across each phase multiplier. */
@@ -1137,7 +1207,7 @@ function renderPFS(){
       +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showWizard()">Build my Power Food System →</button></div>';
     return;
   }
-  box.innerHTML=nutritionHTML(it);
+  box.innerHTML=nutritionHTML(it)+completeSystemCard();
 }
 
 /* ---- Roadmap (1:1 clients only) ---- */
@@ -1196,12 +1266,12 @@ function roadmapHTML(it){
     +'<div><span>2</span> Log your weekly check-in right here in the dashboard.</div>'
     +'<div><span>3</span> Anchor protein every meal, hit your produce, water before coffee.</div>'
     +'<div><span>4</span> Questions → message '+esc(CONFIG.coachName)+' in Everfit.</div></div>';
-  return snap+targets+phases+rules+faqs+next+completeSystemCard();
+  return verdictHTML(it)+snap+targets+phases+rules+faqs+next;
 }
 /* Upsell: the done-for-you Complete Nutrition System build (paid add-on).
    Hidden for 1:1 clients — they already get the full build inside coaching. */
 function completeSystemCard(){
-  if(isOneToOne(M.tier)) return "";
+  if(hasCNS()) return "";
   var url=CONFIG.completeSystemUrl||"#";
   var priceLine;
   if(CONFIG.completeSystemPrice){
@@ -1219,7 +1289,7 @@ function completeSystemCard(){
 }
 function renderRoadmap(){
   var card=g("roadmapCard"), box=g("roadmapBox"), it=M.intake;
-  if(!it || !it.pfs || !isOneToOne(M.tier)){ if(card) card.style.display="none"; var pd=g("printDoc"); if(pd) pd.innerHTML=""; return; }
+  if(!it || !it.pfs || !hasCNS()){ if(card) card.style.display="none"; var pd=g("printDoc"); if(pd) pd.innerHTML=""; return; }
   card.style.display="";
   box.innerHTML=roadmapHTML(it)
     +'<div class="actions no-print"><button class="btn btn-primary" onclick="window.print()">⬇ Download my roadmap (PDF)</button></div>';
@@ -1383,7 +1453,7 @@ function wizResult(){
     +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — aim for a big pile at every meal (~800g produce/day)</span></div>'
     +'<p class="wiz-hint" style="margin-top:6px">Build every plate: a palm of protein + a fist of a smart carb + a mountain of veg. Keep it that simple to start.</p>'
     +'<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:14px"><div class="res-why" style="color:var(--ink)"><b>Your next step:</b> this is your starting point. Head into the <b>Foundations</b> course in Skool — that\'s where you collect the data and learn the system so we can refine this into exactly what your body needs.</div></div>'
-    +(isOneToOne(M.tier)?'':'<p class="wiz-hint" style="margin-top:10px">Want this <b>done for you</b> — real meal plans built around the foods you actually eat? Lock this in, then ask '+esc(CONFIG.coachName)+' about the <b>Complete Nutrition System</b> build on your dashboard.</p>')
+    +(hasCNS()?'':'<p class="wiz-hint" style="margin-top:10px">Want this <b>done for you</b> — real meal plans built around the foods you actually eat? Lock this in, then ask '+esc(CONFIG.coachName)+' about the <b>Complete Nutrition System</b> build on your dashboard.</p>')
     +'<div class="actions"><button class="btn btn-primary" onclick="wizSubmit()" id="wizDone">Lock it in & go to my dashboard →</button><div class="status" id="wizSubStatus"></div></div>';
 }
 async function wizSubmit(){
