@@ -1,0 +1,235 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Legacy Performance — Wellness</title>
+<link rel="manifest" href="manifest.json" />
+<meta name="theme-color" content="#1C1C1C" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+<!-- =============================================================
+  LEGACY PERFORMANCE — WELLNESS (member-facing catalog + order request)
+  Full at-cost transparency (product + provider fee + shipping + $19 admin).
+  Member builds a request and submits → lands in the coach's Wellness Orders
+  queue (doorway type:'order'). GHL handles the actual checkout/payment;
+  the physician owns eligibility. Provider-guided language throughout.
+============================================================= -->
+<script>
+/* =================== CONFIG — EDIT THIS BLOCK =================== */
+const CONFIG = {
+  productsCsvUrl: "products-member.csv",
+  writeUrl: "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
+  adminFee: 19, providerFeeStd: 39, providerFeeHormone: 69
+};
+/* =============== END CONFIG (stop editing here) =============== */
+</script>
+<style>
+:root{--charcoal:#1C1C1C;--olive:#4A5C3E;--parchment:#F2EDE4;--gold:#C1AD72;
+  --bg:#F2EDE4;--surface:#FBF9F4;--ink:#242219;--ink-soft:#4a463c;--muted:#8a8578;--line:#e4ddcf;--accent:#4A5C3E;--accent-soft:rgba(74,92,62,.10);--warn:#b4664a;}
+*{box-sizing:border-box}html,body{margin:0;padding:0}
+body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--ink);-webkit-font-smoothing:antialiased;line-height:1.5}
+body::before{content:"";display:block;height:env(safe-area-inset-top,0px);background:var(--charcoal)}
+header.top{background:var(--parchment);border-bottom:3px solid var(--gold)}
+.top-inner{max-width:820px;margin:0 auto;padding:13px 20px;display:flex;align-items:center;gap:14px}
+.top .logo{height:42px;width:auto;display:block}.top .divider{width:1px;height:26px;background:rgba(28,28,28,.16)}
+.top .tag{font-family:'Cinzel',serif;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:#5f5a4f}
+.wrap{max-width:820px;margin:0 auto;padding:20px 20px 150px}
+h1{font-family:'Cinzel',serif;font-size:24px;font-weight:600;color:var(--charcoal);margin:4px 0 4px}
+.sub{color:var(--muted);font-size:13.5px;margin:0 0 14px;max-width:680px}
+.compliance{background:var(--accent-soft);border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:12px;color:var(--ink-soft);line-height:1.6;margin-bottom:16px}
+.compliance b{color:var(--ink)}
+.filter{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{background:var(--surface);border:1px solid var(--line);color:var(--ink-soft);border-radius:20px;padding:6px 13px;font-size:12.5px;font-weight:600;cursor:pointer}
+.chip.on{background:var(--gold);border-color:var(--gold);color:#1C1C1C}
+.catgroup{margin-top:18px}
+.catgroup h2{font-family:'Cinzel',serif;font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--charcoal);margin:0 0 10px;display:flex;gap:10px;align-items:baseline}
+.catgroup h2 .rule{flex:1;height:1px;background:var(--line)}
+.p{display:flex;align-items:center;gap:12px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;margin-bottom:8px}
+.p .pn{flex:1;min-width:0}
+.p .pname{font-weight:600;color:var(--ink);font-size:14px}
+.p .pmeta{font-size:11.5px;color:var(--muted);margin-top:1px}
+.p .pmeta .st{color:var(--warn)}
+.p .stack{font-size:11px;color:var(--muted);margin-top:3px}
+.atcost{display:inline-block;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(74,92,62,.25);border-radius:20px;padding:2px 9px;margin-top:5px}
+.p .right{text-align:right;flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:6px}
+.p .mp{font-family:'Cinzel',serif;font-size:18px;font-weight:600;color:var(--charcoal)}
+.addbtn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:7px 13px;font-family:inherit;font-size:12.5px;font-weight:700;cursor:pointer;white-space:nowrap}
+.addbtn.in{background:var(--gold);color:#1C1C1C}
+/* Cart */
+.cart{position:fixed;left:0;right:0;bottom:0;background:var(--charcoal);color:var(--parchment);box-shadow:0 -8px 30px rgba(0,0,0,.3);z-index:40}
+.cart-inner{max-width:820px;margin:0 auto;padding:14px 20px}
+.cart-top{display:flex;justify-content:space-between;align-items:center;gap:12px;cursor:pointer}
+.cart-l{font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#b3ada1;font-weight:700}
+.cart-v{font-family:'Cinzel',serif;font-size:22px;font-weight:600;color:var(--gold)}
+.cart-items{margin:10px 0;max-height:150px;overflow-y:auto}
+.ci{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;padding:5px 0;border-bottom:1px solid rgba(242,237,228,.1)}
+.ci .x{background:none;border:none;color:#b3ada1;cursor:pointer;font-size:15px}
+.cart-break{font-size:11.5px;color:#cfc9bc;margin:8px 0;line-height:1.5}
+.cart-btn{width:100%;background:var(--gold);color:#1C1C1C;border:none;border-radius:10px;padding:13px;font-family:inherit;font-weight:700;font-size:14.5px;cursor:pointer}
+.cart-btn:disabled{opacity:.5}
+.collapsed .cart-items,.collapsed .cart-break,.collapsed .cart-form{display:none}
+.cart-form{margin-top:10px}
+.cart-form input,.cart-form textarea{width:100%;background:#26241f;border:1px solid rgba(242,237,228,.18);border-radius:8px;color:#EAE4D8;font-family:inherit;font-size:14px;padding:10px 11px;margin-bottom:8px}
+.cart-form input::placeholder,.cart-form textarea::placeholder{color:#8a8578}
+/* Confirmation */
+.confirm{display:none;text-align:center;padding:40px 10px}
+.confirm.show{display:block}
+.confirm .big{font-family:'Cinzel',serif;font-size:28px;color:var(--charcoal);margin-bottom:10px}
+.confirm .chk{width:60px;height:60px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 16px}
+.confirm p{color:var(--ink-soft);font-size:14px;line-height:1.7;max-width:520px;margin:8px auto}
+.loading{color:var(--muted);padding:30px;text-align:center}
+</style>
+</head>
+<body>
+<header class="top"><div class="top-inner">
+  <img class="logo" src="logo.png" alt="Legacy Performance" onerror="this.style.display='none'" />
+  <span class="divider"></span><span class="tag">Wellness</span>
+</div></header>
+
+<main class="wrap">
+  <div id="catalogView">
+    <h1>Wellness</h1>
+    <p class="sub">Provider-guided, pharmacy-fulfilled. Prices are shown in full — the medication at cost, plus the provider fee, shipping, and a flat $19 admin. <b>No markup on the medication.</b></p>
+    <div class="compliance">
+      <b>Submitting a request is not a prescription.</b> Eligibility, prescriptions, and dosing are determined solely by the licensed provider group. Your request is reviewed; if approved, it's pharmacy-fulfilled and you'll receive a secure checkout to complete payment. <b>If you're not approved, you're fully refunded or offered an alternative you do qualify for.</b> Every client is unique and outcomes vary. This is not medical advice.
+    </div>
+    <div class="filter" id="trackFilter"></div>
+    <div id="catalog"><div class="loading">Loading…</div></div>
+  </div>
+
+  <div class="confirm" id="confirmView">
+    <div class="chk">✓</div>
+    <div class="big">Your request has been submitted</div>
+    <p>Thanks — your request is with your coach. Your provider will review eligibility, and if approved you'll get a secure checkout link to complete payment. If it's not a fit, you'll be fully refunded or offered an alternative.</p>
+    <p style="color:var(--muted);font-size:12.5px">Eligibility, prescriptions, and dosing are determined solely by the licensed provider group.</p>
+    <p><button class="addbtn" onclick="location.reload()">Back to Wellness</button></p>
+  </div>
+</main>
+
+<div class="cart collapsed" id="cart" style="display:none">
+  <div class="cart-inner">
+    <div class="cart-top" onclick="toggleCart()">
+      <span class="cart-l"><span id="cartCount">0</span> in your request · tap to review</span>
+      <span class="cart-v" id="cartTotal">$0</span>
+    </div>
+    <div class="cart-items" id="cartItems"></div>
+    <div class="cart-break" id="cartBreak"></div>
+    <div class="cart-form" id="cartForm">
+      <input id="cName" placeholder="Your name" autocomplete="name">
+      <input id="cEmail" type="email" placeholder="Your email (the one you signed up with)" autocomplete="email">
+      <textarea id="cNote" rows="2" placeholder="Anything your coach should know (optional)"></textarea>
+    </div>
+    <button class="cart-btn" id="submitBtn" onclick="submitRequest()">Submit order request</button>
+  </div>
+</div>
+
+<script>
+var PRODUCTS=[], TRACK='All', AUTO_TRACK=null, CART={}, ID={email:'',name:''};
+/* Friendly filter labels — chip VALUES stay Lean/Strong/Long/Support so they match the
+   track a client is assigned in their dashboard; only the display text is branded. */
+var TRACK_LABELS={All:'All',Lean:'Live Lean',Strong:'Live Strong',Long:'Live Long',Support:'Support'};
+function trackToFilter(t){ t=String(t||'').toLowerCase();
+  if(t.indexOf('lean')>=0||t.indexOf('reverse')>=0) return 'Lean';
+  if(t.indexOf('strong')>=0) return 'Strong';
+  if(t.indexOf('long')>=0) return 'Long';
+  return null; }
+function applyAutoTrack(f){ if(!f) return; AUTO_TRACK=f; if(PRODUCTS.length){ TRACK=f; buildFilter(); render(); } }
+function g(id){return document.getElementById(id);}
+function money(n){return "$"+Math.round(n).toLocaleString();}
+function num(v){var n=parseFloat(v);return isNaN(n)?null:n;}
+function esc(s){return String(s==null?"":s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];});}
+function getParam(k){return new URLSearchParams(location.search).get(k);}
+function parseCSV(t){var rows=[],row=[],cur="",q=false;for(var i=0;i<t.length;i++){var c=t[i];
+  if(q){if(c=='"'){if(t[i+1]=='"'){cur+='"';i++;}else q=false;}else cur+=c;}
+  else{if(c=='"')q=true;else if(c==','){row.push(cur);cur="";}else if(c=='\n'){row.push(cur);rows.push(row);row=[];cur="";}else if(c!='\r')cur+=c;}}
+  if(cur.length||row.length){row.push(cur);rows.push(row);}return rows.filter(function(r){return r.length>1||r[0].trim();});}
+
+fetch(CONFIG.productsCsvUrl,{cache:"no-store"}).then(function(r){return r.text();}).then(function(txt){
+  var rows=parseCSV(txt),h=rows[0],ix={};h.forEach(function(k,i){ix[k.trim()]=i;});
+  PRODUCTS=rows.slice(1).map(function(r,i){return {id:i,cat:r[ix.Category],track:r[ix.Track],pharmacy:r[ix.Pharmacy],
+    product:r[ix.Product],strength:r[ix.Strength]||"",cost:num(r[ix.Cost]),fee:num(r[ix.ProviderFee]),ship:num(r[ix.Shipping]),
+    mp:num(r[ix.MemberPrice]),state:r[ix.StateNote]||""};});
+  if(AUTO_TRACK) TRACK=AUTO_TRACK;   // client's assigned track resolved before the catalog finished loading
+  buildFilter(); render();
+}).catch(function(e){ g('catalog').innerHTML='<div class="loading">Could not load the catalog. Please try again.</div>'; });
+
+// Identity + track auto-align: pull the client's assigned track from their dashboard
+// (magic-link ?k= token, OR the email they signed in with on client.html — same domain,
+// so localStorage is shared) and default the store to THEIR track. Falls back to All.
+(function(){
+  if(!CONFIG.writeUrl) return;
+  var tok=getParam('k'), email='';
+  if(!tok){ try{ var sid=JSON.parse(localStorage.getItem('lp_client_id')||'null'); if(sid&&sid.email) email=sid.email; }catch(e){} }
+  if(!tok && !email) return;
+  var name='__lpW'+Date.now(),s=document.createElement('script');
+  window[name]=function(d){ try{delete window[name];}catch(e){} s.remove();
+    if(d&&d.email){ ID={email:d.email,name:d.name||''}; if(g('cEmail'))g('cEmail').value=d.email; if(g('cName'))g('cName').value=d.name||''; }
+    var intake=(d&&d.intake&&d.intake.length)?d.intake[d.intake.length-1]:null;
+    if(intake) applyAutoTrack(trackToFilter(intake['Track'])); };
+  s.onerror=function(){ try{delete window[name];}catch(e){} s.remove(); };
+  s.src=CONFIG.writeUrl+"?action=clientData&"+(tok?("token="+encodeURIComponent(tok)):("email="+encodeURIComponent(email)))+"&callback="+name;
+  document.body.appendChild(s);
+})();
+
+function buildFilter(){
+  var tracks=['All'].concat(PRODUCTS.map(function(p){return p.track;}).filter(function(v,i,a){return v&&a.indexOf(v)==i;}));
+  g('trackFilter').innerHTML=tracks.map(function(t){return '<button class="chip'+(t==TRACK?' on':'')+'" onclick="setTrack(\''+t+'\')">'+esc(TRACK_LABELS[t]||t)+'</button>';}).join('');
+}
+function setTrack(t){TRACK=t;buildFilter();render();}
+function render(){
+  var list=PRODUCTS.filter(function(p){return TRACK=='All'||p.track==TRACK;});
+  var cats=list.map(function(p){return p.cat;}).filter(function(v,i,a){return a.indexOf(v)==i;});
+  g('catalog').innerHTML=cats.map(function(cat){
+    var items=list.filter(function(p){return p.cat==cat;});
+    return '<div class="catgroup"><h2>'+esc(cat)+' <span class="rule"></span></h2>'+items.map(pRow).join('')+'</div>';
+  }).join('')||'<div class="loading">No products here.</div>';
+  renderCart();
+}
+function pRow(p){
+  var shipTxt=(p.ship==null)?'shipping at checkout':('shipping $'+p.ship);
+  var meta=[p.pharmacy,p.strength].filter(Boolean).join(' · ')+(p.state?' · <span class="st">'+esc(p.state)+'</span>':'');
+  var inCart=!!CART[p.id];
+  return '<div class="p"><div class="pn"><div class="pname">'+esc(p.product)+'</div><div class="pmeta">'+meta+'</div>'
+    +'<div class="stack">medication $'+p.cost+' + provider $'+(p.fee||39)+' + '+shipTxt+' + $19 admin</div>'
+    +'<div><span class="atcost">At cost · no markup</span></div></div>'
+    +'<div class="right"><div class="mp">'+money(p.mp)+'</div><button class="addbtn'+(inCart?' in':'')+'" onclick="toggleItem('+p.id+')">'+(inCart?'✓ Added':'Add')+'</button></div></div>';
+}
+function toggleItem(id){ if(CART[id])delete CART[id]; else CART[id]=1; render(); }
+function toggleCart(){ g('cart').classList.toggle('collapsed'); }
+
+function cartCalc(){
+  var items=Object.keys(CART).map(function(id){return PRODUCTS.find(function(p){return p.id==id;});}).filter(Boolean);
+  var costSum=items.reduce(function(s,p){return s+(p.cost||0);},0);
+  var fee=items.some(function(p){return (p.fee||39)>=69;})?CONFIG.providerFeeHormone:CONFIG.providerFeeStd;
+  var pharms={},shipUnknown=false;
+  items.forEach(function(p){ if(p.ship==null)shipUnknown=true; else pharms[p.pharmacy]=p.ship; });
+  var shipSum=Object.keys(pharms).reduce(function(s,k){return s+pharms[k];},0);
+  var total=items.length?(costSum+fee+shipSum+CONFIG.adminFee):0;
+  return {items:items,costSum:costSum,fee:fee,shipSum:shipSum,pharmCount:Object.keys(pharms).length,shipUnknown:shipUnknown,total:total};
+}
+function renderCart(){
+  var c=cartCalc(), box=g('cart');
+  if(!c.items.length){ box.style.display='none'; return; }
+  box.style.display='block';
+  g('cartCount').textContent=c.items.length;
+  g('cartTotal').textContent=money(c.total)+(c.shipUnknown?'+':'');
+  g('cartItems').innerHTML=c.items.map(function(p){return '<div class="ci"><span>'+esc(p.product)+' <span style="color:#b3ada1">'+esc(p.strength)+'</span></span><span>'+money(p.mp)+' <button class="x" onclick="toggleItem('+p.id+')">✕</button></span></div>';}).join('');
+  g('cartBreak').innerHTML='Estimated: medication '+money(c.costSum)+' + one provider fee '+money(c.fee)+' + shipping '+money(c.shipSum)+' ('+c.pharmCount+' pharmac'+(c.pharmCount==1?'y':'ies')+') + $19 admin'+(c.shipUnknown?' <span style="color:#f0cdbe">· one item\'s shipping confirmed at checkout</span>':'')+'.<br>Final total is confirmed at your secure checkout after provider review.';
+}
+function submitRequest(){
+  var c=cartCalc(); if(!c.items.length) return;
+  var name=(g('cName').value||'').trim(), email=(g('cEmail').value||'').trim();
+  if(!name||!email){ if(g('cart').classList.contains('collapsed'))toggleCart(); alert('Please add your name and email so your coach knows who this is from.'); return; }
+  var btn=g('submitBtn'); btn.disabled=true; btn.textContent='Submitting…';
+  var itemsStr=c.items.map(function(p){return p.product+(p.strength?' ('+p.strength+')':'');}).join('; ');
+  var payload={type:'order', ts:new Date().toISOString(), email:email, name:name,
+    items:itemsStr, total:c.total+(c.shipUnknown?'+':''), note:(g('cNote').value||'').trim()};
+  if(CONFIG.writeUrl){ try{ fetch(CONFIG.writeUrl,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)}); }catch(e){} }
+  setTimeout(function(){ g('catalogView').style.display='none'; g('cart').style.display='none'; g('confirmView').classList.add('show'); window.scrollTo(0,0); }, 600);
+}
+</script>
+</body>
+</html>

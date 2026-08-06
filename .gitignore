@@ -6,3 +6,6 @@
 # internal ops docs (contain sheet IDs / not for the public site)
 SYSTEM-MAP.md
 COMMAND-CENTER-V2-BUILD.md
+
+# full internal catalog — keep local, only the curated products-member.csv ships
+products-all.csv
