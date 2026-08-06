@@ -2288,6 +2288,38 @@ function openJourney(email){
     box.innerHTML = back + ((d&&d.ok) ? journeyPanel(d, email) : '<p class="tool-d">Couldn’t load this member’s data.</p>');
   });
 }
+/* Coach-side mirror of the client dashboard's live auto-adjust verdict — same logic,
+   coach framing. Surfaces "ready to advance" so Jayme confirms the phase change. */
+function journeyGoalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; if(track==="Long") return 0; return -1; }
+function journeyVerdict(ci, track){
+  var W=ci.filter(function(c){return c.w!=null;}), n=W.length;
+  if(n<2) return {state:"building"};
+  var avg=function(a){return a.reduce(function(s,x){return s+x.w;},0)/a.length;};
+  var recent=W.slice(-2), prior=W.slice(-4,-2);
+  var rAvg=avg(recent), pAvg=prior.length?avg(prior):W[0].w;
+  var delta=rAvg-pAvg, dir=journeyGoalDir(track), NOISE=0.6;
+  var cv=recent.map(function(x){return x.cons;}).filter(function(v){return v!=null;});
+  var cons=cv.length?Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length):null;
+  var progressing = dir===0 ? Math.abs(delta)<=NOISE : (dir>0?delta>NOISE:delta<-NOISE);
+  var stalled     = dir===0 ? false : (Math.abs(delta)<=NOISE || (dir>0?delta<-NOISE:delta>NOISE));
+  var state;
+  if(cons!=null && cons<85) state="hold";
+  else if(dir===0)          state="steady";
+  else if(progressing)      state="stay";
+  else if(stalled)          state="advance";
+  else                      state="stay";
+  return {state:state, cons:cons, delta:Math.round(delta*10)/10};
+}
+function journeyVerdictTile(ci, track){
+  var v=journeyVerdict(ci, track), bg,tx,tag,body;
+  if(v.state==="building"){ bg="var(--surface-2)"; tx="var(--muted)"; tag="This week's move — pending"; body="Needs 2+ weekly check-ins to read the two-week trend."; }
+  else if(v.state==="hold"){ bg="var(--stall-bg)"; tx="var(--stall-tx)"; tag="Hold — consistency first"; body="Consistency "+v.cons+"% (under 85). Build consistency before changing any numbers."; }
+  else if(v.state==="steady"){ bg="var(--good-bg)"; tx="var(--good-tx)"; tag="Holding steady"; body="On maintenance at "+v.cons+"% — holding level is the win. No change."; }
+  else if(v.state==="stay"){ bg="var(--good-bg)"; tx="var(--good-tx)"; tag="On track — stay the course"; body="Moving the right way at "+v.cons+"% consistency. Change nothing while it's working."; }
+  else { bg="rgba(193,173,114,.14)"; tx="var(--gold)"; tag="Ready to advance a phase"; body="85%+ consistent and the scale's been flat two weeks — the signal to move them a phase. Confirm, then update their targets."; }
+  return '<div class="tile" style="background:'+bg+';border-color:'+tx+';margin-bottom:14px"><b style="color:'+tx+'">'+tag+'</b>'
+    +'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+body+'</div></div>';
+}
 function journeyPanel(d, email){
   var ci=(d.checkins||[]).map(function(r){ return {ts:parseTs(r['Timestamp']), w:num(r['Weight']), cons:consistencyToNum(r['Consistency']),
       energy:num(r['Energy']), sleep:num(r['Sleep quality']), mood:num(r['Mood & resilience'])}; })
@@ -2309,6 +2341,9 @@ function journeyPanel(d, email){
 
   var h='<div class="view-head" style="margin-top:4px"><h1>'+esc(d.name||email)+'</h1><p class="view-sub">'+esc(d.tier||'—')+' · '
     +(d.active===false?'<b style="color:var(--stall-tx)">inactive</b>':(d.active?'active':'not in roster'))+'</p></div>';
+
+  // live auto-adjust verdict (mirrors the client's "your move this week")
+  if(intk && ci.length) h+=journeyVerdictTile(ci, intk['Track']);
 
   // week-1 banner
   if(week1) h+='<div class="tile" style="background:var(--good-bg);border-color:var(--good);margin-bottom:14px"><b style="color:var(--good-tx)">Ready for the week-1 review + Blueprint offer</b><div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+ci.length+' check-ins over '+(daysSince(first.ts))+' days. Pull their real data, give the read, offer the build.</div></div>';
