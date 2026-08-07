@@ -45,6 +45,17 @@
 .verdict.v-watch .v-title{color:var(--stall-tx)}
 .verdict.v-accent{background:var(--accent-soft);border-color:var(--accent)}
 .verdict.v-accent .v-title{color:var(--accent)}
+/* Meal plan */
+.mp-days{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.mp-chip{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:6px 14px;font:600 12.5px/1 'Montserrat',sans-serif;cursor:pointer}
+.mp-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.mp-meal{padding:11px 0;border-top:1px solid var(--line)}
+.mp-meal:first-child{border-top:none}
+.mp-meal-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
+.mp-meal-h b{font-size:14.5px;color:var(--headline)}
+.mp-macros{font-size:11.5px;color:var(--touch);font-weight:600;white-space:nowrap}
+.mp-items{margin:6px 0 0;padding-left:18px}
+.mp-items li{font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--ink);
@@ -362,6 +373,12 @@ select.input{appearance:none}
       <div id="roadmapBox"></div>
     </div>
 
+    <!-- Meal Plan (Complete Nutrition System) -->
+    <div class="card" id="mealPlanCard" style="display:none">
+      <div class="sec-h"><h2>Your Meal Plan</h2></div>
+      <div id="mealPlanBox"></div>
+    </div>
+
     <!-- Coach note -->
     <div class="card" id="coachCard">
       <div class="sec-h"><h2>From your coach</h2></div>
@@ -533,7 +550,8 @@ var QT_BODY    = ["A lot to lose","Close but stuck","Fueled and ready to build",
 var QT_GOAL    = ["Fat loss","Build muscle & strength","Maintain, protect & longevity"];
 var QT_TRACK   = ["Lean","Strong","Long"];
 var ID = null;                 // {name,email,gender}
-var M = { checkins:[], monthly:[], quarterly:[], coachNotes:[], clientNotes:[], prs:[], intake:null, onboardingDone:[] };  // merged model
+var M = { checkins:[], monthly:[], quarterly:[], coachNotes:[], clientNotes:[], prs:[], intake:null, mealplan:null, onboardingDone:[] };  // merged model
+var MP_DAY=0;  // selected meal-plan day
 var serverOk = false;
 var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake", LS_ONBOARD="lp_client_onboard";
 var TOKEN=null;   // per-client magic-link token (?k=…) — identity without typing an email
@@ -665,6 +683,12 @@ function buildModel(server){
     : ((lin&&lin.done)?lin:null);
   if(it && it.goalweight && !it.pfs) it.pfs = computePFS(it, it.track);
   M.intake = it;
+  // ---- meal plan (Complete Nutrition System — coach-built, pushed as type:mealplan) ----
+  var smp=(server&&server.mealplan&&server.mealplan.length)?server.mealplan[server.mealplan.length-1]:null;
+  if(smp){ try{ var pj=JSON.parse(smp['Plan']||'{}');
+      M.mealplan={ title:smp['Title']||pj.title||'Your Meal Plan', note:pj.note||'', days:(pj.days||[]), ts:ts(smp['Timestamp'])||0 };
+    }catch(e){ M.mealplan=null; } }
+  else M.mealplan=null;
   // ---- tier + Complete Nutrition System entitlement ----
   M.tier = (server && server.tier) || M.tier || '';
   // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
@@ -709,6 +733,7 @@ function renderHome(){
   renderQuarterly();
   renderPFS();
   renderRoadmap();
+  renderMealPlan();
   renderOnboarding();
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
 }
@@ -1287,6 +1312,39 @@ function completeSystemCard(){
     +'<div class="actions" style="margin-top:8px"><a class="btn btn-primary" href="'+url+'"'+(url==="#"?'':' target="_blank" rel="noopener"')+'>Build my Complete Nutrition System →</a></div>'
     +'</div>';
 }
+/* ---- Meal Plan (Complete Nutrition System — coach-built, rendered native + Save-as-PDF) ---- */
+function mpDayHTML(day){
+  if(!day) return '';
+  return (day.meals||[]).map(function(m){
+    var macros=[]; if(m.cal!=null&&m.cal!=='')macros.push(m.cal+' cal'); if(m.protein!=null&&m.protein!=='')macros.push(m.protein+'g P'); if(m.carbs!=null&&m.carbs!=='')macros.push(m.carbs+'g C'); if(m.fat!=null&&m.fat!=='')macros.push(m.fat+'g F');
+    return '<div class="mp-meal"><div class="mp-meal-h"><b>'+esc(m.name||'Meal')+'</b>'+(macros.length?'<span class="mp-macros">'+esc(macros.join(' · '))+'</span>':'')+'</div>'
+      +'<ul class="mp-items">'+(m.items||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';
+  }).join('');
+}
+function mpDay(i){ MP_DAY=i; var b=g("mpDayBox"); if(b&&M.mealplan) b.innerHTML=mpDayHTML(M.mealplan.days[i]);
+  Array.from(document.querySelectorAll('#mealPlanBox .mp-chip')).forEach(function(c,idx){ c.classList.toggle('on', idx===i); }); }
+function mealPlanPrintHTML(){
+  if(!M.mealplan||!(M.mealplan.days||[]).length) return '';
+  var mp=M.mealplan;
+  return (mp.note?'<p class="wiz-hint">'+esc(mp.note)+'</p>':'')
+    +mp.days.map(function(d){ return '<div class="lp-sub">'+esc(d.label||('Day '+(d.day||'')))+'</div>'+mpDayHTML(d); }).join('');
+}
+function renderMealPlan(){
+  var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
+  if(!hasCNS()){ card.style.display="none"; return; }
+  card.style.display="";
+  var mp=M.mealplan;
+  if(!mp || !(mp.days||[]).length){
+    box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your custom meal plan is being built around the foods you actually eat. '+esc(CONFIG.coachName)+' will drop it right here — you\'ll get a heads-up when it\'s ready.</div>';
+    return;
+  }
+  if(MP_DAY>=mp.days.length) MP_DAY=0;
+  var chips=mp.days.map(function(d,i){ return '<button class="mp-chip'+(i===MP_DAY?' on':'')+'" onclick="mpDay('+i+')">'+esc(d.label||('Day '+(d.day||i+1)))+'</button>'; }).join('');
+  box.innerHTML=(mp.note?'<p class="wiz-hint" style="margin:0 0 10px">'+esc(mp.note)+'</p>':'')
+    +'<div class="mp-days">'+chips+'</div>'
+    +'<div id="mpDayBox">'+mpDayHTML(mp.days[MP_DAY])+'</div>'
+    +'<div class="actions no-print"><button class="btn btn-primary" onclick="window.print()">⬇ Save my meal plan (PDF)</button></div>';
+}
 function renderRoadmap(){
   var card=g("roadmapCard"), box=g("roadmapBox"), it=M.intake;
   if(!it || !it.pfs || !hasCNS()){ if(card) card.style.display="none"; var pd=g("printDoc"); if(pd) pd.innerHTML=""; return; }
@@ -1304,6 +1362,7 @@ function fillPrintDoc(it){
     +'<div class="pd-cover"><div class="pd-eyebrow">Your Roadmap · '+esc(tn)+'</div><h1 class="pd-name">'+esc(name)+'</h1><div class="pd-tag">Your personalized path forward — built from your data.</div></div>'
     +'<div class="pd-section"><h2>Your Roadmap</h2>'+roadmapHTML(it)+'</div>'
     +'<div class="pd-section pd-break"><h2>Your Power Food System</h2>'+nutritionHTML(it)+'</div>'
+    +((M.mealplan&&(M.mealplan.days||[]).length)?'<div class="pd-section pd-break"><h2>Your Meal Plan</h2>'+mealPlanPrintHTML()+'</div>':'')
     +'<div class="pd-sign">Protein first. Every meal. Let\'s go to work.<br><b>— '+esc(CONFIG.coachName)+'</b></div>';
 }
 function wizChips(key, opts, multi){
