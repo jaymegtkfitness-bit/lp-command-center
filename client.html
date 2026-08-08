@@ -56,6 +56,13 @@
 .mp-macros{font-size:11.5px;color:var(--touch);font-weight:600;white-space:nowrap}
 .mp-items{margin:6px 0 0;padding-left:18px}
 .mp-items li{font-size:13.5px;line-height:1.5;color:var(--ink-soft)}
+/* Symptom guide */
+.sym-disc{font-size:12.5px;line-height:1.55;color:var(--ink-soft);background:var(--stall-bg);border:1px solid var(--stall-tx);border-radius:10px;padding:11px 13px;margin-bottom:12px}
+.sym-cat{padding:11px 0;border-top:1px solid var(--line)}
+.sym-cat:first-of-type{border-top:none}
+.sym-links{display:flex;flex-direction:column;gap:7px}
+.sym-links a{color:var(--accent);font-size:13px;text-decoration:none;font-weight:600}
+.sym-links a:hover{text-decoration:underline}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--ink);
@@ -399,8 +406,14 @@ select.input{appearance:none}
       <div id="doseBox" class="hidden" style="margin-top:12px"></div>
     </div>
 
+    <!-- Symptom guide (publicly-available info + consult routing; on-protocol only) -->
+    <div class="card" id="symptomCard" style="display:none">
+      <div class="sec-h"><h2>Symptom guide</h2></div>
+      <div id="symptomBox"></div>
+    </div>
+
     <!-- Prescriber notes -->
-    <div class="card">
+    <div class="card" id="rxCard">
       <div class="sec-h"><h2>Prescriber notes</h2></div>
       <div id="rxBox"></div>
     </div>
@@ -693,6 +706,7 @@ function buildModel(server){
   M.tier = (server && server.tier) || M.tier || '';
   // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
   // Built for More auto-qualifies via hasCNS(); until the doorway returns this, only BFM gets CNS.
+  M.onProtocol = (server && server.onProtocol!=null) ? String(server.onProtocol) : (M.onProtocol||'');
   M.complete = (server && (server.complete!=null ? server.complete : server.cns)) != null
     ? String(server.complete!=null ? server.complete : server.cns) : (M.complete||'');
   // ---- onboarding checklist progress ----
@@ -734,6 +748,7 @@ function renderHome(){
   renderPFS();
   renderRoadmap();
   renderMealPlan();
+  gateProtocolCards();
   renderOnboarding();
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
 }
@@ -1113,6 +1128,48 @@ function isOneToOne(tier){ return /built for more|coaching|1:1|one[- ]on[- ]one/
 /* Complete Nutrition System entitlement: Built for More (1:1) OR a "Complete" Roster flag
    (Yes = bought an Accelerator on either base tier). Base tiers without it get PFS + the upsell. */
 function hasCNS(){ return isOneToOne(M.tier) || /^\s*(y|yes|true|1|complete|active|paid)/i.test(String(M.complete||"")); }
+/* On peptides? Coach flips the OnProtocol flag; this unlocks the dosing + symptom + prescriber tools. */
+function isOnProtocol(){ return /^\s*(y|yes|true|1)/i.test(String(M.onProtocol||"")); }
+function gateProtocolCards(){
+  var on=isOnProtocol();
+  ["doseCard","symptomCard","rxCard"].forEach(function(id){ var el=g(id); if(el) el.style.display = on ? "" : "none"; });
+  if(on) renderSymptoms();
+}
+
+/* ---- Symptom guide — PUBLICLY-AVAILABLE info + consult routing ONLY (IHN compliance).
+   LP gives no dosing/side-effect advice; every path routes to the Patient Care Team. ---- */
+var SYMPTOM_GUIDE=[
+  { cat:"GLP-1 (Semaglutide / Tirzepatide)",
+    note:"Publicly reported in prescribing info: nausea, reduced appetite, constipation, diarrhea, indigestion — usually mild and most common in the days after a dose increase. General public reading, not a plan for you.",
+    links:[
+      ["Cleveland Clinic — GLP-1 agonists: how they work & side effects","https://my.clevelandclinic.org/health/treatments/13901-glp-1-agonists"],
+      ["Mayo Clinic — Semaglutide side effects","https://www.mayoclinic.org/drugs-supplements/semaglutide-subcutaneous-route/description/drg-20406730"],
+      ["Mayo Clinic — Tirzepatide side effects","https://www.mayoclinic.org/drugs-supplements/tirzepatide-subcutaneous-route/description/drg-20534045"],
+      ["Harvard Health — GLP-1 side effects","https://www.health.harvard.edu/healthy-aging-and-longevity/glp-1-diabetes-and-weight-loss-drug-side-effects-ozempic-face-and-more"],
+      ["UCLA Health — eating well on weight-loss medication","https://www.uclahealth.org/news/article/patients-taking-weight-loss-medications-require-proper"]
+    ]},
+  { cat:"Other injectable peptides",
+    note:"Effects vary by peptide and person, and reputable public data is limited for many of these. General injection-site care (clean technique, rotating sites) is widely published for any injectable. For anything you notice, tell your provider — never self-adjust.",
+    links:[
+      ["FDA — what to know about compounded GLP-1 / peptide products","https://www.fda.gov/drugs/drug-alerts-and-statements/fdas-concerns-unapproved-glp-1-drugs-used-weight-loss"]
+    ]}
+];
+function renderSymptoms(){
+  var box=g("symptomBox"); if(!box) return;
+  var disc='<div class="sym-disc">This is general, publicly-available information — <b>not medical advice from Legacy Performance.</b> Eligibility, dosing, and any symptom concern are handled solely by your licensed provider. If something doesn’t feel right, request a consult with the Patient Care Team — that’s always the right next step.</div>';
+  var cats=SYMPTOM_GUIDE.map(function(s){
+    return '<div class="sym-cat"><div class="lp-sub">'+esc(s.cat)+'</div>'
+      +'<p class="wiz-hint" style="margin:2px 0 8px">'+esc(s.note)+'</p>'
+      +'<div class="sym-links">'+s.links.map(function(l){return '<a href="'+esc(l[1])+'" target="_blank" rel="noopener">'+esc(l[0])+' ↗</a>';}).join('')+'</div></div>';
+  }).join('');
+  var cta='<div class="actions" style="margin-top:12px"><button class="btn btn-primary" onclick="requestConsult(\'Symptom / peptide question\')">Request a consult</button> <span id="consultStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span></div>';
+  box.innerHTML=disc+cats+cta;
+}
+function requestConsult(topic){
+  if(!ID||!ID.email) return;
+  if(CONFIG.writeUrl) postToSheet({type:"consult", email:ID.email, name:ID.name||"", topic:topic||"General", note:""});
+  var s=g("consultStatus"); if(s){ s.textContent="Request sent ✓ The Patient Care Team will follow up."; s.style.color="var(--good-tx)"; }
+}
 
 /* ---- Live weekly auto-adjust verdict — "Your move this week" ---- */
 function goalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; if(track==="Long") return 0; return -1; }

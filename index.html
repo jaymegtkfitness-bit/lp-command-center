@@ -2368,6 +2368,15 @@ function journeyVerdictTile(ci, track){
   return '<div class="tile" style="background:'+bg+';border-color:'+tx+';margin-bottom:14px"><b style="color:'+tx+'">'+tag+'</b>'
     +'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+body+'</div></div>';
 }
+/* Coach flips a member's on-peptides flag → unlocks their dosing calc + symptom guide + prescriber notes. */
+function toggleProtocol(email){
+  var state=document.getElementById('protoState'), btn=document.getElementById('protoBtn');
+  var next = !(state && state.textContent.trim()==='Yes');
+  postToSheet({type:'setprotocol', email:email, on:next});
+  __rosterCache=null;
+  if(state){ state.textContent=next?'Yes':'No'; state.style.background=next?'var(--good-bg)':'var(--surface-2)'; state.style.color=next?'var(--good-tx)':'var(--muted)'; }
+  if(btn){ btn.textContent=next?'Turn off':'Turn on'; }
+}
 function journeyPanel(d, email){
   var ci=(d.checkins||[]).map(function(r){ return {ts:parseTs(r['Timestamp']), w:num(r['Weight']), cons:consistencyToNum(r['Consistency']),
       energy:num(r['Energy']), sleep:num(r['Sleep quality']), mood:num(r['Mood & resilience'])}; })
@@ -2392,6 +2401,13 @@ function journeyPanel(d, email){
 
   // live auto-adjust verdict (mirrors the client's "your move this week")
   if(intk && ci.length) h+=journeyVerdictTile(ci, intk['Track']);
+
+  // on-peptides toggle (unlocks the member's dosing + symptom + prescriber tools)
+  var onP=/^\s*(y|yes|true|1)/i.test(String(d.onProtocol||''));
+  h+='<div class="tile" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">'
+    +'<div><b>On peptides</b> <span class="pill" id="protoState" style="'+(onP?'background:var(--good-bg);color:var(--good-tx)':'background:var(--surface-2);color:var(--muted)')+'">'+(onP?'Yes':'No')+'</span>'
+    +'<div style="font-size:12px;color:var(--muted);margin-top:4px">Unlocks their dosing calculator, symptom guide &amp; prescriber notes.</div></div>'
+    +'<button class="btn" id="protoBtn" onclick="toggleProtocol(\''+esc(email)+'\')" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 16px;border-radius:8px">'+(onP?'Turn off':'Turn on')+'</button></div>';
 
   // week-1 banner
   if(week1) h+='<div class="tile" style="background:var(--good-bg);border-color:var(--good);margin-bottom:14px"><b style="color:var(--good-tx)">Ready for the week-1 review + Blueprint offer</b><div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+ci.length+' check-ins over '+(daysSince(first.ts))+' days. Pull their real data, give the read, offer the build.</div></div>';
