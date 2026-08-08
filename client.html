@@ -63,6 +63,13 @@
 .sym-links{display:flex;flex-direction:column;gap:7px}
 .sym-links a{color:var(--accent);font-size:13px;text-decoration:none;font-weight:600}
 .sym-links a:hover{text-decoration:underline}
+/* Your Journey */
+.jsteps{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.jchip{font-size:12px;font-weight:600;padding:5px 11px;border-radius:999px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.jchip.j-done{color:var(--ink-soft);border-color:var(--touch)}
+.jchip.j-now{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.jarrow{color:var(--muted);font-size:12px}
+.jgen{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--ink);
@@ -366,6 +373,12 @@ select.input{appearance:none}
       <button class="btn btn-primary" onclick="showCheckin()" id="ciCta">Start this week's check-in</button>
       <button class="btn btn-month" onclick="showMonthly()" id="moCta" style="margin-top:10px">Start this month's debrief</button>
       <button class="btn btn-quarter" onclick="showQuarterly()" id="qtCta" style="margin-top:10px">Set this quarter's direction</button>
+    </div>
+
+    <!-- Your journey -->
+    <div class="card" id="journeyCard">
+      <div class="sec-h"><h2>Your Journey</h2></div>
+      <div id="journeyBox"></div>
     </div>
 
     <!-- Power Food System -->
@@ -707,6 +720,7 @@ function buildModel(server){
   // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
   // Built for More auto-qualifies via hasCNS(); until the doorway returns this, only BFM gets CNS.
   M.onProtocol = (server && server.onProtocol!=null) ? String(server.onProtocol) : (M.onProtocol||'');
+  M.genetics = (server && server.genetics!=null) ? String(server.genetics) : (M.genetics||'');
   M.complete = (server && (server.complete!=null ? server.complete : server.cns)) != null
     ? String(server.complete!=null ? server.complete : server.cns) : (M.complete||'');
   // ---- onboarding checklist progress ----
@@ -745,6 +759,7 @@ function renderHome(){
   renderLog(h);
   renderMonthly();
   renderQuarterly();
+  renderJourneyCard();
   renderPFS();
   renderRoadmap();
   renderMealPlan();
@@ -1281,6 +1296,38 @@ function nutritionHTML(it){
     +'<div class="lp-sub">A sample meal (hits one meal target)</div>'
     +'<p class="wiz-hint" style="margin:0">≈ '+chkOz+' oz raw chicken breast · '+riceG+'g cooked rice · '+oilTbsp+' tbsp olive oil over a mountain of veg. Swap any protein / carb / fat from your lists to the same targets.</p>'
     +'<p class="wiz-hint">A protein shake (25–40g) counts toward your protein anytime. One day is noise; two weeks is a trend.</p>';
+}
+/* ---- Your Journey — where they are in the arc + Genetic Blueprint status ---- */
+var JOURNEY_STAGES=[
+  {k:"Foundations", d:"Getting set up — your inputs, your track, your starting targets."},
+  {k:"Track set",   d:"Your track is chosen. Time to run it and log week one."},
+  {k:"Active",      d:"You’re executing and checking in — we read the trend and adjust."},
+  {k:"Dialed in",   d:"Consistent and progressing. This is where it becomes who you are."}
+];
+function journeyStage(){
+  var n=M.checkins.length;
+  if(!M.intake || !M.intake.done) return 0;
+  if(n<2) return 1;
+  if(n<12) return 2;
+  return 3;
+}
+function geneticsStatus(){
+  var x=String(M.genetics||'').toLowerCase();
+  if(x.indexOf('in')===0 || x==='complete' || x==='done') return {label:"Complete — your results are in", color:"var(--good-tx)"};
+  if(x.indexOf('pend')===0 || x==='ordered')               return {label:"In progress — on the way", color:"var(--accent)"};
+  return {label:"Not started — ask your coach about the Genetic Blueprint", color:"var(--muted)"};
+}
+function renderJourneyCard(){
+  var box=g("journeyBox"); if(!box) return;
+  var cur=journeyStage(), gs=geneticsStatus();
+  var chips=JOURNEY_STAGES.map(function(s,i){
+    var cls=i<cur?"j-done":(i===cur?"j-now":"j-todo");
+    return '<span class="jchip '+cls+'">'+esc(s.k)+'</span>';
+  }).join('<span class="jarrow">→</span>');
+  box.innerHTML='<div class="jsteps">'+chips+'</div>'
+    +'<p class="wiz-hint" style="margin:12px 0 0"><b style="color:var(--accent)">'+esc(JOURNEY_STAGES[cur].k)+':</b> '+esc(JOURNEY_STAGES[cur].d)+'</p>'
+    +'<div class="jgen"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Genetic Blueprint</div>'
+    +'<div style="color:'+gs.color+';font-size:13.5px;font-weight:600;margin-top:2px">'+esc(gs.label)+'</div></div>';
 }
 function renderPFS(){
   var box=g("pfsBox"), it=M.intake;

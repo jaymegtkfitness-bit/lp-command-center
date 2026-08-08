@@ -741,6 +741,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-links"><div class="wrap" id="linksView"></div></section>
 <section class="view" id="view-journey"><div class="wrap" id="journeyView"></div></section>
 <section class="view" id="view-orders"><div class="wrap" id="ordersView"></div></section>
+<section class="view" id="view-consults"><div class="wrap" id="consultsView"></div></section>
 <section class="view" id="view-grow"><div class="wrap" id="growView"></div></section>
 <section class="view" id="view-calls"><div class="wrap" id="callsView"></div></section>
 
@@ -2050,7 +2051,7 @@ const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
   {group:"Launch", items:[["launch","Fitbody Launch"]]},
-  {group:"Fulfillment", items:[["journey","Member Journey"],["orders","Wellness Orders"],["calls","Fulfillment Calls"],["links","Client Links"]]},
+  {group:"Fulfillment", items:[["journey","Member Journey"],["orders","Wellness Orders"],["consults","Consult Requests"],["calls","Fulfillment Calls"],["links","Client Links"]]},
   {group:"Grow", items:[["grow","Conveyor Belt"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
@@ -2077,6 +2078,7 @@ function showTab(id){
   else if(id==="links") renderLinks();
   else if(id==="journey") renderJourney();
   else if(id==="orders") renderOrders();
+  else if(id==="consults") renderConsults();
   else if(id==="grow"){ syncTasks(); renderGrow(); }
   else if(id==="calls"){ syncTasks(); renderCalls(); }
   window.scrollTo(0,0);
@@ -2311,6 +2313,39 @@ function renderOrders(){
         +'<b style="color:var(--gold);font-size:16px">$'+Math.round(moneyNum(rv(r,'Est Total')))+'</b>'
         +'<select onchange="setOrderStatus(\''+esc(ts)+'\',\''+esc(email)+'\',this.value)" style="padding:7px 11px;border-radius:8px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-size:13px">'+opts+'</select>'
         +'</div></div>';
+    }).join('');
+    list.innerHTML=head+cards;
+  });
+}
+/* ---- Consult Requests — routes to the Patient Care Team; coach monitors here ---- */
+function fetchConsults(cb){
+  if(!CONFIG.writeUrl){ cb(null); return; }
+  var name='__lpCn'+Date.now(), s=document.createElement('script'), done=false;
+  window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
+  s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
+  s.src=CONFIG.writeUrl+'?action=consults&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
+}
+function renderConsults(){
+  var box=document.getElementById("consultsView");
+  box.innerHTML='<div class="view-head"><h1>Consult Requests</h1><p class="view-sub">When a member taps “Request a consult,” it lands here. Route each to the Patient Care Team — clinical questions are theirs, not yours.</p></div><div id="consultsList"><p class="tool-d">Loading…</p></div>';
+  fetchConsults(function(rows){
+    var list=document.getElementById("consultsList");
+    if(!rows){ list.innerHTML='<p class="tool-d">Couldn’t load. Hit Refresh.</p>'; return; }
+    if(!rows.length){ list.innerHTML='<p class="tool-d">No consult requests yet. They appear here the moment a member requests one from their dashboard.</p>'; return; }
+    rows.sort(function(a,b){ return String(rv(b,'Timestamp')).localeCompare(String(rv(a,'Timestamp'))); });
+    var head='<div style="margin-bottom:14px"><div class="tile" style="display:inline-block;min-width:150px"><b style="font-size:22px;color:var(--gold)">'+rows.length+'</b><div style="color:var(--muted);font-size:12px">total requests</div></div></div>';
+    var cards=rows.map(function(r){
+      var note=rv(r,'Note');
+      return '<div class="tile" style="margin-bottom:10px">'
+        +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">'
+        +'<div><b>'+esc(rv(r,'Name')||rv(r,'Email'))+'</b> <span style="color:var(--muted);font-size:12px">'+esc(rv(r,'Email'))+'</span></div>'
+        +'<div style="color:var(--muted);font-size:12px">'+esc(fmtDate(parseTs(rv(r,'Timestamp'))))+'</div></div>'
+        +'<div style="margin-top:6px;font-size:13.5px;color:var(--ink)"><b>Topic:</b> '+esc(rv(r,'Topic')||'General')+'</div>'
+        +(note?'<div style="color:var(--ink-soft);font-size:12.5px;margin-top:4px">“'+esc(note)+'”</div>':'')
+        +'<div style="margin-top:8px"><a href="mailto:'+esc(rv(r,'Email'))+'" style="color:var(--gold);font-size:12.5px;text-decoration:none;font-weight:600">Reach out / route to Patient Care Team ↗</a></div>'
+        +'</div>';
     }).join('');
     list.innerHTML=head+cards;
   });
