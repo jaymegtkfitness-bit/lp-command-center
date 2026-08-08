@@ -740,6 +740,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-integrations"><div class="wrap" id="integrationsView"></div></section>
 <section class="view" id="view-links"><div class="wrap" id="linksView"></div></section>
 <section class="view" id="view-journey"><div class="wrap" id="journeyView"></div></section>
+<section class="view" id="view-orders"><div class="wrap" id="ordersView"></div></section>
 <section class="view" id="view-grow"><div class="wrap" id="growView"></div></section>
 <section class="view" id="view-calls"><div class="wrap" id="callsView"></div></section>
 
@@ -2049,7 +2050,7 @@ const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
   {group:"Launch", items:[["launch","Fitbody Launch"]]},
-  {group:"Fulfillment", items:[["journey","Member Journey"],["calls","Fulfillment Calls"],["links","Client Links"]]},
+  {group:"Fulfillment", items:[["journey","Member Journey"],["orders","Wellness Orders"],["calls","Fulfillment Calls"],["links","Client Links"]]},
   {group:"Grow", items:[["grow","Conveyor Belt"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
@@ -2075,6 +2076,7 @@ function showTab(id){
   else if(id==="integrations") renderIntegrations();
   else if(id==="links") renderLinks();
   else if(id==="journey") renderJourney();
+  else if(id==="orders") renderOrders();
   else if(id==="grow"){ syncTasks(); renderGrow(); }
   else if(id==="calls"){ syncTasks(); renderCalls(); }
   window.scrollTo(0,0);
@@ -2266,6 +2268,52 @@ function fetchClient(email, cb){
   s.src=CONFIG.writeUrl+'?action=clientData&email='+encodeURIComponent(email)+'&callback='+name;
   document.body.appendChild(s);
   setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
+}
+/* ---- Wellness Orders — every member request in one queue ---- */
+var ORDER_STATUSES=['Requested','Ordered','Shipped','Done','Cancelled'];
+function fetchOrders(cb){
+  if(!CONFIG.writeUrl){ cb(null); return; }
+  var name='__lpO'+Date.now(), s=document.createElement('script'), done=false;
+  window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
+  s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
+  s.src=CONFIG.writeUrl+'?action=orders&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
+}
+function setOrderStatus(ts, email, status){ postToSheet({type:'orderstatus', ts:ts, email:email, status:status}); }
+function moneyNum(v){ return parseFloat(String(v==null?'':v).replace(/[^0-9.]/g,''))||0; }
+function renderOrders(){
+  var box=document.getElementById("ordersView");
+  box.innerHTML='<div class="view-head"><h1>Wellness Orders</h1><p class="view-sub">Every member order request in one queue. Update each status as you fulfill — Sunday cutoff, order Monday, arrives Wed.</p></div><div id="ordersList"><p class="tool-d">Loading orders…</p></div>';
+  fetchOrders(function(rows){
+    var list=document.getElementById("ordersList");
+    if(!rows){ list.innerHTML='<p class="tool-d">Couldn’t load orders. Hit Refresh — if it persists, the doorway needs the orders endpoint redeployed.</p>'; return; }
+    if(!rows.length){ list.innerHTML='<p class="tool-d">No orders yet. When a member submits from the Wellness store, it lands here.</p>'; return; }
+    rows.sort(function(a,b){ return String(rv(b,'Timestamp')).localeCompare(String(rv(a,'Timestamp'))); });
+    var open=rows.filter(function(r){ var s=String(rv(r,'Status')||'Requested'); return s!=='Done'&&s!=='Cancelled'; });
+    var openTotal=open.reduce(function(t,r){ return t+moneyNum(rv(r,'Est Total')); },0);
+    var head='<div style="display:flex;gap:14px;flex-wrap:wrap;margin-bottom:16px">'
+      +'<div class="tile" style="flex:1;min-width:130px"><b style="font-size:22px;color:var(--gold)">'+open.length+'</b><div style="color:var(--muted);font-size:12px">open orders</div></div>'
+      +'<div class="tile" style="flex:1;min-width:130px"><b style="font-size:22px;color:var(--gold)">$'+Math.round(openTotal)+'</b><div style="color:var(--muted);font-size:12px">open order value</div></div>'
+      +'<div class="tile" style="flex:1;min-width:130px"><b style="font-size:22px;color:var(--gold)">'+rows.length+'</b><div style="color:var(--muted);font-size:12px">all-time orders</div></div></div>';
+    var cards=rows.map(function(r){
+      var ts=String(rv(r,'Timestamp')), email=String(rv(r,'Email')), status=String(rv(r,'Status')||'Requested');
+      var closed=(status==='Done'||status==='Cancelled');
+      var opts=ORDER_STATUSES.map(function(s){return '<option'+(s===status?' selected':'')+'>'+s+'</option>';}).join('');
+      var note=rv(r,'Note');
+      return '<div class="tile" style="margin-bottom:10px'+(closed?';opacity:.55':'')+'">'
+        +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">'
+        +'<div><b>'+esc(rv(r,'Name')||email)+'</b> <span style="color:var(--muted);font-size:12px">'+esc(email)+'</span></div>'
+        +'<div style="color:var(--muted);font-size:12px">'+esc(fmtDate(parseTs(ts)))+'</div></div>'
+        +'<div style="margin:8px 0;font-size:13.5px;color:var(--ink)">'+esc(rv(r,'Items'))+'</div>'
+        +(note?'<div style="color:var(--ink-soft);font-size:12.5px;font-style:italic;margin-bottom:8px">“'+esc(note)+'”</div>':'')
+        +'<div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-top:6px">'
+        +'<b style="color:var(--gold);font-size:16px">$'+Math.round(moneyNum(rv(r,'Est Total')))+'</b>'
+        +'<select onchange="setOrderStatus(\''+esc(ts)+'\',\''+esc(email)+'\',this.value)" style="padding:7px 11px;border-radius:8px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-size:13px">'+opts+'</select>'
+        +'</div></div>';
+    }).join('');
+    list.innerHTML=head+cards;
+  });
 }
 function renderJourney(){
   var box=document.getElementById("journeyView");

@@ -85,9 +85,13 @@ h1{font-family:'Cinzel',serif;font-size:24px;font-weight:600;color:var(--charcoa
 </head>
 <body>
 <header class="top"><div class="top-inner">
-  <img class="logo" src="logo.png" alt="Legacy Performance" onerror="this.style.display='none'" />
+  <img class="logo" src="logo.png" alt="Legacy Performance" onerror="this.style.display='none'" style="cursor:pointer" title="Back to your dashboard" onclick="goDashboard()" />
   <span class="divider"></span><span class="tag">Wellness</span>
+  <a href="#" onclick="goDashboard();return false;" style="margin-left:auto;color:var(--gold);font-size:13px;text-decoration:none;font-weight:600">&larr; Dashboard</a>
 </div></header>
+<script>
+function goDashboard(){ var k=new URLSearchParams(location.search).get('k'); location.href='client.html'+(k?('?k='+encodeURIComponent(k)):''); }
+</script>
 
 <main class="wrap">
   <div id="catalogView">
