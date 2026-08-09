@@ -1642,7 +1642,7 @@ var SETUP_DONE=false;
 function checkSetupParam(){
   if(SETUP_DONE) return; SETUP_DONE=true;
   var sp=getParam('setup');
-  if(sp==='cns' && hasCNS()) showCnsSetup();
+  if(sp==='cns') showCnsSetup();          // they just purchased — open the intake even before the Complete flag is flipped
   else if(sp==='genetics') showGeneticsSetup();
 }
 /* ---- Self-serve meal generator — client edits foods → regenerates their own plan (free, instant) ---- */
