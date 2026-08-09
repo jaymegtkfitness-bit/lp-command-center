@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="woman">
+<html lang="en" data-theme="charcoal">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -15,7 +15,7 @@
      • MAN   → charcoal + GOLD (primary), GREEN as the touch on every page
      • WOMAN → parchment + GREEN (primary), GOLD as the touch on every page
    ===================================================================== */
-:root, :root[data-theme="man"]{
+:root, :root[data-theme="man"], :root[data-theme="charcoal"]{
   --charcoal:#1C1C1C; --olive:#4A5C3E; --olive-soft:#7c9268; --parchment:#F2EDE4; --gold:#C1AD72;
   --bg:#1C1C1C; --header-bg:#141310; --surface:#26241f; --surface-2:#302d26;
   --headline:#F2EDE4; --ink:#EAE4D8; --ink-soft:#cfc9bc; --muted:#948d7e; --line:rgba(242,237,228,.10);
@@ -25,7 +25,7 @@
   --stall:#cf8b6b; --stall-bg:rgba(180,102,74,.22); --stall-tx:#e0a487;
   --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.28);
 }
-:root[data-theme="woman"]{
+:root[data-theme="woman"], :root[data-theme="parchment"]{
   --bg:#F2EDE4; --header-bg:#1C1C1C; --surface:#FBF9F4; --surface-2:#F2EDE4;
   --headline:#1C1C1C; --ink:#242219; --ink-soft:#4a463c; --muted:#8a8578; --line:#e4ddcf;
   --accent:#4A5C3E; --accent-ink:#FBF9F4; --accent-soft:rgba(74,92,62,.12);    /* GREEN primary */
@@ -34,6 +34,23 @@
   --stall:#b4664a; --stall-bg:rgba(180,102,74,.14); --stall-tx:#b4664a;
   --shadow:0 1px 2px rgba(28,28,28,.05),0 8px 24px rgba(28,28,28,.06);
 }
+:root[data-theme="olive"]{  /* green-forward dark theme — olive base, gold accent, light-green touch */
+  --bg:#2c3327; --header-bg:#20261c; --surface:#38412f; --surface-2:#434d38;
+  --headline:#F2EDE4; --ink:#e8e4d6; --ink-soft:#c7cbb6; --muted:#9aa287; --line:rgba(242,237,228,.12);
+  --accent:#C1AD72; --accent-ink:#1C1C1C; --accent-soft:rgba(193,173,114,.18);  /* GOLD primary */
+  --touch:#a9c090; --touch-soft:rgba(143,169,122,.22);                          /* light-green touch */
+  --good:#a9c090; --good-bg:rgba(143,169,122,.24); --good-tx:#bcd0a3;
+  --stall:#cf8b6b; --stall-bg:rgba(180,102,74,.22); --stall-tx:#e0a487;
+  --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.30);
+}
+/* Tabbed layout + theme picker */
+.ctabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px;margin:18px 0 8px}
+.ctab{flex:1;text-align:center;padding:9px 6px;border-radius:9px;font:600 13px/1 'Montserrat',sans-serif;color:var(--muted);background:transparent;border:none;cursor:pointer;transition:background .15s}
+.ctab.on{background:var(--accent);color:var(--accent-ink)}
+.ctab-panel.hidden{display:none}
+.themepick{display:flex;gap:12px;align-items:center;margin-top:10px}
+.swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.swatch.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 /* Live weekly auto-adjust verdict — "Your move this week" (Complete Nutrition System) */
 .verdict{border-radius:14px;padding:15px 17px;margin:2px 0 6px;border:1px solid var(--line);background:var(--surface-2)}
 .verdict .v-tag{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin-bottom:5px}
@@ -359,125 +376,154 @@ select.input{appearance:none}
     <h1 id="greeting">Welcome back</h1>
     <p class="sub" id="homeSub">Your dashboard updates every time you check in — and it's the same view your coach sees.</p>
 
-    <!-- Onboarding checklist -->
-    <div class="card" id="obCard" style="display:none"><div id="obBox"></div></div>
-
-    <div class="stats">
-      <div class="stat"><div class="n" id="stWeight">—</div><div class="l">Current weight</div></div>
-      <div class="stat"><div class="n" id="stCons">—</div><div class="l">Consistency</div></div>
-      <div class="stat"><div class="n" id="stChange">—</div><div class="l">Since start</div></div>
-      <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Check-ins</div></div>
+    <!-- ===== TAB BAR ===== -->
+    <div class="ctabs">
+      <button class="ctab on" id="ctab-btn-home"      onclick="showClientTab('home')">Home</button>
+      <button class="ctab"    id="ctab-btn-nutrition" onclick="showClientTab('nutrition')">Nutrition</button>
+      <button class="ctab"    id="ctab-btn-progress"  onclick="showClientTab('progress')">Progress</button>
+      <button class="ctab"    id="ctab-btn-wellness"  onclick="showClientTab('wellness')">Wellness</button>
     </div>
 
-    <div class="actions" style="margin-top:16px">
-      <button class="btn btn-primary" onclick="showCheckin()" id="ciCta">Start this week's check-in</button>
-      <button class="btn btn-month" onclick="showMonthly()" id="moCta" style="margin-top:10px">Start this month's debrief</button>
-      <button class="btn btn-quarter" onclick="showQuarterly()" id="qtCta" style="margin-top:10px">Set this quarter's direction</button>
+    <!-- ===== HOME TAB ===== -->
+    <div class="ctab-panel" id="ctab-home">
+      <!-- Onboarding checklist -->
+      <div class="card" id="obCard" style="display:none"><div id="obBox"></div></div>
+
+      <div class="stats">
+        <div class="stat"><div class="n" id="stWeight">—</div><div class="l">Current weight</div></div>
+        <div class="stat"><div class="n" id="stCons">—</div><div class="l">Consistency</div></div>
+        <div class="stat"><div class="n" id="stChange">—</div><div class="l">Since start</div></div>
+        <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Check-ins</div></div>
+      </div>
+
+      <div class="actions" style="margin-top:16px">
+        <button class="btn btn-primary" onclick="showCheckin()" id="ciCta">Start this week's check-in</button>
+        <button class="btn btn-month" onclick="showMonthly()" id="moCta" style="margin-top:10px">Start this month's debrief</button>
+        <button class="btn btn-quarter" onclick="showQuarterly()" id="qtCta" style="margin-top:10px">Set this quarter's direction</button>
+      </div>
+
+      <!-- Your journey -->
+      <div class="card" id="journeyCard">
+        <div class="sec-h"><h2>Your Journey</h2></div>
+        <div id="journeyBox"></div>
+      </div>
+
+      <!-- Coach note -->
+      <div class="card" id="coachCard">
+        <div class="sec-h"><h2>From your coach</h2></div>
+        <div id="coachBox"><div class="empty">Notes from Jayme show up here.</div></div>
+      </div>
     </div>
 
-    <!-- Your journey -->
-    <div class="card" id="journeyCard">
-      <div class="sec-h"><h2>Your Journey</h2></div>
-      <div id="journeyBox"></div>
+    <!-- ===== NUTRITION TAB ===== -->
+    <div class="ctab-panel hidden" id="ctab-nutrition">
+      <!-- Power Food System -->
+      <div class="card">
+        <div class="sec-h"><h2>Your Power Food System</h2></div>
+        <div id="pfsBox"></div>
+      </div>
+
+      <!-- Roadmap (1:1 only) -->
+      <div class="card" id="roadmapCard" style="display:none">
+        <div class="sec-h"><h2>Your Roadmap</h2></div>
+        <div id="roadmapBox"></div>
+      </div>
+
+      <!-- Meal Plan (Complete Nutrition System) -->
+      <div class="card" id="mealPlanCard" style="display:none">
+        <div class="sec-h"><h2>Your Meal Plan</h2></div>
+        <div id="mealPlanBox"></div>
+      </div>
     </div>
 
-    <!-- Power Food System -->
-    <div class="card">
-      <div class="sec-h"><h2>Your Power Food System</h2></div>
-      <div id="pfsBox"></div>
+    <!-- ===== PROGRESS TAB ===== -->
+    <div class="ctab-panel hidden" id="ctab-progress">
+      <!-- Weight trend -->
+      <div class="card chart">
+        <div class="sec-h"><h2>Weight trend</h2></div>
+        <div id="trendBox"><div class="empty">Your trend line appears after a couple of check-ins.</div></div>
+      </div>
+
+      <!-- Biofeedback -->
+      <div class="card">
+        <div class="sec-h"><h2>Biofeedback trends</h2></div>
+        <div id="bfBox"><div class="empty">Rate how you feel each week and your trends build here.</div></div>
+      </div>
+
+      <!-- PRs -->
+      <div class="card">
+        <div class="sec-h"><h2>Personal records</h2></div>
+        <button class="toggle" onclick="togglePR()" id="prToggle">＋ Log a PR</button>
+        <div id="prFormBox" class="hidden"></div>
+        <div id="prBox" style="margin-top:12px"></div>
+      </div>
+
+      <!-- My notes -->
+      <div class="card">
+        <div class="sec-h"><h2>My notes</h2></div>
+        <button class="toggle" onclick="toggleNote()" id="noteToggle">＋ Add a note</button>
+        <div id="noteFormBox" class="hidden"></div>
+        <div id="noteBox" style="margin-top:12px"></div>
+      </div>
+
+      <!-- History -->
+      <div class="card">
+        <div class="sec-h"><h2>Check-in history</h2></div>
+        <div id="logBox"><div class="empty">Your first check-in sets the baseline.</div></div>
+      </div>
+
+      <!-- Monthly debriefs -->
+      <div class="card">
+        <div class="sec-h"><h2>Monthly debriefs</h2></div>
+        <div id="monthlyBox"><div class="empty">Your monthly zoom-outs land here — the bigger picture, once a month.</div></div>
+      </div>
+
+      <!-- Quarterly direction -->
+      <div class="card">
+        <div class="sec-h"><h2>Quarterly direction</h2></div>
+        <div id="quarterlyBox"><div class="empty">Your season's track and 90-day One Thing land here — set it once a quarter.</div></div>
+      </div>
     </div>
 
-    <!-- Roadmap (1:1 only) -->
-    <div class="card" id="roadmapCard" style="display:none">
-      <div class="sec-h"><h2>Your Roadmap</h2></div>
-      <div id="roadmapBox"></div>
+    <!-- ===== WELLNESS TAB ===== -->
+    <div class="ctab-panel hidden" id="ctab-wellness">
+      <!-- Wellness (provider-guided catalog + order request) -->
+      <div class="card" id="wellnessCard">
+        <div class="sec-h"><h2>Wellness</h2></div>
+        <p class="empty" style="margin:0 0 10px">Provider-guided peptides, GLP-1s, and hormones — at cost, no markup. Browse and send your coach an order request; your provider reviews eligibility.</p>
+        <a class="btn btn-primary" id="wellnessLink" href="wellness.html">Browse wellness &amp; request →</a>
+      </div>
+
+      <!-- Dosing calculator -->
+      <div class="card" id="doseCard">
+        <div class="sec-h"><h2>Dosing calculator</h2></div>
+        <button class="toggle" onclick="toggleDose()" id="doseToggle">＋ Open the dosing calculator</button>
+        <div id="doseBox" class="hidden" style="margin-top:12px"></div>
+      </div>
+
+      <!-- Symptom guide (publicly-available info + consult routing; on-protocol only) -->
+      <div class="card" id="symptomCard" style="display:none">
+        <div class="sec-h"><h2>Symptom guide</h2></div>
+        <div id="symptomBox"></div>
+      </div>
+
+      <!-- Prescriber notes -->
+      <div class="card" id="rxCard">
+        <div class="sec-h"><h2>Prescriber notes</h2></div>
+        <div id="rxBox"></div>
+      </div>
     </div>
 
-    <!-- Meal Plan (Complete Nutrition System) -->
-    <div class="card" id="mealPlanCard" style="display:none">
-      <div class="sec-h"><h2>Your Meal Plan</h2></div>
-      <div id="mealPlanBox"></div>
+    <!-- ===== FOOTER: theme picker + identity ===== -->
+    <div style="margin-top:18px">
+      <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Dashboard color</div>
+      <div class="themepick" id="themePick">
+        <button class="swatch" data-theme-val="charcoal"  title="Charcoal" style="background:#1C1C1C" onclick="applyTheme('charcoal',true)"></button>
+        <button class="swatch" data-theme-val="parchment" title="Parchment" style="background:#F2EDE4" onclick="applyTheme('parchment',true)"></button>
+        <button class="swatch" data-theme-val="olive"     title="Olive" style="background:#4A5C3E" onclick="applyTheme('olive',true)"></button>
+      </div>
     </div>
-
-    <!-- Coach note -->
-    <div class="card" id="coachCard">
-      <div class="sec-h"><h2>From your coach</h2></div>
-      <div id="coachBox"><div class="empty">Notes from Jayme show up here.</div></div>
-    </div>
-
-    <!-- Wellness (provider-guided catalog + order request) -->
-    <div class="card" id="wellnessCard">
-      <div class="sec-h"><h2>Wellness</h2></div>
-      <p class="empty" style="margin:0 0 10px">Provider-guided peptides, GLP-1s, and hormones — at cost, no markup. Browse and send your coach an order request; your provider reviews eligibility.</p>
-      <a class="btn btn-primary" id="wellnessLink" href="wellness.html">Browse wellness &amp; request →</a>
-    </div>
-
-    <!-- Dosing calculator -->
-    <div class="card" id="doseCard">
-      <div class="sec-h"><h2>Dosing calculator</h2></div>
-      <button class="toggle" onclick="toggleDose()" id="doseToggle">＋ Open the dosing calculator</button>
-      <div id="doseBox" class="hidden" style="margin-top:12px"></div>
-    </div>
-
-    <!-- Symptom guide (publicly-available info + consult routing; on-protocol only) -->
-    <div class="card" id="symptomCard" style="display:none">
-      <div class="sec-h"><h2>Symptom guide</h2></div>
-      <div id="symptomBox"></div>
-    </div>
-
-    <!-- Prescriber notes -->
-    <div class="card" id="rxCard">
-      <div class="sec-h"><h2>Prescriber notes</h2></div>
-      <div id="rxBox"></div>
-    </div>
-
-    <!-- Weight trend -->
-    <div class="card chart">
-      <div class="sec-h"><h2>Weight trend</h2></div>
-      <div id="trendBox"><div class="empty">Your trend line appears after a couple of check-ins.</div></div>
-    </div>
-
-    <!-- Biofeedback -->
-    <div class="card">
-      <div class="sec-h"><h2>Biofeedback trends</h2></div>
-      <div id="bfBox"><div class="empty">Rate how you feel each week and your trends build here.</div></div>
-    </div>
-
-    <!-- PRs -->
-    <div class="card">
-      <div class="sec-h"><h2>Personal records</h2></div>
-      <button class="toggle" onclick="togglePR()" id="prToggle">＋ Log a PR</button>
-      <div id="prFormBox" class="hidden"></div>
-      <div id="prBox" style="margin-top:12px"></div>
-    </div>
-
-    <!-- My notes -->
-    <div class="card">
-      <div class="sec-h"><h2>My notes</h2></div>
-      <button class="toggle" onclick="toggleNote()" id="noteToggle">＋ Add a note</button>
-      <div id="noteFormBox" class="hidden"></div>
-      <div id="noteBox" style="margin-top:12px"></div>
-    </div>
-
-    <!-- History -->
-    <div class="card">
-      <div class="sec-h"><h2>Check-in history</h2></div>
-      <div id="logBox"><div class="empty">Your first check-in sets the baseline.</div></div>
-    </div>
-
-    <!-- Monthly debriefs -->
-    <div class="card">
-      <div class="sec-h"><h2>Monthly debriefs</h2></div>
-      <div id="monthlyBox"><div class="empty">Your monthly zoom-outs land here — the bigger picture, once a month.</div></div>
-    </div>
-
-    <!-- Quarterly direction -->
-    <div class="card">
-      <div class="sec-h"><h2>Quarterly direction</h2></div>
-      <div id="quarterlyBox"><div class="empty">Your season's track and 90-day One Thing land here — set it once a quarter.</div></div>
-    </div>
-
-    <div style="margin-top:12px"><button class="btn btn-ghost" onclick="editIdentity()">Update name / email / style</button></div>
+    <div style="margin-top:14px"><button class="btn btn-ghost" onclick="editIdentity()">Update name / email</button></div>
     <p class="foot" id="syncNote"></p>
   </section>
 
@@ -579,7 +625,8 @@ var ID = null;                 // {name,email,gender}
 var M = { checkins:[], monthly:[], quarterly:[], coachNotes:[], clientNotes:[], prs:[], intake:null, mealplan:null, onboardingDone:[] };  // merged model
 var MP_DAY=0;  // selected meal-plan day
 var serverOk = false;
-var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake", LS_ONBOARD="lp_client_onboard";
+var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake", LS_ONBOARD="lp_client_onboard", LS_THEME="lp_client_theme";
+var CLIENT_TAB="home";
 var TOKEN=null;   // per-client magic-link token (?k=…) — identity without typing an email
 function getParam(k){ try{ var m=new RegExp('[?&]'+k+'=([^&]+)').exec(location.search); return m?decodeURIComponent(m[1]):null; }catch(e){ return null; } }
 
@@ -602,7 +649,30 @@ function saveLS(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e)
 
 /* ============================ IDENTITY ============================ */
 function loadIdentity(){ try{ return JSON.parse(localStorage.getItem(LS_ID)||"null"); }catch(e){ return null; } }
-function applyGender(gen){ document.documentElement.setAttribute("data-theme", gen==="man"?"man":"woman"); }
+/* User-choice color themes (charcoal / parchment / olive) — replaces the old gender-driven palette. */
+function currentTheme(){
+  try{ var t=localStorage.getItem(LS_THEME); if(t) return t; }catch(e){}
+  var gp=(window.ID&&ID.gender)||'';                    // continuity: existing gendered clients keep their look until they pick
+  if(gp==='woman'||gp==='parchment') return 'parchment';
+  return 'charcoal';
+}
+function applyTheme(theme, save){
+  var t=(theme==='man')?'charcoal':(theme==='woman')?'parchment':theme;
+  if(['charcoal','parchment','olive'].indexOf(t)<0) t='charcoal';
+  document.documentElement.setAttribute("data-theme", t);
+  if(save){ try{ localStorage.setItem(LS_THEME, t); }catch(e){} }
+  var pick=g("themePick"); if(pick){ Array.from(pick.children).forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-theme-val")===t); }); }
+}
+function applyGender(gen){ applyTheme(currentTheme()); }   // back-compat shim; theme now drives the palette
+function showClientTab(tab){
+  CLIENT_TAB=tab;
+  ["home","nutrition","progress","wellness"].forEach(function(t){
+    var panel=g("ctab-"+t), btn=g("ctab-btn-"+t);
+    if(panel) panel.classList.toggle("hidden", t!==tab);
+    if(btn) btn.classList.toggle("on", t===tab);
+  });
+  window.scrollTo(0,0);
+}
 function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; } // palette applies on dashboard entry, not on pick
 function saveIdentity(){
   var name=g("ob_name").value.trim(), email=g("ob_email").value.trim().toLowerCase(), gender=g("ob_gender").dataset.val, st=g("obStatus");
@@ -621,7 +691,7 @@ function editIdentity(){
 
 /* ============================ NAVIGATION ============================ */
 function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","locked"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
-function showHome(){ if(ID&&ID.gender) applyGender(ID.gender); renderHome(); show("home"); }  // palette applies here, on dashboard entry
+function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); }  // theme + reset to Home tab on entry
 function showCheckin(){ buildForm(); show("checkin"); }
 function showMonthly(){ buildMonthlyForm(); show("monthly"); }
 function showQuarterly(){ buildQuarterlyForm(); show("quarterly"); }
