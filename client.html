@@ -1999,7 +1999,7 @@ function boot(){
         saveLS(LS_ID, ID);
         if(server.active===false){ showLocked(); return; }
         buildModel(server);
-        if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); }
+        if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
       } else if(ID && ID.email){ boot(); }
       else { show("onboard"); }
     });
