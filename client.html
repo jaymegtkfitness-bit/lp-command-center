@@ -601,6 +601,15 @@ select.input{appearance:none}
     <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
   </section>
 
+  <!-- ============ MEAL BUILDER ============ -->
+  <section id="mealbuilder" class="hidden">
+    <div class="eyebrow">Your Meal Plan</div>
+    <h1>Customize your foods</h1>
+    <p class="sub">Turn foods on or off, then regenerate — your plan rebuilds instantly around what you actually eat. Free, anytime. Something stop sitting well? Just switch it off.</p>
+    <div class="card"><div id="foodEditor"></div></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+  </section>
+
   <!-- ============ GENETICS SETUP ============ -->
   <section id="geneticssetup" class="hidden">
     <div class="eyebrow">Genetic Blueprint</div>
@@ -714,7 +723,7 @@ function editIdentity(){
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","locked","cnssetup","geneticssetup"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
+function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
 function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); }  // theme + reset to Home tab on entry
 function showCheckin(){ buildForm(); show("checkin"); }
 function showMonthly(){ buildMonthlyForm(); show("monthly"); }
@@ -809,6 +818,7 @@ function buildModel(server){
       M.mealplan={ title:smp['Title']||pj.title||'Your Meal Plan', note:pj.note||'', days:(pj.days||[]), ts:ts(smp['Timestamp'])||0 };
     }catch(e){ M.mealplan=null; } }
   else M.mealplan=null;
+  if(!M.mealplan){ try{ var lmp=JSON.parse(localStorage.getItem("lp_client_mealplan")||"null"); if(lmp&&lmp.days&&lmp.days.length) M.mealplan=lmp; }catch(e){} }  // client self-generated plan (device)
   // ---- CNS + genetics intake status (drives the setup cards) ----
   M.cnsintake      = (server && server.cnsintake)      ? server.cnsintake      : (M.cnsintake||[]);
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
@@ -1602,18 +1612,74 @@ function checkSetupParam(){
   if(sp==='cns' && hasCNS()) showCnsSetup();
   else if(sp==='genetics') showGeneticsSetup();
 }
+/* ---- Self-serve meal generator — client edits foods → regenerates their own plan (free, instant) ---- */
+var LS_FOODS="lp_client_foods", LS_MEALPLAN="lp_client_mealplan";
+var FOOD_DB={
+  protein:[{n:"chicken breast",g:8.7,u:"oz"},{n:"lean beef",g:7.5,u:"oz"},{n:"turkey",g:8,u:"oz"},{n:"white fish",g:6,u:"oz"},{n:"shrimp",g:6,u:"oz"},{n:"salmon",g:6.3,u:"oz"},{n:"eggs",g:6,u:"",whole:true},{n:"Greek yogurt",g:10,u:"cup",frac:true},{n:"tofu/tempeh",g:10,u:"cup",frac:true},{n:"protein powder",g:24,u:"scoop",whole:true}],
+  carb:[{n:"white rice",g:45,u:"cup",frac:true},{n:"potatoes",g:37,u:"cup",frac:true},{n:"sweet potato",g:27,u:"cup",frac:true},{n:"oats",g:27,u:"cup dry",frac:true},{n:"sourdough",g:15,u:"slice",whole:true},{n:"fruit",g:25,u:"piece",whole:true},{n:"beans/lentils",g:40,u:"cup",frac:true},{n:"pasta",g:43,u:"cup",frac:true}],
+  fat:[{n:"olive oil",g:14,u:"tbsp",frac:true},{n:"avocado",g:15,u:"",frac:true},{n:"nut butter",g:8,u:"tbsp",frac:true},{n:"cheese",g:9,u:"oz",frac:true},{n:"egg yolks",g:5,u:"",whole:true},{n:"seeds",g:4,u:"tbsp",frac:true}],
+  veg:["broccoli","spinach","peppers","zucchini","green beans","asparagus","salad greens","cauliflower"]
+};
+function loadFoods(){ try{ return JSON.parse(localStorage.getItem(LS_FOODS)||"null")||{}; }catch(e){ return {}; } }
+function saveFoods(sel){ try{ localStorage.setItem(LS_FOODS, JSON.stringify(sel)); }catch(e){} }
+function fmtQty(f, targetG){
+  var units=targetG/f.g; if(!isFinite(units)||units<=0.1) units=0.5;
+  if(f.whole){ var c=Math.max(1,Math.round(units)); return f.u? (c+' '+f.u+(c!==1?'s':'')+' '+f.n) : (c+' '+f.n); }
+  if(f.u==="oz"){ return (Math.round(units*10)/10)+' oz '+f.n; }
+  var q=Math.max(0.25, Math.round(units*4)/4);
+  return f.u? (q+' '+f.u+(q!==1?'s':'')+' '+f.n) : (q+' '+f.n);
+}
+function generateMealPlan(it, sel, days){
+  var p=it.pfs, m=mealsPerDay();
+  var pmPro=Math.round(p.protein/m), pmCarb=Math.round(p.carbs/m), pmFat=Math.round(p.fat/m), pmCal=Math.round(p.calories/m);
+  function pick(cat, names){ var list=FOOD_DB[cat].filter(function(f){return !names||!names.length||names.indexOf(f.n)>=0;}); return list.length?list:FOOD_DB[cat]; }
+  var P=pick('protein',sel.protein), C=pick('carb',sel.carb), F=pick('fat',sel.fat), V=(sel.veg&&sel.veg.length)?sel.veg:FOOD_DB.veg;
+  var names=["Breakfast","Lunch","Dinner","Meal 4","Meal 5"], out=[];
+  for(var d=0;d<days;d++){ var meals=[];
+    for(var k=0;k<m;k++){ var i=d*m+k;
+      meals.push({name:names[k]||("Meal "+(k+1)),
+        items:[fmtQty(P[i%P.length],pmPro), fmtQty(C[i%C.length],pmCarb), fmtQty(F[i%F.length],pmFat), "a big handful of "+V[i%V.length]],
+        cal:pmCal,protein:pmPro,carbs:pmCarb,fat:pmFat}); }
+    out.push({day:d+1,label:"Day "+(d+1),meals:meals}); }
+  var nm=(ID&&ID.name)?ID.name.split(' ')[0]+"'s":"Your";
+  return {title:nm+" meal plan",note:"Auto-built from your favorites. Swap any food and regenerate anytime.",days:out};
+}
+function renderFoodEditor(){
+  var saved=loadFoods();
+  function catBlock(catKey, id, label){
+    var items=(catKey==='veg')?FOOD_DB.veg:FOOD_DB[catKey].map(function(f){return f.n;});
+    var sl=saved[catKey];
+    return '<div class="field"><label>'+label+'</label><div class="chips" id="'+id+'">'+items.map(function(n){
+      var on = sl? (sl.indexOf(n)>=0) : true;
+      return '<button type="button" class="chip'+(on?' on':'')+'" onclick="this.classList.toggle(\'on\')">'+esc(n)+'</button>';
+    }).join('')+'</div></div>';
+  }
+  g("foodEditor").innerHTML=catBlock('protein','fe_prot','Proteins')+catBlock('carb','fe_carb','Smart carbs')+catBlock('fat','fe_fat','Fats')+catBlock('veg','fe_veg','Veggies')
+    +'<div class="actions"><button class="btn btn-primary" onclick="doGenerate()">Generate my plan →</button> <span class="status" id="genPlanStatus"></span></div>';
+}
+function showMealBuilder(){ renderFoodEditor(); show("mealbuilder"); }
+function doGenerate(){
+  if(!M.intake||!M.intake.pfs){ var s=g('genPlanStatus'); if(s){s.textContent="Build your Power Food System first.";s.style.color="var(--stall-tx)";} return; }
+  var sel={protein:mval('fe_prot').split(', ').filter(Boolean),carb:mval('fe_carb').split(', ').filter(Boolean),fat:mval('fe_fat').split(', ').filter(Boolean),veg:mval('fe_veg').split(', ').filter(Boolean)};
+  if(!sel.protein.length||!sel.carb.length){ var s2=g('genPlanStatus'); if(s2){s2.textContent="Keep at least one protein and one carb on.";s2.style.color="var(--stall-tx)";} return; }
+  saveFoods(sel);
+  var plan=generateMealPlan(M.intake, sel, 3);
+  M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
+  if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"mealplan", email:ID.email, title:plan.title, plan:plan});
+  MP_DAY=0; showHome(); showClientTab('nutrition');
+}
 function renderMealPlan(){
   var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
   if(!hasCNS()){ card.style.display="none"; return; }
   card.style.display="";
-  var mp=M.mealplan;
-  if(!mp || !(mp.days||[]).length){
-    if(!(M.cnsintake&&M.cnsintake.length)){
-      box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your Complete Nutrition System is ready to build. Answer a few questions about the foods you actually eat and '+esc(CONFIG.coachName)+' builds your plan around them.</div>'
-        +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showCnsSetup()">Start my setup →</button></div>';
-    } else {
-      box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your setup is in ✓ '+esc(CONFIG.coachName)+' is building your plan around your foods — it\'ll show up right here.</div>';
-    }
+  var mp=M.mealplan, hasPlan=mp&&(mp.days||[]).length;
+  if(!hasPlan){
+    var done=(M.cnsintake&&M.cnsintake.length);
+    var note=done ? "Your setup is in ✓ "+esc(CONFIG.coachName)+" is building your plan — or build your own right now from your favorites."
+                  : "Your Complete Nutrition System is ready. Tell "+esc(CONFIG.coachName)+" your favorites in setup, or build a plan yourself right now.";
+    box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">'+note+'</div>'
+      +'<div class="actions no-print" style="margin-top:10px"><button class="btn btn-primary" onclick="showMealBuilder()">🍳 Build my meal plan</button>'
+      +(done?'':' <button class="btn btn-ghost" onclick="showCnsSetup()">Do the full setup</button>')+'</div>';
     return;
   }
   if(MP_DAY>=mp.days.length) MP_DAY=0;
@@ -1621,7 +1687,7 @@ function renderMealPlan(){
   box.innerHTML=(mp.note?'<p class="wiz-hint" style="margin:0 0 10px">'+esc(mp.note)+'</p>':'')
     +'<div class="mp-days">'+chips+'</div>'
     +'<div id="mpDayBox">'+mpDayHTML(mp.days[MP_DAY])+'</div>'
-    +'<div class="actions no-print"><button class="btn btn-primary" onclick="window.print()">⬇ Save my meal plan (PDF)</button></div>';
+    +'<div class="actions no-print"><button class="btn btn-primary" onclick="window.print()">⬇ Save my meal plan (PDF)</button> <button class="btn btn-ghost" onclick="showMealBuilder()">🍳 Edit my foods & regenerate</button></div>';
 }
 function renderRoadmap(){
   var card=g("roadmapCard"), box=g("roadmapBox"), it=M.intake;
