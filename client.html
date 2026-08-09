@@ -447,6 +447,12 @@ select.input{appearance:none}
         <div class="sec-h"><h2>Your Meal Plan</h2></div>
         <div id="mealPlanBox"></div>
       </div>
+
+      <!-- Fast-food meal builder -->
+      <div class="card" id="fastFoodCard" style="display:none">
+        <div class="sec-h"><h2>Eating out?</h2></div>
+        <div id="fastFoodBox"></div>
+      </div>
     </div>
 
     <!-- ===== PROGRESS TAB ===== -->
@@ -881,6 +887,7 @@ function renderHome(){
   renderPFS();
   renderRoadmap();
   renderMealPlan();
+  renderFastFood();
   gateProtocolCards();
   renderOnboarding();
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
@@ -1693,6 +1700,55 @@ function doGenerate(){
   M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
   if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"mealplan", email:ID.email, title:plan.title, plan:plan});
   MP_DAY=0; showHome(); showClientTab('nutrition');
+}
+/* ---- Fast-food meal builder — pick a chain, get a combo that fits your per-meal numbers ---- */
+var FASTFOOD_DB={
+  "Chick-fil-A":[{name:"Grilled Chicken Sandwich",cal:390,protein:28},{name:"Grilled Deluxe Sandwich",cal:420,protein:28},{name:"Grilled Nuggets (12 ct)",cal:200,protein:38},{name:"Grilled Nuggets (8 ct)",cal:130,protein:25},{name:"Cobb Salad w/ grilled chicken",cal:510,protein:40},{name:"Medium Waffle Fries",cal:420,protein:5},{name:"Side Salad",cal:160,protein:5},{name:"Greek Yogurt Parfait",cal:270,protein:9}],
+  "McDonald's":[{name:"Quarter Pounder w/ Cheese",cal:520,protein:30},{name:"Big Mac",cal:590,protein:25},{name:"McDouble",cal:400,protein:22},{name:"10-pc McNuggets",cal:410,protein:23},{name:"6-pc McNuggets",cal:250,protein:14},{name:"Egg McMuffin",cal:310,protein:17},{name:"Medium Fries",cal:320,protein:5},{name:"Side Salad",cal:20,protein:1}],
+  "Chipotle":[{name:"Chicken (double)",cal:360,protein:64},{name:"Chicken",cal:180,protein:32},{name:"Steak",cal:150,protein:21},{name:"White rice",cal:210,protein:4},{name:"Black beans",cal:130,protein:8},{name:"Fajita veggies",cal:20,protein:1},{name:"Guacamole",cal:230,protein:2},{name:"Cheese",cal:110,protein:6}],
+  "Subway":[{name:'Footlong Rotisserie Chicken',cal:640,protein:50},{name:'6" Rotisserie Chicken',cal:320,protein:25},{name:'6" Turkey',cal:280,protein:18},{name:'6" Steak & Cheese',cal:380,protein:26},{name:"Chips",cal:210,protein:3}],
+  "Wendy's":[{name:"Grilled Chicken Sandwich",cal:370,protein:34},{name:"Dave's Single",cal:590,protein:29},{name:"Jr. Bacon Cheeseburger",cal:380,protein:20},{name:"10-pc Nuggets",cal:420,protein:22},{name:"Small Chili",cal:240,protein:15},{name:"Medium Fries",cal:420,protein:5}]
+};
+function buildFastFood(items, calTarget, proTarget){
+  var chosen=[], used={}, cal=0, pro=0;
+  var main=items.slice().sort(function(a,b){return b.protein-a.protein;})[0];
+  chosen.push(main); used[main.name]=1; cal+=main.cal; pro+=main.protein;
+  var guard=0;
+  while(cal < calTarget-140 && guard<6){
+    guard++;
+    var best=null, bestScore=1e9;
+    items.forEach(function(it){ var nc=cal+it.cal; if(nc>calTarget+160) return;
+      var penalty=(used[it.name]||0)*400;                 // discourage repeats → a varied main + sides
+      var score=Math.abs(calTarget-nc) - it.protein*0.5 + penalty;
+      if(score<bestScore){ bestScore=score; best=it; } });
+    if(!best) break;
+    chosen.push(best); used[best.name]=(used[best.name]||0)+1; cal+=best.cal; pro+=best.protein;
+  }
+  return {items:chosen, cal:cal, protein:pro};
+}
+var FF_REST="Chick-fil-A", FF_MEALS=3;
+function ffPick(c){ FF_REST=c; renderFastFood(); }
+function ffMeals(n){ FF_MEALS=n; renderFastFood(); }
+function renderFastFood(){
+  var card=g("fastFoodCard"), box=g("fastFoodBox"), it=M.intake; if(!card) return;
+  if(!it||!it.pfs){ card.style.display="none"; return; }
+  card.style.display="";
+  var restChips=Object.keys(FASTFOOD_DB).map(function(c){return '<button type="button" class="chip'+(c===FF_REST?' on':'')+'" onclick="ffPick(\''+esc(c).replace(/'/g,"\\'")+'\')">'+esc(c)+'</button>';}).join('');
+  var mealChips=[2,3,4].map(function(n){return '<button type="button" class="chip'+(n===FF_MEALS?' on':'')+'" onclick="ffMeals('+n+')">'+n+(n===2?' + shake':'')+'</button>';}).join('');
+  box.innerHTML='<p class="wiz-hint" style="margin:0 0 8px">Pick a spot and I\'ll build a meal that fits your numbers. A rough guide — chains tweak menus.</p>'
+    +'<div class="field"><label>Restaurant</label><div class="chips">'+restChips+'</div></div>'
+    +'<div class="field"><label>Meals a day</label><div class="chips">'+mealChips+'</div></div>'
+    +'<div class="actions"><button class="btn btn-primary" onclick="ffBuild()">Build my meal →</button></div>'
+    +'<div id="ffResult" style="margin-top:12px"></div>';
+}
+function ffBuild(){
+  var p=M.intake.pfs, calT=Math.round(p.calories/FF_MEALS), proT=Math.round(p.protein/FF_MEALS);
+  var r=buildFastFood(FASTFOOD_DB[FF_REST], calT, proT);
+  var counts={}; r.items.forEach(function(i){counts[i.name]=(counts[i.name]||0)+1;});
+  var lines=Object.keys(counts).map(function(n){return '<li>'+(counts[n]>1?counts[n]+'× ':'')+esc(n)+'</li>';}).join('');
+  g("ffResult").innerHTML='<div class="lp-sub">At '+esc(FF_REST)+' · aiming ~'+calT+' cal · '+proT+'g protein</div>'
+    +'<ul class="mp-items">'+lines+'</ul>'
+    +'<p class="wiz-hint" style="margin-top:2px">This combo ≈ <b>'+r.cal+' cal · '+r.protein+'g protein</b>. Tweak a side or portion to dial it in — protein first.</p>';
 }
 function renderMealPlan(){
   var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
