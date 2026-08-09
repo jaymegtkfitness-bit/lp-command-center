@@ -404,8 +404,8 @@ select.input{appearance:none}
 
       <!-- Book a coaching call (community + 1:1) -->
       <div class="card" id="bookCallCard" style="display:none">
-        <div class="sec-h"><h2>Your coaching call</h2></div>
-        <p class="empty" style="margin:0 0 10px">Grab a time for your call — you'll get an email confirmation and a reminder.</p>
+        <div class="sec-h"><h2 id="bookCallHead">Your coaching call</h2></div>
+        <p class="empty" id="bookCallSub" style="margin:0 0 10px">Grab a time for your call — you'll get an email confirmation and a reminder.</p>
         <a class="btn btn-primary" id="bookCallLink" href="#" target="_blank" rel="noopener">Book my call →</a>
       </div>
 
@@ -644,7 +644,8 @@ var CONFIG = {
   completeSystemUrl: "https://dashboard.legacyperformance.co/complete-nutrition-system.html",  // paid Complete Nutrition System build — landing page
   completeSystemPrice: "$497",     // today's price shown on the upsell card
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
-  bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief"  // coaching-call scheduler (placeholder — swap for the GHL calendar link). "" hides the card.
+  bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief",  // 1:1 INCLUDED coaching call (Built for More). "" hides.
+  paidCallUrl: ""  // Built to Last ($97) PAID 1:1 session — separate link (add the paid Calendly/GHL link here). "" hides for community.
 };
 /* =============== END CONFIG (stop editing here) =============== */
 
@@ -1268,9 +1269,15 @@ function gateTiers(){
   var lvl=cadenceLevel(), mo=g("moCta"), qt=g("qtCta");
   if(mo) mo.style.display = lvl>=2 ? "" : "none";
   if(qt) qt.style.display = lvl>=3 ? "" : "none";
-  var bc=g("bookCallCard"), bl=g("bookCallLink"), show=(lvl>=2 && CONFIG.bookCallUrl);
-  if(bc) bc.style.display = show ? "" : "none";
-  if(show && bl) bl.href=CONFIG.bookCallUrl;
+  var bc=g("bookCallCard");
+  if(bc){
+    var oneToOne=isOneToOne(M.tier), community=(lvl>=2 && !oneToOne);
+    var url="", head="", sub="", btn="Book my call →";
+    if(oneToOne && CONFIG.bookCallUrl){ url=CONFIG.bookCallUrl; head="Your coaching call"; sub="Grab a time for your call — you'll get an email confirmation and a reminder."; }
+    else if(community && CONFIG.paidCallUrl){ url=CONFIG.paidCallUrl; head="Book a 1:1 session"; sub="Want dedicated time? Book a paid 1:1 session — confirmation and reminder included."; btn="Book a session →"; }
+    if(url){ bc.style.display=""; g("bookCallHead").textContent=head; g("bookCallSub").textContent=sub; var bl=g("bookCallLink"); bl.href=url; bl.textContent=btn; }
+    else bc.style.display="none";
+  }
 }
 function gateProtocolCards(){
   var on=isOnProtocol();
