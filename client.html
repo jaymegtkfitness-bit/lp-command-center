@@ -408,6 +408,12 @@ select.input{appearance:none}
         <div id="journeyBox"></div>
       </div>
 
+      <!-- Genetic Blueprint (shows once purchased) -->
+      <div class="card" id="geneticsCard" style="display:none">
+        <div class="sec-h"><h2>Genetic Blueprint</h2></div>
+        <div id="geneticsBox"></div>
+      </div>
+
       <!-- Coach note -->
       <div class="card" id="coachCard">
         <div class="sec-h"><h2>From your coach</h2></div>
@@ -586,6 +592,24 @@ select.input{appearance:none}
     <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
   </section>
 
+  <!-- ============ CNS SETUP ============ -->
+  <section id="cnssetup" class="hidden">
+    <div class="eyebrow">Complete Nutrition System</div>
+    <h1>Let's build your plan around your foods</h1>
+    <p class="sub">The more you tell me, the more your plan feels made for you — because it is. Pick everything you actually like and eat.</p>
+    <div class="card"><div id="cnsForm"></div></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+  </section>
+
+  <!-- ============ GENETICS SETUP ============ -->
+  <section id="geneticssetup" class="hidden">
+    <div class="eyebrow">Genetic Blueprint</div>
+    <h1>Let's set up your Genetic Blueprint</h1>
+    <p class="sub">A few quick questions so your results come back mapped to what matters most for you. Your kit ships to the address on your order.</p>
+    <div class="card"><div id="genForm"></div></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+  </section>
+
 </div>
 
 <!-- Print-only branded roadmap document (Save as PDF) -->
@@ -690,7 +714,7 @@ function editIdentity(){
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","locked"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
+function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","locked","cnssetup","geneticssetup"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
 function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); }  // theme + reset to Home tab on entry
 function showCheckin(){ buildForm(); show("checkin"); }
 function showMonthly(){ buildMonthlyForm(); show("monthly"); }
@@ -785,6 +809,9 @@ function buildModel(server){
       M.mealplan={ title:smp['Title']||pj.title||'Your Meal Plan', note:pj.note||'', days:(pj.days||[]), ts:ts(smp['Timestamp'])||0 };
     }catch(e){ M.mealplan=null; } }
   else M.mealplan=null;
+  // ---- CNS + genetics intake status (drives the setup cards) ----
+  M.cnsintake      = (server && server.cnsintake)      ? server.cnsintake      : (M.cnsintake||[]);
+  M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
   // ---- tier + Complete Nutrition System entitlement ----
   M.tier = (server && server.tier) || M.tier || '';
   // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
@@ -830,6 +857,7 @@ function renderHome(){
   renderMonthly();
   renderQuarterly();
   renderJourneyCard();
+  renderGeneticsCard();
   renderPFS();
   renderRoadmap();
   renderMealPlan();
@@ -1503,13 +1531,89 @@ function mealPlanPrintHTML(){
   return (mp.note?'<p class="wiz-hint">'+esc(mp.note)+'</p>':'')
     +mp.days.map(function(d){ return '<div class="lp-sub">'+esc(d.label||('Day '+(d.day||'')))+'</div>'+mpDayHTML(d); }).join('');
 }
+/* ---- Setup intake forms (CNS + genetics) — reusable buy→intake→deliver pattern ---- */
+function pick1(b){ Array.from(b.parentNode.children).forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); }
+function mchipsHtml(id, opts){ return '<div class="chips" id="'+id+'">'+opts.map(function(o){return '<button type="button" class="chip" onclick="this.classList.toggle(\'on\')">'+esc(o)+'</button>';}).join('')+'</div>'; }
+function chips1Html(id, opts){ return '<div class="chips" id="'+id+'">'+opts.map(function(o){return '<button type="button" class="chip" onclick="pick1(this)">'+esc(o)+'</button>';}).join('')+'</div>'; }
+function mval(id){ var el=g(id); return el?Array.from(el.querySelectorAll('.chip.on')).map(function(b){return b.textContent.trim();}).join(', '):''; }
+function renderCnsForm(){
+  g("cnsForm").innerHTML=
+     '<div class="field"><label>Favorite proteins</label>'+mchipsHtml('cns_prot',["Chicken","Lean beef","Turkey","Eggs","Greek yogurt","White fish","Shrimp","Salmon","Tofu/tempeh","Protein powder"])+'</div>'
+    +'<div class="field"><label>Favorite carbs</label>'+mchipsHtml('cns_carb',["White rice","Potatoes","Sweet potato","Oats","Sourdough","Fruit","Beans/lentils","Pasta"])+'</div>'
+    +'<div class="field"><label>Favorite fats</label>'+mchipsHtml('cns_fat',["Avocado","Olive oil","Nuts / nut butter","Cheese","Egg yolks","Seeds"])+'</div>'
+    +'<div class="field"><label>Favorite veggies</label>'+mchipsHtml('cns_veg',["Broccoli","Spinach","Peppers","Zucchini","Green beans","Asparagus","Salad greens","Cauliflower"])+'</div>'
+    +'<div class="field"><label>Meals per day</label>'+chips1Html('cns_meals',["2 + shake","3","3 + shake","4"])+'</div>'
+    +'<div class="field"><label>Cooking style</label>'+chips1Html('cns_cook',["Quick & simple","I\'ll cook","I love to cook"])+'</div>'
+    +'<div class="field"><label>Meal prep style</label>'+chips1Html('cns_prep',["Prep in batches","Cook fresh each time","Mix of both"])+'</div>'
+    +'<div class="field"><label>How often do you eat out?</label>'+chips1Html('cns_eatout',["Rarely","A few times a week","Most days"])+'</div>'
+    +'<div class="field"><label>Your typical eating schedule <span class="hint">— when do you usually eat?</span></label><textarea class="input" id="cns_sched" rows="2"></textarea></div>'
+    +'<div class="field"><label>Allergies or foods you won\'t eat</label><textarea class="input" id="cns_allerg" rows="2"></textarea></div>'
+    +'<div class="field"><label>Anything else I should know?</label><textarea class="input" id="cns_notes" rows="2"></textarea></div>'
+    +'<div class="actions"><button class="btn btn-primary" onclick="submitCns()">Submit — build my plan</button> <span class="status" id="cnsStatus"></span></div>';
+}
+function showCnsSetup(){ renderCnsForm(); show("cnssetup"); }
+function submitCns(){
+  if(!ID||!ID.email) return;
+  if(mval('cns_prot')===''&&mval('cns_carb')===''){ var s0=g('cnsStatus'); if(s0){s0.textContent="Pick at least a few favorite foods.";s0.style.color="var(--stall-tx)";} return; }
+  var payload={type:"cnsintake", email:ID.email, name:ID.name||"", ts:new Date().toISOString(),
+    proteins:mval('cns_prot'), carbs:mval('cns_carb'), fats:mval('cns_fat'), veg:mval('cns_veg'),
+    meals:mval('cns_meals'), cooking:mval('cns_cook'), prep:mval('cns_prep'), eatout:mval('cns_eatout'),
+    schedule:g('cns_sched').value, allergies:g('cns_allerg').value, notes:g('cns_notes').value};
+  if(CONFIG.writeUrl) postToSheet(payload);
+  M.cnsintake=(M.cnsintake||[]).concat([{Timestamp:payload.ts}]);
+  var s=g('cnsStatus'); if(s){ s.textContent="Sent ✓ "+CONFIG.coachName+" is building your plan."; s.style.color="var(--good-tx)"; }
+  setTimeout(showHome, 1400);
+}
+function renderGenForm(){
+  g("genForm").innerHTML=
+     '<div class="field"><label>What do you most want your Blueprint to guide?</label>'+mchipsHtml('gen_goal',["Nutrition","Training response","Longevity","Hormones","All of it"])+'</div>'
+    +'<div class="field"><label>Your current health focus</label><textarea class="input" id="gen_focus" rows="2"></textarea></div>'
+    +'<div class="field"><label>Relevant family health history <span class="hint">(optional)</span></label><textarea class="input" id="gen_family" rows="2"></textarea></div>'
+    +'<div class="field"><label>Anything else I should know?</label><textarea class="input" id="gen_notes" rows="2"></textarea></div>'
+    +'<div class="actions"><button class="btn btn-primary" onclick="submitGenetics()">Submit</button> <span class="status" id="genStatus"></span></div>';
+}
+function showGeneticsSetup(){ renderGenForm(); show("geneticssetup"); }
+function submitGenetics(){
+  if(!ID||!ID.email) return;
+  var payload={type:"geneticsintake", email:ID.email, name:ID.name||"", ts:new Date().toISOString(),
+    goal:mval('gen_goal'), focus:g('gen_focus').value, family:g('gen_family').value, notes:g('gen_notes').value};
+  if(CONFIG.writeUrl) postToSheet(payload);
+  M.geneticsintake=(M.geneticsintake||[]).concat([{Timestamp:payload.ts}]);
+  var s=g('genStatus'); if(s){ s.textContent="Sent ✓ Your kit ships to the address on your order."; s.style.color="var(--good-tx)"; }
+  setTimeout(showHome, 1400);
+}
+function renderGeneticsCard(){
+  var card=g("geneticsCard"), box=g("geneticsBox"); if(!card) return;
+  var x=String(M.genetics||'').toLowerCase();
+  if(!(x==='pending'||x==='in'||x==='ordered')){ card.style.display="none"; return; }  // only once purchased
+  card.style.display="";
+  if(x==='in'){ box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your Genetic Blueprint results are in. '+esc(CONFIG.coachName)+' will walk you through what they mean for your plan.</div>'; return; }
+  if(!(M.geneticsintake&&M.geneticsintake.length)){
+    box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your Genetic Blueprint is ready to set up — a few quick questions so your results map to your goals.</div>'
+      +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showGeneticsSetup()">Set up my Blueprint →</button></div>';
+    return;
+  }
+  box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Setup complete ✓ Your kit is on the way. Results show here when they\'re back.</div>';
+}
+var SETUP_DONE=false;
+function checkSetupParam(){
+  if(SETUP_DONE) return; SETUP_DONE=true;
+  var sp=getParam('setup');
+  if(sp==='cns' && hasCNS()) showCnsSetup();
+  else if(sp==='genetics') showGeneticsSetup();
+}
 function renderMealPlan(){
   var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
   if(!hasCNS()){ card.style.display="none"; return; }
   card.style.display="";
   var mp=M.mealplan;
   if(!mp || !(mp.days||[]).length){
-    box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your custom meal plan is being built around the foods you actually eat. '+esc(CONFIG.coachName)+' will drop it right here — you\'ll get a heads-up when it\'s ready.</div>';
+    if(!(M.cnsintake&&M.cnsintake.length)){
+      box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your Complete Nutrition System is ready to build. Answer a few questions about the foods you actually eat and '+esc(CONFIG.coachName)+' builds your plan around them.</div>'
+        +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showCnsSetup()">Start my setup →</button></div>';
+    } else {
+      box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your setup is in ✓ '+esc(CONFIG.coachName)+' is building your plan around your foods — it\'ll show up right here.</div>';
+    }
     return;
   }
   if(MP_DAY>=mp.days.length) MP_DAY=0;
@@ -1717,7 +1821,7 @@ function boot(){
     if(server){
       if(server.active===false){ showLocked(); return; }
       buildModel(server);
-      if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); }
+      if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
     }
   });
 }

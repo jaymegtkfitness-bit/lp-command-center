@@ -2412,6 +2412,22 @@ function toggleProtocol(email){
   if(state){ state.textContent=next?'Yes':'No'; state.style.background=next?'var(--good-bg)':'var(--surface-2)'; state.style.color=next?'var(--good-tx)':'var(--muted)'; }
   if(btn){ btn.textContent=next?'Turn off':'Turn on'; }
 }
+/* Coach flips CNS access (Complete) after a purchase → unlocks the member's meal plan + roadmap + CNS setup. */
+function toggleComplete(email){
+  var state=document.getElementById('cnsState'), btn=document.getElementById('cnsBtn');
+  var next=!(state && state.textContent.trim()==='Yes');
+  postToSheet({type:'rosterset', field:'Complete', email:email, value:next?'Yes':'No'});
+  __rosterCache=null;
+  if(state){ state.textContent=next?'Yes':'No'; state.style.background=next?'var(--good-bg)':'var(--surface-2)'; state.style.color=next?'var(--good-tx)':'var(--muted)'; }
+  if(btn){ btn.textContent=next?'Turn off':'Turn on'; }
+}
+/* Coach sets Genetic Blueprint status (none / pending / in) — drives the client's genetics card + journey. */
+function setGenetics(email, val){
+  postToSheet({type:'rosterset', field:'Genetics', email:email, value:val});
+  __rosterCache=null;
+  var lbl=document.getElementById('genState'); if(lbl) lbl.textContent=val;
+  ['none','pending','in'].forEach(function(v){ var b=document.getElementById('gen-'+v); if(b) b.classList.toggle('on', v===val); });
+}
 function journeyPanel(d, email){
   var ci=(d.checkins||[]).map(function(r){ return {ts:parseTs(r['Timestamp']), w:num(r['Weight']), cons:consistencyToNum(r['Consistency']),
       energy:num(r['Energy']), sleep:num(r['Sleep quality']), mood:num(r['Mood & resilience'])}; })
@@ -2443,6 +2459,21 @@ function journeyPanel(d, email){
     +'<div><b>On peptides</b> <span class="pill" id="protoState" style="'+(onP?'background:var(--good-bg);color:var(--good-tx)':'background:var(--surface-2);color:var(--muted)')+'">'+(onP?'Yes':'No')+'</span>'
     +'<div style="font-size:12px;color:var(--muted);margin-top:4px">Unlocks their dosing calculator, symptom guide &amp; prescriber notes.</div></div>'
     +'<button class="btn" id="protoBtn" onclick="toggleProtocol(\''+esc(email)+'\')" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 16px;border-radius:8px">'+(onP?'Turn off':'Turn on')+'</button></div>';
+
+  // Complete Nutrition System access toggle (flip after a CNS purchase)
+  var cnsOn=/^\s*(y|yes|true|1|complete|paid)/i.test(String(d.complete||''))||/built for more/i.test(String(d.tier||''));
+  h+='<div class="tile" style="margin-bottom:12px;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">'
+    +'<div><b>Complete Nutrition System</b> <span class="pill" id="cnsState" style="'+(cnsOn?'background:var(--good-bg);color:var(--good-tx)':'background:var(--surface-2);color:var(--muted)')+'">'+(cnsOn?'Yes':'No')+'</span>'
+    +'<div style="font-size:12px;color:var(--muted);margin-top:4px">Unlocks their meal plan, roadmap &amp; CNS setup. Flip on after purchase.</div></div>'
+    +(/built for more/i.test(String(d.tier||''))?'<span style="font-size:12px;color:var(--muted)">included in BFM</span>':'<button class="btn" id="cnsBtn" onclick="toggleComplete(\''+esc(email)+'\')" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 16px;border-radius:8px">'+(cnsOn?'Turn off':'Turn on')+'</button>')+'</div>';
+
+  // Genetic Blueprint status
+  var gv=String(d.genetics||'none').toLowerCase(); if(['none','pending','in'].indexOf(gv)<0) gv='none';
+  var gbtn=function(v,label){ return '<button class="btn" id="gen-'+v+'" onclick="setGenetics(\''+esc(email)+'\',\''+v+'\')" style="background:'+(v===gv?'var(--gold)':'var(--surface-2)')+';border:1px solid var(--line);color:'+(v===gv?'var(--accent-ink,#1C1C1C)':'var(--ink)')+';padding:6px 12px;border-radius:8px;font-size:12px">'+label+'</button>'; };
+  h+='<div class="tile" style="margin-bottom:12px">'
+    +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap"><b>Genetic Blueprint</b> <span class="pill" id="genState" style="background:var(--surface-2);color:var(--muted)">'+esc(gv)+'</span></div>'
+    +'<div style="font-size:12px;color:var(--muted);margin:4px 0 8px">Set after purchase → shows their setup card, then results.</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap">'+gbtn('none','None')+gbtn('pending','Pending')+gbtn('in','Results in')+'</div></div>';
 
   // week-1 banner
   if(week1) h+='<div class="tile" style="background:var(--good-bg);border-color:var(--good);margin-bottom:14px"><b style="color:var(--good-tx)">Ready for the week-1 review + Blueprint offer</b><div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+ci.length+' check-ins over '+(daysSince(first.ts))+' days. Pull their real data, give the read, offer the build.</div></div>';
