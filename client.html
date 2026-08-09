@@ -651,7 +651,9 @@ var CONFIG = {
   completeSystemPrice: "$497",     // today's price shown on the upsell card
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
   bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief",  // 1:1 INCLUDED coaching call (Built for More). "" hides.
-  paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting"  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
+  paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting",  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
+  geneticsBuyUrl: "https://dashboard.legacyperformance.co/genetic-blueprint.html",  // Genetic Blueprint SALES PAGE (has both checkout links). "" hides the buy card.
+  geneticsPrice: ""   // e.g. "$1,000" — shown on the buy card. "" = just "one-time test".
 };
 /* =============== END CONFIG (stop editing here) =============== */
 
@@ -1628,7 +1630,15 @@ function submitGenetics(){
 function renderGeneticsCard(){
   var card=g("geneticsCard"), box=g("geneticsBox"); if(!card) return;
   var x=String(M.genetics||'').toLowerCase();
-  if(!(x==='pending'||x==='in'||x==='ordered')){ card.style.display="none"; return; }  // only once purchased
+  if(!(x==='pending'||x==='in'||x==='ordered')){
+    // not purchased yet → soft upsell to the sales page (genetics advertises clean)
+    if(!CONFIG.geneticsBuyUrl){ card.style.display="none"; return; }
+    card.style.display="";
+    var price=CONFIG.geneticsPrice?(' <b style="color:var(--accent)">'+esc(CONFIG.geneticsPrice)+'</b>'):'';
+    box.innerHTML='<p class="wiz-hint" style="margin:0 0 10px;color:var(--ink)">Map your nutrition, training response, and recovery to your actual DNA — so your plan stops being one-size-fits-all. One-time test.'+price+'</p>'
+      +'<div class="actions"><a class="btn btn-primary" href="'+esc(CONFIG.geneticsBuyUrl)+'" target="_blank" rel="noopener">See my Genetic Blueprint →</a></div>';
+    return;
+  }
   card.style.display="";
   if(x==='in'){ box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Your Genetic Blueprint results are in. '+esc(CONFIG.coachName)+' will walk you through what they mean for your plan.</div>'; return; }
   if(!(M.geneticsintake&&M.geneticsintake.length)){
