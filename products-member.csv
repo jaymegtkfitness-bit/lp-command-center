@@ -1,28 +1,28 @@
-Category,Track,Pharmacy,Product,Strength,Cost,ProviderFee,Shipping,MemberPrice,StateNote
-GLP-1 Injectable,Lean,Greenwich,Tirzepatide 3-month bundle,5->10->15mg (Mo 1-3),300,39,30,388,
-GLP-1 Injectable,Lean,Striker,Retatrutide,1mg/0.5ml (4mg vial),109,39,40,207,
-GLP-1 Oral,Lean,EPIQ,Tirzepatide (oral),4mg / 30 tabs,196,39,10,264,all except AL
-Metabolic,Lean,Greenwich,Lipo-B (MICB),25/50/50/1 mg/ml (10ml),35,39,30,123,
-Metabolic,Lean,Greenwich,MOTS-C,2mg/ml (10mg vial),90,39,30,178,
-Metabolic,Lean,Greenwich,Tesamorelin,3mg/ml (15mg),90,39,30,178,
-Metabolic,Lean,Greenwich,AOD-9604,1.2mg/ml,90,39,30,178,
-Peptide Injectable,Strong,Greenwich,BPC-157,3-4mg/ml (15mg),90,39,30,178,
-Peptide Injectable,Strong,Greenwich,BPC-157 / TB-500,3/3 mg/ml,125,39,30,213,
-Peptide Injectable,Strong,Greenwich,CJC-1295 / Ipamorelin,1.2/2 mg,125,39,30,213,
-Peptide Injectable,Strong,Greenwich,Sermorelin,2mg/ml (10mg),83,39,30,171,
-Peptide Injectable,Strong,Striker,GLOW Stack (GHK-Cu / BPC-157 / TB-500),,121,39,40,219,
-Peptide Injectable,Long,Greenwich,NAD+ Solution,100mg/ml (1000mg),90,39,30,178,
-Peptide Nasal,Long,Strive,NAD+ Nasal Spray,300mg/ml,52,39,20,130,
-Peptide Injectable,Long,Greenwich,Glutathione (injection),200mg/ml (2000mg),27,39,30,115,
-Peptide Nasal,Long,Strive,Glutathione Nasal Spray,200mg/ml,52,39,20,130,
-Peptide Injectable,Long,Greenwich,Epithalon,2mg/ml (10mg),90,39,30,178,
-Peptide Injectable,Long,Greenwich,GHK-Cu,10mg/ml (50mg),90,39,30,178,
-Peptide Injectable,Long,Greenwich,Kisspeptin,1mg/ml (5mg),90,39,30,178,
-Peptide Injectable,Long,Greenwich,DSIP,1mg/ml (5mg),90,39,30,178,
-Sexual Health,Support,Greenwich,PT-141 (injectable),2mg/ml (10mg),90,39,30,178,
-Sexual Health,Support,TPH,Cialis 10mg,20 caps,25,39,23,106,
-Sexual Health,Support,TPH,Viagra 100mg,20 caps,35,39,23,116,
-TRT,Support,Empower,Testosterone Cypionate (lab req),3 mo,115,69,,203,most states
-TRT,Support,Empower,Enclomiphene,25mg / 90 caps,168,69,,256,most states
-Female HRT,Support,BEL,Estradiol cream + Progesterone caps,+ up to 200mg (90),150,69,18,256,90-day
-Hair Health,Support,EPIQ,Finasteride / Minoxidil / Biotin / D3 / K2,30 caps,60,39,10,128,all except AL
+Category,Track,Pharmacy,Product,Strength,Cost,ProviderFee,Shipping,MemberPrice,StateNote,Blurb
+GLP-1 Injectable,Lean,Greenwich,Tirzepatide 3-month bundle,5->10->15mg (Mo 1-3),300,39,30,388,,"Dual GIP + GLP-1 receptor agonist. May support appetite regulation and metabolic health."
+GLP-1 Injectable,Lean,Striker,Retatrutide,1mg/0.5ml (4mg vial),109,39,40,207,,"GIP + GLP-1 + glucagon receptor agonist. May support metabolic health and body composition."
+GLP-1 Oral,Lean,EPIQ,Tirzepatide (oral),4mg / 30 tabs,196,39,10,264,all except AL,"Oral GIP + GLP-1 agonist. May support appetite regulation and metabolic health."
+Metabolic,Lean,Greenwich,Lipo-B (MICB),25/50/50/1 mg/ml (10ml),35,39,30,123,,"Lipotropic (MIC) + B12 blend. May support metabolism and energy."
+Metabolic,Lean,Greenwich,MOTS-C,2mg/ml (10mg vial),90,39,30,178,,"Mitochondrial-derived peptide. May support metabolic function and energy."
+Metabolic,Lean,Greenwich,Tesamorelin,3mg/ml (15mg),90,39,30,178,,"Growth-hormone-releasing hormone analog. May support body composition."
+Metabolic,Lean,Greenwich,AOD-9604,1.2mg/ml,90,39,30,178,,"Peptide fragment studied for fat metabolism. May support body composition."
+Peptide Injectable,Strong,Greenwich,BPC-157,3-4mg/ml (15mg),90,39,30,178,,"Peptide studied for tissue repair. May support recovery."
+Peptide Injectable,Strong,Greenwich,BPC-157 / TB-500,3/3 mg/ml,125,39,30,213,,"Recovery-focused peptide blend. May support tissue repair and recovery."
+Peptide Injectable,Strong,Greenwich,CJC-1295 / Ipamorelin,1.2/2 mg,125,39,30,213,,"GHRH analog + GH secretagogue. May support recovery, sleep, and body composition."
+Peptide Injectable,Strong,Greenwich,Sermorelin,2mg/ml (10mg),83,39,30,171,,"GHRH analog. May support recovery and sleep."
+Peptide Injectable,Strong,Striker,GLOW Stack (GHK-Cu / BPC-157 / TB-500),,121,39,40,219,,"GHK-Cu + BPC-157 + TB-500 blend. May support skin, tissue, and recovery."
+Peptide Injectable,Long,Greenwich,NAD+ Solution,100mg/ml (1000mg),90,39,30,178,,"Cellular coenzyme. May support energy and healthy aging."
+Peptide Nasal,Long,Strive,NAD+ Nasal Spray,300mg/ml,52,39,20,130,,"Needle-free NAD+. May support energy and healthy aging."
+Peptide Injectable,Long,Greenwich,Glutathione (injection),200mg/ml (2000mg),27,39,30,115,,"Master antioxidant. May support detoxification and skin health."
+Peptide Nasal,Long,Strive,Glutathione Nasal Spray,200mg/ml,52,39,20,130,,"Needle-free antioxidant. May support detoxification and skin health."
+Peptide Injectable,Long,Greenwich,Epithalon,2mg/ml (10mg),90,39,30,178,,"Peptide studied for longevity. May support restful sleep and healthy aging."
+Peptide Injectable,Long,Greenwich,GHK-Cu,10mg/ml (50mg),90,39,30,178,,"Copper peptide. May support skin and tissue health."
+Peptide Injectable,Long,Greenwich,Kisspeptin,1mg/ml (5mg),90,39,30,178,,"Peptide involved in hormonal signaling. May support hormonal health."
+Peptide Injectable,Long,Greenwich,DSIP,1mg/ml (5mg),90,39,30,178,,"Delta sleep-inducing peptide. May support restful sleep."
+Sexual Health,Support,Greenwich,PT-141 (injectable),2mg/ml (10mg),90,39,30,178,,"Melanocortin peptide. May support sexual health and libido."
+Sexual Health,Support,TPH,Cialis 10mg,20 caps,25,39,23,106,,"PDE5 inhibitor (tadalafil). May support erectile function and blood flow."
+Sexual Health,Support,TPH,Viagra 100mg,20 caps,35,39,23,116,,"PDE5 inhibitor (sildenafil). May support erectile function."
+TRT,Support,Empower,Testosterone Cypionate (lab req),3 mo,115,69,,203,most states,"Testosterone therapy (lab required). May support hormonal health, energy, and body composition."
+TRT,Support,Empower,Enclomiphene,25mg / 90 caps,168,69,,256,most states,"May support the body's own testosterone production."
+Female HRT,Support,BEL,Estradiol cream + Progesterone caps,+ up to 200mg (90),150,69,18,256,90-day,"Hormone therapy. May support hormonal balance in peri/menopause."
+Hair Health,Support,EPIQ,Finasteride / Minoxidil / Biotin / D3 / K2,30 caps,60,39,10,128,all except AL,"Hair-support blend. May support hair retention and regrowth."

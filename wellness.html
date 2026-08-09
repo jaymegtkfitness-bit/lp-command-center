@@ -51,6 +51,7 @@ h1{font-family:'Cinzel',serif;font-size:24px;font-weight:600;color:var(--charcoa
 .p .pn{flex:1;min-width:0}
 .p .pname{font-weight:600;color:var(--ink);font-size:14px}
 .p .pmeta{font-size:11.5px;color:var(--muted);margin-top:1px}
+.p .pblurb{font-size:12px;color:var(--ink);opacity:.85;margin-top:5px;line-height:1.4;max-width:52ch}
 .p .pmeta .st{color:var(--warn)}
 .p .stack{font-size:11px;color:var(--muted);margin-top:3px}
 .atcost{display:inline-block;font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;color:var(--accent);background:var(--accent-soft);border:1px solid rgba(74,92,62,.25);border-radius:20px;padding:2px 9px;margin-top:5px}
@@ -155,7 +156,7 @@ fetch(CONFIG.productsCsvUrl,{cache:"no-store"}).then(function(r){return r.text()
   var rows=parseCSV(txt),h=rows[0],ix={};h.forEach(function(k,i){ix[k.trim()]=i;});
   PRODUCTS=rows.slice(1).map(function(r,i){return {id:i,cat:r[ix.Category],track:r[ix.Track],pharmacy:r[ix.Pharmacy],
     product:r[ix.Product],strength:r[ix.Strength]||"",cost:num(r[ix.Cost]),fee:num(r[ix.ProviderFee]),ship:num(r[ix.Shipping]),
-    mp:num(r[ix.MemberPrice]),state:r[ix.StateNote]||""};});
+    mp:num(r[ix.MemberPrice]),state:r[ix.StateNote]||"",blurb:r[ix.Blurb]||""};});
   if(AUTO_TRACK) TRACK=AUTO_TRACK;   // client's assigned track resolved before the catalog finished loading
   buildFilter(); render();
 }).catch(function(e){ g('catalog').innerHTML='<div class="loading">Could not load the catalog. Please try again.</div>'; });
@@ -197,6 +198,7 @@ function pRow(p){
   var meta=[p.pharmacy,p.strength].filter(Boolean).join(' · ')+(p.state?' · <span class="st">'+esc(p.state)+'</span>':'');
   var inCart=!!CART[p.id];
   return '<div class="p"><div class="pn"><div class="pname">'+esc(p.product)+'</div><div class="pmeta">'+meta+'</div>'
+    +(p.blurb?'<div class="pblurb">'+esc(p.blurb)+'</div>':'')
     +'<div class="stack">medication $'+p.cost+' + provider $'+(p.fee||39)+' + '+shipTxt+' + $19 admin</div>'
     +'<div><span class="atcost">At cost · no markup</span></div></div>'
     +'<div class="right"><div class="mp">'+money(p.mp)+'</div><button class="addbtn'+(inCart?' in':'')+'" onclick="toggleItem('+p.id+')">'+(inCart?'✓ Added':'Add')+'</button></div></div>';
