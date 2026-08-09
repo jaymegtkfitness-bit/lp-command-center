@@ -402,6 +402,13 @@ select.input{appearance:none}
         <button class="btn btn-quarter" onclick="showQuarterly()" id="qtCta" style="margin-top:10px">Set this quarter's direction</button>
       </div>
 
+      <!-- Book a coaching call (community + 1:1) -->
+      <div class="card" id="bookCallCard" style="display:none">
+        <div class="sec-h"><h2>Your coaching call</h2></div>
+        <p class="empty" style="margin:0 0 10px">Grab a time for your call — you'll get an email confirmation and a reminder.</p>
+        <a class="btn btn-primary" id="bookCallLink" href="#" target="_blank" rel="noopener">Book my call →</a>
+      </div>
+
       <!-- Your journey -->
       <div class="card" id="journeyCard">
         <div class="sec-h"><h2>Your Journey</h2></div>
@@ -636,7 +643,8 @@ var CONFIG = {
   coachName: "Jayme",
   completeSystemUrl: "https://dashboard.legacyperformance.co/complete-nutrition-system.html",  // paid Complete Nutrition System build — landing page
   completeSystemPrice: "$497",     // today's price shown on the upsell card
-  completeSystemCompare: "$997"    // regular price, shown struck through next to it (leave "" for no comparison)
+  completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
+  bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief"  // coaching-call scheduler (placeholder — swap for the GHL calendar link). "" hides the card.
 };
 /* =============== END CONFIG (stop editing here) =============== */
 
@@ -866,6 +874,7 @@ function renderHome(){
   renderLog(h);
   renderMonthly();
   renderQuarterly();
+  gateTiers();
   renderJourneyCard();
   renderGeneticsCard();
   renderPFS();
@@ -1253,6 +1262,16 @@ function isOneToOne(tier){ return /built for more|coaching|1:1|one[- ]on[- ]one/
 function hasCNS(){ return isOneToOne(M.tier) || /^\s*(y|yes|true|1|complete|active|paid)/i.test(String(M.complete||"")); }
 /* On peptides? Coach flips the OnProtocol flag; this unlocks the dosing + symptom + prescriber tools. */
 function isOnProtocol(){ return /^\s*(y|yes|true|1)/i.test(String(M.onProtocol||"")); }
+/* Cadence + booking by tier: base = weekly · community ($97) = +monthly · 1:1 (BFM) = +quarterly. */
+function cadenceLevel(){ var t=String(M.tier||"").toLowerCase(); if(isOneToOne(M.tier)) return 3; if(/built to last|vip/.test(t)) return 2; return 1; }
+function gateTiers(){
+  var lvl=cadenceLevel(), mo=g("moCta"), qt=g("qtCta");
+  if(mo) mo.style.display = lvl>=2 ? "" : "none";
+  if(qt) qt.style.display = lvl>=3 ? "" : "none";
+  var bc=g("bookCallCard"), bl=g("bookCallLink"), show=(lvl>=2 && CONFIG.bookCallUrl);
+  if(bc) bc.style.display = show ? "" : "none";
+  if(show && bl) bl.href=CONFIG.bookCallUrl;
+}
 function gateProtocolCards(){
   var on=isOnProtocol();
   ["doseCard","symptomCard","rxCard"].forEach(function(id){ var el=g(id); if(el) el.style.display = on ? "" : "none"; });
