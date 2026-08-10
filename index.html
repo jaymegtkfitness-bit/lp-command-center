@@ -1293,6 +1293,18 @@ function rosterTierCounts(rows){
   });
   return out;
 }
+/* Live monthly recurring revenue by tier, summed from the active roster (drives Big Goals). */
+function tierMRR(){
+  var o={b39:0,b97:0,bfm:0,n39:0,n97:0,nbfm:0};
+  (window.__clients||[]).forEach(function(c){
+    if(!/active/i.test(String(c.status||''))) return;
+    var m=+c.mrr||0, t=String(c.program||'').toLowerCase();
+    if(t.indexOf('for more')>=0||t.indexOf('coaching')>=0){ o.bfm+=m; o.nbfm++; }
+    else if(t.indexOf('to last')>=0||t.indexOf('vip')>=0){ o.b97+=m; o.n97++; }
+    else if(t.indexOf('today')>=0){ o.b39+=m; o.n39++; }
+  });
+  return o;
+}
 /* The operating rhythm (seeds on first open; edit freely after).
    recur: daily (Mon–Sat) · weekly (a weekday) · monthly (Nth weekday) · once (a punch-list item).
    Days: 0 Sun (Sabbath — empty) · 1 Mon · 2 Tue · 3 Wed · 4 Thu · 5 Fri · 6 Sat */
@@ -2120,9 +2132,10 @@ function picBlock(label,income,incomeLabel,needs){
 function moneyPanelHtml(){
   const mrr=window.__mrr||0;
   const R=BUDGET.rev;
+  const TM=tierMRR();                                        // per-tier MRR, auto from the active roster
   const addonMonth=ADDONS.filter(a=>mkey(new Date(a.ts))===mkey(new Date())).reduce((s,a)=>s+(+a.amount||0),0);
-  const subs=(+R.b39||0)+(+R.b97||0);                        // the two affiliate-eligible subscription tiers
-  const mrrTotal=subs+(+R.bfm||0);                           // total monthly recurring revenue (subs + coaching)
+  const subs=TM.b39+TM.b97;                                  // the two affiliate-eligible subscription tiers
+  const mrrTotal=subs+TM.bfm;                                // total monthly recurring revenue (subs + coaching)
   const revenue=mrrTotal+(+R.accel||0)+addonMonth+(+R.other||0);
   const affPct=+BUDGET.affiliatePct||0;
   const affiliate=subs*affPct/100;                           // % given to gyms / other coaches, off Built Today + Built to Last
@@ -2132,6 +2145,9 @@ function moneyPanelHtml(){
   const taxRate=+BUDGET.taxRate||0;
   const taxes=Math.max(0, preTax*taxRate/100);
   const bizProfit=preTax-taxes;                              // TRUE NORTH: profit = revenue − expenses − taxes
+  // per-tier take-home: after affiliate cut (subs tiers) + tax, before shared fixed costs
+  const tierNet=(gross,hasAff)=>{ const aff=hasAff?gross*affPct/100:0, tx=Math.max(0,(gross-aff)*taxRate/100); return {gross,aff,tax:tx,net:gross-aff-tx}; };
+  const t39=tierNet(TM.b39,true), t97=tierNet(TM.b97,true), tbfm=tierNet(TM.bfm,false);
   const chelsea=+BUDGET.chelsea||0;
   const otherHome=BUDGET.household.reduce((s,l)=>s+(+l.amount||0),0);
   const familyIncome=chelsea+otherHome;
@@ -2140,23 +2156,27 @@ function moneyPanelHtml(){
 
   const biz=`<div class="goal-card">
     <div class="goal-head"><span class="goal-label">Business income</span><span class="goal-tag live">what came in</span></div>
-    <div class="bud-subhead">Monthly recurring revenue</div>
-    ${revRow('Built Today subscriptions','b39',R.b39)}
-    ${revRow('Built to Last subscriptions','b97',R.b97)}
-    ${revRow('Built for More coaching','bfm',R.bfm)}
+    <div class="bud-subhead">Monthly recurring revenue <span class="bud-note">live from your roster</span></div>
+    <div class="bud-line"><span>Built Today subscriptions <span class="bud-auto">auto · ${TM.n39}</span></span><span>${money(TM.b39)}</span></div>
+    <div class="bud-line"><span>Built to Last subscriptions <span class="bud-auto">auto · ${TM.n97}</span></span><span>${money(TM.b97)}</span></div>
+    <div class="bud-line"><span>Built for More coaching <span class="bud-auto">auto · ${TM.nbfm}</span></span><span>${money(TM.bfm)}</span></div>
     <div class="bud-subhead">One-time &amp; other</div>
     ${revRow('Accelerators &amp; builds','accel',R.accel,'Blueprints, DFY, down payments this month')}
     <div class="bud-line"><span>Add-on calls this month <span class="bud-auto">auto</span></span><span>${money(addonMonth)}</span></div>
     ${revRow('Other business income','other',R.other)}
     <div class="bud-total sub"><span>Revenue</span><b>${money(revenue)}</b></div>
-    ${mrr?`<div class="bud-hint">Roster shows ~${money(mrr)}/mo in active MRR — a cross-check for the subscription + coaching lines above.</div>`:''}
+    <div class="bud-hint">The three tier lines re-sum automatically whenever a membership changes in your roster. Sync the roster and they update here.</div>
     <div class="bud-costs-h">Monthly business costs</div>
     <div class="bud-row"><span class="bud-lbl">Affiliate cut <span class="bud-note">of Built Today + Built to Last</span></span><input class="mini-input" style="width:46px;text-align:right" type="number" min="0" max="100" value="${affPct}" onchange="budAffiliate(this.value)"><span class="bud-cur">%</span><span class="bud-taxamt">−${money(affiliate)}</span></div>
     ${BUDGET.costs.map(l=>budRow('costs',l)).join('')}
     <button class="bud-add" onclick="budAdd('costs')">+ Add cost</button>
     <div class="bud-total sub"><span>Pre-tax profit</span><b>${money(preTax)}</b></div>
     <div class="bud-row"><span class="bud-lbl">Estimated taxes</span><input class="mini-input" style="width:46px;text-align:right" type="number" min="0" max="100" value="${taxRate}" onchange="budTax(this.value)"><span class="bud-cur">%</span><span class="bud-taxamt">−${money(taxes)}</span></div>
-    <div class="bud-total"><span>Net profit <span class="bud-note">take-home</span></span><b class="${bizProfit>=0?'pos':'neg'}">${money(bizProfit)}/mo</b></div></div>`;
+    <div class="bud-total"><span>Net profit <span class="bud-note">take-home</span></span><b class="${bizProfit>=0?'pos':'neg'}">${money(bizProfit)}/mo</b></div>
+    <div class="bud-costs-h">Take-home by tier <span class="bud-note">after affiliate + tax, before shared costs</span></div>
+    <div class="bud-line"><span>Built Today</span><span>${money(t39.net)} <span class="bud-note">of ${money(t39.gross)} · −${money(t39.tax)} tax</span></span></div>
+    <div class="bud-line"><span>Built to Last</span><span>${money(t97.net)} <span class="bud-note">of ${money(t97.gross)} · −${money(t97.tax)} tax</span></span></div>
+    <div class="bud-line"><span>Built for More</span><span>${money(tbfm.net)} <span class="bud-note">of ${money(tbfm.gross)} · −${money(tbfm.tax)} tax</span></span></div></div>`;
 
   const income=`<div class="goal-card">
     <div class="goal-head"><span class="goal-label">Family income</span><span class="goal-tag">outside the business</span></div>
