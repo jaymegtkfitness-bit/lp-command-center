@@ -1778,15 +1778,17 @@ function buildFastFood(items, calTarget, proTarget){
   }
   return {items:chosen, cal:cal, protein:pro};
 }
-var FF_REST="Chick-fil-A", FF_MEALS=3;
+var FF_REST="Chick-fil-A", FF_MEALS=3, FF_SHAKE=false;
+var SHAKE_PRO=40, SHAKE_CAL=170;  // a protein shake reserved out of the day before splitting the meals
 function ffPick(c){ FF_REST=c; renderFastFood(); }
-function ffMeals(n){ FF_MEALS=n; renderFastFood(); }
+function ffMeals(n, shake){ FF_MEALS=n; FF_SHAKE=!!shake; renderFastFood(); }
 function renderFastFood(){
   var card=g("fastFoodCard"), box=g("fastFoodBox"), it=M.intake; if(!card) return;
   if(!it||!it.pfs){ card.style.display="none"; return; }
   card.style.display="";
   var restChips=Object.keys(FASTFOOD_DB).map(function(c){return '<button type="button" class="chip'+(c===FF_REST?' on':'')+'" onclick="ffPick(\''+esc(c).replace(/'/g,"\\'")+'\')">'+esc(c)+'</button>';}).join('');
-  var mealChips=[2,3,4].map(function(n){return '<button type="button" class="chip'+(n===FF_MEALS?' on':'')+'" onclick="ffMeals('+n+')">'+n+(n===2?' + shake':'')+'</button>';}).join('');
+  var mealOpts=[[2,true,'2 + shake'],[3,false,'3'],[4,false,'4']];
+  var mealChips=mealOpts.map(function(o){ var on=(FF_MEALS===o[0]&&FF_SHAKE===o[1]); return '<button type="button" class="chip'+(on?' on':'')+'" onclick="ffMeals('+o[0]+','+o[1]+')">'+o[2]+'</button>';}).join('');
   box.innerHTML='<p class="wiz-hint" style="margin:0 0 8px">Pick a spot and I\'ll build a meal that fits your numbers. A rough guide — chains tweak menus.</p>'
     +'<div class="field"><label>Restaurant</label><div class="chips">'+restChips+'</div></div>'
     +'<div class="field"><label>Meals a day</label><div class="chips">'+mealChips+'</div></div>'
@@ -1794,11 +1796,13 @@ function renderFastFood(){
     +'<div id="ffResult" style="margin-top:12px"></div>';
 }
 function ffBuild(){
-  var p=M.intake.pfs, calT=Math.round(p.calories/FF_MEALS), proT=Math.round(p.protein/FF_MEALS);
+  var p=M.intake.pfs, dayCal=p.calories, dayPro=p.protein;
+  if(FF_SHAKE){ dayCal=Math.max(0,dayCal-SHAKE_CAL); dayPro=Math.max(0,dayPro-SHAKE_PRO); }  // reserve the shake first, THEN split the meals
+  var calT=Math.round(dayCal/FF_MEALS), proT=Math.round(dayPro/FF_MEALS);
   var r=buildFastFood(FASTFOOD_DB[FF_REST], calT, proT);
   var counts={}; r.items.forEach(function(i){counts[i.name]=(counts[i.name]||0)+1;});
   var lines=Object.keys(counts).map(function(n){return '<li>'+(counts[n]>1?counts[n]+'× ':'')+esc(n)+'</li>';}).join('');
-  g("ffResult").innerHTML='<div class="lp-sub">At '+esc(FF_REST)+' · aiming ~'+calT+' cal · '+proT+'g protein</div>'
+  g("ffResult").innerHTML='<div class="lp-sub">At '+esc(FF_REST)+' · this meal ~'+calT+' cal · '+proT+'g protein'+(FF_SHAKE?' <span style="color:var(--muted);font-weight:400">(your ~'+SHAKE_PRO+'g shake is set aside)</span>':'')+'</div>'
     +'<ul class="mp-items">'+lines+'</ul>'
     +'<p class="wiz-hint" style="margin-top:2px">This combo ≈ <b>'+r.cal+' cal · '+r.protein+'g protein</b>. Tweak a side or portion to dial it in — protein first.</p>';
 }
