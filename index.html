@@ -776,6 +776,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-consults"><div class="wrap" id="consultsView"></div></section>
 <section class="view" id="view-requests"><div class="wrap" id="requestsView"></div></section>
 <section class="view" id="view-grow"><div class="wrap" id="growView"></div></section>
+<section class="view" id="view-free"><div class="wrap" id="freeView"></div></section>
 <section class="view" id="view-calls"><div class="wrap" id="callsView"></div></section>
 
 </main>
@@ -1305,13 +1306,13 @@ function lsSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e)
 let SCORE = lsLoad('lp_score', {});         // { weekKey: {dms,posts,calls} } — weekly, auto-resets
 const GOAL_TARGETS = { cash:100000, mrr:20000, house:50000 };   // the 3 Big Goals
 /* Activity metrics — weekly tap counters (This Week) + cumulative totals vs targets (Big Goals). */
-const METRIC_DEFAULTS = [
-  {k:'posts',   label:'Posts',         wk:7,  total:500},
-  {k:'boosted', label:'Boosted / ads', wk:3,  total:100},
-  {k:'dms',     label:'DMs sent',      wk:25, total:1000},
-  {k:'calls',   label:'Calls booked',  wk:3,  total:150},
-  {k:'pfs',     label:'PFS setups',    wk:2,  total:100},
-  {k:'wsatt',   label:'Workshop att.', wk:10, total:500}
+const METRIC_DEFAULTS = [   // lead-gen funnel order: reach -> nurture -> lead -> booked call
+  {k:'posts',   label:'Posts',                wk:7,  total:500},
+  {k:'boosted', label:'Boosted posts',        wk:3,  total:100},
+  {k:'dms',     label:'DMs sent',             wk:25, total:1000},
+  {k:'pfs',     label:'PFS setups',           wk:2,  total:100},
+  {k:'wsatt',   label:'Workshop registrants', wk:10, total:500},
+  {k:'calls',   label:'Calls booked',         wk:3,  total:150}
 ];
 let TARGETS = lsLoad('lp_targets', {});   // { k:{wk,total} } — coach-set targets (device-local)
 function metricTgt(k){ const d=METRIC_DEFAULTS.find(m=>m.k===k)||{wk:0,total:0}, t=TARGETS[k]||{}; return {wk:(t.wk!=null?+t.wk:d.wk), total:(t.total!=null?+t.total:d.total)}; }
@@ -2150,7 +2151,7 @@ const NAV = [
   {group:"Plan", items:[["tasks","This Week"]]},
   {group:"Launch", items:[["launch","Fitbody Launch"]]},
   {group:"Fulfillment", items:[["journey","Member Journey"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["calls","Fulfillment Calls"],["links","Client Links"]]},
-  {group:"Grow", items:[["grow","Conveyor Belt"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
+  {group:"Grow", items:[["grow","Conveyor Belt"],["free","Free Members"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
 ];
@@ -2179,6 +2180,7 @@ function showTab(id){
   else if(id==="consults") renderConsults();
   else if(id==="requests") renderRequests();
   else if(id==="grow"){ syncTasks(); renderGrow(); }
+  else if(id==="free") renderFree();
   else if(id==="calls"){ syncTasks(); renderCalls(); }
   window.scrollTo(0,0);
 }
@@ -2527,6 +2529,23 @@ async function syncRoster(){
   if(stat) stat.textContent='✓ Sent '+clients.length+' members. Refreshing Member Journey…';
   if(btn){ btn.disabled=false; }
   setTimeout(function(){ renderJourney(); }, 2500);
+}
+/* Free Members — the community free tier, the warmest conversion pool. Reach out to move them up. */
+function renderFree(){
+  var box=document.getElementById("freeView");
+  var free=(window.__allRoster||[]).filter(function(c){ return /community/i.test(String(c.status||'')); });
+  var head='<div class="view-head"><h1>Free Members</h1><p class="view-sub">Your free community members — the warmest, lowest-hanging conversion pool. Reach out and move them up the ladder.</p></div>';
+  if(!free.length){ box.innerHTML=head+'<p class="tool-d">No free members loaded yet. Hit Refresh.</p>'; return; }
+  free.sort(function(a,b){ return String(a.name).localeCompare(String(b.name)); });
+  var withEmail=free.filter(function(c){return c.email;}).length;
+  var rows=free.map(function(c){
+    var email=String(c.email||'').trim(), start=String(c.start||'').trim();
+    return '<div class="link-row"><div class="link-who"><span class="link-name">'+esc(c.name||'(no name)')+'</span>'
+      +(start?'<span class="pill quiet">joined '+esc(start)+'</span>':'')
+      +'<div class="link-email">'+(email?esc(email):'<span style="color:var(--stall-tx)">no email — reach out in Skool</span>')+'</div></div>'
+      +(email?'<a class="pchip" href="mailto:'+esc(email)+'" style="text-decoration:none">Email &rarr;</a>':'')+'</div>';
+  }).join('');
+  box.innerHTML=head+'<div style="margin-bottom:14px;color:var(--muted);font-size:13px"><b style="color:var(--gold);font-family:\'Cinzel\',serif;font-size:18px">'+free.length+'</b> free members · '+withEmail+' reachable by email</div>'+rows;
 }
 /* Member Journey sort order: Built for More -> Built to Last -> Built Today -> free/community. */
 function journeyTierRank(r){
