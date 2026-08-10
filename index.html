@@ -513,6 +513,17 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 /* ---- Big Goals ---- */
 .goals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:18px}
 .goal-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:18px 18px;box-shadow:var(--shadow)}
+.ag-sub{font-size:12.5px;color:var(--muted);margin:2px 0 12px;line-height:1.5}
+.ag-row{padding:12px 0;border-top:1px solid var(--line)}
+.ag-row:first-of-type{border-top:none}
+.ag-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.ag-label{font-weight:600;color:var(--ink)}
+.ag-num{font-family:'Cinzel',serif;font-weight:700;color:var(--gold);font-size:19px;white-space:nowrap}
+.ag-of{color:var(--muted);font-size:13px;font-weight:400}
+.ag-track{height:7px;background:var(--surface-2);border-radius:6px;overflow:hidden;margin:7px 0}
+.ag-fill{height:100%;background:var(--accent);border-radius:6px;transition:width .3s}
+.ag-tgts{display:flex;align-items:center;gap:7px;font-size:11.5px;letter-spacing:.03em;text-transform:uppercase;color:var(--muted);flex-wrap:wrap}
+.ag-tgts input{width:60px}
 .goal-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
 .goal-label{font-family:'Cinzel',serif;font-size:15px;font-weight:600;color:var(--headline)}
 .goal-tag{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;color:var(--muted);border:1px solid var(--line);border-radius:20px;padding:3px 9px}
@@ -1293,6 +1304,19 @@ function lsLoad(k,def){ try{ const v=JSON.parse(localStorage.getItem(k)); return
 function lsSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 let SCORE = lsLoad('lp_score', {});         // { weekKey: {dms,posts,calls} } — weekly, auto-resets
 const GOAL_TARGETS = { cash:100000, mrr:20000, house:50000 };   // the 3 Big Goals
+/* Activity metrics — weekly tap counters (This Week) + cumulative totals vs targets (Big Goals). */
+const METRIC_DEFAULTS = [
+  {k:'posts',   label:'Posts',         wk:7,  total:500},
+  {k:'boosted', label:'Boosted / ads', wk:3,  total:100},
+  {k:'dms',     label:'DMs sent',      wk:25, total:1000},
+  {k:'calls',   label:'Calls booked',  wk:3,  total:150},
+  {k:'pfs',     label:'PFS setups',    wk:2,  total:100},
+  {k:'wsatt',   label:'Workshop att.', wk:10, total:500}
+];
+let TARGETS = lsLoad('lp_targets', {});   // { k:{wk,total} } — coach-set targets (device-local)
+function metricTgt(k){ const d=METRIC_DEFAULTS.find(m=>m.k===k)||{wk:0,total:0}, t=TARGETS[k]||{}; return {wk:(t.wk!=null?+t.wk:d.wk), total:(t.total!=null?+t.total:d.total)}; }
+function setTarget(k,which,val){ TARGETS[k]=TARGETS[k]||{}; TARGETS[k][which]=Math.max(0,+val||0); lsSave('lp_targets',TARGETS); renderGoals(); }
+function metricTotal(k){ let s=0; for(const wk in SCORE){ s+=(SCORE[wk]||{})[k]||0; } return s; }   // cumulative across all weeks
 let GOALS = lsLoad('lp_goals', {cash:0, house:0});   // manual: cash-in-bank + house down payment (MRR is auto)
 let WORKSHOPS = lsLoad('lp_workshops', []); // [ {id,label,reg,att,calls} ] — monthly log
 /* ---- Growth engine state (all sync via the App State blob once the doorway is redeployed) ---- */
@@ -1554,19 +1578,12 @@ function renderTasks(){
 /* Weekly scoreboard — manual tap counters, auto-resets each week */
 function scoreHtml(){
   const wk=wkey(new Date()); const s=SCORE[wk]||{};
-  const tile=(k,label,val,target)=>`<div class="sb">
-    <div class="sb-val">${val||0}${target?`<span class="sb-t">/${target}</span>`:''}</div>
-    <div class="sb-label">${label}</div>
-    <div class="sb-btns"><button class="sb-b" onclick="bump('${k}',-1)">−</button><button class="sb-b" onclick="bump('${k}',1)">＋</button></div>
-  </div>`;
-  return `<div class="scoreboard">`
-    +tile('posts','Posts',s.posts)
-    +tile('boosted','Boosted / ads',s.boosted)
-    +tile('dms','DMs sent',s.dms)
-    +tile('calls','Calls booked',s.calls,3)
-    +tile('pfs','PFS setups',s.pfs)
-    +tile('wsatt','Workshop att.',s.wsatt)
-    +`</div>`;
+  const tile=(m)=>{ const t=metricTgt(m.k).wk; return `<div class="sb">
+    <div class="sb-val">${s[m.k]||0}${t?`<span class="sb-t">/${t}</span>`:''}</div>
+    <div class="sb-label">${m.label}</div>
+    <div class="sb-btns"><button class="sb-b" onclick="bump('${m.k}',-1)">−</button><button class="sb-b" onclick="bump('${m.k}',1)">＋</button></div>
+  </div>`; };
+  return `<div class="scoreboard">`+METRIC_DEFAULTS.map(tile).join('')+`</div>`;
 }
 function bump(k,d){ const wk=wkey(new Date()); SCORE[wk]=SCORE[wk]||{}; SCORE[wk][k]=Math.max(0,(SCORE[wk][k]||0)+d); pushTasks(); renderTasks(); }
 
@@ -2272,6 +2289,19 @@ function moneyPanelHtml(){
 }
 
 /* ---- Big Goals (Personal) — MRR auto-tracks from clients; cash + house are manual ---- */
+/* Activity goals for Big Goals — cumulative total vs total target, with editable weekly + total targets. */
+function activityGoalsHtml(){
+  const rows = METRIC_DEFAULTS.map(m=>{
+    const total=metricTotal(m.k), t=metricTgt(m.k), pct=t.total?Math.min(100,total/t.total*100):0;
+    return `<div class="ag-row">
+      <div class="ag-top"><span class="ag-label">${m.label}</span><span class="ag-num">${total}<span class="ag-of"> / ${t.total}</span></span></div>
+      <div class="ag-track"><div class="ag-fill" style="width:${pct.toFixed(1)}%"></div></div>
+      <div class="ag-tgts"><span>Weekly</span><input class="mini-input" type="number" min="0" value="${t.wk}" onchange="setTarget('${m.k}','wk',this.value)"><span>Total</span><input class="mini-input" type="number" min="0" value="${t.total}" onchange="setTarget('${m.k}','total',this.value)"></div>
+    </div>`;
+  }).join('');
+  return `<div class="goal-card" style="margin-top:16px"><div class="goal-head"><span class="goal-label">Activity goals</span><span class="goal-tag live">auto totals</span></div>
+    <p class="ag-sub">Totals sum every week you've logged in This Week. Set the total target here; the weekly target shows on each This Week counter.</p>${rows}</div>`;
+}
 function renderGoals(){
   const money = n => "$"+Math.round(n||0).toLocaleString();
   const mrr = window.__mrr || 0;
@@ -2299,6 +2329,7 @@ function renderGoals(){
     `<div class="view-head"><h1>Big Goals</h1>
        <p class="view-sub">The three numbers that matter. MRR updates itself from your active clients; cash and the house you update as they move.</p></div>
      <div class="goals-grid">${goals.map(card).join("")}</div>`
+    + activityGoalsHtml()
     + moneyPanelHtml();
 }
 function setGoal(k){
