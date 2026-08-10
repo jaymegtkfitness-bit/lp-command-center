@@ -1530,15 +1530,22 @@ function renderTasks(){
 }
 /* Weekly scoreboard — manual tap counters, auto-resets each week */
 function scoreHtml(){
-  const wk=wkey(new Date()); const s=SCORE[wk]||{dms:0,posts:0,calls:0};
+  const wk=wkey(new Date()); const s=SCORE[wk]||{};
   const tile=(k,label,val,target)=>`<div class="sb">
-    <div class="sb-val">${val}${target?`<span class="sb-t">/${target}</span>`:''}</div>
+    <div class="sb-val">${val||0}${target?`<span class="sb-t">/${target}</span>`:''}</div>
     <div class="sb-label">${label}</div>
     <div class="sb-btns"><button class="sb-b" onclick="bump('${k}',-1)">−</button><button class="sb-b" onclick="bump('${k}',1)">＋</button></div>
   </div>`;
-  return `<div class="scoreboard">${tile('dms','DMs sent',s.dms)}${tile('posts','Posts',s.posts)}${tile('calls','Calls booked',s.calls,3)}</div>`;
+  return `<div class="scoreboard">`
+    +tile('posts','Posts',s.posts)
+    +tile('boosted','Boosted / ads',s.boosted)
+    +tile('dms','DMs sent',s.dms)
+    +tile('calls','Calls booked',s.calls,3)
+    +tile('pfs','PFS setups',s.pfs)
+    +tile('wsatt','Workshop att.',s.wsatt)
+    +`</div>`;
 }
-function bump(k,d){ const wk=wkey(new Date()); SCORE[wk]=SCORE[wk]||{dms:0,posts:0,calls:0}; SCORE[wk][k]=Math.max(0,(SCORE[wk][k]||0)+d); pushTasks(); renderTasks(); }
+function bump(k,d){ const wk=wkey(new Date()); SCORE[wk]=SCORE[wk]||{}; SCORE[wk][k]=Math.max(0,(SCORE[wk][k]||0)+d); pushTasks(); renderTasks(); }
 
 /* Workshops — month-by-month log of registrants / attendees / assessment calls booked */
 function renderWorkshops(){
