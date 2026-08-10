@@ -2409,6 +2409,14 @@ async function syncRoster(){
   if(btn){ btn.disabled=false; }
   setTimeout(function(){ renderJourney(); }, 2500);
 }
+/* Member Journey sort order: Built for More -> Built to Last -> Built Today -> free/community. */
+function journeyTierRank(r){
+  var t=String(rv(r,'Tier')||'').toLowerCase();
+  if(/built for more/.test(t)) return 0;
+  if(/built to last/.test(t)) return 1;   // includes "Built to Last VIP"
+  if(/built today/.test(t))    return 2;
+  return 3;                                // community / free / partner / staff / blank
+}
 function renderJourney(){
   var box=document.getElementById("journeyView");
   box.innerHTML='<div class="view-head"><h1>Member Journey</h1><p class="view-sub">Click a member to see their whole picture — setup, this month, and where they’re at.</p>'
@@ -2418,6 +2426,7 @@ function renderJourney(){
     var list=document.getElementById("journeyList");
     if(!rows){ list.innerHTML='<p class="tool-d">Couldn’t load. Hit Refresh.</p>'; return; }
     var real=rows.filter(function(r){ return String(rv(r,'Email')).trim(); });
+    real.sort(function(a,b){ return journeyTierRank(a)-journeyTierRank(b) || String(rv(a,'Name')).localeCompare(String(rv(b,'Name'))); });
     list.innerHTML=real.map(function(r){
       var email=String(rv(r,'Email')).trim(), name=String(rv(r,'Name')).trim()||email, status=String(rv(r,'Status')).trim();
       return '<div class="link-row" style="cursor:pointer" onclick="openJourney(\''+esc(email)+'\')"><div class="link-who"><span class="link-name">'+esc(name)+'</span><span class="pill '+(/active/i.test(status)?'good':'quiet')+'">'+esc(status||'—')+'</span><div class="link-email">'+esc(email)+'</div></div><span style="color:var(--muted);font-weight:600">View →</span></div>';
