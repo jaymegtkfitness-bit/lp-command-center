@@ -102,7 +102,7 @@ const EXERCISES = {
        Parchment bg · Charcoal headlines · Olive emphasis · Gold touch
    Raw palette is fixed; the semantic tokens below flip per mode.
    ================================================================ */
-:root{
+:root, :root[data-theme="charcoal"]{
   /* Fixed brand palette */
   --charcoal:#1C1C1C;
   --olive:#4A5C3E;
@@ -141,7 +141,7 @@ const EXERCISES = {
   --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.28);
 }
 /* ---- FEMALE-FACING / LIGHT (inverse) — activate with <html data-theme="light"> ---- */
-:root[data-theme="light"]{
+:root[data-theme="light"], :root[data-theme="parchment"]{
   --bg:#F2EDE4; --header-bg:#1C1C1C; --surface:#FBF9F4; --surface-2:#F2EDE4;
   --headline:#1C1C1C; --ink:#242219; --ink-soft:#4a463c; --muted:#8a8578;
   --line:#e4ddcf; --accent:#4A5C3E; --accent-soft:rgba(74,92,62,.12);
@@ -151,6 +151,21 @@ const EXERCISES = {
   --quiet:#9a958a; --quiet-bg:rgba(154,149,138,.16); --quiet-tx:#6d685f;
   --shadow:0 1px 2px rgba(28,28,28,.05),0 8px 24px rgba(28,28,28,.06);
 }
+/* ---- OLIVE (green-forward dark) ---- */
+:root[data-theme="olive"]{
+  --bg:#2c3327; --header-bg:#20261c; --surface:#38412f; --surface-2:#434d38;
+  --headline:#F2EDE4; --ink:#e8e4d6; --ink-soft:#c7cbb6; --muted:#9aa287;
+  --line:rgba(242,237,228,.12); --accent:#C1AD72; --accent-soft:rgba(193,173,114,.18);
+  --good:#a9c090; --good-bg:rgba(143,169,122,.24); --good-tx:#bcd0a3;
+  --watch:#C1AD72; --watch-bg:rgba(193,173,114,.18); --watch-tx:#d4c185;
+  --stall:#cf8b6b; --stall-bg:rgba(180,102,74,.22); --stall-tx:#e0a487;
+  --quiet:#9a958a; --quiet-bg:rgba(148,141,126,.16); --quiet-tx:#b3ada1;
+  --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.30);
+}
+/* Theme swatches (header) */
+.cc-themes{display:flex;gap:7px;align-items:center;margin-right:4px}
+.cc-swatch{width:22px;height:22px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
+.cc-swatch.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
 body{
@@ -668,6 +683,11 @@ select.ci-input{appearance:none;-webkit-appearance:none}
     </div>
     <span class="status-chip" id="statusChip"><span class="dot demo" id="statusDot"></span><span id="statusText">Demo</span></span>
     <span class="updated" id="updatedAt"></span>
+    <span class="cc-themes" title="Dashboard color">
+      <button class="cc-swatch" id="cc-sw-charcoal" style="background:#1C1C1C" title="Charcoal" onclick="ccTheme('charcoal',true)"></button>
+      <button class="cc-swatch" id="cc-sw-parchment" style="background:#F2EDE4" title="Parchment" onclick="ccTheme('parchment',true)"></button>
+      <button class="cc-swatch" id="cc-sw-olive" style="background:#4A5C3E" title="Olive" onclick="ccTheme('olive',true)"></button>
+    </span>
     <button class="refresh-btn" id="refreshBtn" onclick="loadAll()">↻ Refresh</button>
   </div>
 </header>
@@ -806,6 +826,14 @@ const DEMO = {
 };
 
 /* ============================ CSV PARSER ============================ */
+/* Command Center color theme — Charcoal (default) / Parchment / Olive, remembered per device. */
+function ccTheme(t, save){
+  if(['charcoal','parchment','olive'].indexOf(t)<0) t='charcoal';
+  document.documentElement.setAttribute('data-theme', t);
+  if(save){ try{ localStorage.setItem('lp_cc_theme', t); }catch(e){} }
+  ['charcoal','parchment','olive'].forEach(function(v){ var b=document.getElementById('cc-sw-'+v); if(b) b.classList.toggle('on', v===t); });
+}
+(function(){ var t='charcoal'; try{ t=localStorage.getItem('lp_cc_theme')||'charcoal'; }catch(e){} ccTheme(t,false); })();
 function parseCSV(text){
   const rows=[]; let row=[], cur="", q=false;
   for(let i=0;i<text.length;i++){
