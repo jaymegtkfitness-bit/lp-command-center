@@ -603,6 +603,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .pomo-worked b{font-family:'Cinzel',serif;font-size:19px;color:var(--headline);font-weight:600}
 .pomo-lens{display:flex;align-items:center;gap:5px;font-size:11.5px;color:var(--muted)}
 .pomo-lens input{width:44px}
+.pomo-mode select{background:var(--surface-2);border:1px solid var(--line);color:var(--ink);border-radius:8px;padding:6px 8px;font-size:12px;font-weight:600;cursor:pointer}
 @media(max-width:560px){.pomo-worked{margin-left:0;width:100%;text-align:left}}
 /* Trigger banners */
 .trig{display:flex;align-items:flex-start;gap:10px;border-radius:11px;padding:12px 14px;margin-bottom:10px;font-size:13px;line-height:1.5}
@@ -1253,7 +1254,7 @@ let ADDONS   = lsLoad('lp_addons', []);   // [ {id,ts,client,hours,rate,amount,n
 let BUMPED   = lsLoad('lp_bumped', {});   // { 'YYYY-MM-DD': [taskId,...] } — biz-dev tasks pushed past the 4-hour cap
 /* Pomodoro work/rest timer — device-local (NOT synced; a timer running on desktop shouldn't tick your phone).
    phaseElapsed is banked seconds this phase; worked = actual work-phase seconds per day. */
-let TIMER = lsLoad('lp_timer', {phase:'idle', running:false, phaseElapsed:0, worked:{}, workMin:25, restMin:5});
+let TIMER = lsLoad('lp_timer', {phase:'idle', running:false, phaseElapsed:0, worked:{}, workMin:25, restMin:5, mode:'pomodoro'});
 TIMER._lastTick = Date.now();   // reset on load so time spent with the app closed is NOT counted
 /* Household + business budget (Big Goals) — personal expenses vs. business profit. Syncs under the `budget` key. */
 function makeDefaultBudget(){ const L=n=>({id:uidT(),name:n,amount:0}); return {
@@ -1847,26 +1848,34 @@ function phaseLen(){ return (TIMER.phase==='rest'?(TIMER.restMin||5):(TIMER.work
 function fmtClock(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 function fmtDur(s){ s=Math.round(s); const h=Math.floor(s/3600), m=Math.floor((s%3600)/60); return h?(h+'h '+m+'m'):(m+'m'); }
 function pomoHtml(){
-  const p=TIMER.phase, remain=Math.max(0, phaseLen()-(TIMER.phaseElapsed||0));
-  const label=p==='rest'?'Rest':(p==='work'?'Work':'Ready');
-  return `<div class="pomo ${p}" id="pomoCard">
-    <span class="pomo-phase ${p}" id="pomoPhase">${label}</span>
-    <span class="pomo-clock" id="pomoClock">${fmtClock(remain)}</span>
+  const mode=TIMER.mode||'pomodoro', isCU=mode==='countup', p=TIMER.phase;
+  const clockVal = isCU ? (TIMER.phaseElapsed||0) : Math.max(0, phaseLen()-(TIMER.phaseElapsed||0));
+  const cls = isCU ? (TIMER.running?'work':'idle') : p;
+  const label = isCU ? (TIMER.running?'Focus':'Ready') : (p==='rest'?'Rest':(p==='work'?'Work':'Ready'));
+  return `<div class="pomo ${cls}" id="pomoCard">
+    <span class="pomo-mode"><select onchange="pomoMode(this.value)">
+      <option value="pomodoro"${!isCU?' selected':''}>Pomodoro</option>
+      <option value="countup"${isCU?' selected':''}>Count up</option></select></span>
+    <span class="pomo-phase ${cls}" id="pomoPhase">${label}</span>
+    <span class="pomo-clock" id="pomoClock">${fmtClock(clockVal)}</span>
     <div class="pomo-btns">
       <button class="pomo-b go" id="pomoToggle" onclick="pomoToggle()">${TIMER.running?'Pause':'Start'}</button>
-      <button class="pomo-b" onclick="pomoSkip()">Skip</button>
+      ${isCU?'':'<button class="pomo-b" onclick="pomoSkip()">Skip</button>'}
       <button class="pomo-b" onclick="pomoReset()">Reset</button>
     </div>
-    <div class="pomo-lens">W<input class="mini-input" type="number" min="1" value="${TIMER.workMin||25}" onchange="pomoLens('workMin',+this.value||25)">R<input class="mini-input" type="number" min="1" value="${TIMER.restMin||5}" onchange="pomoLens('restMin',+this.value||5)"></div>
+    ${isCU?'':`<div class="pomo-lens">W<input class="mini-input" type="number" min="1" value="${TIMER.workMin||25}" onchange="pomoLens('workMin',+this.value||25)">R<input class="mini-input" type="number" min="1" value="${TIMER.restMin||5}" onchange="pomoLens('restMin',+this.value||5)"></div>`}
     <div class="pomo-worked"><b id="pomoWorked">${fmtDur((TIMER.worked||{})[dstr()]||0)}</b><br>worked today</div>
   </div>`;
 }
+function pomoMode(v){ TIMER.mode=(v==='countup'?'countup':'pomodoro'); TIMER.phase='idle'; TIMER.running=false; TIMER.phaseElapsed=0; timerSave();
+  var card=document.getElementById('pomoCard'); if(card) card.outerHTML=pomoHtml(); }
 function renderTimerDisplay(){
   const clk=document.getElementById('pomoClock'); if(!clk) return;   // only when This Week is showing
-  const p=TIMER.phase;
-  clk.textContent=fmtClock(Math.max(0, phaseLen()-(TIMER.phaseElapsed||0)));
-  const ph=document.getElementById('pomoPhase'); if(ph){ ph.textContent=p==='rest'?'Rest':(p==='work'?'Work':'Ready'); ph.className='pomo-phase '+p; }
-  const card=document.getElementById('pomoCard'); if(card) card.className='pomo '+p;
+  const isCU=(TIMER.mode||'pomodoro')==='countup', p=TIMER.phase;
+  const cls = isCU ? (TIMER.running?'work':'idle') : p;
+  clk.textContent = isCU ? fmtClock(TIMER.phaseElapsed||0) : fmtClock(Math.max(0, phaseLen()-(TIMER.phaseElapsed||0)));
+  const ph=document.getElementById('pomoPhase'); if(ph){ ph.textContent = isCU?(TIMER.running?'Focus':'Ready'):(p==='rest'?'Rest':(p==='work'?'Work':'Ready')); ph.className='pomo-phase '+cls; }
+  const card=document.getElementById('pomoCard'); if(card) card.className='pomo '+cls;
   const tg=document.getElementById('pomoToggle'); if(tg) tg.textContent=TIMER.running?'Pause':'Start';
   const wk=document.getElementById('pomoWorked'); if(wk) wk.textContent=fmtDur((TIMER.worked||{})[dstr()]||0);
 }
@@ -1881,8 +1890,9 @@ function timerTick(){
     const now=Date.now(), dt=(now-(TIMER._lastTick||now))/1000; TIMER._lastTick=now;
     if(dt>0){
       TIMER.phaseElapsed=(TIMER.phaseElapsed||0)+dt;
-      if(TIMER.phase==='work'){ const k=dstr(); TIMER.worked=TIMER.worked||{}; TIMER.worked[k]=(TIMER.worked[k]||0)+dt; }
-      if(TIMER.phaseElapsed>=phaseLen()){ TIMER.phase=(TIMER.phase==='work'?'rest':'work'); TIMER.phaseElapsed=0; }   // auto-switch work↔rest
+      const isCU=(TIMER.mode||'pomodoro')==='countup';
+      if(isCU || TIMER.phase==='work'){ const k=dstr(); TIMER.worked=TIMER.worked||{}; TIMER.worked[k]=(TIMER.worked[k]||0)+dt; }   // count-up = all focus time
+      if(!isCU && TIMER.phaseElapsed>=phaseLen()){ TIMER.phase=(TIMER.phase==='work'?'rest':'work'); TIMER.phaseElapsed=0; }   // pomodoro auto-switch work↔rest
       timerSave();
     }
   }
