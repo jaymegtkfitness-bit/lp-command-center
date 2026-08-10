@@ -426,6 +426,15 @@ select.input{appearance:none}
         <div class="sec-h"><h2>From your coach</h2></div>
         <div id="coachBox"><div class="empty">Notes from Jayme show up here.</div></div>
       </div>
+
+      <!-- Requests & travel -->
+      <div class="card" id="requestsCard">
+        <div class="sec-h"><h2>Requests &amp; travel</h2></div>
+        <p class="empty" style="margin:0 0 10px">Traveling, need a program tweak, or have a question? Send it here and it goes straight to Jayme.</p>
+        <button class="toggle" onclick="toggleRequestForm()" id="reqToggle">＋ New request</button>
+        <div id="reqFormBox" class="hidden"></div>
+        <div id="reqBox" style="margin-top:12px"></div>
+      </div>
     </div>
 
     <!-- ===== NUTRITION TAB ===== -->
@@ -839,6 +848,7 @@ function buildModel(server){
   // ---- CNS + genetics intake status (drives the setup cards) ----
   M.cnsintake      = (server && server.cnsintake)      ? server.cnsintake      : (M.cnsintake||[]);
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
+  M.requests       = (server && server.requests)       ? server.requests       : (M.requests||[]);
   // ---- tier + Complete Nutrition System entitlement ----
   M.tier = (server && server.tier) || M.tier || '';
   // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
@@ -886,6 +896,7 @@ function renderHome(){
   gateTiers();
   renderJourneyCard();
   renderGeneticsCard();
+  renderRequestsCard();
   renderPFS();
   renderRoadmap();
   renderMealPlan();
@@ -1647,6 +1658,37 @@ function renderGeneticsCard(){
     return;
   }
   box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Setup complete ✓ Your kit is on the way. Results show here when they\'re back.</div>';
+}
+/* ---- Requests & travel — client's life/coaching requests → the coach queue ---- */
+function toggleRequestForm(){
+  var box=g("reqFormBox"), t=g("reqToggle"), open=box.classList.toggle("hidden")===false;
+  t.textContent = open ? "× Cancel" : "＋ New request";
+  if(open){
+    box.innerHTML='<div class="field" style="margin-top:12px"><label>Type</label>'
+      +chips1Html('req_kind',["Travel","Program change","Schedule / pause","Question","Other"])+'</div>'
+      +'<div class="field"><label>Dates <span class="hint">— if it\'s travel or time-bound</span></label><input class="input" id="req_dates" placeholder="e.g. Sep 12-18, Cabo"></div>'
+      +'<div class="field"><label>Details</label><textarea class="input" id="req_details" rows="3" placeholder="What do you need? Hotel-gym-only week, bodyweight plan, move my check-in day, a question..."></textarea></div>'
+      +'<div class="actions"><button class="btn btn-primary" onclick="submitRequest()">Send request</button> <span class="status" id="reqStatus"></span></div>';
+  }
+}
+function submitRequest(){
+  if(!ID||!ID.email) return;
+  var kind=mval('req_kind'), details=g('req_details').value.trim();
+  if(!kind && !details){ var s0=g('reqStatus'); if(s0){s0.textContent="Pick a type or add details.";s0.style.color="var(--stall-tx)";} return; }
+  var payload={type:"request", email:ID.email, name:ID.name||"", ts:new Date().toISOString(), kind:kind||"Other", dates:g('req_dates').value.trim(), details:details};
+  if(CONFIG.writeUrl) postToSheet(payload);
+  M.requests=(M.requests||[]).concat([{Timestamp:payload.ts, Type:payload.kind, Dates:payload.dates, Details:payload.details, Status:"New"}]);
+  g("reqFormBox").classList.add("hidden"); g("reqToggle").textContent="＋ New request";
+  renderRequestsCard();
+}
+function renderRequestsCard(){
+  var box=g("reqBox"); if(!box) return;
+  var rs=(M.requests||[]).slice().sort(function(a,b){return String(b['Timestamp']||'').localeCompare(String(a['Timestamp']||''));});
+  if(!rs.length){ box.innerHTML='<div class="empty">Your requests show here, with their status.</div>'; return; }
+  box.innerHTML=rs.map(function(r){
+    var st=String(r['Status']||'New');
+    return '<div class="coachnote"><div class="cn-meta">'+esc(r['Type']||'Request')+(r['Dates']?' · '+esc(r['Dates']):'')+' · <b>'+esc(st)+'</b>'+(r['Timestamp']?' · '+esc(fmtDate(ts(r['Timestamp']))):'')+'</div><div class="cn-body">'+esc(r['Details']||'')+'</div></div>';
+  }).join('');
 }
 var SETUP_DONE=false;
 function checkSetupParam(){

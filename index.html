@@ -742,6 +742,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-journey"><div class="wrap" id="journeyView"></div></section>
 <section class="view" id="view-orders"><div class="wrap" id="ordersView"></div></section>
 <section class="view" id="view-consults"><div class="wrap" id="consultsView"></div></section>
+<section class="view" id="view-requests"><div class="wrap" id="requestsView"></div></section>
 <section class="view" id="view-grow"><div class="wrap" id="growView"></div></section>
 <section class="view" id="view-calls"><div class="wrap" id="callsView"></div></section>
 
@@ -2051,7 +2052,7 @@ const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"]]},
   {group:"Launch", items:[["launch","Fitbody Launch"]]},
-  {group:"Fulfillment", items:[["journey","Member Journey"],["orders","Wellness Orders"],["consults","Consult Requests"],["calls","Fulfillment Calls"],["links","Client Links"]]},
+  {group:"Fulfillment", items:[["journey","Member Journey"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["calls","Fulfillment Calls"],["links","Client Links"]]},
   {group:"Grow", items:[["grow","Conveyor Belt"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
@@ -2079,6 +2080,7 @@ function showTab(id){
   else if(id==="journey") renderJourney();
   else if(id==="orders") renderOrders();
   else if(id==="consults") renderConsults();
+  else if(id==="requests") renderRequests();
   else if(id==="grow"){ syncTasks(); renderGrow(); }
   else if(id==="calls"){ syncTasks(); renderCalls(); }
   window.scrollTo(0,0);
@@ -2313,6 +2315,43 @@ function renderOrders(){
         +'<b style="color:var(--gold);font-size:16px">$'+Math.round(moneyNum(rv(r,'Est Total')))+'</b>'
         +'<select onchange="setOrderStatus(\''+esc(ts)+'\',\''+esc(email)+'\',this.value)" style="padding:7px 11px;border-radius:8px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-size:13px">'+opts+'</select>'
         +'</div></div>';
+    }).join('');
+    list.innerHTML=head+cards;
+  });
+}
+/* ---- Requests & Travel — client life/coaching requests in one queue ---- */
+var REQ_STATUSES=['New','In progress','Done'];
+function fetchRequests(cb){
+  if(!CONFIG.writeUrl){ cb(null); return; }
+  var name='__lpR'+Date.now(), s=document.createElement('script'), done=false;
+  window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
+  s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
+  s.src=CONFIG.writeUrl+'?action=requests&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
+}
+function setRequestStatus(ts, email, status){ postToSheet({type:'requeststatus', ts:ts, email:email, status:status}); }
+function renderRequests(){
+  var box=document.getElementById("requestsView");
+  box.innerHTML='<div class="view-head"><h1>Requests &amp; Travel</h1><p class="view-sub">Travel, program changes, schedule needs, and questions from your members — in one queue.</p></div><div id="requestsList"><p class="tool-d">Loading…</p></div>';
+  fetchRequests(function(rows){
+    var list=document.getElementById("requestsList");
+    if(!rows){ list.innerHTML='<p class="tool-d">Couldn’t load. Hit Refresh.</p>'; return; }
+    if(!rows.length){ list.innerHTML='<p class="tool-d">No requests yet. When a member sends one from their dashboard, it lands here.</p>'; return; }
+    rows.sort(function(a,b){ return String(rv(b,'Timestamp')).localeCompare(String(rv(a,'Timestamp'))); });
+    var open=rows.filter(function(r){ return String(rv(r,'Status')||'New')!=='Done'; });
+    var head='<div style="margin-bottom:14px"><div class="tile" style="display:inline-block;min-width:150px"><b style="font-size:22px;color:var(--gold)">'+open.length+'</b><div style="color:var(--muted);font-size:12px">open requests</div></div></div>';
+    var cards=rows.map(function(r){
+      var ts=String(rv(r,'Timestamp')), email=String(rv(r,'Email')), status=String(rv(r,'Status')||'New'), dates=rv(r,'Dates');
+      var opts=REQ_STATUSES.map(function(s){return '<option'+(s===status?' selected':'')+'>'+s+'</option>';}).join('');
+      return '<div class="tile" style="margin-bottom:10px'+(status==='Done'?';opacity:.55':'')+'">'
+        +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">'
+        +'<div><b>'+esc(rv(r,'Name')||email)+'</b> <span class="pill quiet" style="margin-left:4px">'+esc(rv(r,'Type')||'Request')+'</span> <span style="color:var(--muted);font-size:12px">'+esc(email)+'</span></div>'
+        +'<div style="color:var(--muted);font-size:12px">'+esc(fmtDate(parseTs(ts)))+'</div></div>'
+        +(dates?'<div style="margin-top:6px;font-size:12.5px;color:var(--gold)">📅 '+esc(dates)+'</div>':'')
+        +'<div style="margin:8px 0;font-size:13.5px;color:var(--ink)">'+esc(rv(r,'Details'))+'</div>'
+        +'<div style="display:flex;justify-content:flex-end"><select onchange="setRequestStatus(\''+esc(ts)+'\',\''+esc(email)+'\',this.value)" style="padding:7px 11px;border-radius:8px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-size:13px">'+opts+'</select></div>'
+        +'</div>';
     }).join('');
     list.innerHTML=head+cards;
   });
