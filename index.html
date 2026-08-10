@@ -2389,9 +2389,31 @@ function renderConsults(){
     list.innerHTML=head+cards;
   });
 }
+/* One-click roster sync: pushes clients.csv (email members) into the Sheet Roster via rosterupsert,
+   so Member Journey / Client Links / dashboards match the financials roster. Preserves tokens + flags. */
+async function syncRoster(){
+  var clients=(window.__clients||[]).filter(function(c){return c.email;});
+  var btn=document.getElementById('syncRosterBtn'), stat=document.getElementById('syncRosterStat');
+  if(!CONFIG.writeUrl){ if(stat) stat.textContent='Doorway not configured.'; return; }
+  if(!clients.length){ if(stat) stat.textContent='No roster loaded yet — hit Refresh first.'; return; }
+  if(btn){ btn.disabled=true; }
+  for(var i=0;i<clients.length;i++){
+    var c=clients[i];
+    postToSheet({ type:'rosterupsert', email:c.email, name:c.name, status:c.status, tier:c.program,
+      goal:c.goal, start:c.start, amount:c.amount, frequency:c.frequency, mrr:c.mrr, payment:c.payment, founding:c.founding });
+    if(stat) stat.textContent='Syncing '+(i+1)+' / '+clients.length+'…';
+    await new Promise(function(res){ setTimeout(res, 150); });
+  }
+  __rosterCache=null;
+  if(stat) stat.textContent='✓ Sent '+clients.length+' members. Refreshing Member Journey…';
+  if(btn){ btn.disabled=false; }
+  setTimeout(function(){ renderJourney(); }, 2500);
+}
 function renderJourney(){
   var box=document.getElementById("journeyView");
-  box.innerHTML='<div class="view-head"><h1>Member Journey</h1><p class="view-sub">Click a member to see their whole picture — setup, this month, and where they’re at.</p></div><div id="journeyList"><p class="tool-d">Loading members…</p></div>';
+  box.innerHTML='<div class="view-head"><h1>Member Journey</h1><p class="view-sub">Click a member to see their whole picture — setup, this month, and where they’re at.</p>'
+    +'<div style="margin-top:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap"><button id="syncRosterBtn" onclick="syncRoster()" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 14px;border-radius:8px;cursor:pointer;font-size:13px">⟳ Sync roster from clients.csv</button><span id="syncRosterStat" style="font-size:12px;color:var(--muted)"></span></div>'
+    +'</div><div id="journeyList"><p class="tool-d">Loading members…</p></div>';
   fetchRoster(function(rows){
     var list=document.getElementById("journeyList");
     if(!rows){ list.innerHTML='<p class="tool-d">Couldn’t load. Hit Refresh.</p>'; return; }
