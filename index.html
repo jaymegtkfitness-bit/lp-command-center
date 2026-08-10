@@ -917,14 +917,36 @@ function shapeRoster(rows){
         iAmt=col(h,"amount"), iFreq=col(h,"frequency"), iMrr=col(h,"mrr"),
         iDown=col(h,"down payment","downpayment"), iDownMo=col(h,"down months","downmonths"), iDownConc=col(h,"down concurrent","downconcurrent"),
         iFound=col(h,"founding"), iPay=col(h,"payment");
-  return rows.slice(1).map(r=>({
+  const all=rows.slice(1).map(r=>({
     name:(r[iName]||"").trim(), email:(r[iEmail]||"").trim().toLowerCase(),
     program:(r[iProg]||"").trim(), goal:(r[iGoal]||"Lose").trim(),
     status:(r[iStatus]||"Active").trim(), start:(r[iStart]||"").trim(),
     amount:num(r[iAmt]), frequency:(r[iFreq]||"").trim(), mrr:num(r[iMrr]),
     down:num(r[iDown]), downMo:num(r[iDownMo]), downConc:/^y/i.test((r[iDownConc]||"").trim()),
     founding:(r[iFound]||"").trim(), payment:(r[iPay]||"").trim()
-  })).filter(x=>x.email);
+  })).filter(x=>x.name);                 // keep everyone with a name (incl no-email community)
+  window.__allRoster = all;              // full list for tier/member counts (dashboards still use the email-only __clients)
+  return all.filter(x=>x.email);
+}
+/* Live member counts by tier from the full roster (includes no-email community). */
+function memberCounts(){
+  var o={bfm:0,b97:0,b39:0,comm:0};
+  (window.__allRoster||[]).forEach(function(c){
+    var st=String(c.status||'').toLowerCase(), t=String(c.program||'').toLowerCase();
+    if(st.indexOf('community')>=0){ o.comm++; return; }
+    if(!/active/.test(st)) return;
+    if(t.indexOf('for more')>=0||t.indexOf('coaching')>=0) o.bfm++;
+    else if(t.indexOf('to last')>=0||t.indexOf('vip')>=0) o.b97++;
+    else if(t.indexOf('today')>=0) o.b39++;
+  });
+  return o;
+}
+function membersHtml(){
+  const m=memberCounts();
+  const t=(val,label)=>`<div class="sb"><div class="sb-val">${val}</div><div class="sb-label">${label}</div></div>`;
+  return `<div class="scoreboard" style="margin-bottom:14px">`
+    +t(m.bfm,'B4M Clients')+t(m.b97,'B2L Members')+t(m.b39,'BT Members')+t(m.comm,'Community')
+    +`</div>`;
 }
 function shapePRs(rows){
   const h=rows[0];
@@ -1462,6 +1484,7 @@ function renderTasks(){
     && !(t.recur==='until' && t.done && t.doneDate!==dateStr));   // recurring focus for today (completed "until" tasks fall off the next day)
   const projects=TASKS.filter(t=>t.recur==='once' && !t.done).sort((a,b)=>(a.date||'').localeCompare(b.date||''));
   let html=`<div class="view-head"><h1>This Week</h1><p class="view-sub">${DOW[wd]} · ${now.toLocaleDateString(undefined,{month:'long',day:'numeric'})} — your focus for today</p></div>`;
+  html+=membersHtml();
   html+=scoreHtml();
   html+=pomoHtml();
   // Quarterly planning window: the last 7 days of a quarter-ending month (Mar/Jun/Sep/Dec)
