@@ -2636,6 +2636,13 @@ function setGenetics(email, val){
   var lbl=document.getElementById('genState'); if(lbl) lbl.textContent=val;
   ['none','pending','in'].forEach(function(v){ var b=document.getElementById('gen-'+v); if(b) b.classList.toggle('on', v===val); });
 }
+/* Small field renderers for the member panel — skip empties so the layout only shows what they actually gave. */
+function jpFld(label,val){ if(val==null||String(val).trim()==='') return '';
+  return '<div style="min-width:90px"><div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">'+esc(label)+'</div><div style="font-size:14px;font-weight:600;color:var(--ink)">'+esc(val)+'</div></div>'; }
+function jpNum(label,val){ if(val==null||String(val).trim()==='') return '';
+  return '<div style="min-width:62px"><div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">'+esc(label)+'</div><div style="font-size:16px;font-weight:700;color:var(--gold)">'+esc(val)+'</div></div>'; }
+function jpText(label,val){ if(val==null||String(val).trim()==='') return '';
+  return '<div style="margin-top:8px"><div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">'+esc(label)+'</div><div style="font-size:13px;color:var(--ink);line-height:1.45">'+esc(val)+'</div></div>'; }
 function journeyPanel(d, email){
   var ci=(d.checkins||[]).map(function(r){ return {ts:parseTs(r['Timestamp']), w:num(r['Weight']), cons:consistencyToNum(r['Consistency']),
       energy:num(r['Energy']), sleep:num(r['Sleep quality']), mood:num(r['Mood & resilience'])}; })
@@ -2648,6 +2655,10 @@ function journeyPanel(d, email){
   var intk=(d.intake&&d.intake.length)?d.intake[d.intake.length-1]:null;
   var ob=(d.onboarding&&d.onboarding.length)?String(d.onboarding[d.onboarding.length-1]['Completed']||''):'';
   var obN=ob?ob.split(',').filter(Boolean).length:0;
+  var ciRaw=(d.checkins||[]).slice().filter(function(r){return parseTs(r['Timestamp']);}).sort(function(a,b){return parseTs(a['Timestamp'])-parseTs(b['Timestamp']);});
+  var lastRaw=ciRaw.length?ciRaw[ciRaw.length-1]:null;
+  var cnsI=(d.cnsintake&&d.cnsintake.length)?d.cnsintake[d.cnsintake.length-1]:null;
+  var genI=(d.geneticsintake&&d.geneticsintake.length)?d.geneticsintake[d.geneticsintake.length-1]:null;
   var tok=''; (__rosterCache||[]).forEach(function(r){ if(String(rv(r,'Email')).trim().toLowerCase()===String(email).toLowerCase()) tok=String(rv(r,'Token')).trim(); });
   var link=tok?(CLIENT_BASE+"?k="+tok):"";
   var week1 = intk && first && daysSince(first.ts)>=6;
@@ -2686,13 +2697,19 @@ function journeyPanel(d, email){
   // week-1 banner
   if(week1) h+='<div class="tile" style="background:var(--good-bg);border-color:var(--good);margin-bottom:14px"><b style="color:var(--good-tx)">Ready for the week-1 review + Blueprint offer</b><div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+ci.length+' check-ins over '+(daysSince(first.ts))+' days. Pull their real data, give the read, offer the build.</div></div>';
 
-  // setup / track
-  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Setup</div>';
-  if(intk) h+='<div style="font-size:15px"><b>'+esc(intk['Track']||'—')+'</b> <span class="pill quiet">'+esc(intk['Signal']||'')+' signal</span></div>'
-    +'<div style="font-size:12.5px;color:var(--muted);margin-top:4px">Goal weight '+esc(intk['Goal wt']||'—')+' lb · '+esc(intk['Sex']||'')+' · '+esc(intk['Activity']||'')+'</div>'
-    +(String(intk['Reverse flags']||'')?'<div style="font-size:12px;color:var(--stall-tx);margin-top:4px">flags: '+esc(intk['Reverse flags'])+'</div>':'')
-    +(flagPills?'<div style="margin-top:8px">'+flagPills+'</div>':'');
-  else h+='<div class="tool-d">Hasn’t completed setup yet.</div>';
+  // setup / intake — everything they plugged in
+  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Their setup — what they told you</div>';
+  if(intk){
+    h+='<div style="font-size:15px;margin-bottom:10px"><b>'+esc(intk['Track']||'—')+'</b> track <span class="pill quiet">'+esc(intk['Signal']||'')+' signal</span></div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
+      + jpFld('Sex',intk['Sex']) + jpFld('Age',intk['Age']) + jpFld('Height',intk['Height'])
+      + jpFld('Current wt',intk['Current wt']) + jpFld('Goal wt',intk['Goal wt']) + jpFld('Activity',intk['Activity'])
+      + jpFld('Pregnant',intk['Pregnant']) + jpFld('Dieting history',intk['Dieting history']) + jpFld('Fueling',intk['Fueling'])
+      + jpFld('Priorities',intk['Priorities']) + jpFld('Extra goals',intk['Extra goals']) + jpFld('Filters',intk['Filters'])
+      + '</div>'
+      + (String(intk['Reverse flags']||'')?'<div style="font-size:12px;color:var(--stall-tx);margin-top:10px">flags: '+esc(intk['Reverse flags'])+'</div>':'')
+      + (flagPills?'<div style="margin-top:8px">'+flagPills+'</div>':'');
+  } else h+='<div class="tool-d">Hasn’t completed setup yet.</div>';
   h+='</div>';
 
   // this month
@@ -2703,14 +2720,47 @@ function journeyPanel(d, email){
     +'<span>Quarterly: '+(qy?'<b style="color:var(--good-tx)">set ✓</b>':'<span style="color:var(--muted)">not yet</span>')+'</span>'
     +'<span>Onboarding: '+obN+'/8</span></div></div>';
 
-  // latest
-  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Latest</div>';
-  if(last) h+='<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px">'
-    +'<span><b style="font-size:18px;color:var(--gold)">'+(last.w!=null?last.w:'—')+'</b> lb</span>'
-    +'<span><b style="font-size:18px;color:var(--gold)">'+(last.cons!=null?last.cons+'%':'—')+'</b> consistency</span>'
-    +'<span style="color:var(--muted)">last check-in '+(last.ts?fmtDate(last.ts):'—')+'</span></div>';
-  else h+='<div class="tool-d">No check-ins yet.</div>';
+  // latest check-in — every dimension they logged
+  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Latest check-in'+(lastRaw&&parseTs(lastRaw['Timestamp'])?' · '+fmtDate(parseTs(lastRaw['Timestamp'])):'')+'</div>';
+  if(lastRaw){
+    h+='<div style="display:flex;flex-wrap:wrap;gap:12px 18px">'
+      + jpNum('Weight',lastRaw['Weight']) + jpNum('Consistency',lastRaw['Consistency'])
+      + jpNum('Energy',lastRaw['Energy']) + jpNum('Sleep',lastRaw['Sleep quality'])
+      + jpNum('Focus',lastRaw['Mental acuity & focus']) + jpNum('Strength',lastRaw['Strength & performance'])
+      + jpNum('Digestion',lastRaw['Digestion']) + jpNum('Hunger',lastRaw['Hunger & cravings'])
+      + jpNum('Libido',lastRaw['Libido']) + jpNum('Inflammation',lastRaw['Inflammation'])
+      + jpNum('Mood',lastRaw['Mood & resilience']) + jpNum('Recovery',lastRaw['Training recovery'])
+      + jpNum('Food',lastRaw['Food quality'])
+      + '</div>'
+      + jpText('Non-scale victory',lastRaw['Non-scale victory'])
+      + jpText('Focus next week',lastRaw['Focus next week'])
+      + jpText('Anything else',lastRaw['Anything else']);
+  } else h+='<div class="tool-d">No check-ins yet.</div>';
   h+='</div>';
+
+  // their nutrition-system food picks (CNS intake), when they've filled it
+  if(cnsI){
+    h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Nutrition system — their food picks</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
+      + jpFld('Proteins',cnsI['Proteins']) + jpFld('Carbs',cnsI['Carbs']) + jpFld('Fats',cnsI['Fats'])
+      + jpFld('Veg',cnsI['Veg']) + jpFld('Meals/day',cnsI['Meals/day']) + jpFld('Schedule',cnsI['Schedule'])
+      + jpFld('Cooking',cnsI['Cooking']) + jpFld('Prep style',cnsI['Prep style']) + jpFld('Eating out',cnsI['Eating out'])
+      + '</div>'
+      + jpText('Allergies / dislikes',cnsI['Allergies/dislikes'])
+      + jpText('Notes',cnsI['Notes'])
+      + '</div>';
+  }
+
+  // their genetic blueprint intake, when filled
+  if(genI){
+    h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Genetic Blueprint — their intake</div>'
+      +'<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
+      + jpFld('Goal',genI['Goal']) + jpFld('Health focus',genI['Health focus'])
+      + '</div>'
+      + jpText('Family history',genI['Family history'])
+      + jpText('Notes',genI['Notes'])
+      + '</div>';
+  }
 
   // link
   if(link) h+='<div class="link-copy" style="max-width:none"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy their link</button></div>';
