@@ -155,6 +155,20 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .cbadge{display:inline-block;background:var(--touch-soft);color:var(--ink-soft);border-radius:20px;padding:1px 8px;font-size:11px;font-weight:700;margin-left:6px}
 .log-q{display:flex;gap:8px;margin-top:5px;font-size:12.5px;color:var(--ink-soft)}
 .log-q .lq-l{color:var(--accent);font-weight:700;font-size:10px;letter-spacing:.04em;text-transform:uppercase;flex:none;width:58px;padding-top:1px}
+.log-extra{margin-top:6px;display:flex;flex-wrap:wrap;gap:5px}
+.mini-metric{display:inline-block;font-size:11px;font-weight:600;color:var(--ink-soft);background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px}
+/* Monthly averages snapshot */
+.mo-row{border-top:1px solid var(--line);padding:12px 0}
+.mo-row:first-child{border-top:none;padding-top:2px}
+.mo-month{font-weight:700;font-size:14px;color:var(--ink);margin-bottom:8px}
+.mo-n{font-weight:600;font-size:11px;color:var(--muted);margin-left:6px}
+.mo-cells{display:grid;grid-template-columns:repeat(auto-fit,minmax(96px,1fr));gap:10px 14px}
+.mo-k{font-size:10px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted)}
+.mo-v{font-size:15px;font-weight:700;color:var(--ink);margin-top:2px}
+.mo-d{font-size:11px;font-weight:700;margin-left:3px;white-space:nowrap}
+.mo-d.pos{color:var(--good-tx)}
+.mo-d.neg{color:var(--stall-tx)}
+.mo-d.flat{color:var(--muted)}
 
 /* Buttons */
 .btn{display:block;width:100%;border:none;border-radius:12px;padding:15px;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer}
@@ -472,6 +486,13 @@ select.input{appearance:none}
         <div id="trendBox"><div class="empty">Your trend line appears after a couple of check-ins.</div></div>
       </div>
 
+      <!-- Monthly averages — the long-game snapshot -->
+      <div class="card">
+        <div class="sec-h"><h2>Monthly averages</h2></div>
+        <p class="sub" style="margin:-4px 0 12px">Weekly numbers steer this week. These monthly averages are how you see the real change — month over month over month.</p>
+        <div id="monthlyAvgBox"><div class="empty">Log your weekly averages and your month-over-month snapshot builds here.</div></div>
+      </div>
+
       <!-- Biofeedback -->
       <div class="card">
         <div class="sec-h"><h2>Biofeedback trends</h2></div>
@@ -563,6 +584,15 @@ select.input{appearance:none}
     <div class="card">
       <div class="field"><label>This week's average weight (lb) <span class="hint">— read it off Everfit</span></label>
         <input class="input" type="number" inputmode="decimal" id="ci_weight" placeholder="e.g. 211.4" /></div>
+      <div class="block"><div class="blocklabel">This week's daily averages <span class="hint" style="text-transform:none;letter-spacing:0">— from your tracker</span></div>
+        <div class="field"><label>Average calories / day</label>
+          <input class="input" type="number" inputmode="numeric" id="ci_cal" placeholder="e.g. 2100" /></div>
+        <div class="field"><label>Average protein / day (g)</label>
+          <input class="input" type="number" inputmode="numeric" id="ci_protein" placeholder="e.g. 165" /></div>
+        <div class="field"><label>Average steps / day</label>
+          <input class="input" type="number" inputmode="numeric" id="ci_steps" placeholder="e.g. 8500" /></div>
+        <div class="field" style="margin-bottom:0"><label>Workouts completed this week</label>
+          <input class="input" type="number" inputmode="numeric" id="ci_workouts" placeholder="e.g. 4" /></div></div>
       <div class="block"><div class="blocklabel">Rate each 1–5 · 1 rough, 5 great</div><div id="markerRows"></div></div>
       <div class="field"><label>Food quality (1–10)</label><div class="scl wide" id="scl-food" data-val=""></div></div>
       <div class="field"><label>How much of your plan did you actually hit this week?</label><div class="chips" id="ci_cons" data-val=""></div></div>
@@ -784,6 +814,7 @@ function buildModel(server){
   var sc = (server&&server.checkins||[]).map(function(r){
     var e={ts:ts(r["Timestamp"])||Date.now(), weight:num(r["Weight"]), food:num(r["Food quality"]),
       cons:consistencyToNum(r["Consistency"]), consLabel:r["Consistency"],
+      cal:num(r["Avg calories"]), protein:num(r["Avg protein"]), steps:num(r["Avg steps"]), workouts:num(r["Workouts"]),
       victory:r["Non-scale victory"], focus:r["Focus next week"], notes:r["Anything else"]};
     MARKERS.forEach(function(m){ e[m[0]]=num(r[m[2]]); });
     return e;
@@ -891,6 +922,7 @@ function renderHome(){
   renderRx();
   var wl=g("wellnessLink"); if(wl) wl.href="wellness.html"+(TOKEN?("?k="+encodeURIComponent(TOKEN)):"");
   renderLog(h);
+  renderMonthlyAverages(h);
   renderMonthly();
   renderQuarterly();
   gateTiers();
@@ -1040,9 +1072,58 @@ function renderLog(h){
     var q=[e.victory&&'<div class="log-q"><span class="lq-l">Win</span><span>'+esc(e.victory)+'</span></div>',
            e.focus&&'<div class="log-q"><span class="lq-l">Focus</span><span>'+esc(e.focus)+'</span></div>',
            e.notes&&'<div class="log-q"><span class="lq-l">Note</span><span>'+esc(e.notes)+'</span></div>'].filter(Boolean).join("");
+    var extra=[e.cal!=null&&(e.cal+' cal'), e.protein!=null&&(e.protein+'g pro'), e.steps!=null&&(Math.round(e.steps).toLocaleString()+' steps'), e.workouts!=null&&(e.workouts+' workout'+(e.workouts==1?'':'s'))]
+      .filter(Boolean).map(function(t){return '<span class="mini-metric">'+t+'</span>';}).join("");
     return '<div class="log-item"><div class="log-top"><span class="log-date">'+fmtDate(e.ts)+'</span>'
-      +'<span class="log-metrics">'+(e.weight!=null?'<b>'+e.weight+'</b> lb':'')+(e.cons!=null?'<span class="cbadge">'+e.cons+'%</span>':'')+'</span></div>'+q+'</div>';
+      +'<span class="log-metrics">'+(e.weight!=null?'<b>'+e.weight+'</b> lb':'')+(e.cons!=null?'<span class="cbadge">'+e.cons+'%</span>':'')+'</span></div>'
+      +(extra?'<div class="log-extra">'+extra+'</div>':'')+q+'</div>';
   }).join("");
+}
+
+/* Monthly averages — group weekly check-ins by calendar month; cal/protein/steps/weight = averages,
+   workouts = monthly total. Newest month on top, each value paired with its change vs the prior month. */
+function renderMonthlyAverages(h){
+  var box=g("monthlyAvgBox"); if(!box) return;
+  var byM={};
+  (h||[]).forEach(function(e){
+    if(e.cal==null&&e.protein==null&&e.steps==null&&e.workouts==null) return;
+    var d=new Date(e.ts), key=d.getFullYear()*12+d.getMonth();
+    var m=byM[key]||(byM[key]={y:d.getFullYear(), mo:d.getMonth(), cal:[], protein:[], steps:[], workouts:0, wt:[], n:0});
+    m.n++;
+    if(e.cal!=null) m.cal.push(e.cal);
+    if(e.protein!=null) m.protein.push(e.protein);
+    if(e.steps!=null) m.steps.push(e.steps);
+    if(e.workouts!=null) m.workouts+=e.workouts;
+    if(e.weight!=null) m.wt.push(e.weight);
+  });
+  var keys=Object.keys(byM);
+  if(!keys.length){ box.innerHTML='<div class="empty">Log your weekly averages and your month-over-month snapshot builds here.</div>'; return; }
+  var avg=function(a){ return a.length?a.reduce(function(x,y){return x+y;},0)/a.length:null; };
+  var rows=keys.map(function(k){ var m=byM[k];
+    return {ord:+k, y:m.y, mo:m.mo, n:m.n, cal:avg(m.cal), protein:avg(m.protein), steps:avg(m.steps), workouts:m.workouts||null, wt:avg(m.wt) }; });
+  rows.sort(function(a,b){return a.ord-b.ord;});   // oldest → newest
+  var MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+  var METS=[ {k:"cal",label:"Avg calories",better:null}, {k:"protein",label:"Avg protein",suf:"g",better:1},
+    {k:"steps",label:"Avg steps",better:1}, {k:"workouts",label:"Workouts",better:1}, {k:"wt",label:"Avg weight",suf:" lb",better:null,dec:1} ];
+  var fmt=function(v,met){ if(v==null) return "—"; return (met.dec?(Math.round(v*10)/10):Math.round(v)).toLocaleString()+(met.suf||""); };
+  var delta=function(cur,prev,met){
+    if(cur==null||prev==null) return "";
+    var d=cur-prev, tol=(met.k==="wt"?0.1:(met.k==="workouts"?0.5:1));
+    if(Math.abs(d)<tol) return '<span class="mo-d flat">±0</span>';
+    var up=d>0, mag=(met.dec?Math.round(Math.abs(d)*10)/10:Math.round(Math.abs(d))).toLocaleString();
+    var good=met.better==null?null:(met.better===1?up:!up), cls=good==null?"flat":(good?"pos":"neg");
+    return '<span class="mo-d '+cls+'">'+(up?"▲":"▼")+mag+'</span>';
+  };
+  var out='<div class="mo-table">';
+  rows.slice().reverse().forEach(function(row,i){
+    var prev=rows[rows.length-2-i];
+    out+='<div class="mo-row"><div class="mo-month">'+MON[row.mo]+' '+row.y+' <span class="mo-n">'+row.n+' check-in'+(row.n==1?'':'s')+'</span></div><div class="mo-cells">';
+    METS.forEach(function(met){
+      out+='<div class="mo-cell"><div class="mo-k">'+met.label+'</div><div class="mo-v">'+fmt(row[met.k],met)+' '+delta(row[met.k], prev?prev[met.k]:null, met)+'</div></div>';
+    });
+    out+='</div></div>';
+  });
+  box.innerHTML=out+'</div>';
 }
 
 /* ============================ CHECK-IN FORM ============================ */
@@ -1053,7 +1134,7 @@ function buildForm(){
   }).join("");
   g("scl-food").innerHTML=Array.from({length:10},function(_,i){return '<button type="button" class="scl-btn" data-v="'+(i+1)+'" onclick="pickScale(this)">'+(i+1)+'</button>';}).join("");
   g("ci_cons").innerHTML=CONS.map(function(x){return '<button type="button" class="chip" data-v="'+x+'" onclick="pickChip(this)">'+x+'</button>';}).join("");
-  ["ci_weight","ci_victory","ci_focus","ci_notes"].forEach(function(id){ g(id).value=""; });
+  ["ci_weight","ci_cal","ci_protein","ci_steps","ci_workouts","ci_victory","ci_focus","ci_notes"].forEach(function(id){ g(id).value=""; });
   g("ciStatus").textContent="";
 }
 function pickScale(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; }
@@ -1064,13 +1145,17 @@ async function submitCheckin(){
   if(isNaN(weight)||!consistency){ st.textContent="Add your weight and consistency to submit."; st.style.color="var(--stall-tx)"; return; }
   var mk={}; MARKERS.forEach(function(m){ var el=g("scl-"+m[0]); mk[m[0]]=el&&el.dataset.val?+el.dataset.val:null; });
   var food=g("scl-food").dataset.val?+g("scl-food").dataset.val:null;
+  var numv=function(id){ var v=parseFloat(g(id).value); return isNaN(v)?null:v; };
+  var cal=numv("ci_cal"), protein=numv("ci_protein"), steps=numv("ci_steps"), workouts=numv("ci_workouts");
   var payload={type:"checkin", email:ID.email, ts:new Date().toISOString(), weight:weight, food:food, consistency:consistency,
+    avgcal:cal, avgprotein:protein, avgsteps:steps, workouts:workouts,
     victory:g("ci_victory").value, focus:g("ci_focus").value, notes:g("ci_notes").value};
   MARKERS.forEach(function(m){ payload[m[0]]=mk[m[0]]; });
   st.textContent="Sending to your coach…"; st.style.color="var(--muted)"; g("ciSubmit").disabled=true;
   var ok=await postToSheet(payload);
   var local=loadLS(LS_LOG,"[]");
   var entry={ts:Date.now(), weight:weight, food:food, cons:consistencyToNum(consistency), consLabel:consistency,
+    cal:cal, protein:protein, steps:steps, workouts:workouts,
     victory:payload.victory, focus:payload.focus, notes:payload.notes};
   MARKERS.forEach(function(m){ entry[m[0]]=mk[m[0]]; });
   local.push(entry); saveLS(LS_LOG, local);
