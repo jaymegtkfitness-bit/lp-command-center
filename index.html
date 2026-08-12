@@ -328,6 +328,10 @@ header.top{
 .tile .value{font-family:'Cinzel',serif;font-size:27px;font-weight:600;color:var(--headline);margin-top:6px;line-height:1}
 .tile .value small{font-size:14px;color:var(--muted);font-family:'Montserrat';font-weight:600}
 .tile .meta{font-size:11px;color:var(--good-tx);margin-top:6px;font-weight:600}
+/* ---- Member Journey sub-tabs ---- */
+.jp-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:700;font-size:13px;padding:9px 15px;cursor:pointer;font-family:inherit}
+.jp-tab:hover{color:var(--ink)}
+.jp-tab.active{color:var(--ink);border-bottom-color:var(--gold)}
 
 /* ---- Two-column main ---- */
 .grid-main{display:grid;grid-template-columns:1.7fr 1fr;gap:22px;align-items:start}
@@ -2643,6 +2647,28 @@ function jpNum(label,val){ if(val==null||String(val).trim()==='') return '';
   return '<div style="min-width:62px"><div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">'+esc(label)+'</div><div style="font-size:16px;font-weight:700;color:var(--gold)">'+esc(val)+'</div></div>'; }
 function jpText(label,val){ if(val==null||String(val).trim()==='') return '';
   return '<div style="margin-top:8px"><div style="font-size:10.5px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em">'+esc(label)+'</div><div style="font-size:13px;color:var(--ink);line-height:1.45">'+esc(val)+'</div></div>'; }
+/* Switch the member panel's reference tabs (Setup / Check-ins / Nutrition / Genetics). */
+function jpTab(name){
+  ['setup','checkins','nutrition','genetics'].forEach(function(n){
+    var p=document.getElementById('jp-tab-'+n); if(p) p.style.display=(n===name)?'block':'none';
+    var b=document.getElementById('jp-btn-'+n); if(b) b.classList.toggle('active', n===name);
+  });
+}
+/* One week's full check-in, for the history list (newest gets no top divider). */
+function jpCheckinBlock(r, isFirst){
+  var ts=parseTs(r['Timestamp']);
+  var cells = jpNum('Weight',r['Weight']) + jpNum('Consistency',r['Consistency'])
+    + jpNum('Energy',r['Energy']) + jpNum('Sleep',r['Sleep quality'])
+    + jpNum('Focus',r['Mental acuity & focus']) + jpNum('Strength',r['Strength & performance'])
+    + jpNum('Digestion',r['Digestion']) + jpNum('Hunger',r['Hunger & cravings'])
+    + jpNum('Libido',r['Libido']) + jpNum('Inflammation',r['Inflammation'])
+    + jpNum('Mood',r['Mood & resilience']) + jpNum('Recovery',r['Training recovery'])
+    + jpNum('Food',r['Food quality']);
+  var txt = jpText('Non-scale victory',r['Non-scale victory']) + jpText('Focus next week',r['Focus next week']) + jpText('Anything else',r['Anything else']);
+  return '<div style="padding:'+(isFirst?'2px':'14px')+' 0 14px;'+(isFirst?'':'border-top:1px solid var(--line)')+'">'
+    + '<div style="font-weight:700;color:var(--ink);font-size:13px;margin-bottom:8px">'+(ts?fmtDate(ts):'—')+'</div>'
+    + '<div style="display:flex;flex-wrap:wrap;gap:12px 18px">'+cells+'</div>'+txt+'</div>';
+}
 function journeyPanel(d, email){
   var ci=(d.checkins||[]).map(function(r){ return {ts:parseTs(r['Timestamp']), w:num(r['Weight']), cons:consistencyToNum(r['Consistency']),
       energy:num(r['Energy']), sleep:num(r['Sleep quality']), mood:num(r['Mood & resilience'])}; })
@@ -2669,8 +2695,12 @@ function journeyPanel(d, email){
   var h='<div class="view-head" style="margin-top:4px"><h1>'+esc(d.name||email)+'</h1><p class="view-sub">'+esc(d.tier||'—')+' · '
     +(d.active===false?'<b style="color:var(--stall-tx)">inactive</b>':(d.active?'active':'not in roster'))+'</p></div>';
 
+  /* ===== PINNED ACTION ZONE — what you decide on, always visible ===== */
   // live auto-adjust verdict (mirrors the client's "your move this week")
   if(intk && ci.length) h+=journeyVerdictTile(ci, intk['Track']);
+
+  // week-1 banner
+  if(week1) h+='<div class="tile" style="background:var(--good-bg);border-color:var(--good);margin-bottom:12px"><b style="color:var(--good-tx)">Ready for the week-1 review + Blueprint offer</b><div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+ci.length+' check-ins over '+(daysSince(first.ts))+' days. Pull their real data, give the read, offer the build.</div></div>';
 
   // on-peptides toggle (unlocks the member's dosing + symptom + prescriber tools)
   var onP=/^\s*(y|yes|true|1)/i.test(String(d.onProtocol||''));
@@ -2694,11 +2724,20 @@ function journeyPanel(d, email){
     +'<div style="font-size:12px;color:var(--muted);margin:4px 0 8px">Set after purchase → shows their setup card, then results.</div>'
     +'<div style="display:flex;gap:8px;flex-wrap:wrap">'+gbtn('none','None')+gbtn('pending','Pending')+gbtn('in','Results in')+'</div></div>';
 
-  // week-1 banner
-  if(week1) h+='<div class="tile" style="background:var(--good-bg);border-color:var(--good);margin-bottom:14px"><b style="color:var(--good-tx)">Ready for the week-1 review + Blueprint offer</b><div style="font-size:12.5px;color:var(--ink-soft);margin-top:4px">'+ci.length+' check-ins over '+(daysSince(first.ts))+' days. Pull their real data, give the read, offer the build.</div></div>';
+  // their client link
+  if(link) h+='<div class="link-copy" style="max-width:none;margin-bottom:16px"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy their link</button></div>';
 
-  // setup / intake — everything they plugged in
-  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Their setup — what they told you</div>';
+  /* ===== TABBED REFERENCE ZONE — what you look up ===== */
+  h+='<div class="jp-tabs" style="display:flex;gap:2px;border-bottom:1px solid var(--line);margin:0 0 14px;flex-wrap:wrap">'
+    +'<button id="jp-btn-setup" class="jp-tab active" onclick="jpTab(\'setup\')">Setup</button>'
+    +'<button id="jp-btn-checkins" class="jp-tab" onclick="jpTab(\'checkins\')">Check-ins'+(ciRaw.length?' ('+ciRaw.length+')':'')+'</button>'
+    +'<button id="jp-btn-nutrition" class="jp-tab" onclick="jpTab(\'nutrition\')">Nutrition</button>'
+    +'<button id="jp-btn-genetics" class="jp-tab" onclick="jpTab(\'genetics\')">Genetics</button>'
+    +'</div>';
+
+  // --- SETUP TAB: full intake ---
+  h+='<div id="jp-tab-setup">';
+  h+='<div class="tile"><div class="nav-h" style="padding:0 0 8px">Their setup — what they told you</div>';
   if(intk){
     h+='<div style="font-size:15px;margin-bottom:10px"><b>'+esc(intk['Track']||'—')+'</b> track <span class="pill quiet">'+esc(intk['Signal']||'')+' signal</span></div>'
       +'<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
@@ -2710,60 +2749,52 @@ function journeyPanel(d, email){
       + (String(intk['Reverse flags']||'')?'<div style="font-size:12px;color:var(--stall-tx);margin-top:10px">flags: '+esc(intk['Reverse flags'])+'</div>':'')
       + (flagPills?'<div style="margin-top:8px">'+flagPills+'</div>':'');
   } else h+='<div class="tool-d">Hasn’t completed setup yet.</div>';
-  h+='</div>';
+  h+='</div></div>';
 
-  // this month
+  // --- CHECK-INS TAB: cadence strip + full week-over-week history ---
+  h+='<div id="jp-tab-checkins" style="display:none">';
   h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">This month</div>'
     +'<div style="display:flex;gap:18px;flex-wrap:wrap;font-size:13px">'
     +'<span><b style="font-size:18px;color:var(--gold)">'+ciMonth+'</b> check-ins</span>'
     +'<span>Monthly debrief: '+(moMonth?'<b style="color:var(--good-tx)">done ✓</b>':'<span style="color:var(--muted)">not yet</span>')+'</span>'
     +'<span>Quarterly: '+(qy?'<b style="color:var(--good-tx)">set ✓</b>':'<span style="color:var(--muted)">not yet</span>')+'</span>'
     +'<span>Onboarding: '+obN+'/8</span></div></div>';
-
-  // latest check-in — every dimension they logged
-  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Latest check-in'+(lastRaw&&parseTs(lastRaw['Timestamp'])?' · '+fmtDate(parseTs(lastRaw['Timestamp'])):'')+'</div>';
-  if(lastRaw){
-    h+='<div style="display:flex;flex-wrap:wrap;gap:12px 18px">'
-      + jpNum('Weight',lastRaw['Weight']) + jpNum('Consistency',lastRaw['Consistency'])
-      + jpNum('Energy',lastRaw['Energy']) + jpNum('Sleep',lastRaw['Sleep quality'])
-      + jpNum('Focus',lastRaw['Mental acuity & focus']) + jpNum('Strength',lastRaw['Strength & performance'])
-      + jpNum('Digestion',lastRaw['Digestion']) + jpNum('Hunger',lastRaw['Hunger & cravings'])
-      + jpNum('Libido',lastRaw['Libido']) + jpNum('Inflammation',lastRaw['Inflammation'])
-      + jpNum('Mood',lastRaw['Mood & resilience']) + jpNum('Recovery',lastRaw['Training recovery'])
-      + jpNum('Food',lastRaw['Food quality'])
-      + '</div>'
-      + jpText('Non-scale victory',lastRaw['Non-scale victory'])
-      + jpText('Focus next week',lastRaw['Focus next week'])
-      + jpText('Anything else',lastRaw['Anything else']);
+  h+='<div class="tile"><div class="nav-h" style="padding:0 0 8px">Check-in history</div>';
+  if(ciRaw.length){
+    var histRows=ciRaw.slice().reverse();
+    h+=histRows.map(function(r,i){ return jpCheckinBlock(r, i===0); }).join('');
   } else h+='<div class="tool-d">No check-ins yet.</div>';
-  h+='</div>';
+  h+='</div></div>';
 
-  // their nutrition-system food picks (CNS intake), when they've filled it
+  // --- NUTRITION TAB: CNS food picks + meal plan status ---
+  h+='<div id="jp-tab-nutrition" style="display:none">';
+  h+='<div class="tile"><div class="nav-h" style="padding:0 0 8px">Nutrition system — their food picks</div>';
   if(cnsI){
-    h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Nutrition system — their food picks</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
+    h+='<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
       + jpFld('Proteins',cnsI['Proteins']) + jpFld('Carbs',cnsI['Carbs']) + jpFld('Fats',cnsI['Fats'])
       + jpFld('Veg',cnsI['Veg']) + jpFld('Meals/day',cnsI['Meals/day']) + jpFld('Schedule',cnsI['Schedule'])
       + jpFld('Cooking',cnsI['Cooking']) + jpFld('Prep style',cnsI['Prep style']) + jpFld('Eating out',cnsI['Eating out'])
       + '</div>'
       + jpText('Allergies / dislikes',cnsI['Allergies/dislikes'])
-      + jpText('Notes',cnsI['Notes'])
-      + '</div>';
-  }
+      + jpText('Notes',cnsI['Notes']);
+  } else h+='<div class="tool-d">'+(cnsOn?'CNS unlocked — no food-picks intake submitted yet.':'Complete Nutrition System not unlocked yet.')+'</div>';
+  var hasMeal=(d.mealplan&&d.mealplan.length);
+  h+='<div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px">Custom meal plan: '+(hasMeal?'<b style="color:var(--good-tx)">saved ✓</b> <span style="color:var(--muted)">(they see it in their dashboard)</span>':'<span style="color:var(--muted)">none saved yet</span>')+'</div>';
+  h+='</div></div>';
 
-  // their genetic blueprint intake, when filled
+  // --- GENETICS TAB: intake + status ---
+  h+='<div id="jp-tab-genetics" style="display:none">';
+  h+='<div class="tile"><div class="nav-h" style="padding:0 0 8px">Genetic Blueprint — their intake</div>'
+    +'<div style="font-size:13px;margin-bottom:10px">Status: <span class="pill quiet">'+esc(gv)+'</span></div>';
   if(genI){
-    h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Genetic Blueprint — their intake</div>'
-      +'<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
+    h+='<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
       + jpFld('Goal',genI['Goal']) + jpFld('Health focus',genI['Health focus'])
       + '</div>'
       + jpText('Family history',genI['Family history'])
-      + jpText('Notes',genI['Notes'])
-      + '</div>';
-  }
+      + jpText('Notes',genI['Notes']);
+  } else h+='<div class="tool-d">'+(gv==='none'?'No Genetic Blueprint yet.':'Purchased — no intake submitted yet.')+'</div>';
+  h+='</div></div>';
 
-  // link
-  if(link) h+='<div class="link-copy" style="max-width:none"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy their link</button></div>';
   return h;
 }
 
