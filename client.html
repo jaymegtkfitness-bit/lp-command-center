@@ -676,6 +676,8 @@ select.input{appearance:none}
 <!-- Print-only branded roadmap document (Save as PDF) -->
 <div id="printDoc" class="print-only"></div>
 
+<!-- Shared nutrition engine (macro targets + meal-plan generation) — ONE source, also used by the Command Center. -->
+<script src="nutrition-engine.js"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -1468,10 +1470,10 @@ function verdictHTML(it){
   }
   return '<div class="verdict v-'+tone+'"><div class="v-tag">'+esc(tag)+'</div><div class="v-title">'+title+'</div><div class="v-body">'+body+'</div></div>';
 }
-function mealsPerDay(){ return 3; }
+/* mealsPerDay(), computePFS(), FOOD_DB, fmtQty(), generateMealPlan() now live in nutrition-engine.js (shared). */
 
 /* Full phase ladder — same math as computePFS(), walked across each phase multiplier. */
-var LADDER_MULT={"Lean":[15,14,13,12],"Strong":[15,16,17,18],"Long":[15],"Reverse Diet":[10,12,13,14,15]};
+var LADDER_MULT={"Lean":[15,14,13,12],"Strong":[15,16,17,18],"Sustain":[15],"Long":[15],"Reverse Diet":[10,12,13,14,15]};
 function phaseLabels(track,n){
   if(track==="Long") return ["Maintenance"];
   var out=[]; for(var i=0;i<n;i++) out.push("Phase "+(i+1));
@@ -1784,36 +1786,9 @@ function checkSetupParam(){
 }
 /* ---- Self-serve meal generator — client edits foods → regenerates their own plan (free, instant) ---- */
 var LS_FOODS="lp_client_foods", LS_MEALPLAN="lp_client_mealplan";
-var FOOD_DB={
-  protein:[{n:"chicken breast",g:8.7,u:"oz"},{n:"lean beef",g:7.5,u:"oz"},{n:"turkey",g:8,u:"oz"},{n:"white fish",g:6,u:"oz"},{n:"shrimp",g:6,u:"oz"},{n:"salmon",g:6.3,u:"oz"},{n:"eggs",g:6,u:"",whole:true},{n:"Greek yogurt",g:10,u:"cup",frac:true},{n:"tofu/tempeh",g:10,u:"cup",frac:true},{n:"protein powder",g:24,u:"scoop",whole:true}],
-  carb:[{n:"white rice",g:45,u:"cup",frac:true},{n:"potatoes",g:37,u:"cup",frac:true},{n:"sweet potato",g:27,u:"cup",frac:true},{n:"oats",g:27,u:"cup dry",frac:true},{n:"sourdough",g:15,u:"slice",whole:true},{n:"fruit",g:25,u:"piece",whole:true},{n:"beans/lentils",g:40,u:"cup",frac:true},{n:"pasta",g:43,u:"cup",frac:true}],
-  fat:[{n:"olive oil",g:14,u:"tbsp",frac:true},{n:"avocado",g:15,u:"",frac:true},{n:"nut butter",g:8,u:"tbsp",frac:true},{n:"cheese",g:9,u:"oz",frac:true},{n:"egg yolks",g:5,u:"",whole:true},{n:"seeds",g:4,u:"tbsp",frac:true}],
-  veg:["broccoli","spinach","peppers","zucchini","green beans","asparagus","salad greens","cauliflower"]
-};
+/* FOOD_DB, fmtQty(), generateMealPlan() now live in nutrition-engine.js (shared). */
 function loadFoods(){ try{ return JSON.parse(localStorage.getItem(LS_FOODS)||"null")||{}; }catch(e){ return {}; } }
 function saveFoods(sel){ try{ localStorage.setItem(LS_FOODS, JSON.stringify(sel)); }catch(e){} }
-function fmtQty(f, targetG){
-  var units=targetG/f.g; if(!isFinite(units)||units<=0.1) units=0.5;
-  if(f.whole){ var c=Math.max(1,Math.round(units)); return f.u? (c+' '+f.u+(c!==1?'s':'')+' '+f.n) : (c+' '+f.n); }
-  if(f.u==="oz"){ return (Math.round(units*10)/10)+' oz '+f.n; }
-  var q=Math.max(0.25, Math.round(units*4)/4);
-  return f.u? (q+' '+f.u+(q!==1?'s':'')+' '+f.n) : (q+' '+f.n);
-}
-function generateMealPlan(it, sel, days){
-  var p=it.pfs, m=mealsPerDay();
-  var pmPro=Math.round(p.protein/m), pmCarb=Math.round(p.carbs/m), pmFat=Math.round(p.fat/m), pmCal=Math.round(p.calories/m);
-  function pick(cat, names){ var list=FOOD_DB[cat].filter(function(f){return !names||!names.length||names.indexOf(f.n)>=0;}); return list.length?list:FOOD_DB[cat]; }
-  var P=pick('protein',sel.protein), C=pick('carb',sel.carb), F=pick('fat',sel.fat), V=(sel.veg&&sel.veg.length)?sel.veg:FOOD_DB.veg;
-  var names=["Breakfast","Lunch","Dinner","Meal 4","Meal 5"], out=[];
-  for(var d=0;d<days;d++){ var meals=[];
-    for(var k=0;k<m;k++){ var i=d*m+k;
-      meals.push({name:names[k]||("Meal "+(k+1)),
-        items:[fmtQty(P[i%P.length],pmPro), fmtQty(C[i%C.length],pmCarb), fmtQty(F[i%F.length],pmFat), "a big handful of "+V[i%V.length]],
-        cal:pmCal,protein:pmPro,carbs:pmCarb,fat:pmFat}); }
-    out.push({day:d+1,label:"Day "+(d+1),meals:meals}); }
-  var nm=(ID&&ID.name)?ID.name.split(' ')[0]+"'s":"Your";
-  return {title:nm+" meal plan",note:"Auto-built from your favorites. Swap any food and regenerate anytime.",days:out};
-}
 function renderFoodEditor(){
   var saved=loadFoods();
   function catBlock(catKey, id, label){
@@ -1833,7 +1808,7 @@ function doGenerate(){
   var sel={protein:mval('fe_prot').split(', ').filter(Boolean),carb:mval('fe_carb').split(', ').filter(Boolean),fat:mval('fe_fat').split(', ').filter(Boolean),veg:mval('fe_veg').split(', ').filter(Boolean)};
   if(!sel.protein.length||!sel.carb.length){ var s2=g('genPlanStatus'); if(s2){s2.textContent="Keep at least one protein and one carb on.";s2.style.color="var(--stall-tx)";} return; }
   saveFoods(sel);
-  var plan=generateMealPlan(M.intake, sel, 3);
+  var plan=generateMealPlan(M.intake, sel, 3, (ID&&ID.name)||"");
   M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
   if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"mealplan", email:ID.email, title:plan.title, plan:plan});
   MP_DAY=0; showHome(); showClientTab('nutrition');
@@ -2030,21 +2005,7 @@ function wizCompute(){
   WIZ.pregnantFlag=pregnant; WIZ.reverse=reverse;
   WIZ.pfs = computePFS(WIZ, WIZ.track);
 }
-function computePFS(w, track){
-  var gbw=+w.goalweight;
-  var mult={"Lean":15,"Strong":15,"Long":15,"Reverse Diet":10}[track]||15;
-  var cals=Math.round(gbw*mult);
-  var ppl={"Lean":1.0,"Long":0.9,"Strong":0.8,"Reverse Diet":1.0}[track]||1.0;
-  var protein=Math.round(gbw*ppl), rem=cals-protein*4;
-  var floor=/^m/i.test(w.sex)?55:40;
-  var fat=Math.max(floor, Math.round(rem*0.40/9));
-  var carbs=Math.max(0, Math.round((rem-fat*9)/4));
-  var kg=(+w.weight)/2.2046, cm=(+w.height)*2.54;
-  var bmr=/^m/i.test(w.sex)?(10*kg+6.25*cm-5*w.age+5):(10*kg+6.25*cm-5*w.age-161);
-  var af={"Sedentary":1.2,"Lightly active":1.375,"Active":1.55,"Very active":1.725,"Athlete":1.9}[w.activity]||1.375;
-  var tdee=Math.round(bmr*af);
-  return {calories:cals, protein:protein, carbs:carbs, fat:fat, tdee:tdee, delta:cals-tdee};
-}
+/* computePFS() now lives in nutrition-engine.js (shared with the Command Center). */
 function wizResult(){
   var t=WIZ.track, p=WIZ.pfs, sig=WIZ.signal;
   var trackName={"Lean":"Live Lean","Strong":"Live Strong","Long":"Live Long","Reverse Diet":"Reverse Diet"}[t]||t;
