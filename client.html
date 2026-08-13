@@ -218,6 +218,10 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .macro{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center}
 .macro .mn{font-family:'Cinzel',serif;font-size:19px;font-weight:600;color:var(--accent);line-height:1}
 .macro .ml{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:5px;font-weight:600}
+.tw-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.tw-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
+.tw-badge{font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;color:var(--accent);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:2px 9px;align-self:center}
+.tw-badge.tw-rec{color:var(--muted)}
 .foodcol{margin-bottom:10px}
 .foodcol b{font-size:12px;color:var(--headline)}
 .foodcol span{font-size:12.5px;color:var(--ink-soft)}
@@ -716,7 +720,7 @@ var ID = null;                 // {name,email,gender}
 var M = { checkins:[], monthly:[], quarterly:[], coachNotes:[], clientNotes:[], prs:[], intake:null, mealplan:null, onboardingDone:[] };  // merged model
 var MP_DAY=0;  // selected meal-plan day
 var serverOk = false;
-var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake", LS_ONBOARD="lp_client_onboard", LS_THEME="lp_client_theme";
+var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake", LS_ONBOARD="lp_client_onboard", LS_THEME="lp_client_theme", LS_TARGETS="lp_client_targets";
 var CLIENT_TAB="home";
 var TOKEN=null;   // per-client magic-link token (?k=…) — identity without typing an email
 function getParam(k){ try{ var m=new RegExp('[?&]'+k+'=([^&]+)').exec(location.search); return m?decodeURIComponent(m[1]):null; }catch(e){ return null; } }
@@ -869,7 +873,15 @@ function buildModel(server){
       age:num(sin['Age']), height:num(sin['Height']), weight:num(sin['Current wt']), goalweight:num(sin['Goal wt']),
       activity:sin['Activity']||'', filters:String(sin['Filters']||'').split(',').map(function(s){return s.trim();}).filter(Boolean) }
     : ((lin&&lin.done)?lin:null);
-  if(it && it.goalweight && !it.pfs) it.pfs = computePFS(it, it.track);
+  // controllable targets: coach/client-set calorie + protein override (server wins, else local). Falls back to the formula.
+  var ovCal=sin?num(sin['Target calories']):null, ovPro=sin?num(sin['Target protein']):null, ovBy=(sin&&sin['Targets by'])||'';
+  var lov=loadLS(LS_TARGETS,"null");
+  if((ovCal==null||ovPro==null)&&lov){ if(ovCal==null)ovCal=num(lov.cal); if(ovPro==null)ovPro=num(lov.protein); if(!ovBy)ovBy=lov.by||''; }
+  if(it && it.goalweight){
+    it.pfsBase = computePFS(it, it.track);   // the formula default (used for the "recommended" + maintenance option)
+    if(ovCal!=null && ovPro!=null){ it.pfs = macrosFrom(ovCal, ovPro, it.sex); it.pfs.tdee=it.pfsBase.tdee; it.overridden=true; it.targetsBy=ovBy; }
+    else if(!it.pfs){ it.pfs = it.pfsBase; }
+  }
   M.intake = it;
   // ---- meal plan (Complete Nutrition System — coach-built, pushed as type:mealplan) ----
   var smp=(server&&server.mealplan&&server.mealplan.length)?server.mealplan[server.mealplan.length-1]:null;
@@ -1484,13 +1496,18 @@ function phaseLabels(track,n){
 }
 function computeLadder(it){
   var track=it.track, gbw=+it.goalweight, mults=LADDER_MULT[track]||[15];
-  var ppl={"Lean":1.0,"Long":0.9,"Strong":0.8,"Reverse Diet":1.0}[track]||1.0;
-  var protein=Math.round(gbw*ppl), floor=/^m/i.test(it.sex)?55:40, labels=phaseLabels(track,mults.length);
+  var ppl={"Lean":1.0,"Sustain":0.9,"Long":0.9,"Strong":0.8,"Reverse Diet":1.0}[track]||1.0;
+  var labels=phaseLabels(track,mults.length);
+  // The Dial: Phase 1 anchors on the controllable number when one is set (coach/client override),
+  // otherwise on the formula (goal wt × top multiplier). Steps follow the track's multiplier deltas.
+  var overridden = it.overridden && it.pfs;
+  var protein = overridden ? it.pfs.protein : Math.round(gbw*ppl);
+  var anchorCal = overridden ? it.pfs.calories : Math.round(gbw*mults[0]);
+  var base=mults[0];
   return mults.map(function(m,i){
-    var cals=Math.round(gbw*m), rem=cals-protein*4;
-    var fat=Math.max(floor, Math.round(rem*0.40/9));
-    var carbs=Math.max(0, Math.round((rem-fat*9)/4));
-    return {label:labels[i], phase:i+1, mult:m, calories:cals, protein:protein, carbs:carbs, fat:fat, current:i===0};
+    var cals = Math.round(anchorCal - (base-m)*gbw);   // phase 1 = anchor; each phase steps by the mult delta × goal wt
+    var mm = macrosFrom(cals, protein, it.sex);
+    return {label:labels[i], phase:i+1, mult:m, calories:mm.calories, protein:mm.protein, carbs:mm.carbs, fat:mm.fat, current:i===0};
   });
 }
 /* filter-aware food lists (mirrors the setup result screen) */
@@ -1577,7 +1594,43 @@ function renderPFS(){
       +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showWizard()">Build my Power Food System →</button></div>';
     return;
   }
-  box.innerHTML=nutritionHTML(it)+completeSystemCard();
+  box.innerHTML=targetsAdjustHTML(it)+nutritionHTML(it)+completeSystemCard();
+}
+/* Controllable numbers — the client (or coach, via their link) sets the calorie + protein anchor. */
+function targetsAdjustHTML(it){
+  var p=it.pfs, base=it.pfsBase||p;
+  var byNote = it.overridden ? '<span class="tw-badge">'+(/coach/i.test(it.targetsBy||'')?'set by your coach':'your number')+'</span>' : '<span class="tw-badge tw-rec">recommended start</span>';
+  return '<div class="card">'
+    +'<div class="sec-h" style="margin-bottom:8px"><h2>Your numbers</h2>'+byNote+'</div>'
+    +'<div class="macro-row" style="margin:0 0 10px">'
+      +'<div class="macro"><div class="mn">'+p.calories+'</div><div class="ml">Calories</div></div>'
+      +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
+      +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
+      +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
+    +'<button class="btn btn-ghost" type="button" onclick="toggleTargets()" id="twToggle">Adjust my calories &amp; protein</button>'
+    +'<div id="twForm" class="hidden" style="margin-top:10px">'
+      +'<div class="tw-inputs">'
+        +'<div class="field" style="margin:0"><label>Calories</label><input class="input" type="number" inputmode="numeric" id="tw_cal" value="'+p.calories+'"></div>'
+        +'<div class="field" style="margin:0"><label>Protein (g)</label><input class="input" type="number" inputmode="numeric" id="tw_pro" value="'+p.protein+'"></div>'
+      +'</div>'
+      +'<p class="wiz-hint" style="margin:8px 0">Recommended start: <b>'+base.calories+' cal · '+base.protein+'g</b> · estimated maintenance <b>~'+base.tdee+' cal</b>. Carbs &amp; fat fill in automatically; protein holds every phase.</p>'
+      +'<div class="tw-actions">'
+        +'<button class="btn btn-ghost" type="button" onclick="targetsUse('+base.calories+','+base.protein+')">Use recommended</button>'
+        +'<button class="btn btn-ghost" type="button" onclick="targetsUse('+base.tdee+','+base.protein+')">Use maintenance</button>'
+        +'<button class="btn btn-primary" type="button" onclick="saveTargets()">Save my numbers</button>'
+      +'</div><div class="status" id="twStatus" style="margin-top:6px"></div>'
+    +'</div></div>';
+}
+function toggleTargets(){ var f=g("twForm"); if(f) f.classList.toggle("hidden"); }
+function targetsUse(cal,pro){ if(g("tw_cal"))g("tw_cal").value=Math.round(cal); if(g("tw_pro"))g("tw_pro").value=Math.round(pro); }
+function saveTargets(){
+  var it=M.intake; if(!it||!it.sex) return;
+  var cal=parseInt(g("tw_cal").value,10), pro=parseInt(g("tw_pro").value,10), st=g("twStatus");
+  if(isNaN(cal)||isNaN(pro)||cal<800||pro<40){ if(st){st.textContent="Enter realistic numbers (cal ≥ 800, protein ≥ 40g).";st.style.color="var(--stall-tx)";} return; }
+  it.pfs=macrosFrom(cal,pro,it.sex); it.pfs.tdee=(it.pfsBase&&it.pfsBase.tdee)||computeTDEE(it); it.overridden=true; it.targetsBy="client";
+  saveLS(LS_TARGETS,{cal:cal,protein:pro,by:"client",ts:Date.now()});
+  if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"targets", email:ID.email, cal:cal, protein:pro, by:"client", ts:new Date().toISOString()});
+  renderPFS();
 }
 
 /* ---- Roadmap (1:1 clients only) ---- */
