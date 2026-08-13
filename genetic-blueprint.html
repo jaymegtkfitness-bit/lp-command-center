@@ -52,6 +52,8 @@
   .reveal{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
   .rev{background:#FBF8F1;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;padding:18px 20px}
   .rev h3{font-size:1.05rem;margin-bottom:6px} .rev p{font-size:.94rem;margin-bottom:0;color:var(--muted)}
+  .rev .b4m{margin-top:10px;padding-top:9px;border-top:1px dashed var(--line);font-size:.84rem;color:var(--olive);font-weight:600}
+  .rev .b4m b{font-family:'Montserrat';font-weight:700;letter-spacing:.04em}
   @media (max-width:640px){ .reveal{grid-template-columns:1fr} }
   .stack{background:#FBF8F1;border:1px solid var(--line);border-radius:14px;padding:8px 22px;margin:22px 0}
   .stack .row{display:flex;justify-content:space-between;gap:14px;padding:13px 0;border-bottom:1px solid var(--line);font-size:.98rem}
@@ -124,10 +126,11 @@
   const PIF_URL     = "https://link.fastpaydirect.com/payment-link/6a77dcb901f25252cc1b7ce2";  // Pay in full
   const PLAN_2X_URL = "https://link.fastpaydirect.com/payment-link/6a77dd3001f25252cc1b7ce4";  // 2 payments
 
-  // PRICES (confirmed 2026-08-08).
+  // PRICES (updated 2026-08-13: Blueprint PIF = $997; still credited as $1,000 toward Built 4 More).
+  // ⚠️ MAKE SURE the FastPayDirect links charge these ($997 PIF; $550 x2 = $1,100 plan).
   const PIF_PRICE   = "$997";     // pay-in-full amount
-  const PLAN_2X_TODAY = "$525";   // first of two payments
-  const PLAN_2X_TOTAL = "$1,050"; // total across the two payments ($525 x 2)
+  const PLAN_2X_TODAY = "$550";   // first of two payments
+  const PLAN_2X_TOTAL = "$1,100"; // total across the two payments ($550 x 2)
 </script>
 <!-- =============================================== -->
 
@@ -140,9 +143,9 @@
   <div class="wrap">
     <div class="eyebrow">The Genetic Blueprint</div>
     <h1>Stop guessing what works for your body.<br>Let your DNA tell you.</h1>
-    <p class="lede">Every plan you've followed was built for the average person. You aren't average. The Genetic Blueprint reads your DNA and maps your nutrition, training, and recovery to how your body is actually wired, so your plan is built on you instead of trial and error.</p>
-    <div class="price-anchor"><span class="now" id="heroPrice">$1,000</span></div>
-    <div class="price-note">A one-time test. Your Blueprint guides everything that comes after.</div>
+    <p class="lede">Every diet you followed was built for everyone, which means it was built for no one. The Genetic Blueprint reads your DNA and your bloodwork and maps everything — nutrition, training, recovery, supplements, and peptides — to how your body is actually wired, so your plan is built for you.</p>
+    <div class="price-anchor"><span class="now" id="heroPrice">$997</span></div>
+    <div class="price-note">One time. A saliva and finger-prick test, your personalized Blueprint, your Complete Nutrition System, your supplement and peptide protocol, and a 12-week follow-up test to see your improvements and fine-tune your plan.</div>
     <a href="#price" class="cta js-buy">Get My Genetic Blueprint<small>One-time · at-home kit · results read into your plan</small></a>
   </div>
 </div>
@@ -162,14 +165,32 @@
 <section>
   <div class="wrap">
     <div class="eyebrow kicker">What you get</div>
-    <h2 class="sec">Your DNA, turned into a plan you can actually use.</h2>
-    <p>A raw genetic report is just data. The Blueprint is the part that matters: what your genes mean for how you eat, train, and recover, translated into your plan.</p>
+    <h2 class="sec">More than a test. Your whole system, built from your data.</h2>
+    <p>A raw report is just data. The Blueprint is everything built around it — your nutrition, your supplements, and your peptide protocol, all mapped to your DNA and bloodwork, plus the plan to implement it from day one. The test tells us how your body is wired. The rest turns that into what you actually do.</p>
     <ul class="incl">
-      <li><span class="mk">1</span><div><b>A simple at-home kit</b><span>A painless cheek swab, shipped to you. No blood, no clinic. Swab, seal, send it back in the prepaid mailer.</span></div></li>
-      <li><span class="mk">2</span><div><b>Lab-processed DNA analysis</b><span>Your sample is analyzed by an accredited lab across the markers that shape nutrition, fitness, and recovery.</span></div></li>
-      <li><span class="mk">3</span><div><b>Your personalized Blueprint report</b><span>Plain-English results: how your body handles carbs and fats, your training and recovery profile, and where your nutrition needs are most sensitive.</span></div></li>
-      <li><span class="mk">4</span><div><b>A 1:1 walkthrough with Jayme</b><span>We sit down together and turn your results into moves: the macro lean, the training and recovery adjustments, the nutrients to prioritize. You leave knowing exactly what changes.</span></div></li>
-      <li><span class="mk">5</span><div><b>Read straight into your dashboard</b><span>Your Blueprint informs your track and your nutrition plan inside your Legacy Performance dashboard, so the personalization actually shows up in what you do every day.</span></div></li>
+      <li><span class="mk">1</span><div><b>A simple at-home collection</b><span>A quick saliva sample and a simple finger-prick, shipped to you. No clinic visit. Collect, seal, and send it back in the prepaid mailer.</span></div></li>
+      <li><span class="mk">2</span><div><b>DNA + biomarker lab analysis</b><span>An accredited lab reads your DNA and your key biomarkers across the systems that drive fat loss, energy, inflammation, and recovery.</span></div></li>
+      <li><span class="mk">3</span><div><b>Your personalized Blueprint</b><span>Your DNA and bloodwork read together, in plain English: what's active in your body right now, why, what to change, and the targets to move over the next 12 weeks.</span></div></li>
+      <li><span class="mk">4</span><div><b>Your Complete Nutrition System, built for you</b><span>Your Nutrition Archetype, auto-adjusting phases, eating-out and fast-food guides, and a custom meal template. Everything mapped straight into your plan.</span></div></li>
+      <li><span class="mk">5</span><div><b>Your personalized supplement protocol</b><span>The exact supplements, doses, and timing your genetics and biomarkers call for, plus a 15% discount with our supplement partner. No more guessing in the supplement aisle.</span></div></li>
+      <li><span class="mk">6</span><div><b>Your personalized peptide protocol</b><span>Your provider-guided Blueprint flags the peptides that fit your genetics and biomarkers, so you know exactly what your body could benefit from. Informational and provider-guided; eligibility and dosing are determined by the licensed medical team.</span></div></li>
+      <li><span class="mk">7</span><div><b>Your 12-week follow-up test, included</b><span>We retest your biomarkers at 12 weeks to see your improvements and fine-tune your plan as your body responds.</span></div></li>
+      <li><span class="mk">8</span><div><b>Start-today implementation</b><span>You begin the Foundations Protocol from day one, and everything lands in your Legacy Performance dashboard, so you always know exactly what to change and how.</span></div></li>
+    </ul>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section>
+  <div class="wrap">
+    <div class="eyebrow kicker">How it works</div>
+    <h2 class="sec">Your results take about four weeks. You start today.</h2>
+    <p>The waiting is the part people worry about. There isn't any. Your progress starts the week you buy, and your Blueprint sharpens it once it's back.</p>
+    <ul class="incl">
+      <li><span class="mk">1</span><div><b>This week you start</b><span>Your kit ships. We meet to set up your Complete Nutrition System, and you start the Foundations Protocol while your test processes. Your progress starts from day one.</span></div></li>
+      <li><span class="mk">2</span><div><b>While your test processes</b><span>You run the Foundations Protocol and your nutrition system. Real progress is already happening before your Blueprint lands.</span></div></li>
+      <li><span class="mk">3</span><div><b>Around week four, your Blueprint lands</b><span>Your DNA and bloodwork come back as your personalized Blueprint. We go over it together, and I build your supplement, nutrition, and peptide protocol right into your system and dashboard.</span></div></li>
+      <li><span class="mk">4</span><div><b>At 12 weeks, we remeasure</b><span>You retest your biomarkers to see your improvements and fine-tune. Your plan keeps evolving from your data, not from a guess.</span></div></li>
     </ul>
   </div>
 </section>
@@ -180,11 +201,11 @@
     <div class="eyebrow kicker">What your Blueprint reveals</div>
     <h2 class="sec">The things you'd otherwise spend years guessing at.</h2>
     <div class="reveal">
-      <div class="rev"><h3>Your macro lean</h3><p>How your body tends to handle carbohydrates and fats, so we set your split with the grain instead of against it.</p></div>
-      <div class="rev"><h3>Training response</h3><p>Whether you lean toward power or endurance, and how to program so your effort actually pays off.</p></div>
-      <div class="rev"><h3>Recovery profile</h3><p>How quickly your body tends to bounce back, so we set training frequency and rest where they belong.</p></div>
-      <div class="rev"><h3>Nutrient priorities</h3><p>The vitamins and nutrients your genetics suggest you're more likely to need attention on.</p></div>
-      <div class="rev"><h3>Appetite &amp; metabolism signals</h3><p>Tendencies around fullness and metabolism that explain why generic plans fought you.</p></div>
+      <div class="rev"><h3>Your macro lean</h3><p>How your body tends to handle carbohydrates and fats, so we set your split with the grain instead of against it.</p><p class="b4m"><b>Built 4 More:</b> your coach adjusts your split as you progress and your body responds.</p></div>
+      <div class="rev"><h3>Training response</h3><p>Whether you lean toward power or endurance, and how to program so your effort actually pays off.</p><p class="b4m"><b>Built 4 More:</b> your coach customizes your training with the exact changes your data calls for.</p></div>
+      <div class="rev"><h3>Recovery profile</h3><p>How quickly your body tends to bounce back, so we set training frequency and rest where they belong.</p><p class="b4m"><b>Built 4 More:</b> your coach adjusts and recommends from your data and your biofeedback.</p></div>
+      <div class="rev"><h3>Nutrient priorities</h3><p>The vitamins and nutrients your genetics suggest you're more likely to need attention on.</p><p class="b4m"><b>Built 4 More:</b> your coach builds these into your Complete Nutrition System, and the system adjusts and adds what you need.</p></div>
+      <div class="rev"><h3>Appetite &amp; metabolism signals</h3><p>Tendencies around fullness and metabolism that explain why generic plans fought you.</p><p class="b4m"><b>Built 4 More:</b> your coach reads your data and helps you make the change.</p></div>
       <div class="rev"><h3>Your one-time map</h3><p>Your DNA doesn't change. Test once, and it guides every plan you run from here forward.</p></div>
     </div>
   </div>
@@ -232,10 +253,12 @@
     <div class="eyebrow kicker">What it costs</div>
     <h2 class="sec">One test. A map you keep for life.</h2>
     <div class="stack">
-      <div class="row"><span>At-home DNA kit + accredited lab analysis</span><span class="v">Included</span></div>
-      <div class="row"><span>Your personalized Genetic Blueprint report</span><span class="v">Included</span></div>
-      <div class="row"><span>1:1 results walkthrough with Jayme</span><span class="v">Included</span></div>
-      <div class="row"><span>Read into your dashboard, track, and plan</span><span class="v">Included</span></div>
+      <div class="row"><span>At-home DNA + biomarker test + accredited lab analysis</span><span class="v">Included</span></div>
+      <div class="row"><span>Your personalized Blueprint (DNA + bloodwork)</span><span class="v">Included</span></div>
+      <div class="row"><span>Your Complete Nutrition System, built for you</span><span class="v">Included</span></div>
+      <div class="row"><span>Your personalized supplement protocol</span><span class="v">Included</span></div>
+      <div class="row"><span>Your personalized peptide protocol (provider-guided)</span><span class="v">Included</span></div>
+      <div class="row"><span>Your 12-week follow-up test + dashboard implementation</span><span class="v">Included</span></div>
       <div class="row total"><span>One-time investment</span><span class="v" id="stackPrice">$1,000</span></div>
     </div>
     <div class="pay-sub">Choose how you'd like to pay.</div>
@@ -251,17 +274,17 @@
       <div class="plan">
         <div class="name">2 payments</div>
         <div class="amt" id="p2Amt">$525<small>today</small></div>
-        <div class="cad" id="p2Cad">Then $525 in 30 days.</div>
+        <div class="cad" id="p2Cad">Then $550 in 30 days.</div>
         <div class="tot" id="p2Tot">Total $1,050</div>
         <a href="#" class="cta js-plan2">Choose this</a>
       </div>
     </div>
-    <div class="pay-foot">One-time test. No subscription. Your kit ships after checkout.</div>
+    <div class="pay-foot">One-time. No subscription. Your kit ships and your build starts right after checkout, so all sales are final and the Blueprint is non-refundable.</div>
 
     <div class="bfm">
       <div class="lbl">Included with your Blueprint</div>
-      <h3>Your 1:1 results walkthrough</h3>
-      <p>Results are only useful if you know what to do with them. We get on a call and turn your Blueprint into a real plan: your macro lean, your training and recovery adjustments, your nutrient priorities. <em>You leave knowing your next move.</em></p>
+      <h3>An individualized implementation plan, not a report you file away</h3>
+      <p>I personally build your Complete Nutrition System, and you start implementing it through the Foundations Protocol from day one. When your Blueprint lands, I build your supplement, nutrition, and peptide protocol right into your system and dashboard. <em>Within about four weeks, you know exactly what your body needs and how to run it.</em></p>
     </div>
   </div>
 </section>
@@ -271,8 +294,8 @@
   <div class="wrap">
     <div class="guarantee">
       <span class="seal">My promise to you</span>
-      <h3>You'll leave knowing what your body needs.</h3>
-      <p>This isn't a report you'll file away and forget. We walk through it together until you know exactly how it changes the way you eat, train, and recover. If it doesn't give you clear, usable direction, I'll keep working with you until it does.</p>
+      <h3>You'll come away knowing exactly what your body needs.</h3>
+      <p>This won't be more information you meant well with but never used. We'll walk through it together until you know exactly what to change: how to eat, how to train, how to recover. If it doesn't give you clear, usable direction, I'll keep working with you until it does.</p>
     </div>
   </div>
 </section>
@@ -311,19 +334,19 @@
     <h2 class="sec">Questions people ask first.</h2>
     <details>
       <summary>How does the test work?</summary>
-      <p>You get a simple at-home kit in the mail. Swab the inside of your cheek, seal it, and send it back in the prepaid mailer. An accredited lab analyzes your sample, and your personalized Blueprint comes back to you. No blood, no clinic visit.</p>
+      <p>You get a simple at-home kit in the mail. Provide a quick saliva sample and a simple finger-prick, seal them, and send them back in the prepaid mailer. An accredited lab reads your DNA and your biomarkers, and your personalized Blueprint comes back to you. No clinic visit.</p>
     </details>
     <details>
       <summary>Is this a medical or disease-risk test?</summary>
-      <p>No. The Genetic Blueprint is a wellness and performance tool. It looks at markers related to nutrition, fitness, and recovery so we can personalize your plan. It is not a diagnostic test, it does not assess disease risk, and it is not medical advice. If you have a medical condition, keep working with your physician.</p>
+      <p>No. The Genetic Blueprint is a wellness and performance tool. It reads your DNA and biomarkers to personalize your nutrition, supplements, training, and recovery. It is not a diagnostic test, it does not assess disease risk, and it is not medical advice. Any peptide options are provider-guided and informational, and eligibility and dosing are determined solely by the licensed medical team. If you have a medical condition, keep working with your physician.</p>
     </details>
     <details>
       <summary>How long until I get my results?</summary>
-      <p>Turnaround depends on the lab, typically a few weeks from when your sample arrives. As soon as your Blueprint is back, we schedule your 1:1 walkthrough.</p>
+      <p>Turnaround is usually about four weeks from when your samples arrive. You don't wait on it though. Your Foundations Protocol and Complete Nutrition System start the week you buy, and as soon as your Blueprint is back we go over it together.</p>
     </details>
     <details>
       <summary>Do I have to be a coaching client?</summary>
-      <p>No. Anyone can get the Blueprint. It makes your Legacy Performance dashboard and plan far more personalized, but it stands on its own too.</p>
+      <p>No. Anyone can get their Genetic Blueprint. It feeds your Legacy Performance dashboard and makes your plan more personalized. Every dollar you invest also goes toward your Built 4 More coaching if you continue, but it is not mandatory.</p>
     </details>
     <details>
       <summary>Is my genetic data private?</summary>
@@ -344,8 +367,8 @@
 <footer>
   <div class="wrap">
     <img src="logo-white.png" alt="Legacy Performance">
-    <div>Legacy Performance · Jayme Olson</div>
-    <div class="fine">The Genetic Blueprint is a wellness and performance genetic assessment used to personalize nutrition and training. It is not a diagnostic test, does not assess disease risk, and is not medical advice or treatment. Consult your physician regarding any medical condition.</div>
+    <div>Legacy Performance</div>
+    <div class="fine">The Genetic Blueprint is a wellness and performance assessment that uses your DNA and biomarkers to personalize nutrition, supplements, and training. It is not a diagnostic test, does not assess disease risk, and is not medical advice or treatment. Any peptide options are provider-guided and informational; eligibility, prescriptions, and dosing are determined solely by the licensed medical team, and outcomes vary. Consult your physician regarding any medical condition.</div>
   </div>
 </footer>
 
