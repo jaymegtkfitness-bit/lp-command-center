@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Your Genetic Blueprint · Getting Started · Legacy Performance</title>
+<meta name="description" content="Your Genetic Blueprint welcome guide: your first step, your kit, and everything you need saved in one place.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  /* ============================================================
+     LEGACY PERFORMANCE :: Genetic Blueprint onboarding doc
+     Buyers land here after purchase (or receive the link) and can
+     Save as PDF to keep their links forever.
+     GO LIVE: set the links in the CONFIG <script> at the bottom.
+     ============================================================ */
+  :root{
+    --charcoal:#1C1C1C; --olive:#4A5C3E; --olive-dk:#3A4A31;
+    --parchment:#F2EDE4; --gold:#C1AD72; --ink:#20201C; --muted:#6B675E; --line:#DAD2C4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:'Montserrat',system-ui,sans-serif;color:var(--ink);background:var(--parchment);line-height:1.6;-webkit-font-smoothing:antialiased}
+  h1,h2,h3,.display{font-family:'Cinzel',serif;font-weight:600;line-height:1.2;color:var(--charcoal)}
+  .doc{max-width:720px;margin:0 auto;background:#FBF8F1;border:1px solid var(--line);border-radius:14px;padding:44px 48px;margin-top:28px;margin-bottom:28px}
+  header.top{text-align:center;margin-bottom:8px} header.top img{height:56px}
+  .eyebrow{font-family:'Montserrat';font-weight:600;letter-spacing:.18em;text-transform:uppercase;font-size:.7rem;color:var(--olive);text-align:center;margin-top:16px}
+  h1{font-size:2rem;text-align:center;margin:8px 0 6px}
+  .sub{text-align:center;color:var(--muted);font-size:1.02rem;max-width:520px;margin:0 auto 8px}
+  .rule{height:1px;background:var(--line);margin:26px 0}
+  .step{display:flex;gap:16px;margin:20px 0}
+  .num{flex:0 0 34px;height:34px;border-radius:50%;background:var(--olive);color:#F6F1E8;display:flex;align-items:center;justify-content:center;font-family:'Cinzel';font-weight:700;font-size:1rem;margin-top:2px}
+  .step h3{font-size:1.12rem;margin-bottom:3px}
+  .step p{font-size:.97rem;color:var(--ink);margin-bottom:6px}
+  .step .muted{color:var(--muted);font-size:.9rem}
+  .btn{display:inline-block;background:var(--olive);color:#F6F1E8;font-weight:700;font-size:.92rem;padding:11px 20px;border-radius:9px;text-decoration:none;border:1px solid var(--olive-dk);margin-top:2px}
+  .callout{background:#fff;border:1px solid var(--line);border-left:4px solid var(--gold);border-radius:10px;padding:18px 20px;margin:24px 0}
+  .callout h3{font-size:1.05rem;margin-bottom:8px}
+  .links{background:var(--charcoal);border-radius:12px;padding:22px 24px;margin:26px 0}
+  .links .lbl{font-family:'Montserrat';font-weight:700;letter-spacing:.14em;text-transform:uppercase;font-size:.68rem;color:var(--gold);margin-bottom:12px}
+  .links a{display:flex;justify-content:space-between;gap:14px;padding:10px 0;border-bottom:1px solid rgba(255,255,255,.12);color:#EDE7DB;text-decoration:none;font-size:.95rem}
+  .links a:last-child{border-bottom:none}
+  .links a b{color:#fff;font-weight:600} .links a span{color:var(--gold);font-weight:600;white-space:nowrap}
+  .timeline{margin:8px 0}
+  .timeline .t{display:flex;gap:12px;font-size:.95rem;padding:7px 0;color:var(--ink)}
+  .timeline .t b{color:var(--olive);flex:0 0 92px}
+  .foot{text-align:center;color:var(--muted);font-size:.86rem;margin-top:26px}
+  .print{position:fixed;top:16px;right:16px;background:var(--olive);color:#F6F1E8;border:none;font-family:'Montserrat';font-weight:700;font-size:.85rem;padding:10px 16px;border-radius:9px;cursor:pointer;box-shadow:0 6px 16px rgba(0,0,0,.18)}
+  .fine{font-size:.74rem;color:var(--muted);line-height:1.5;margin-top:18px}
+  @media (max-width:560px){ .doc{padding:32px 22px} }
+  @media print{
+    body{background:#fff} .doc{border:none;box-shadow:none;margin:0;max-width:100%;background:#fff} .print{display:none}
+    .links{background:#f3efe6;border:1px solid var(--line)} .links .lbl{color:var(--olive)} .links a{color:var(--ink)} .links a b{color:var(--charcoal)} .links a span{color:var(--olive)}
+  }
+</style>
+</head>
+<body>
+
+<button class="print" onclick="window.print()">Save as PDF ⬇</button>
+
+<div class="doc">
+  <header class="top"><img src="logo.png" alt="Legacy Performance"></header>
+  <div class="eyebrow">Your Genetic Blueprint · Getting started</div>
+  <h1>Welcome. Let's get you moving.</h1>
+  <p class="sub">Everything you need is right here. Save this page as a PDF so your links live in one place, forever.</p>
+
+  <div class="rule"></div>
+
+  <div class="step">
+    <div class="num">1</div>
+    <div>
+      <h3>Book your kickoff session</h3>
+      <p>This is your first and most important step. We'll set up your Complete Nutrition System and your Foundations Protocol so you walk away with a plan you can run that day. The sooner we talk, the sooner you're taking action.</p>
+      <a class="btn js-book" href="#">Book my session</a>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div>
+      <h3>Watch for your test kit</h3>
+      <p>Your at-home kit ships to you. It's a quick saliva sample and a simple finger-prick, no clinic visit. Collect both, seal them, and send them back in the prepaid mailer.</p>
+      <p class="muted">Results take about four weeks. You don't wait on them though, see step 3.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div>
+      <h3>Start today, don't wait on results</h3>
+      <p>Begin your Foundations Protocol right away, so momentum is already building by the time your Blueprint arrives.</p>
+      <a class="btn js-foundations" href="#">Start the Foundations Protocol</a>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div>
+      <h3>Set up your dashboard</h3>
+      <p>Your dashboard is home base. Your Blueprint, your nutrition system, and everything we build lives here, so your plan shows up in what you do every day.</p>
+      <a class="btn js-dashboard" href="#">Set up my dashboard</a>
+    </div>
+  </div>
+
+  <div class="callout">
+    <h3>What happens next</h3>
+    <div class="timeline">
+      <div class="t"><b>This week</b><span>Book your session, set up your Foundations Protocol and dashboard, and start moving.</span></div>
+      <div class="t"><b>~4 weeks</b><span>Your Blueprint comes back. We build your supplement, nutrition, and peptide protocol right into your system.</span></div>
+      <div class="t"><b>12 weeks</b><span>You retest your biomarkers to see your improvements and fine-tune the plan.</span></div>
+    </div>
+  </div>
+
+  <div class="links">
+    <div class="lbl">Save these links</div>
+    <a class="js-book" href="#"><b>Book your kickoff session</b><span>Open →</span></a>
+    <a class="js-dashboard" href="#"><b>Your Legacy Performance dashboard</b><span>Open →</span></a>
+    <a class="js-foundations" href="#"><b>Your Foundations Protocol</b><span>Open →</span></a>
+    <a class="js-community" href="#"><b>The Legacy Performance community</b><span>Open →</span></a>
+    <a class="js-support" href="#"><b>Questions? Reach the team</b><span>Open →</span></a>
+  </div>
+
+  <p class="foot">We're glad you're here. Let's build your plan on you.<br>Legacy Performance</p>
+
+  <div class="fine">The Genetic Blueprint is a wellness and performance assessment that uses your DNA and biomarkers to personalize nutrition, supplements, and training. It is not a diagnostic test, does not assess disease risk, and is not medical advice or treatment. Any peptide options are provider-guided and informational; eligibility, prescriptions, and dosing are determined solely by the licensed medical team, and outcomes vary. Consult your physician regarding any medical condition.</div>
+</div>
+
+<!-- ============ SET YOUR LINKS TO GO LIVE ============ -->
+<script>
+  const LINKS = {
+    book:        "#",   // GHL kickoff-session booking link
+    dashboard:   "#",   // client dashboard / setup link
+    foundations: "#",   // Foundations Protocol (Skool / course link)
+    community:   "#",   // Legacy Performance community (Skool)
+    support:     "#"    // support / contact link (or mailto:)
+  };
+  function wire(cls, url){ document.querySelectorAll('.'+cls).forEach(function(a){
+    if(url && url !== "#"){ a.setAttribute('href', url); if(url.indexOf('mailto:')!==0){ a.setAttribute('target','_blank'); a.setAttribute('rel','noopener'); } }
+  }); }
+  wire('js-book', LINKS.book); wire('js-dashboard', LINKS.dashboard);
+  wire('js-foundations', LINKS.foundations); wire('js-community', LINKS.community);
+  wire('js-support', LINKS.support);
+</script>
+<!-- =================================================== -->
+
+</body>
+</html>

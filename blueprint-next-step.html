@@ -74,6 +74,8 @@
   .bul b{display:block;font-family:'Montserrat';font-weight:700;color:var(--charcoal);margin-bottom:3px}
   .bul span{font-size:.96rem;color:var(--muted)}
   .center{text-align:center}
+  .cal-embed{background:#22221E;border:1px dashed rgba(255,255,255,.22);border-radius:12px;min-height:180px;display:flex;align-items:center;justify-content:center;color:#8A8479;font-size:.9rem;padding:44px 20px;max-width:640px;margin:0 auto}
+  .cal-embed iframe{width:100%;min-height:640px;border:0;display:block}
   footer{background:var(--charcoal);color:#CFC8BC;padding:34px 0;text-align:center}
   footer img{height:40px;margin-bottom:12px}
   footer .fine{font-size:.74rem;color:#8A8479;max-width:600px;margin:12px auto 0;line-height:1.5}
@@ -181,12 +183,18 @@
   </div>
 </section>
 
-<!-- FINAL CTA -->
-<section class="dark center">
+<!-- BOOK (your GoHighLevel calendar embeds here) -->
+<section id="book" class="dark center">
   <div class="wrap">
     <h2 class="sec">Let's get you moving.</h2>
     <p style="margin-bottom:26px">Grab a time for your kickoff session and we'll build your plan together.</p>
-    <a href="#" class="cta js-book">Book my session<small>Pick a time · the sooner we talk, the sooner you start</small></a>
+    <!-- ============ PASTE YOUR GOHIGHLEVEL CALENDAR EMBED HERE ============
+         GHL → Calendars → your assessment-call calendar → ⋯ → Embed → copy the <iframe> code,
+         then replace the placeholder <div class="cal-embed"> below with it.
+         Booking this way creates the GHL contact and fires your confirmation, pre-call guide,
+         and reminder / no-show workflows automatically.
+         =================================================================== -->
+    <div class="cal-embed">Your GoHighLevel booking calendar embeds here.</div>
   </div>
 </section>
 
@@ -201,7 +209,7 @@
 <script>
   document.querySelectorAll('.js-book').forEach(function(a){
     if(BOOKING_URL && BOOKING_URL !== "#"){ a.setAttribute('href', BOOKING_URL); a.setAttribute('target','_blank'); a.setAttribute('rel','noopener'); }
-    else { a.setAttribute('href', '#'); }
+    else { a.setAttribute('href', '#book'); }   // scroll to the embedded GHL calendar
   });
 </script>
 
