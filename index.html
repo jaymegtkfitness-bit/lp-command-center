@@ -332,6 +332,10 @@ header.top{
 .jp-tab{background:none;border:none;border-bottom:2px solid transparent;color:var(--muted);font-weight:700;font-size:13px;padding:9px 15px;cursor:pointer;font-family:inherit}
 .jp-tab:hover{color:var(--ink)}
 .jp-tab.active{color:var(--ink);border-bottom-color:var(--gold)}
+/* ---- CNS coach builder ---- */
+.cnsb-in{width:100%;padding:8px 10px;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;box-sizing:border-box}
+.cns-chip{background:var(--surface-2);border:1px solid var(--line);color:var(--ink);border-radius:20px;padding:4px 11px;font-size:12px;cursor:pointer;font:inherit}
+.cns-chip.cns-on{background:var(--gold);border-color:var(--gold);color:var(--accent-ink,#1C1C1C);font-weight:600}
 
 /* ---- Two-column main ---- */
 .grid-main{display:grid;grid-template-columns:1.7fr 1fr;gap:22px;align-items:start}
@@ -2701,6 +2705,7 @@ function jpMonthlyAverages(rows){
   return h+'</div>';
 }
 function journeyPanel(d, email){
+  window.__journeyName=d.name||''; window.__journeyHadIntake=!!(d.intake&&d.intake.length);
   var ci=(d.checkins||[]).map(function(r){ return {ts:parseTs(r['Timestamp']), w:num(r['Weight']), cons:consistencyToNum(r['Consistency']),
       energy:num(r['Energy']), sleep:num(r['Sleep quality']), mood:num(r['Mood & resilience'])}; })
     .filter(function(x){return x.ts;}).sort(function(a,b){return a.ts-b.ts;});
@@ -2798,8 +2803,9 @@ function journeyPanel(d, email){
   } else h+='<div class="tool-d">No check-ins yet.</div>';
   h+='</div></div>';
 
-  // --- NUTRITION TAB: CNS food picks + meal plan status ---
+  // --- NUTRITION TAB: coach builder + CNS food picks + meal plan status ---
   h+='<div id="jp-tab-nutrition" style="display:none">';
+  h+=cnsBuilderTile(d, email);
   h+='<div class="tile"><div class="nav-h" style="padding:0 0 8px">Nutrition system — their food picks</div>';
   if(cnsI){
     h+='<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
@@ -2828,6 +2834,68 @@ function journeyPanel(d, email){
   h+='</div></div>';
 
   return h;
+}
+
+/* ===== CNS coach builder — build a client's whole nutrition system off their intake and push it ===== */
+function cnsbInput(id,label,val){ return '<div style="min-width:78px;flex:1"><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:3px">'+esc(label)+'</label><input id="'+id+'" type="number" inputmode="numeric" value="'+esc(val==null?'':val)+'" class="cnsb-in"></div>'; }
+function cnsbSelect(id,label,val,opts){ return '<div style="min-width:96px;flex:1"><label style="display:block;font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:3px">'+esc(label)+'</label><select id="'+id+'" class="cnsb-in">'+opts.map(function(o){return '<option'+(String(o)===String(val)?' selected':'')+'>'+esc(o)+'</option>';}).join('')+'</select></div>'; }
+function cnsbFoodChips(catKey,id,label,pre){ var items=(catKey==='veg')?FOOD_DB.veg:FOOD_DB[catKey].map(function(f){return f.n;}); return '<div style="margin-bottom:8px"><div style="font-size:10px;text-transform:uppercase;color:var(--muted);margin-bottom:4px">'+esc(label)+'</div><div id="'+id+'" style="display:flex;flex-wrap:wrap;gap:6px">'+items.map(function(n){var on=pre?(pre.indexOf(n)>=0):true;return '<button type="button" class="cns-chip'+(on?' cns-on':'')+'" onclick="this.classList.toggle(\'cns-on\')">'+esc(n)+'</button>';}).join('')+'</div></div>'; }
+function cnsbTile(d, email){ return cnsBuilderTile(d, email); }
+function cnsBuilderTile(d, email){
+  var intk=(d.intake&&d.intake.length)?d.intake[d.intake.length-1]:null;
+  var cnsI=(d.cnsintake&&d.cnsintake.length)?d.cnsintake[d.cnsintake.length-1]:null;
+  var trk=intk?(intk['Track']||''):''; if(trk==='Long') trk='Sustain';
+  var splt=function(v){ return String(v||'').split(',').map(function(s){return s.trim();}).filter(Boolean); };
+  var preP=cnsI?splt(cnsI['Proteins']):null, preC=cnsI?splt(cnsI['Carbs']):null, preF=cnsI?splt(cnsI['Fats']):null, preV=cnsI?splt(cnsI['Veg']):null;
+  var form='<div id="cnsbForm" style="display:none;margin-top:12px">'
+    +'<div style="font-size:10px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted);margin-bottom:6px">Their numbers</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:10px">'
+      + cnsbSelect('cnsb_sex','Sex',intk?intk['Sex']:'',['Female','Male'])
+      + cnsbInput('cnsb_age','Age',intk?intk['Age']:'')
+      + cnsbInput('cnsb_height','Height in',intk?intk['Height']:'')
+      + cnsbInput('cnsb_curwt','Current wt',intk?intk['Current wt']:'')
+      + cnsbInput('cnsb_goalwt','Goal wt',intk?intk['Goal wt']:'')
+      + cnsbSelect('cnsb_activity','Activity',intk?intk['Activity']:'',['Sedentary','Lightly active','Active','Very active','Athlete'])
+      + cnsbSelect('cnsb_track','Track',trk,['Lean','Strong','Sustain','Reverse Diet'])
+    +'</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px">'
+      + cnsbInput('cnsb_cal','Calories','') + cnsbInput('cnsb_pro','Protein g','')
+      + '<button class="btn" type="button" onclick="cnsbCalc()" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:8px">Recommended</button>'
+      + '<button class="btn" type="button" onclick="cnsbMaint()" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:8px 12px;border-radius:8px">Maintenance</button>'
+    +'</div><div id="cnsb_hint" style="font-size:12px;color:var(--muted);margin-top:6px"></div>'
+    +'<div style="margin-top:12px">'+cnsbFoodChips('protein','cnsb_fprot','Proteins',preP)+cnsbFoodChips('carb','cnsb_fcarb','Smart carbs',preC)+cnsbFoodChips('fat','cnsb_ffat','Fats',preF)+cnsbFoodChips('veg','cnsb_fveg','Veggies',preV)+'</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">'
+      + '<button class="btn" type="button" onclick="cnsbPreview()" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:9px 16px;border-radius:8px">Preview plan</button>'
+      + '<button class="btn" type="button" onclick="cnsbPush(\''+esc(email)+'\')" style="background:var(--gold);border:1px solid var(--gold);color:var(--accent-ink,#1C1C1C);padding:9px 16px;border-radius:8px;font-weight:700">Build &amp; push to their dashboard</button>'
+    +'</div><div id="cnsb_status" style="font-size:12.5px;margin-top:6px"></div><div id="cnsb_preview" style="margin-top:12px"></div>'
+  +'</div>';
+  return '<div class="tile" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="nav-h" style="padding:0">Build their nutrition system</div>'
+    +'<button class="btn" type="button" onclick="cnsbToggle()" id="cnsbToggleBtn" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:6px 14px;border-radius:8px">Open builder</button></div>'
+    +'<div style="font-size:12px;color:var(--muted);margin-top:4px">Set their numbers, pick their foods, generate the plan, and push it live — no waiting on their intake.</div>'+form+'</div>';
+}
+function cnsbToggle(){ var f=document.getElementById('cnsbForm'), b=document.getElementById('cnsbToggleBtn'); if(!f)return; var open=f.style.display==='none'; f.style.display=open?'block':'none'; if(b)b.textContent=open?'Close builder':'Open builder'; if(open && !document.getElementById('cnsb_cal').value) cnsbCalc(); }
+function cnsbV(id){ var e=document.getElementById(id); return e?e.value:''; }
+function cnsbStats(){ return {sex:cnsbV('cnsb_sex'), age:+cnsbV('cnsb_age'), height:+cnsbV('cnsb_height'), weight:+cnsbV('cnsb_curwt'), goalweight:+cnsbV('cnsb_goalwt'), activity:cnsbV('cnsb_activity'), track:cnsbV('cnsb_track')}; }
+function cnsbHint(t){ var e=document.getElementById('cnsb_hint'); if(e)e.textContent=t; }
+function cnsbCalc(){ var s=cnsbStats(); if(!s.goalweight){cnsbHint("Enter their goal weight first.");return;} var p=computePFS(s,s.track); var cal=(s.track==="Reverse Diet")?reverseStart(null,s.goalweight):p.calories; document.getElementById('cnsb_cal').value=cal; document.getElementById('cnsb_pro').value=p.protein; cnsbHint("Recommended "+cal+" cal · "+p.protein+"g · maintenance ~"+p.tdee+(s.track==="Reverse Diet"?" · REVERSE: set their actual current intake":"")); }
+function cnsbMaint(){ var s=cnsbStats(); if(!s.weight||!s.height||!s.age){cnsbHint("Need current wt, height, age for maintenance.");return;} var t=computeTDEE(s), p=computePFS(s,s.track); document.getElementById('cnsb_cal').value=t; if(!document.getElementById('cnsb_pro').value)document.getElementById('cnsb_pro').value=p.protein; cnsbHint("Maintenance ~"+t+" cal set as the starting number."); }
+function cnsbSel(id){ var el=document.getElementById(id); return el?Array.from(el.querySelectorAll('.cns-on')).map(function(b){return b.textContent.trim();}):[]; }
+function cnsbBuildPlan(){ var s=cnsbStats(), cal=+cnsbV('cnsb_cal'), pro=+cnsbV('cnsb_pro'); if(!cal||!pro)return null; var it={pfs:macrosFrom(cal,pro,s.sex)}; var sel={protein:cnsbSel('cnsb_fprot'),carb:cnsbSel('cnsb_fcarb'),fat:cnsbSel('cnsb_ffat'),veg:cnsbSel('cnsb_fveg')}; return {it:it, sel:sel, stats:s, plan:generateMealPlan(it, sel, 3, window.__journeyName||'')}; }
+function cnsbPreview(){ var b=cnsbBuildPlan(), box=document.getElementById('cnsb_preview'); if(!b){box.innerHTML='<div class="tool-d">Set calories + protein first.</div>';return;} var p=b.it.pfs; var meals=b.plan.days[0].meals.map(function(m){return '<div style="margin:5px 0"><b>'+esc(m.name)+'</b> <span style="color:var(--muted)">'+m.cal+' cal · '+m.protein+'g P</span><div style="font-size:12.5px;color:var(--ink-soft)">'+m.items.map(esc).join(' · ')+'</div></div>';}).join(''); box.innerHTML='<div class="tile" style="background:var(--surface-2)"><b style="color:var(--gold)">'+p.calories+' cal · '+p.protein+'g P · '+p.carbs+'g C · '+p.fat+'g F</b><div style="font-size:11px;color:var(--muted);margin:4px 0 6px">Day 1 preview · same targets every day, swappable</div>'+meals+'</div>'; }
+async function cnsbPush(email){
+  var b=cnsbBuildPlan(), st=document.getElementById('cnsb_status');
+  if(!b){ st.textContent="Set calories + protein first."; st.style.color="var(--stall-tx)"; return; }
+  var cal=+cnsbV('cnsb_cal'), pro=+cnsbV('cnsb_pro'), s=b.stats;
+  if(!s.goalweight){ st.textContent="Enter their goal weight (needed to build the phases)."; st.style.color="var(--stall-tx)"; return; }
+  st.textContent="Building & pushing…"; st.style.color="var(--muted)";
+  if(!window.__journeyHadIntake){ await postToSheet({type:"intake", email:email, sex:s.sex, age:s.age, height:s.height, weight:s.weight, goalweight:s.goalweight, activity:s.activity, track:s.track, signal:"coach"}); }
+  await postToSheet({type:"targets", email:email, cal:cal, protein:pro, by:"coach", ts:new Date().toISOString()});
+  await postToSheet({type:"cnsintake", email:email, name:(window.__journeyName||""), proteins:b.sel.protein.join(', '), carbs:b.sel.carb.join(', '), fats:b.sel.fat.join(', '), veg:b.sel.veg.join(', ')});
+  await postToSheet({type:"mealplan", email:email, title:b.plan.title, plan:b.plan});
+  await postToSheet({type:"rosterset", field:"Complete", email:email, value:"Yes"});
+  __rosterCache=null;
+  st.textContent="✓ Built & pushed — their dashboard now has the numbers, the meal plan, and CNS unlocked.";
+  st.style.color="var(--good-tx)";
 }
 
 /* Your PFA tools — these run in Claude Code. Type the command to launch one. */
