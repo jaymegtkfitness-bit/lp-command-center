@@ -698,7 +698,7 @@ var CONFIG = {
   bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief",  // 1:1 INCLUDED coaching call (Built for More). "" hides.
   paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting",  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
   geneticsBuyUrl: "https://dashboard.legacyperformance.co/genetic-blueprint.html",  // Genetic Blueprint SALES PAGE (has both checkout links). "" hides the buy card.
-  geneticsPrice: ""   // e.g. "$1,000" — shown on the buy card. "" = just "one-time test".
+  geneticsPrice: "$1,000"   // shown on the buy card. "" = just "one-time test". ($1,000 = DNA test + Complete Nutrition System + Foundations Reset + 2 sessions; credits toward Built for More.)
 };
 /* =============== END CONFIG (stop editing here) =============== */
 
@@ -879,8 +879,14 @@ function buildModel(server){
   if((ovCal==null||ovPro==null)&&lov){ if(ovCal==null)ovCal=num(lov.cal); if(ovPro==null)ovPro=num(lov.protein); if(!ovBy)ovBy=lov.by||''; }
   if(it && it.goalweight){
     it.pfsBase = computePFS(it, it.track);   // the formula default (used for the "recommended" + maintenance option)
+    if(it.track==="Reverse Diet"){          // reverse anchors on ACTUAL intake, not the formula
+      var rAvg=avgRecentCal(M.checkins, 3);
+      var rs=reverseStart(rAvg, it.goalweight);
+      it.pfsBase=macrosFrom(rs, it.pfsBase.protein, it.sex); it.pfsBase.tdee=computeTDEE(it);
+      it.reverseFromData=(rAvg!=null);
+    }
     if(ovCal!=null && ovPro!=null){ it.pfs = macrosFrom(ovCal, ovPro, it.sex); it.pfs.tdee=it.pfsBase.tdee; it.overridden=true; it.targetsBy=ovBy; }
-    else if(!it.pfs){ it.pfs = it.pfsBase; }
+    else { it.pfs = it.pfsBase; }
   }
   M.intake = it;
   // ---- meal plan (Complete Nutrition System — coach-built, pushed as type:mealplan) ----
@@ -1094,6 +1100,13 @@ function renderLog(h){
   }).join("");
 }
 
+/* Average calories over the last n check-ins that logged calories (null if none) — feeds the reverse anchor. */
+function avgRecentCal(checkins, n){
+  var withCal=(checkins||[]).filter(function(e){return e.cal!=null&&!isNaN(e.cal);});
+  if(!withCal.length) return null;
+  var recent=withCal.slice(-Math.max(1,n||3));
+  return Math.round(recent.reduce(function(a,e){return a+(+e.cal);},0)/recent.length);
+}
 /* Monthly averages — group weekly check-ins by calendar month; cal/protein/steps/weight = averages,
    workouts = monthly total. Newest month on top, each value paired with its change vs the prior month. */
 function renderMonthlyAverages(h){
@@ -1444,6 +1457,17 @@ function goalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; 
 function weeklyVerdict(it){
   var W=M.checkins.filter(function(c){return c.weight!=null;});
   var n=W.length;
+  if(it && it.track==="Reverse Diet"){
+    var C=M.checkins.filter(function(c){return c.cal!=null;});
+    if(C.length<1 || n<2) return {state:"building", reverse:true, weeks:n};
+    var avgw=function(a){return a.reduce(function(s,x){return s+x.weight;},0)/a.length;};
+    var rc=W.slice(-2), pr=W.slice(-4,-2), wd=avgw(rc)-(pr.length?avgw(pr):W[0].weight);
+    var thisCal=C[C.length-1].cal, lastCal=C.length>=2?C[C.length-2].cal:null;
+    var lastPro=C[C.length-1].protein, proT=it.pfs?it.pfs.protein:null;
+    var hitPro=(lastPro!=null&&proT!=null)?(lastPro>=proT*0.95):false;
+    var rr=reverseRead(thisCal, lastCal, wd, hitPro);
+    return {state:rr.move?"reverse-up":"reverse-hold", reverse:true, note:rr.note, weeks:n};
+  }
   if(n<2) return {state:"building", weeks:n};
   var avg=function(a){return a.reduce(function(s,x){return s+x.weight;},0)/a.length;};
   var recent=W.slice(-2), prior=W.slice(-4,-2);
@@ -1464,6 +1488,13 @@ function weeklyVerdict(it){
 }
 function verdictHTML(it){
   var v=weeklyVerdict(it), c=esc(CONFIG.coachName), tone, tag="Your move this week", title, body;
+  if(v.reverse){
+    if(v.state==="building"){ tone="watch"; title="Log a couple weeks to read your reverse";
+      body="Your reverse runs off what you"+String.fromCharCode(8217)+"re actually eating. Log your average calories and weight each week — after two weeks, your next step up shows here."; }
+    else if(v.state==="reverse-up"){ tone="accent"; title="Step up — add about 100 calories"; body=esc(v.note); }
+    else { tone="watch"; title="Hold here this week"; body=esc(v.note); }
+    return '<div class="verdict v-'+tone+'"><div class="v-tag">'+esc(tag)+'</div><div class="v-title">'+title+'</div><div class="v-body">'+body+'</div></div>';
+  }
   if(v.state==="building"){
     tone="watch"; title="Two check-ins away from your first read";
     body="I read your two-week trend, not single days. Log this week"+String.fromCharCode(8217)+"s check-in — after two weeks, your move shows up right here, automatically.";
@@ -1613,7 +1644,9 @@ function targetsAdjustHTML(it){
         +'<div class="field" style="margin:0"><label>Calories</label><input class="input" type="number" inputmode="numeric" id="tw_cal" value="'+p.calories+'"></div>'
         +'<div class="field" style="margin:0"><label>Protein (g)</label><input class="input" type="number" inputmode="numeric" id="tw_pro" value="'+p.protein+'"></div>'
       +'</div>'
-      +'<p class="wiz-hint" style="margin:8px 0">Recommended start: <b>'+base.calories+' cal · '+base.protein+'g</b> · estimated maintenance <b>~'+base.tdee+' cal</b>. Carbs &amp; fat fill in automatically; protein holds every phase.</p>'
+      +(it.track==="Reverse Diet"
+        ? '<p class="wiz-hint" style="margin:8px 0">Reverse diet starts from <b>what you\'re eating now</b>, not a formula. '+(it.reverseFromData?'We estimated <b>'+base.calories+' cal</b> from your recent check-ins':'Set your <b>current average calories</b> here')+' — then we climb ~100 at a time. Protein holds; add extra to protein first until you hit target, then carbs &amp; fat.</p>'
+        : '<p class="wiz-hint" style="margin:8px 0">Recommended start: <b>'+base.calories+' cal · '+base.protein+'g</b> · estimated maintenance <b>~'+base.tdee+' cal</b>. Carbs &amp; fat fill in automatically; protein holds every phase.</p>')
       +'<div class="tw-actions">'
         +'<button class="btn btn-ghost" type="button" onclick="targetsUse('+base.calories+','+base.protein+')">Use recommended</button>'
         +'<button class="btn btn-ghost" type="button" onclick="targetsUse('+base.tdee+','+base.protein+')">Use maintenance</button>'
@@ -1786,8 +1819,8 @@ function renderGeneticsCard(){
     if(!CONFIG.geneticsBuyUrl){ card.style.display="none"; return; }
     card.style.display="";
     var price=CONFIG.geneticsPrice?(' <b style="color:var(--accent)">'+esc(CONFIG.geneticsPrice)+'</b>'):'';
-    box.innerHTML='<p class="wiz-hint" style="margin:0 0 10px;color:var(--ink)">Map your nutrition, training response, and recovery to your actual DNA — so your plan stops being one-size-fits-all. One-time test.'+price+'</p>'
-      +'<div class="actions"><a class="btn btn-primary" href="'+esc(CONFIG.geneticsBuyUrl)+'" target="_blank" rel="noopener">See my Genetic Blueprint →</a></div>';
+    box.innerHTML='<p class="wiz-hint" style="margin:0 0 10px;color:var(--ink)">Map your nutrition, training, and recovery to your actual DNA, then '+esc(CONFIG.coachName)+' builds your <b>Complete Nutrition System</b> around it. Includes a reset to start today and two 1:1 sessions.'+price+'</p>'
+      +'<div class="actions"><a class="btn btn-primary" href="'+esc(CONFIG.geneticsBuyUrl)+'" target="_blank" rel="noopener">Get my Genetic Blueprint →</a></div>';
     return;
   }
   card.style.display="";

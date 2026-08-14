@@ -37,6 +37,27 @@ function computePFS(w, track){
 
 function mealsPerDay(){ return 3; }
 
+/* Reverse Diet start — anchor on what they're ACTUALLY eating (recent avg calories), not the generic
+   formula, then climb. avgCal = their recent weekly average calories (null if not logged yet). */
+function reverseStart(avgCal, goalweight){
+  if(avgCal!=null && +avgCal>0) return Math.round(+avgCal)+100;   // Phase 1 = current intake + a small step up
+  return Math.round((+goalweight)*11);                            // no data yet → conservative reverse floor
+}
+
+/* Reverse Diet weekly read: given this week's + last week's calories and the 2-week weight change,
+   decide whether to climb. Returns {move, note}. Protein-first until the protein target is met. */
+function reverseRead(thisCal, lastCal, weightDelta, hitProtein){
+  var ate_more = (lastCal!=null && thisCal!=null && thisCal > lastCal + 25);
+  var held = (weightDelta==null) ? true : Math.abs(weightDelta) < 0.6;   // ~flat = held
+  if(thisCal==null) return {move:false, note:"Log this week's average calories so we can read your reverse."};
+  if(held){
+    var src = hitProtein ? "Add the next ~100 from carbs & fat." : "Put the next ~100 into PROTEIN first — keep climbing protein until you consistently hit your target, then move extra into carbs & fat.";
+    return {move:true, dir:"up", note:"Weight held"+(ate_more?" while you ate more":"")+" — your metabolism is absorbing it. Step up ~100 calories. "+src};
+  }
+  if(weightDelta!=null && weightDelta > 0.6) return {move:false, note:"Weight ticked up — hold here a week and let it settle before the next step."};
+  return {move:false, note:"Hold this week — we step up only when the scale holds steady."};
+}
+
 var FOOD_DB={
   protein:[{n:"chicken breast",g:8.7,u:"oz"},{n:"lean beef",g:7.5,u:"oz"},{n:"turkey",g:8,u:"oz"},{n:"white fish",g:6,u:"oz"},{n:"shrimp",g:6,u:"oz"},{n:"salmon",g:6.3,u:"oz"},{n:"eggs",g:6,u:"",whole:true},{n:"Greek yogurt",g:10,u:"cup",frac:true},{n:"tofu/tempeh",g:10,u:"cup",frac:true},{n:"protein powder",g:24,u:"scoop",whole:true}],
   carb:[{n:"white rice",g:45,u:"cup",frac:true},{n:"potatoes",g:37,u:"cup",frac:true},{n:"sweet potato",g:27,u:"cup",frac:true},{n:"oats",g:27,u:"cup dry",frac:true},{n:"sourdough",g:15,u:"slice",whole:true},{n:"fruit",g:25,u:"piece",whole:true},{n:"beans/lentils",g:40,u:"cup",frac:true},{n:"pasta",g:43,u:"cup",frac:true}],
