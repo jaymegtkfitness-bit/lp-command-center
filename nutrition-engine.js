@@ -37,6 +37,16 @@ function computePFS(w, track){
 
 function mealsPerDay(){ return 3; }
 
+/* 4-2-1 weekly cycling — same weekly total, redistributed: 4 moderate days, 2 low, 1 high.
+   Protein holds every day; the flex lives in carbs & fat. Low = 80% of target, High = 140% (2 low + 1 high = balanced). */
+function fourTwoOne(cal, protein, sex){
+  return [
+    {label:"Moderate", days:4, macros:macrosFrom(Math.round(cal), protein, sex)},
+    {label:"Low",      days:2, macros:macrosFrom(Math.round(cal*0.8), protein, sex)},
+    {label:"High",     days:1, macros:macrosFrom(Math.round(cal*1.4), protein, sex)}
+  ];
+}
+
 /* Reverse Diet start — anchor on what they're ACTUALLY eating (recent avg calories), not the generic
    formula, then climb. avgCal = their recent weekly average calories (null if not logged yet). */
 function reverseStart(avgCal, goalweight){

@@ -881,12 +881,20 @@ function buildModel(server){
     it.pfsBase = computePFS(it, it.track);   // the formula default (used for the "recommended" + maintenance option)
     if(it.track==="Reverse Diet"){          // reverse anchors on ACTUAL intake, not the formula
       var rAvg=avgRecentCal(M.checkins, 3);
-      var rs=reverseStart(rAvg, it.goalweight);
-      it.pfsBase=macrosFrom(rs, it.pfsBase.protein, it.sex); it.pfsBase.tdee=computeTDEE(it);
+      it.pfsBase=macrosFrom(reverseStart(rAvg, it.goalweight), it.pfsBase.protein, it.sex); it.pfsBase.tdee=computeTDEE(it);
       it.reverseFromData=(rAvg!=null);
     }
-    if(ovCal!=null && ovPro!=null){ it.pfs = macrosFrom(ovCal, ovPro, it.sex); it.pfs.tdee=it.pfsBase.tdee; it.overridden=true; it.targetsBy=ovBy; }
-    else { it.pfs = it.pfsBase; }
+    // Phase-1 anchor = the controllable starting number (override) or the formula default
+    if(ovCal!=null && ovPro!=null){ it.anchor=macrosFrom(ovCal, ovPro, it.sex); it.overridden=true; it.targetsBy=ovBy; }
+    else { it.anchor=macrosFrom(it.pfsBase.calories, it.pfsBase.protein, it.sex); }
+    it.anchor.tdee=it.pfsBase.tdee;
+    // current rung on The Dial (coach/client movable)
+    var pIdx = sin?num(sin['Current phase']):null; if(pIdx==null && lov && lov.phase!=null) pIdx=+lov.phase;
+    it.phaseIdx = pIdx||0;
+    var ladder=computeLadder(it);
+    it.phaseIdx = Math.max(0, Math.min(it.phaseIdx, ladder.length-1));
+    var act=ladder[it.phaseIdx];
+    it.pfs = {calories:act.calories, protein:act.protein, carbs:act.carbs, fat:act.fat, tdee:it.pfsBase.tdee};  // active = current phase
   }
   M.intake = it;
   // ---- meal plan (Complete Nutrition System — coach-built, pushed as type:mealplan) ----
@@ -1453,7 +1461,16 @@ function requestConsult(topic){
 }
 
 /* ---- Live weekly auto-adjust verdict — "Your move this week" ---- */
-function goalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; if(track==="Long") return 0; return -1; }
+function goalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; if(track==="Long"||track==="Sustain") return 0; return -1; }
+/* Sustain lever: current month's avg weight minus last month's (+ = drifting up at "maintenance"). */
+function sustainDrift(checkins){
+  var byM={};
+  (checkins||[]).forEach(function(e){ if(e.weight==null)return; var d=new Date(e.ts), k=d.getFullYear()*12+d.getMonth(); (byM[k]=byM[k]||[]).push(e.weight); });
+  var keys=Object.keys(byM).map(Number).sort(function(a,b){return a-b;});
+  if(keys.length<2) return null;
+  var avg=function(a){return a.reduce(function(x,y){return x+y;},0)/a.length;};
+  return Math.round((avg(byM[keys[keys.length-1]])-avg(byM[keys[keys.length-2]]))*10)/10;
+}
 function weeklyVerdict(it){
   var W=M.checkins.filter(function(c){return c.weight!=null;});
   var n=W.length;
@@ -1484,7 +1501,9 @@ function weeklyVerdict(it){
   else if(progressing)      state="stay";
   else if(stalled)          state="advance";
   else                      state="stay";
-  return {state:state, cons:cons, delta:Math.round(delta*10)/10, rAvg:Math.round(rAvg*10)/10, weeks:n};
+  var drift=null;   // Sustain lever: at maintenance, let the MONTHLY weight trend nudge the number
+  if(state==="steady"){ drift=sustainDrift(M.checkins); if(cons!=null&&cons>=85&&drift!=null){ if(drift>=1)state="sustain-drop"; else if(drift<=-1)state="sustain-add"; } }
+  return {state:state, cons:cons, delta:Math.round(delta*10)/10, rAvg:Math.round(rAvg*10)/10, weeks:n, drift:drift};
 }
 function verdictHTML(it){
   var v=weeklyVerdict(it), c=esc(CONFIG.coachName), tone, tag="Your move this week", title, body;
@@ -1504,6 +1523,12 @@ function verdictHTML(it){
   } else if(v.state==="steady"){
     tone="good"; title="Hold steady — that"+String.fromCharCode(8217)+"s the win";
     body="You"+String.fromCharCode(8217)+"re on maintenance. Staying level through real life is the hardest skill in nutrition. Keep protein anchored and keep showing up.";
+  } else if(v.state==="sustain-drop"){
+    tone="accent"; title="Nudge your number down a little";
+    body="You"+String.fromCharCode(8217)+"ve been 85%+ consistent, but your monthly weight is drifting up about "+v.drift+" lb — so this isn"+String.fromCharCode(8217)+"t quite true maintenance. Drop your calories ~100 (protein holds) and let the scale settle. Small lever, monthly read.";
+  } else if(v.state==="sustain-add"){
+    tone="watch"; title="You have room to add a little";
+    body="You"+String.fromCharCode(8217)+"ve been 85%+ consistent and your monthly weight is drifting down about "+Math.abs(v.drift)+" lb at maintenance — you can add ~100 calories and still hold. Protein first, then carbs and fat.";
   } else if(v.state==="stay"){
     tone="good"; title="It"+String.fromCharCode(8217)+"s working — stay the course";
     body="Your two-week average is moving the right way at "+v.cons+"% consistency. Don"+String.fromCharCode(8217)+"t touch the plan — we change nothing while it"+String.fromCharCode(8217)+"s working. Momentum is the point.";
@@ -1529,16 +1554,16 @@ function computeLadder(it){
   var track=it.track, gbw=+it.goalweight, mults=LADDER_MULT[track]||[15];
   var ppl={"Lean":1.0,"Sustain":0.9,"Long":0.9,"Strong":0.8,"Reverse Diet":1.0}[track]||1.0;
   var labels=phaseLabels(track,mults.length);
-  // The Dial: Phase 1 anchors on the controllable number when one is set (coach/client override),
-  // otherwise on the formula (goal wt × top multiplier). Steps follow the track's multiplier deltas.
-  var overridden = it.overridden && it.pfs;
-  var protein = overridden ? it.pfs.protein : Math.round(gbw*ppl);
-  var anchorCal = overridden ? it.pfs.calories : Math.round(gbw*mults[0]);
-  var base=mults[0];
+  // The Dial: Phase 1 anchors on the controllable starting number (it.anchor) when set, else the
+  // formula (goal wt × top multiplier). Steps follow the track's multiplier deltas. Current rung = it.phaseIdx.
+  var a = it.anchor;
+  var protein = a ? a.protein : Math.round(gbw*ppl);
+  var anchorCal = a ? a.calories : Math.round(gbw*mults[0]);
+  var base=mults[0], cur=it.phaseIdx||0;
   return mults.map(function(m,i){
     var cals = Math.round(anchorCal - (base-m)*gbw);   // phase 1 = anchor; each phase steps by the mult delta × goal wt
     var mm = macrosFrom(cals, protein, it.sex);
-    return {label:labels[i], phase:i+1, mult:m, calories:mm.calories, protein:mm.protein, carbs:mm.carbs, fat:mm.fat, current:i===0};
+    return {label:labels[i], phase:i+1, mult:m, calories:mm.calories, protein:mm.protein, carbs:mm.carbs, fat:mm.fat, current:i===cur};
   });
 }
 /* filter-aware food lists (mirrors the setup result screen) */
@@ -1625,24 +1650,42 @@ function renderPFS(){
       +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showWizard()">Build my Power Food System →</button></div>';
     return;
   }
-  box.innerHTML=targetsAdjustHTML(it)+nutritionHTML(it)+completeSystemCard();
+  box.innerHTML=targetsAdjustHTML(it)+nutritionHTML(it)+fourTwoOneCard(it)+completeSystemCard();
 }
-/* Controllable numbers — the client (or coach, via their link) sets the calorie + protein anchor. */
+/* 4-2-1 weekly rhythm — CNS-only. Same weekly total, cycled across day types. */
+function fourTwoOneCard(it){
+  if(typeof hasCNS==="function" && !hasCNS()) return '';
+  if(!it || !it.pfs) return '';
+  var wk=fourTwoOne(it.pfs.calories, it.pfs.protein, it.sex);
+  var cell=function(w){ var m=w.macros; return '<div style="flex:1;min-width:120px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)">'+w.label+' × '+w.days+' day'+(w.days>1?'s':'')+'</div><div style="font-size:19px;font-weight:700;color:var(--accent);margin:3px 0;font-family:\'Cinzel\',serif">'+m.calories+'</div><div style="font-size:12px;color:var(--ink-soft)">'+m.protein+'g P · '+m.carbs+'g C · '+m.fat+'g F</div></div>'; };
+  return '<div class="card"><div class="sec-h"><h2>4-2-1 weekly rhythm</h2></div>'
+    +'<p class="wiz-hint" style="margin:-4px 0 10px">An option on top of your phase: 4 moderate days, 2 low, 1 higher (relaxed but intentional). Same weekly total — <b>protein holds every day</b>, the flex is carbs &amp; fat.</p>'
+    +'<div style="display:flex;gap:10px;flex-wrap:wrap">'+cell(wk[0])+cell(wk[1])+cell(wk[2])+'</div></div>';
+}
+/* Controllable numbers — the client (or coach, via their link) sets the calorie + protein anchor,
+   and moves along The Dial. The card shows the CURRENT phase's numbers; the form edits the Phase-1 anchor. */
 function targetsAdjustHTML(it){
-  var p=it.pfs, base=it.pfsBase||p;
+  var p=it.pfs, a=it.anchor||p, base=it.pfsBase||p;
+  var ladder=computeLadder(it), nP=ladder.length, cur=(it.phaseIdx||0)+1;
   var byNote = it.overridden ? '<span class="tw-badge">'+(/coach/i.test(it.targetsBy||'')?'set by your coach':'your number')+'</span>' : '<span class="tw-badge tw-rec">recommended start</span>';
+  var dialLine = nP>1
+    ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px"><span style="font-size:12.5px;color:var(--muted)">The Dial · <b style="color:var(--accent)">Phase '+cur+' of '+nP+'</b></span>'
+      +(cur>1?'<button class="btn btn-ghost" style="padding:3px 10px;font-size:12px" type="button" onclick="movePhase(-1)">← back a phase</button>':'')
+      +(cur<nP?'<button class="btn btn-ghost" style="padding:3px 10px;font-size:12px" type="button" onclick="movePhase(1)">next phase →</button>':'')+'</div>'
+    : '';
   return '<div class="card">'
     +'<div class="sec-h" style="margin-bottom:8px"><h2>Your numbers</h2>'+byNote+'</div>'
+    + dialLine
     +'<div class="macro-row" style="margin:0 0 10px">'
       +'<div class="macro"><div class="mn">'+p.calories+'</div><div class="ml">Calories</div></div>'
       +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
       +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
       +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
-    +'<button class="btn btn-ghost" type="button" onclick="toggleTargets()" id="twToggle">Adjust my calories &amp; protein</button>'
+    +'<button class="btn btn-ghost" type="button" onclick="toggleTargets()" id="twToggle">Adjust my starting number</button>'
     +'<div id="twForm" class="hidden" style="margin-top:10px">'
       +'<div class="tw-inputs">'
-        +'<div class="field" style="margin:0"><label>Calories</label><input class="input" type="number" inputmode="numeric" id="tw_cal" value="'+p.calories+'"></div>'
-        +'<div class="field" style="margin:0"><label>Protein (g)</label><input class="input" type="number" inputmode="numeric" id="tw_pro" value="'+p.protein+'"></div>'
+        +'<div class="field" style="margin:0"><label>Calories '+(nP>1?'(Phase 1)':'')+'</label><input class="input" type="number" inputmode="numeric" id="tw_cal" value="'+a.calories+'"></div>'
+        +'<div class="field" style="margin:0"><label>Protein (g)</label><input class="input" type="number" inputmode="numeric" id="tw_pro" value="'+a.protein+'"></div>'
       +'</div>'
       +(it.track==="Reverse Diet"
         ? '<p class="wiz-hint" style="margin:8px 0">Reverse diet starts from <b>what you\'re eating now</b>, not a formula. '+(it.reverseFromData?'We estimated <b>'+base.calories+' cal</b> from your recent check-ins':'Set your <b>current average calories</b> here')+' — then we climb ~100 at a time. Protein holds; add extra to protein first until you hit target, then carbs &amp; fat.</p>'
@@ -1660,9 +1703,21 @@ function saveTargets(){
   var it=M.intake; if(!it||!it.sex) return;
   var cal=parseInt(g("tw_cal").value,10), pro=parseInt(g("tw_pro").value,10), st=g("twStatus");
   if(isNaN(cal)||isNaN(pro)||cal<800||pro<40){ if(st){st.textContent="Enter realistic numbers (cal ≥ 800, protein ≥ 40g).";st.style.color="var(--stall-tx)";} return; }
-  it.pfs=macrosFrom(cal,pro,it.sex); it.pfs.tdee=(it.pfsBase&&it.pfsBase.tdee)||computeTDEE(it); it.overridden=true; it.targetsBy="client";
-  saveLS(LS_TARGETS,{cal:cal,protein:pro,by:"client",ts:Date.now()});
-  if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"targets", email:ID.email, cal:cal, protein:pro, by:"client", ts:new Date().toISOString()});
+  it.anchor=macrosFrom(cal,pro,it.sex); it.anchor.tdee=(it.pfsBase&&it.pfsBase.tdee)||computeTDEE(it); it.overridden=true; it.targetsBy="client";
+  var ladder=computeLadder(it); it.phaseIdx=Math.max(0,Math.min(it.phaseIdx||0,ladder.length-1)); var A=ladder[it.phaseIdx];
+  it.pfs={calories:A.calories,protein:A.protein,carbs:A.carbs,fat:A.fat,tdee:it.anchor.tdee};
+  saveLS(LS_TARGETS,{cal:cal,protein:pro,phase:it.phaseIdx,by:"client",ts:Date.now()});
+  if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"targets", email:ID.email, cal:cal, protein:pro, phase:it.phaseIdx, by:"client", ts:new Date().toISOString()});
+  renderPFS();
+}
+/* Move along The Dial (client or coach). delta +1 = next phase, -1 = back. Recomputes active numbers + persists. */
+function movePhase(delta){
+  var it=M.intake; if(!it) return;
+  var ladder=computeLadder(it); var ni=Math.max(0,Math.min((it.phaseIdx||0)+delta, ladder.length-1));
+  it.phaseIdx=ni; var A=ladder[ni];
+  it.pfs={calories:A.calories,protein:A.protein,carbs:A.carbs,fat:A.fat,tdee:(it.anchor&&it.anchor.tdee)||computeTDEE(it)};
+  var lov=loadLS(LS_TARGETS,"null")||{}; lov.phase=ni; if(it.anchor){lov.cal=it.anchor.calories;lov.protein=it.anchor.protein;} lov.by=lov.by||"client"; saveLS(LS_TARGETS,lov);
+  if(CONFIG.writeUrl && ID && ID.email && it.anchor) postToSheet({type:"targets", email:ID.email, cal:it.anchor.calories, protein:it.anchor.protein, phase:ni, by:(it.targetsBy||"client"), ts:new Date().toISOString()});
   renderPFS();
 }
 

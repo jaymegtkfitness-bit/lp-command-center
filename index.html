@@ -2591,7 +2591,7 @@ function openJourney(email){
 }
 /* Coach-side mirror of the client dashboard's live auto-adjust verdict — same logic,
    coach framing. Surfaces "ready to advance" so Jayme confirms the phase change. */
-function journeyGoalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; if(track==="Long") return 0; return -1; }
+function journeyGoalDir(track){ if(track==="Strong"||track==="Reverse Diet") return 1; if(track==="Long"||track==="Sustain") return 0; return -1; }
 function journeyVerdict(ci, track){
   var W=ci.filter(function(c){return c.w!=null;}), n=W.length;
   if(n<2) return {state:"building"};
