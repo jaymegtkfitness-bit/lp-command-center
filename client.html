@@ -209,6 +209,9 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .ob-label{flex:1;font-size:13.5px;color:var(--ink)}
 .ob-step.done .ob-label{color:var(--muted);text-decoration:line-through}
 .ob-auto{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.fdn-h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:6px 0 2px}
+.fdn-sub{color:var(--muted);font-weight:600;letter-spacing:.03em;text-transform:none}
+.fdn-note{font-size:12.5px;color:var(--ink-soft);padding:8px 2px 2px}
 /* Result */
 .res-read{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:10px;padding:14px 15px;margin-bottom:14px}
 .res-track{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--headline)}
@@ -406,6 +409,9 @@ select.input{appearance:none}
     <div class="ctab-panel" id="ctab-home">
       <!-- Onboarding checklist -->
       <div class="card" id="obCard" style="display:none"><div id="obBox"></div></div>
+
+      <!-- Foundations task checklist (Daily Standards + number-gates) -->
+      <div class="card" id="fdnCard" style="display:none"><div id="fdnBox"></div></div>
 
       <div class="stats">
         <div class="stat"><div class="n" id="stWeight">—</div><div class="l">Current weight</div></div>
@@ -963,6 +969,7 @@ function renderHome(){
   renderFastFood();
   gateProtocolCards();
   renderOnboarding();
+  renderFoundations();
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
 }
 
@@ -1394,6 +1401,62 @@ function toggleOnboardStep(k){
   saveLS(LS_ONBOARD, M.onboardingDone);
   if(CONFIG.writeUrl) postToSheet({type:'onboarding', email:ID.email, completed:M.onboardingDone});
   renderOnboarding();
+}
+/* ============================ FOUNDATIONS TASKS (Daily Standards + number-gates) ============================ */
+var FDN_NUMBERS=[
+  {k:'track',   label:'Log your weekly averages (calories + protein)', auto:'avgs'},
+  {k:'floor',   label:'Hit your protein floor', gate:'protein'},
+  {k:'target',  label:'Know your target & deficit', auto:'intake'},
+  {k:'produce', label:'600–800g fruit & veg, daily'}
+];
+var FDN_STANDARDS=[   // the 8 Pillars, run as Daily Standards
+  {k:'p_protein',    label:'Protein — anchor every meal'},
+  {k:'p_calibration',label:'Nutrition Calibration — track & know your numbers', auto:'avgs'},
+  {k:'p_movement',   label:'Movement — 8,000 steps a day'},
+  {k:'p_resistance', label:'Resistance — 3 sessions a week'},
+  {k:'p_hydration',  label:'Hydration — half your bodyweight in oz'},
+  {k:'p_sleep',      label:'Sleep, Stress & Rest — a real sleep routine'},
+  {k:'p_relational', label:'Relational Stewardship — a shared meal or walk'},
+  {k:'p_feedback',   label:'Feedback — your weekly check-in', auto:'checkin'}
+];
+function latestCheckin(){ return M.checkins.length?M.checkins[M.checkins.length-1]:null; }
+function proteinFloor(){ var it=M.intake; return (it&&it.goalweight)?Math.round(+it.goalweight*0.8):null; }  // 0.8 g/lb of ideal bodyweight
+function fdnDone(t){
+  if(M.onboardingDone.indexOf('fdn:'+t.k)>=0) return true;
+  if(t.auto==='avgs'){ var c=latestCheckin(); return !!(c && c.cal!=null && c.protein!=null); }
+  if(t.auto==='intake') return !!(M.intake && M.intake.pfs);
+  if(t.auto==='checkin') return M.checkins.length>0;
+  if(t.gate==='protein'){ var c2=latestCheckin(), f=proteinFloor(); return !!(c2 && c2.protein!=null && f!=null && c2.protein>=f); }
+  return false;
+}
+function toggleFdn(k){
+  var pre='fdn:'+k, i=M.onboardingDone.indexOf(pre);
+  if(i>=0) M.onboardingDone.splice(i,1); else M.onboardingDone.push(pre);
+  saveLS(LS_ONBOARD, M.onboardingDone);
+  if(CONFIG.writeUrl) postToSheet({type:'onboarding', email:ID.email, completed:M.onboardingDone});
+  renderFoundations();
+}
+function fdnRow(t){
+  var d=fdnDone(t), auto=(t.auto||t.gate) && d && M.onboardingDone.indexOf('fdn:'+t.k)<0;
+  return '<div class="ob-step'+(d?' done':'')+'"'+(auto?'':' onclick="toggleFdn(\''+t.k+'\')"')+'>'
+    +'<span class="ob-check">'+(d?'✓':'')+'</span><span class="ob-label">'+esc(t.label)+'</span>'
+    +(auto?'<span class="ob-auto">'+(t.gate?'from your data':'auto')+'</span>':'')+'</div>';
+}
+function renderFoundations(){
+  var card=g("fdnCard"); if(!card) return;
+  var it=M.intake;
+  if(!it || !it.pfs){ card.style.display='none'; return; }   // shows once they're set up (have targets)
+  var all=FDN_NUMBERS.concat(FDN_STANDARDS), done=all.filter(fdnDone).length, total=all.length;
+  card.style.display='';
+  var floor=proteinFloor(), c=latestCheckin();
+  var floorNote = floor!=null ? ('Your protein floor: <b>'+floor+'g</b>'+(c&&c.protein!=null?' · last week <b style="color:'+(c.protein>=floor?'var(--good-tx)':'var(--stall-tx)')+'">'+c.protein+'g</b>':'')) : '';
+  g("fdnBox").innerHTML=
+    '<div class="sec-h"><h2>Foundations</h2></div>'
+    +'<p class="wiz-hint" style="margin:-4px 0 10px">Master these before your track. One day is noise; two weeks is a trend.</p>'
+    +'<div class="ob-prog"><div class="ob-bar"><div class="ob-fill" style="width:'+(done/total*100).toFixed(0)+'%"></div></div><span class="ob-count">'+done+' of '+total+'</span></div>'
+    +'<div class="fdn-h">Your numbers</div>'+FDN_NUMBERS.map(fdnRow).join("")
+    +(floorNote?'<div class="fdn-note">'+floorNote+'</div>':'')
+    +'<div class="fdn-h" style="margin-top:14px">Daily Standards <span class="fdn-sub">the 8 Pillars</span></div>'+FDN_STANDARDS.map(fdnRow).join("");
 }
 /* ============================ NUTRITION SYSTEM + ROADMAP ============================ */
 var TRACK_NAME={"Lean":"Live Lean","Strong":"Live Strong","Long":"Live Long","Reverse Diet":"Reverse Diet"};
