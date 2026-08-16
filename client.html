@@ -2250,7 +2250,7 @@ function wizResult(){
   else why="Based on your goals and history, "+trackName+" is your starting lane. Nothing here is restrictive or extreme — it's a real, sustainable starting point built from your numbers.";
   var sigTxt={"strong":"Strong signal","moderate":"Worth watching","clear":"Your pick"}[sig]||"";
   var pace;
-  if(t==="Reverse Diet") pace='You\'re likely eating well under the ~'+p.tdee+' calories your body could handle. This '+p.calories+' is your <b>starting floor</b> — in Foundations we add a little more each week to rebuild your metabolism, so fat loss finally sticks.';
+  if(t==="Reverse Diet") pace='You\'re likely eating well under the ~'+p.tdee+' calories your body could handle. <b>'+p.calories+' is our estimate of where you\'re at now</b> — after your first week of Foundations you\'ll know your real number and set it in your dashboard. From there we add a little each week to rebuild your metabolism, so fat loss finally sticks.';
   else if(t==="Strong") pace='You\'re likely around ~'+p.tdee+' to hold your current weight. We start you at '+p.calories+', a touch above that, to fuel building.';
   else if(t==="Long") pace='We hold you near your ~'+p.tdee+' estimated maintenance at '+p.calories+' — steady, with a longevity focus.';
   else pace='You\'re likely eating around ~'+p.tdee+' to hold your current weight. We start you at '+p.calories+' — a sustainable deficit, not a crash.';
