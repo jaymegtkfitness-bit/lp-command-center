@@ -704,6 +704,10 @@ var CONFIG = {
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
   bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief",  // 1:1 INCLUDED coaching call (Built for More). "" hides.
   onboardCallUrl: "",  // dedicated onboarding-call Calendly (everyone gets one). Falls back to bookCallUrl if blank.
+  skoolAppUrl: "https://apps.apple.com/us/app/skool-communities/id6447270545",  // Skool app (iOS)
+  skoolAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.skool.skoolcommunities",  // Skool app (Android)
+  everfitAppUrl: "https://apps.apple.com/us/app/everfit-train-smart/id1438926364",  // Everfit app (iOS)
+  everfitAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.everfit",  // Everfit app (Android)
   paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting",  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
   geneticsBuyUrl: "https://dashboard.legacyperformance.co/genetic-blueprint.html",  // Genetic Blueprint SALES PAGE (has both checkout links). "" hides the buy card.
   geneticsPrice: "$1,000"   // shown on the buy card. "" = just "one-time test". ($1,000 = DNA test + Complete Nutrition System + Foundations Reset + 2 sessions; credits toward Built for More.)
@@ -1368,12 +1372,15 @@ var W_INTEREST = ["Peptides","Genetic testing","A done-for-you build"];
 var W_FILTER = ["Vegetarian","Lactose-free","Gluten-free"];
 
 function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==='woman')?'Female':''), flags:[],extragoals:[],interests:[],filters:[]}; WIZ_I=0; renderWiz(); show("wizard"); }
+function storeLink(ios, android){ return /android/i.test(navigator.userAgent||'') ? (android||ios) : ios; }
+function skoolAppLink(){ return storeLink(CONFIG.skoolAppUrl, CONFIG.skoolAppUrlAndroid); }
+function everfitAppLink(){ return storeLink(CONFIG.everfitAppUrl, CONFIG.everfitAppUrlAndroid); }
 var ONBOARD_STEPS=[
-  {k:'skoolapp',  label:'Download the Skool app & turn on notifications'},
+  {k:'skoolapp',  label:'Download the Skool app & turn on notifications', linkFn:'skoolAppLink', linkText:'Get it →'},
   {k:'intro',     label:'Introduce yourself in the community'},
-  {k:'call',      label:'Book your onboarding call', linkCfg:'onboardCallUrl', linkText:'Book →'},
+  {k:'call',      label:'Book your onboarding call', linkCfg:'onboardCallUrl', linkFb:'bookCallUrl', linkText:'Book →'},
   {k:'bookmark',  label:'Bookmark this dashboard to your home screen'},
-  {k:'everfit',   label:'Set up the Everfit app'},
+  {k:'everfit',   label:'Set up the Everfit app', linkFn:'everfitAppLink', linkText:'Get it →'},
   {k:'setup',     label:'Complete your setup — your numbers', auto:'intake'},
   {k:'rhythm',    label:'Set your check-in reminder & grab your playbook'}
 ];
@@ -1394,7 +1401,8 @@ function renderOnboarding(){
     +'<div class="ob-prog"><div class="ob-bar"><div class="ob-fill" style="width:'+(done/total*100).toFixed(0)+'%"></div></div><span class="ob-count">'+done+' of '+total+' done</span></div>'
     +ONBOARD_STEPS.map(function(s){
       var d=stepDone(s), autoDone = s.auto && d && M.onboardingDone.indexOf(s.k)<0;
-      var linkUrl = (!d && s.linkCfg) ? (CONFIG[s.linkCfg]||CONFIG.bookCallUrl) : '';
+      var linkUrl='';
+      if(!d){ if(s.linkFn && typeof window[s.linkFn]==='function') linkUrl=window[s.linkFn](); else if(s.linkCfg) linkUrl=CONFIG[s.linkCfg]||(s.linkFb?CONFIG[s.linkFb]:'')||''; }
       return '<div class="ob-step'+(d?' done':'')+'"'+(autoDone?'':' onclick="toggleOnboardStep(\''+s.k+'\')"')+'>'
         +'<span class="ob-check">'+(d?'✓':'')+'</span><span class="ob-label">'+esc(s.label)+'</span>'
         +(linkUrl?'<a class="ob-link" href="'+esc(linkUrl)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+esc(s.linkText||'Open →')+'</a>':'')
