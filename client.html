@@ -209,6 +209,7 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .ob-label{flex:1;font-size:13.5px;color:var(--ink)}
 .ob-step.done .ob-label{color:var(--muted);text-decoration:line-through}
 .ob-auto{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.ob-link{margin-left:auto;font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap;text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:4px 10px}
 .fdn-h{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:6px 0 2px}
 .fdn-sub{color:var(--muted);font-weight:600;letter-spacing:.03em;text-transform:none}
 .fdn-note{font-size:12.5px;color:var(--ink-soft);padding:8px 2px 2px}
@@ -702,6 +703,7 @@ var CONFIG = {
   completeSystemPrice: "$497",     // today's price shown on the upsell card
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
   bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief",  // 1:1 INCLUDED coaching call (Built for More). "" hides.
+  onboardCallUrl: "",  // dedicated onboarding-call Calendly (everyone gets one). Falls back to bookCallUrl if blank.
   paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting",  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
   geneticsBuyUrl: "https://dashboard.legacyperformance.co/genetic-blueprint.html",  // Genetic Blueprint SALES PAGE (has both checkout links). "" hides the buy card.
   geneticsPrice: "$1,000"   // shown on the buy card. "" = just "one-time test". ($1,000 = DNA test + Complete Nutrition System + Foundations Reset + 2 sessions; credits toward Built for More.)
@@ -1367,13 +1369,13 @@ var W_FILTER = ["Vegetarian","Lactose-free","Gluten-free"];
 
 function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==='woman')?'Female':''), flags:[],extragoals:[],interests:[],filters:[]}; WIZ_I=0; renderWiz(); show("wizard"); }
 var ONBOARD_STEPS=[
-  {k:'skool',       label:'Set up your Skool account'},
-  {k:'call',        label:'Schedule your onboarding call'},
-  {k:'starthere',   label:'Go through the Start Here course'},
-  {k:'everfit',     label:'Set up the Everfit app'},
-  {k:'direction',   label:'Set your direction & Power Food System', auto:'intake'},
-  {k:'foundations', label:'Begin the Foundations course'},
-  {k:'checkin',     label:'Complete your first weekly check-in', auto:'checkin'}
+  {k:'skoolapp',  label:'Download the Skool app & turn on notifications'},
+  {k:'intro',     label:'Introduce yourself in the community'},
+  {k:'call',      label:'Book your onboarding call', linkCfg:'onboardCallUrl', linkText:'Book →'},
+  {k:'bookmark',  label:'Bookmark this dashboard to your home screen'},
+  {k:'everfit',   label:'Set up the Everfit app'},
+  {k:'setup',     label:'Complete your setup — your numbers', auto:'intake'},
+  {k:'rhythm',    label:'Set your check-in reminder & grab your playbook'}
 ];
 function stepDone(s){
   if(M.onboardingDone.indexOf(s.k)>=0) return true;
@@ -1384,14 +1386,18 @@ function stepDone(s){
 function renderOnboarding(){
   var card=g("obCard"), box=g("obBox");
   var done=ONBOARD_STEPS.filter(stepDone).length, total=ONBOARD_STEPS.length;
-  if(done>=total){ card.style.display='none'; return; }
+  // hide once they're clearly past onboarding (set up + at least one check-in), OR all steps done
+  if(done>=total || (M.intake && M.checkins.length)){ card.style.display='none'; return; }
   card.style.display='';
   box.innerHTML='<div class="sec-h"><h2>Your setup</h2></div>'
+    +'<p class="wiz-hint" style="margin:-4px 0 10px">A few quick steps and you\'re running. Your onboarding call is where we set the rest up together.</p>'
     +'<div class="ob-prog"><div class="ob-bar"><div class="ob-fill" style="width:'+(done/total*100).toFixed(0)+'%"></div></div><span class="ob-count">'+done+' of '+total+' done</span></div>'
     +ONBOARD_STEPS.map(function(s){
       var d=stepDone(s), autoDone = s.auto && d && M.onboardingDone.indexOf(s.k)<0;
+      var linkUrl = (!d && s.linkCfg) ? (CONFIG[s.linkCfg]||CONFIG.bookCallUrl) : '';
       return '<div class="ob-step'+(d?' done':'')+'"'+(autoDone?'':' onclick="toggleOnboardStep(\''+s.k+'\')"')+'>'
         +'<span class="ob-check">'+(d?'✓':'')+'</span><span class="ob-label">'+esc(s.label)+'</span>'
+        +(linkUrl?'<a class="ob-link" href="'+esc(linkUrl)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+esc(s.linkText||'Open →')+'</a>':'')
         +(autoDone?'<span class="ob-auto">auto</span>':'')+'</div>';
     }).join("");
 }
