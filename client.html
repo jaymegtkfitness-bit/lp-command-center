@@ -470,6 +470,9 @@ select.input{appearance:none}
         <div id="pfsBox"></div>
       </div>
 
+      <!-- Cronometer (premium tracker — upgrade / cohort / coaching) -->
+      <div class="card" id="cronoCard" style="display:none"><div id="cronoBox"></div></div>
+
       <!-- Roadmap (1:1 only) -->
       <div class="card" id="roadmapCard" style="display:none">
         <div class="sec-h"><h2>Your Roadmap</h2></div>
@@ -708,6 +711,8 @@ var CONFIG = {
   skoolAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.skool.skoolcommunities",  // Skool app (Android)
   everfitAppUrl: "https://apps.apple.com/us/app/everfit-train-smart/id1438926364",  // Everfit app (iOS)
   everfitAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.everfit",  // Everfit app (Android)
+  cronoAppUrl: "https://apps.apple.com/us/app/cronometer-calorie-counter/id1145935738",  // Cronometer (iOS) — premium tracker (upgrade/cohort/coaching)
+  cronoAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.cronometer.android.gold",  // Cronometer (Android)
   paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting",  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
   geneticsBuyUrl: "https://dashboard.legacyperformance.co/genetic-blueprint.html",  // Genetic Blueprint SALES PAGE (has both checkout links). "" hides the buy card.
   geneticsPrice: "$1,000"   // shown on the buy card. "" = just "one-time test". ($1,000 = DNA test + Complete Nutrition System + Foundations Reset + 2 sessions; credits toward Built for More.)
@@ -972,6 +977,7 @@ function renderHome(){
   renderPFS();
   renderRoadmap();
   renderMealPlan();
+  renderCronometer();
   renderFastFood();
   gateProtocolCards();
   renderOnboarding();
@@ -1375,6 +1381,7 @@ function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==
 function storeLink(ios, android){ return /android/i.test(navigator.userAgent||'') ? (android||ios) : ios; }
 function skoolAppLink(){ return storeLink(CONFIG.skoolAppUrl, CONFIG.skoolAppUrlAndroid); }
 function everfitAppLink(){ return storeLink(CONFIG.everfitAppUrl, CONFIG.everfitAppUrlAndroid); }
+function cronoAppLink(){ return storeLink(CONFIG.cronoAppUrl, CONFIG.cronoAppUrlAndroid); }
 var ONBOARD_STEPS=[
   {k:'skoolapp',  label:'Download the Skool app & turn on notifications', linkFn:'skoolAppLink', linkText:'Get it →'},
   {k:'intro',     label:'Introduce yourself in the community'},
@@ -1478,6 +1485,16 @@ function isOneToOne(tier){ return /built for more|coaching|1:1|one[- ]on[- ]one/
 /* Complete Nutrition System entitlement: Built for More (1:1) OR a "Complete" Roster flag
    (Yes = bought an Accelerator on either base tier). Base tiers without it get PFS + the upsell. */
 function hasCNS(){ return isOneToOne(M.tier) || /^\s*(y|yes|true|1|complete|active|paid)/i.test(String(M.complete||"")); }
+/* Cronometer = the premium tracker perk: upgrade (CNS) / cohort / coaching / genetics clients. */
+function getsCronometer(){ return hasCNS() || /^\s*(pending|in|ordered)/i.test(String(M.genetics||"")); }
+function renderCronometer(){
+  var card=g("cronoCard"); if(!card) return;
+  if(!getsCronometer()){ card.style.display='none'; return; }
+  card.style.display='';
+  g("cronoBox").innerHTML='<div class="sec-h"><h2>Your food tracker — Cronometer</h2></div>'
+    +'<p class="wiz-hint" style="margin:-4px 0 10px">Your <b>Gold membership is on us</b>. Accept the invite in your email, then download Cronometer — it’s your tracker for the whole journey.</p>'
+    +'<div class="actions"><a class="btn btn-primary" href="'+esc(cronoAppLink())+'" target="_blank" rel="noopener">Get Cronometer →</a></div>';
+}
 /* On peptides? Coach flips the OnProtocol flag; this unlocks the dosing + symptom + prescriber tools. */
 function isOnProtocol(){ return /^\s*(y|yes|true|1)/i.test(String(M.onProtocol||"")); }
 /* Cadence + booking by tier: base = weekly · community ($97) = +monthly · 1:1 (BFM) = +quarterly. */
