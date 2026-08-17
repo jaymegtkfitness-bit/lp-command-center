@@ -705,8 +705,8 @@ var CONFIG = {
   completeSystemUrl: "https://dashboard.legacyperformance.co/complete-nutrition-system.html",  // paid Complete Nutrition System build — landing page
   completeSystemPrice: "$497",     // today's price shown on the upsell card
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
-  bookCallUrl: "https://calendly.com/jayme-calendar/weekly-de-brief",  // 1:1 INCLUDED coaching call (Built for More). "" hides.
-  onboardCallUrl: "https://legacyperformance.co/coaching-call",  // onboarding / coaching call (everyone gets one). Falls back to bookCallUrl if blank.
+  bookCallUrl: "https://legacyperformance.co/coaching-call",  // coaching call (Built for More 1:1 / included). "" hides.
+  onboardCallUrl: "",  // dedicated onboarding-call link (separate workflow — Jayme building it). No fallback: Book button hides until set.
   skoolAppUrl: "https://apps.apple.com/us/app/skool-communities/id6447270545",  // Skool app (iOS)
   skoolAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.skool.skoolcommunities",  // Skool app (Android)
   everfitAppUrl: "https://apps.apple.com/us/app/everfit-train-smart/id1438926364",  // Everfit app (iOS)
@@ -1385,7 +1385,7 @@ function cronoAppLink(){ return storeLink(CONFIG.cronoAppUrl, CONFIG.cronoAppUrl
 var ONBOARD_STEPS=[
   {k:'skoolapp',  label:'Download the Skool app & turn on notifications', linkFn:'skoolAppLink', linkText:'Get it →'},
   {k:'intro',     label:'Introduce yourself in the community'},
-  {k:'call',      label:'Book your onboarding call', linkCfg:'onboardCallUrl', linkFb:'bookCallUrl', linkText:'Book →'},
+  {k:'call',      label:'Book your onboarding call', linkCfg:'onboardCallUrl', linkText:'Book →'},
   {k:'bookmark',  label:'Bookmark this dashboard to your home screen'},
   {k:'everfit',   label:'Set up the Everfit app', linkFn:'everfitAppLink', linkText:'Get it →'},
   {k:'setup',     label:'Complete your setup — your numbers', auto:'intake'},
