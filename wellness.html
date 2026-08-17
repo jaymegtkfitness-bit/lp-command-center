@@ -135,7 +135,7 @@ function goDashboard(){ var k=new URLSearchParams(location.search).get('k'); loc
 var PRODUCTS=[], TRACK='All', AUTO_TRACK=null, CART={}, ID={email:'',name:''};
 /* Friendly filter labels — chip VALUES stay Lean/Strong/Long/Support so they match the
    track a client is assigned in their dashboard; only the display text is branded. */
-var TRACK_LABELS={All:'All',Lean:'Live Lean',Strong:'Live Strong',Long:'Live Long',Support:'Support'};
+var TRACK_LABELS={All:'All',Lean:'LEAN',Strong:'STRONG',Long:'SUSTAIN',Support:'Support'};
 function trackToFilter(t){ t=String(t||'').toLowerCase();
   if(t.indexOf('lean')>=0||t.indexOf('reverse')>=0) return 'Lean';
   if(t.indexOf('strong')>=0) return 'Strong';
