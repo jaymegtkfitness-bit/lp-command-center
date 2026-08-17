@@ -240,6 +240,9 @@ ol.stds li::before{content:counter(std);position:absolute;left:0;top:0;width:21p
 .std-p{font-size:10px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--muted);margin-top:2px}
 .std-w{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:4px}
 /* ---- daily-driver Standards card (Everfit task deep-links to #standards) ---- */
+.fdn-wk{background:var(--touch-soft);border-radius:9px;padding:9px 12px;margin:-2px 0 11px}
+.fdn-wk b{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--headline)}
+.fdn-wk span{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.45}
 .dstd{display:flex;flex-direction:column;gap:8px}
 .dstd-i{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
   background:var(--bg);border:1px solid var(--line);border-radius:11px;padding:13px 14px;font-family:inherit}
@@ -1653,7 +1656,10 @@ function stdProduce(){ return {p:2, t:"600–800g of fruit & veg", w:"Volume, fi
 function stdSteps(cur){ var target = /5,000–7,500/.test(cur||"") ? "8,000" : "7,500";  // unknown → the entry target
   return {p:3, t:"Walk "+target+" steps", w:"Not a workout. Just movement your body counts, spread through the day."}; }
 function stdResistance(n){ return {p:4, t:n+" resistance sessions this week", w:"Muscle is the organ of longevity. This is the one that protects everything else."}; }
-function stdWater(){ return {p:5, t:"Drink your water target", w:"Set this with your coach — most people are further behind than they think."}; }
+/* Hydration finally has a real, personal number: Cronometer already counts the water your FOOD gives
+   you, so the target is the gap between that and what you need. Produce and water reinforce each other —
+   eat more produce, the gap shrinks. */
+function stdWater(){ return {p:5, t:"Close your water gap", w:"Cronometer already counts the water in your food. Drink the difference — and watch the gap shrink as your produce goes up."}; }
 function stdSleep(D){ var wrecked=(D.sleepwreck||[]);
   var t = wrecked.indexOf("Phone")>=0 ? "Phone out of the room at night"
         : wrecked.indexOf("Working late")>=0 ? "Laptop closed by a set time"
@@ -1661,7 +1667,45 @@ function stdSleep(D){ var wrecked=(D.sleepwreck||[]);
   return {p:6, t:t, w:"Pick the one you'll actually hold. Sleep is upstream of your appetite, your willpower, and your recovery."}; }
 function stdTable(){ return {p:7, t:"Sit down to dinner with your people", w:"You told me this is non-negotiable. Protecting it is part of the plan, not a break from it."}; }
 
+/* ===================== THE FOUNDATIONS ARC (locked with Jayme 2026-08-17) =====================
+   Six weeks, four skills. Each skill's APPLICATION week doubles as the next skill's AWARENESS week,
+   so the same tracking muscle carries all the way through and nothing restarts from zero.
+   During the arc the WEEK drives their standards — one thing at a time. After week 6, their
+   personalised standards from The Read take over for good. */
+var FDN_ARC=[
+ {wk:1, title:"Track", line:"Log everything. Don't change a thing yet.",
+  stds:[ function(it){ return {p:2, t:"Log everything you eat", w:"Food, water, steps, workouts — all of it, honestly. This week is for finding out what's true, not fixing it."}; } ]},
+ {wk:2, title:"Eat your average", line:"Hold your average. Start noticing protein.",
+  stds:[ function(it){ return {p:2, t:"Eat your average — "+((it.pfs&&it.pfs.calories)||"your number")+" calories", w:"Now you know your real number. Hold it steady before we move it."}; },
+         function(it){ var f=readFloor(it); return {p:1, t:"Notice your protein", w:"Don't chase it yet. Just watch what you land on — you're aiming for "+(f?f+"g":"your floor")+" next week."}; } ]},
+ {wk:3, title:"Hit your protein", line:"Protein to the floor. Start noticing produce.",
+  stds:[ stdProtein,
+         function(){ return {p:2, t:"Notice your fruit & veg", w:"Same tracking skill, pointed somewhere new. Just see where you land — no target yet."}; } ]},
+ {wk:4, title:"Fill the plate", line:"Produce up. Start noticing water.",
+  stds:[ stdProduce,
+         function(){ return {p:5, t:"Notice your water gap", w:"Cronometer counts the water in your food. Look at how much of your day it's already covering."}; } ]},
+ {wk:5, title:"Close the gap", line:"Drink the difference. Hold everything else.",
+  stds:[ stdWater, stdProtein ]},
+ {wk:6, title:"Bring it together", line:"All four, running at once.",
+  stds:[ stdProtein, stdProduce, stdWater ]}
+];
+/* Week is EARNED, not calendar-based: it advances on completed weekly check-ins, so someone who
+   goes quiet doesn't get marched forward past skills they never built. */
+function fdnWeek(){
+  var n=(M&&M.checkins||[]).length;
+  return Math.min(n+1, FDN_ARC.length);
+}
+function inFoundations(){ return (M&&M.checkins||[]).length < FDN_ARC.length; }
+
 function computeStandards(it, c){
+  /* Inside the arc, the week decides — one thing at a time. Their personalised set waits its turn. */
+  if(inFoundations()){
+    var w=FDN_ARC[fdnWeek()-1];
+    if(w) return w.stds.map(function(fn){ return fn(it); });
+  }
+  return computeReadStandards(it, c);
+}
+function computeReadStandards(it, c){
   var D=(M&&M.deep)||{}, out=[], seen={}, perPillar={};
   /* Dedupe by the standard itself, not by pillar — "log your food" and "600–800g of produce" are both
      Nutrition Calibration but are genuinely different daily behaviours. Cap at 2 per pillar so nobody
@@ -1737,12 +1781,15 @@ function renderStandards(){
   if(!it || !it.done){ card.style.display="none"; return; }
   card.style.display="";
   var c=computeConstraint(it), list=computeStandards(it,c), hit=stdDone();
-  var n=hit.length, all=(n>=list.length);
+  var n=hit.length, all=(n>=list.length), arc=inFoundations()?FDN_ARC[fdnWeek()-1]:null;
   box.innerHTML='<div class="sec-h"><h2>Your Daily Standards</h2></div>'
+    +(arc?'<div class="fdn-wk"><b>Foundations · week '+arc.wk+' of '+FDN_ARC.length+' — '+esc(arc.title)+'</b>'
+          +'<span>'+esc(arc.line)+'</span></div>':'')
     +'<p class="wiz-hint" style="margin:-4px 0 12px">'
-      +(all ? "All three. That's the day — well done."
+      +(all ? (list.length===1?"That's the day. Well done.":"All of them. That's the day — well done.")
             : n ? n+" of "+list.length+" today. Six days out of seven is the bar."
-                : "Three things, every day. Six out of seven is the bar — not seven.")+'</p>'
+                : (list.length===1 ? "One thing, every day. Six out of seven is the bar — not seven."
+                                   : list.length+" things, every day. Six out of seven is the bar — not seven."))+'</p>'
     +'<div class="dstd">'+list.map(function(s,i){
         var on=hit.indexOf(i)>=0;
         return '<button type="button" class="dstd-i'+(on?' on':'')+'" onclick="stdToggle('+i+')">'
