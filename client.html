@@ -218,6 +218,32 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .res-track{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--headline)}
 .res-sig{display:inline-block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;border-radius:20px;padding:3px 9px;margin-left:8px;background:var(--touch-soft);color:var(--ink-soft);vertical-align:middle}
 .res-why{font-size:13.5px;color:var(--ink);line-height:1.55;margin-top:8px}
+/* ---- The Read (constraint engine output) ---- */
+.read{background:var(--accent-soft);border-left:3px solid var(--accent);border-radius:10px;padding:15px 16px}
+.read-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:9px}
+.read-chip{display:inline-block;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
+  border-radius:20px;padding:3px 10px;background:var(--touch);color:var(--parchment)}
+.read-tag{font-size:10px;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.read-head{font-family:'Cinzel',serif;font-size:19px;font-weight:600;color:var(--headline);line-height:1.25}
+.read-why{font-size:13.5px;color:var(--ink);line-height:1.6;margin-top:9px}
+.read-lane{font-size:12.5px;color:var(--ink-soft);margin-top:11px;padding-top:10px;border-top:1px solid var(--touch-soft)}
+.read-move{margin-top:12px;background:var(--touch-soft);border-radius:9px;padding:11px 13px}
+.read-move-l{font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
+.read-move-t{font-size:14.5px;font-weight:600;color:var(--headline);line-height:1.45}
+.read-not{font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin-top:12px}
+.read-not b{color:var(--headline)}
+.read-hedge{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:9px;font-style:italic}
+@media (max-width:430px){ .read{padding:13px 14px} .read-head{font-size:17px} .read-move-t{font-size:14px} }
+/* ---- Layer 2 (Deep Read) ---- */
+.btn-link{background:none;border:0;color:var(--muted);font-family:inherit;font-size:12.5px;text-decoration:underline;cursor:pointer;padding:4px}
+.dp-scale{display:flex;flex-wrap:wrap;gap:6px}
+.dp-scale button{flex:1;min-width:34px;border:1px solid var(--line);background:var(--bg);color:var(--ink-soft);
+  border-radius:9px;padding:9px 0;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer}
+.dp-scale button.on{background:var(--touch);border-color:var(--touch);color:var(--parchment)}
+.dp-scale-l{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:5px}
+.dp-note{background:var(--touch-soft);border-radius:9px;padding:10px 12px;font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin:2px 0 4px}
+.dp-skip{font-size:11.5px;color:var(--muted);margin-top:14px;text-align:center}
+.dp-fin{font-size:13.5px;color:var(--ink);line-height:1.6}
 .macro-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
 .macro{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center}
 .macro .mn{font-family:'Cinzel',serif;font-size:19px;font-weight:600;color:var(--accent);line-height:1}
@@ -392,6 +418,25 @@ select.input{appearance:none}
     </div>
   </section>
 
+  <!-- ============ THE DEEP READ (Layer 2 intake) ============ -->
+  <section id="deep" class="hidden">
+    <div class="eyebrow" id="deepEyebrow">The Deep Read</div>
+    <h1 id="deepTitle">Let's find what's actually in your way</h1>
+    <div class="wiz-bar"><div class="wiz-fill" id="deepFill"></div></div>
+    <div class="card">
+      <p class="wiz-hint" id="deepIntro" style="margin:0 0 4px"></p>
+      <div id="deepBody"></div>
+      <div style="display:flex;gap:10px;margin-top:18px">
+        <button class="btn btn-ghost" style="flex:0 0 96px" onclick="deepBack()" id="deepBackBtn">← Back</button>
+        <button class="btn btn-primary" style="flex:1" onclick="deepNext()" id="deepNextBtn">Next</button>
+      </div>
+      <div class="status" id="deepStatus"></div>
+      <div style="text-align:center;margin-top:12px">
+        <button class="btn-link" onclick="deepPause()">Save &amp; finish later</button>
+      </div>
+    </div>
+  </section>
+
   <!-- ============ HOME ============ -->
   <section id="home" class="hidden">
     <div class="eyebrow" id="homeEyebrow">This week</div>
@@ -410,6 +455,11 @@ select.input{appearance:none}
     <div class="ctab-panel" id="ctab-home">
       <!-- Onboarding checklist -->
       <div class="card" id="obCard" style="display:none"><div id="obBox"></div></div>
+
+      <!-- The Read — your constraint + first move. Sits ABOVE Foundations on purpose: it's the WHY,
+           and the checklist below it is the WHAT. Onboarding still leads for brand-new members,
+           because that card disappears once they're set up. -->
+      <div class="card" id="readCard" style="display:none"><div id="readBox"></div></div>
 
       <!-- Foundations task checklist (Daily Standards + number-gates) -->
       <div class="card" id="fdnCard" style="display:none"><div id="fdnBox"></div></div>
@@ -802,7 +852,7 @@ function editIdentity(){
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
+function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
 function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); }  // theme + reset to Home tab on entry
 function showCheckin(){ buildForm(); show("checkin"); }
 function showMonthly(){ buildMonthlyForm(); show("monthly"); }
@@ -888,7 +938,15 @@ function buildModel(server){
   var lin=loadLS(LS_INTAKE,"null");
   var it = sin ? { done:true, track:sin['Track']||'', signal:sin['Signal']||'', sex:sin['Sex']||'',
       age:num(sin['Age']), height:num(sin['Height']), weight:num(sin['Current wt']), goalweight:num(sin['Goal wt']),
-      activity:sin['Activity']||'', filters:String(sin['Filters']||'').split(',').map(function(s){return s.trim();}).filter(Boolean) }
+      activity:sin['Activity']||'', filters:String(sin['Filters']||'').split(',').map(function(s){return s.trim();}).filter(Boolean),
+      // Diagnostic answers the doorway has always stored but the client never mapped back — they feed
+      // the constraint engine (The Read). 'Reverse flags' stays a RAW STRING on purpose: the flag texts
+      // contain commas, so a comma-split would shred them. Match by substring via hasFlag().
+      pregnant:sin['Pregnant']||'', diethistory:sin['Dieting history']||'', fueling:sin['Fueling']||'',
+      flagsRaw:String(sin['Reverse flags']||''),
+      priorities:String(sin['Priorities']||'').split('>').map(function(s){return s.trim();}).filter(Boolean),
+      extragoals:String(sin['Extra goals']||'').split(',').map(function(s){return s.trim();}).filter(Boolean),
+      interests:String(sin['Interests']||'').split(',').map(function(s){return s.trim();}).filter(Boolean) }
     : ((lin&&lin.done)?lin:null);
   // controllable targets: coach/client-set calorie + protein override (server wins, else local). Falls back to the formula.
   var ovCal=sin?num(sin['Target calories']):null, ovPro=sin?num(sin['Target protein']):null, ovBy=(sin&&sin['Targets by'])||'';
@@ -914,6 +972,11 @@ function buildModel(server){
     it.pfs = {calories:act.calories, protein:act.protein, carbs:act.carbs, fat:act.fat, tdee:it.pfsBase.tdee};  // active = current phase
   }
   M.intake = it;
+  // ---- Layer 2 (The Deep Read) — one JSON blob on the same Intake row, server wins over device ----
+  var sdeep=null; try{ if(sin && sin['Deep']) sdeep=JSON.parse(sin['Deep']); }catch(e){ sdeep=null; }
+  var ldeep=loadLS(LS_DEEP,"null");
+  M.deep = sdeep || ldeep || {};
+  if(sdeep) saveLS(LS_DEEP, sdeep);   // keep the device copy in step so resume works offline
   // ---- meal plan (Complete Nutrition System — coach-built, pushed as type:mealplan) ----
   var smp=(server&&server.mealplan&&server.mealplan.length)?server.mealplan[server.mealplan.length-1]:null;
   if(smp){ try{ var pj=JSON.parse(smp['Plan']||'{}');
@@ -971,6 +1034,7 @@ function renderHome(){
   renderMonthly();
   renderQuarterly();
   gateTiers();
+  renderRead();
   renderJourneyCard();
   renderGeneticsCard();
   renderRequestsCard();
@@ -1362,6 +1426,423 @@ async function submitNote(){
   M.clientNotes.unshift(rec);
   st.textContent = ok?"Saved ✓":"Saved on your device ✓"; st.style.color="var(--good-tx)";
   setTimeout(function(){ toggleNote(); renderClientNotes(); }, 800);
+}
+
+/* ============================ THE READ — CONSTRAINT ENGINE ============================
+   Their GOAL picks the track (computePFS, already built). Their CONSTRAINT picks the first move.
+   Step 1 of Starting-Point-Intake-Spec.md: fires off LAYER 1 answers ONLY — no new questions, so
+   every member who has ever completed the setup wizard gets a Read immediately.
+
+   Priority order, first match wins — you only ever give someone ONE first move. Constraints marked
+   (L2) below need the Deep Read blocks and are stubbed here so they slot in without a reshuffle:
+     1 nourishment · 2 fuel · 3 lifestage · (L2 recovery) · (L2 protein) · (L2 structure)
+     · 4 consistency · 5 movement · 6 knowledge (default)
+   ===================================================================================== */
+
+/* Flag texts contain commas, so flags round-trip as ONE raw string. Match by a comma-free substring. */
+var FLAG_WALL="hit a wall", FLAG_CARDIO="a lot of cardio", FLAG_YOYO="burn out", FLAG_FOOD="Constant food thoughts";
+function readFlagStr(it){ return it ? (it.flagsRaw!=null ? String(it.flagsRaw) : (it.flags||[]).join(", ")) : ""; }
+function hasFlag(it, sub){ return readFlagStr(it).indexOf(sub) >= 0; }
+function readFloor(it){ return (it&&it.goalweight) ? Math.round(+it.goalweight*0.8) : null; }  // 0.8 g/lb IBW
+
+/* Reflects their own dieting history back at them, in their words. Part 2 of The Read. */
+function readHistoryPhrase(it){
+  var d=String(it.diethistory||""), bits=[];
+  if(/Most of my life/.test(d)) bits.push("you've been dieting most of your life");
+  else if(/1–3 years|3\+ years/.test(d)) bits.push("you've been dieting for "+d.toLowerCase());
+  else if(/Under a year/.test(d)) bits.push("you've been at this under a year");
+  if(/little|restric/i.test(it.fueling||"")) bits.push("you're eating pretty little right now");
+  return bits.join(", and ");
+}
+
+function computeConstraint(it){
+  if(!it) return null;
+  var floor=readFloor(it), age=+it.age||0, pregnant=(String(it.pregnant||"")==="Yes")||it.pregnantFlag===true;
+  var D=(M&&M.deep)||{};                       // Layer 2 answers, {} until the Deep Read is taken
+  var inway=String(D.inway||"");
+  /* latest reported protein from the weekly check-in — the only place a real protein number exists */
+  var lastPro=null; (M&&M.checkins||[]).forEach(function(c){ if(c.protein!=null) lastPro=c.protein; });
+
+  /* 1b — CLINICAL. They told us something medical is going on. Not our lane: point at the provider,
+     build the lifestyle side around whatever they're told. Never interpret. (IHN-compliance-reference) */
+  if(!pregnant && inway==="I think something medical is going on") return { key:"clinical", name:"Get it looked at",
+    head:"Before we build anything, get this looked at.",
+    why:"You told me you think something medical is going on. I'm going to take you at your word on that — and I'm not going to guess at it, because diagnosing isn't my lane and anyone who tells you otherwise is selling something. What I can do is build everything around whatever your provider tells you.",
+    move:"Book the appointment. Then come back and tell me what they said.",
+    not:"We're not running a deficit, not chasing the scale, and not starting a protocol on top of an unanswered question. In the meantime: eat protein, walk, sleep. None of that interferes with anything, and all of it helps."+(floor?" Protein target is about "+floor+"g.":"") };
+
+  /* 1 — NOURISHMENT. Pregnancy/TTC overrides everything; a deficit is simply the wrong assignment. */
+  if(pregnant) return { key:"nourishment", name:"Nourishment",
+    head:"Right now, your job isn't to lose anything.",
+    why:"You told me you're pregnant or trying to conceive. That changes the whole assignment. Every tool I'd normally reach for to get someone leaner is the wrong tool here — so we're not going to use any of them.",
+    move:"Eat to fullness, and hit protein every single day"+(floor?" — about "+floor+"g":"")+".",
+    not:"We're not cutting calories, we're not chasing the scale, and we're not running a deficit. Not in this season. We'll revisit body-composition goals when the timing's right, and you'll be stronger for having fueled well now." };
+
+  /* 2 — FUEL. The reverse detector already ran in wizCompute(); this names what it found. */
+  if(it.track==="Reverse Diet"){
+    var hist=readHistoryPhrase(it), evidence=[];
+    if(hasFlag(it,FLAG_WALL))   evidence.push("you've lost weight before and hit a wall where nothing moved");
+    if(hasFlag(it,FLAG_CARDIO)) evidence.push("you're doing a lot of cardio and still feel stuck");
+    if(hasFlag(it,FLAG_YOYO))   evidence.push("it goes diet hard, burn out, gain it back, repeat");
+    return { key:"fuel", name:"Fuel",
+      head:"Your constraint isn't discipline. It's fuel.",
+      why:(hist?"You told me "+hist+". ":"")+(evidence.length?"And "+evidence.join(", and ")+". ":"")
+        +"That combination isn't a willpower problem — it's a body that adapted down and stopped spending. Here's the hard part: the instinct is to cut harder, and cutting harder is the one move guaranteed to make it worse.",
+      move:"Eat MORE, on purpose, slowly. Start at "+((it.pfs&&it.pfs.calories)||"your new number")+" calories and hold it steady.",
+      not:"We're not cutting, we're not adding cardio, and we're not weighing you daily. Your only job for the next few weeks is to eat and let your body learn that food is safe again. Leaning out comes after — and then it actually sticks." };
+  }
+
+  /* 3 — LIFE STAGE. Prefers her actual answer from the Cycle & Hormones block; falls back to the
+     age inference (hedged, correctable) only while that block is unanswered. */
+  var menoStated=/Perimenopause|^Menopause|Post-menopause/.test(String(D.cyclestatus||""));
+  var menoSym=(D.menosym||[]).filter(function(s){return s!=="None of these";}).length;
+  if(it.sex==="Female" && (menoStated || (!D.cyclestatus && age>=45))) return { key:"lifestage", name:"Life stage",
+    head:"Your body changed the rules. Nobody told you.",
+    why:(menoStated
+      ? "You told me you're in "+String(D.cyclestatus).toLowerCase()+(menoSym?", and you're dealing with "+menoSym+" of the symptoms I asked about":"")+". So let's name what that actually means: "
+      : "You're "+age+" — and if you're in perimenopause or past it, and at that age there's a good chance you are, then here's what that means: ")
+      +"what you're up against isn't effort. As estrogen drops you lose muscle faster, hold more around the middle, and recover slower from everything. The plan that worked at 32 genuinely does not work now. That isn't you failing. It's the rules changing without anyone telling you.",
+    move:"Protein floor first"+(floor?" — "+floor+"g a day":"")+", and get under a bar three times a week.",
+    not:"We're not cutting calories hard, we're not adding more cardio, and we're not weighing you every morning. Muscle and protein are the levers that work in this season. Cardio and restriction are the ones that backfire.",
+    hedge:menoStated?null:"Not where you're at? Take the Deep Read and I'll build this off your actual answer instead of your age." };
+
+  /* 4 — RECOVERY. A deficit on five hours of sleep is a losing trade. */
+  var thinSleep=/Under 5|5–6/.test(String(D.sleephrs||"")), poorSleep=(+D.sleepqual||9)<=2, highStress=(+D.stress||0)>=8;
+  if(thinSleep||poorSleep||highStress){
+    var rWhy=[];
+    if(thinSleep) rWhy.push("you're getting "+String(D.sleephrs).toLowerCase()+" a night");
+    if(poorSleep) rWhy.push("the sleep you do get isn't good");
+    if(highStress) rWhy.push("your stress is sitting at "+D.stress+" out of 10");
+    return { key:"recovery", name:"Recovery",
+      head:"We fix your sleep and stress before we touch your calories.",
+      why:"You told me "+rWhy.join(", and ")+". Here's why that outranks everything else on the list: short or broken sleep raises hunger, drops the willpower you'd need to manage it, and makes your body hold onto fat while it gives up muscle. Running a deficit on top of that is a losing trade — you'd be asking for discipline from a system that has none left to give."
+        +(String(D.stresseat||"")==="I eat more"?" And you already told me stress makes you eat more, so this isn't theoretical for you.":""),
+      move:"Pick one: a fixed bedtime, or your phone out of the room. One. Starting tonight.",
+      not:"We're not cutting calories, not adding training, and not tracking macros this week. Get one thing about your nights working first — everything downstream gets easier, and most people are shocked by how much." };
+  }
+
+  /* 5 — PROTEIN. Fires off a REPORTED number from the weekly check-in, not a guess. */
+  if(floor && lastPro!=null && lastPro < floor*0.8) return { key:"protein", name:"Protein",
+    head:"Your protein is the gap. Nothing else matters until it closes.",
+    why:"You reported about "+Math.round(lastPro)+"g of protein a day. Your floor is "+floor+"g — so you're roughly "+Math.round(floor-lastPro)+"g short, every day. That gap is why you're hungry, why you're sore longer than you should be, and why the weight you lose keeps coming off your muscle instead of your fat. This is the highest-leverage number in your whole plan and it isn't close.",
+    move:"Hit "+floor+"g of protein a day. That's the floor, not the ceiling.",
+    not:"We're not touching your calories, your carbs, or your training. One number. Get protein to the floor and hold it two weeks — most people find half their other problems quietly solve themselves." };
+
+  /* 6 — STRUCTURE. No repeatable eating rhythm to attach a number to. */
+  var fewMeals=/^(1|2)$/.test(String(D.mealsday||"")), skipping=String(D.skips||"")==="Most days",
+      lotsOut=/6–10|10\+/.test(String(D.mealsout||""));
+  if(fewMeals||skipping||lotsOut){
+    var sWhy=[];
+    if(fewMeals) sWhy.push("you're eating "+D.mealsday+(D.mealsday==="1"?" time":" times")+" a day");
+    if(skipping) sWhy.push("you skip meals most days");
+    if(lotsOut)  sWhy.push(String(D.mealsout)+" of your meals a week are out or on the road");
+    return { key:"structure", name:"Structure",
+      head:"You don't need a better number. You need a repeatable week.",
+      why:"You told me "+sWhy.join(", and ")+". That's the real problem, and it's not a discipline one — you can't run a calorie target through a week that has no shape to it. Every plan you've been handed assumed a rhythm you don't have, which is exactly why they all worked until the week got strange.",
+      move:"Lock three eating times you can hit on your worst day"+(lotsOut?", and pick your two go-to orders at the places you actually eat":"")+".",
+      not:"We're not counting anything yet. Same times, roughly the same meals, even on the bad days. Structure first — the numbers have something to sit on after that." };
+  }
+
+  /* 4 — CONSISTENCY. Copy keys off WHICH flag fired so it reflects their answer, not a generic label. */
+  var inwayCons=/don't do it consistently|fall off, then start over|life won't hold a plan/.test(inway);
+  if(hasFlag(it,FLAG_YOYO) || hasFlag(it,FLAG_WALL) || hasFlag(it,FLAG_FOOD) || inwayCons){
+    var why, head;
+    if(/life won't hold a plan/.test(inway)){
+      head="Your plan has to fit the life you actually have.";
+      why="You told me your life won't hold a plan right now. I believe you — and I'd rather build something small that survives your real week than something impressive that dies in it. Most programs are designed for a life with slack in it. Yours doesn't have slack right now, so we're going to build for the week you've actually got.";
+    }
+    else if(hasFlag(it,FLAG_YOYO)||/fall off, then start over/.test(inway)){
+      head="You don't have a knowledge problem. You have a follow-through problem.";
+      why="You told me it goes like this: diet hard, burn out, gain it back, and around again. I've watched that cycle in a lot of people, and here's what's true about it — every round you run actually works. You lose the weight. The plan was never what broke. What breaks is the part where life gets loud and the plan quietly disappears.";
+    } else if(hasFlag(it,FLAG_FOOD)){
+      head="Food is taking up too much room in your head.";
+      why="You told me food carries a lot of headspace — the good-versus-bad sorting, the guilt afterward. That's exhausting, and it's also what makes plans collapse: you can't run a system you're fighting with all day. So we're going to make the rules so few, and so boring, that there's very little left to feel guilty about.";
+    } else {
+      head="You've already proven you can do this once.";
+      why="You've lost weight before and then hit a wall where nothing moved. That tells me the doing isn't your problem — you've done it. What you're missing isn't more effort. It's something that still holds on the weeks the effort isn't there.";
+    }
+    return { key:"consistency", name:"Consistency", head:head, why:why,
+      move:"Pick three Daily Standards and hit them six days out of seven. That's the whole assignment.",
+      not:"We're not optimizing anything yet. No macro tweaking, no advanced tactics, no perfect week. Boring and repeated beats perfect and abandoned every single time — and it's not close." };
+  }
+
+  /* 8 — MOVEMENT. */
+  if(it.activity==="Sedentary" || (String(D.trains||"")==="No" && /Under 5,000/.test(String(D.steps||"")))) return { key:"movement", name:"Movement",
+    head:"Before we touch your food, we need to get you moving.",
+    why:"You put yourself at sedentary — under about 5,000 steps a day, little or no training. That's the single biggest lever you've got right now, and it isn't close. When you're barely moving, cutting calories is the only tool left in the box, and that tool runs out fast. Movement is what gives us room to work.",
+    move:"Get to 7,500 steps a day, and put two resistance sessions on the calendar this week.",
+    not:"We're not counting a single macro yet. Steps and two sessions. That's it. Once your body is spending energy again, the food side gets a lot easier — and a lot less restrictive." };
+
+  /* 9 — KNOWLEDGE (default). Nothing is fighting them; they just don't have a system yet.
+     Two variants, because "my body doesn't respond" deserves a different sentence than "I don't know
+     what to do" — and telling the first person that nothing's fighting them would read as dismissive. */
+  var clean=/Not really|Under a year/.test(String(it.diethistory||""));
+  if(/body doesn't respond/.test(inway)) return { key:"knowledge", name:"The system",
+    head:"Let's find out whether that's true — with data, not a guess.",
+    why:"You told me your body doesn't respond the way it used to. That might be exactly right, and it might be that what changed is your life, not your metabolism. Here's the honest part: nothing in your answers so far settles it, and I'm not going to pretend otherwise. Two weeks of real data will tell us which one it is — and then we treat the actual problem instead of the assumed one.",
+    move:"Track everything you eat for seven days, and weigh yourself three mornings. Don't change a thing yet.",
+    not:"We're not cutting, not adding, not adjusting. One week of honest numbers. If your body really has adapted down, that data is what proves it — and it changes the whole plan." };
+  return { key:"knowledge", name:"The system",
+    head:"Nothing's broken. You just don't have a system yet.",
+    why:(clean?"You haven't spent years dieting, and you're not deep in a cycle of starting over. ":"")
+      +"Nothing in your answers points to a body that's fighting you. That's a good place to start from — it means we get to build this right the first time instead of undoing damage first. Most people don't get that.",
+    move:"Track everything you eat for seven days. Don't change a thing yet — just get honest data.",
+    not:"We're not changing your food, not cutting calories, and not adding workouts. One week of honest tracking first. You can't adjust a number you don't have — and everyone who skips this step ends up guessing for months." };
+}
+
+var READ_LANE={ "Reverse Diet":"We rebuild first, then we lean you out.", "Lean":"A real deficit — not a crash.",
+  "Strong":"Fueled to build.", "Long":"Steady, with a longevity focus.", "Sustain":"Steady, with a longevity focus." };
+
+/* opts.stale = they're several check-ins in, so the starting move is history, not this week's instruction. */
+function readHTML(it, opts){
+  var c=computeConstraint(it); if(!c) return "";
+  opts=opts||{};
+  var tn=TRACK_NAME[it.track]||it.track||"", lane=READ_LANE[it.track]||"";
+  return '<div class="read">'
+    +'<div class="read-top"><span class="read-chip">'+esc(c.name)+'</span><span class="read-tag">Your Read</span></div>'
+    +'<div class="read-head">'+esc(c.head)+'</div>'
+    +'<div class="read-why">'+esc(c.why)+'</div>'
+    +(tn?'<div class="read-lane"><b>Your lane · '+esc(tn)+'</b>'+(lane?' — '+esc(lane):'')+'</div>':'')
+    +'<div class="read-move"><div class="read-move-l">'+(opts.stale?"Where you started":"Your first move")+'</div>'
+      +'<div class="read-move-t">'+esc(c.move)+'</div></div>'
+    +(opts.stale?'<div class="read-hedge">You\'re '+opts.stale+' check-ins in now — your move for <b>this</b> week lives in your latest check-in.</div>':'')
+    +'<div class="read-not"><b>What we\'re not doing yet.</b> '+esc(c.not)+'</div>'
+    +(c.hedge&&!opts.stale?'<div class="read-hedge">'+esc(c.hedge)+'</div>':'')
+    +'</div>';
+}
+
+function renderRead(){
+  var card=g("readCard"), box=g("readBox"), it=M.intake;
+  if(!card) return;
+  if(!it || !it.done){ card.style.display="none"; return; }
+  card.style.display="";
+  var n=(M.checkins||[]).length;
+  DEEP=M.deep||{};                                   // keep the editor in step with the model
+  var p=deepProgress(), started=p.done>0, finished=deepDone();
+  box.innerHTML=readHTML(it, n>=4?{stale:n}:{})
+    + (finished ? '' :
+        '<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:14px">'
+        +'<div class="res-why" style="color:var(--ink);margin-top:0">'
+        + (started
+           ? '<b>You\'re '+p.done+' of '+p.total+' blocks in.</b> Finish the Deep Read and this whole page rebuilds around your real answers — your read, your plan, and your check-ins.'
+           : '<b>This read is built from your setup answers alone.</b> Take the Deep Read — about seven minutes — and I\'ll build it from your actual life instead: your schedule, your sleep, your stress, and what\'s really been in the way.')
+        +'</div>'
+        +'<div class="actions" style="margin-top:12px"><button class="btn btn-primary" onclick="showDeep()">'
+        + (started?'Pick up where I left off →':'Take the Deep Read →')+'</button></div></div>');
+}
+
+/* ============================ LAYER 2 — THE DEEP READ ============================
+   The universal intake blocks from Starting-Point-Intake-Spec.md §3–4. Nothing here is required
+   except Q39 ("what's actually in your way") — friction kills completion, and the constraint engine
+   degrades gracefully on missing answers. Resumable: every block boundary saves locally AND posts,
+   so an abandon halfway still lands the answers already given.
+   Multi-selects join with " | " (never a comma — several option texts contain commas).
+   ================================================================================ */
+var LS_DEEP="lp_client_deep";
+var DEEP={}, DEEP_I=0;
+
+var DEEP_BLOCKS=[
+ {key:"goals", title:"Your goals", intro:"Five minutes of honesty here is worth more than five hours of tracking later.", qs:[
+  {k:"goalwords", t:"textarea", q:"In your own words, what are you actually after?"},
+  {k:"whynow",    t:"textarea", q:"Why now?", hint:"What made this the moment? Be honest — something usually happened."},
+  {k:"picture",   t:"textarea", q:"Twelve weeks from now — what's different?", hint:"Not the number on the scale. What's different in your day."},
+  {k:"keydate",   t:"date",     q:"Is there a date that matters?", hint:"Optional — a trip, a wedding, a physical, a birthday."},
+  {k:"readiness", t:"scale", min:1, max:10, q:"How ready are you to change how you eat, starting this week?", lo:"Not really", hi:"All in"},
+  {k:"tried",     t:"multi", q:"What have you already tried?", opts:["Calorie counting","Keto / low carb","Intermittent fasting","Weight Watchers or points","Tracking macros","A coach or trainer","Meal delivery","A GLP-1 medication","Cleanses or detoxes","Nothing formal — just eating better"]},
+  {k:"whatworked",t:"textarea", q:"What actually worked, even a little?"},
+  {k:"whystopped",t:"multi", q:"What made you stop?", opts:["Got too complicated","Life got busy","Lost motivation","It stopped working","Too restrictive to live with","Travel or a season blew it up","Injury or illness","Hit the goal, then drifted back"]}
+ ]},
+
+ {key:"health", title:"Health history", note:"This part isn't medical. I'm not a doctor and I don't treat, diagnose, or interpret anything clinical. I ask so I know what to build around — and so I know when to point you back to your provider instead of guessing.", qs:[
+  {k:"withdoctor", t:"chip", q:"Are you currently working with a doctor on anything?", opts:["Yes","No"]},
+  {k:"conditions", t:"textarea", q:"Anything diagnosed that we should build around?", hint:"Optional."},
+  {k:"injuries",   t:"textarea", q:"Any injuries or joint limitations that affect how you train?", hint:"Optional — this shapes your training plan."},
+  {k:"meds",       t:"textarea", q:"Medications or supplements you take regularly?", hint:"Optional."},
+  {k:"glp1",       t:"chip", q:"Are you on a GLP-1 medication, or considering one?", opts:["On one now","Considering it","No"]}
+ ]},
+
+ {key:"glp1", title:"A few GLP-1 questions", when:function(){ return DEEP.glp1==="On one now"||DEEP.glp1==="Considering it"; },
+  note:"My lane here is food only. Anything about dosing, side effects, or whether it's right for you goes to the Patient Care Team — they can help right away.", qs:[
+  {k:"glp1len",  t:"chip", q:"How long have you been on it?", opts:["Just started","1–3 months","3–6 months","6+ months","Haven't started"]},
+  {k:"glp1app",  t:"chip", q:"How's your appetite?", opts:["Almost none","Much lower","A little lower","Normal"]},
+  {k:"glp1sym",  t:"multi", q:"Any of these in a normal week?", opts:["Nausea","Full after a few bites","Constipation","Fatigue","Food just doesn't appeal","None of these"]},
+  {k:"glp1pro",  t:"scale", min:1, max:5, q:"How confident are you that you're getting enough protein?", lo:"Not at all", hi:"Very"}
+ ]},
+
+ {key:"eating", title:"How you actually eat", intro:"Not how you think you should eat. How it actually goes.", qs:[
+  {k:"amappetite",t:"chip", q:"Morning appetite?", opts:["Starving","Normal","Not hungry at all"]},
+  {k:"mealsday",  t:"chip", q:"How many times a day do you actually eat?", opts:["1","2","3","4","5+"]},
+  {k:"biggest",   t:"chip", q:"Which meal is biggest?", opts:["Breakfast","Lunch","Dinner","Whatever's latest"]},
+  {k:"hungriest", t:"chip", q:"When are you hungriest?", opts:["Morning","Afternoon","Evening","Late night"]},
+  {k:"skips",     t:"chip", q:"Do you skip meals?", opts:["Never","Sometimes","Most days"]},
+  {k:"fasting",   t:"chip", q:"Do you fast or eat in a window?", opts:["No","Yes"]},
+  {k:"afterdin",  t:"scale", min:1, max:5, q:"After dinner, how hard is it to stop eating?", lo:"Easy", hi:"It's the whole battle"},
+  {k:"whoeats",   t:"chip", q:"Who's at the table?", opts:["Just me","Me and my spouse","Me and the kids","The whole family"]},
+  {k:"mealsout",  t:"chip", q:"How many meals a week are out, travel, or on the road?", opts:["0–2","3–5","6–10","10+"]},
+  {k:"whocooks",  t:"chip", q:"Who shops and cooks?", opts:["Me","Someone else","We split it"]},
+  {k:"preptime",  t:"chip", q:"Realistically, how much time do you have to prep?", opts:["Almost none","About 15 min a day","One batch on the weekend","I actually like cooking"]}
+ ]},
+
+ {key:"underfueled", title:"About eating more", when:function(){ return M.intake && M.intake.track==="Reverse Diet"; },
+  intro:"Your answers pointed to a body that's been under-fuelled for a while. These three tell me how careful we need to be.", qs:[
+  {k:"lowestcal", t:"chip", q:"What's the lowest daily calorie number you've lived on for a while?", opts:["Under 1,000","1,000–1,200","1,200–1,500","1,500–1,800","I've never counted"]},
+  {k:"eatmore",   t:"chip", q:"What happens when you try to eat more?", opts:["I gain immediately","I panic","Nothing much happens","I haven't tried"]},
+  {k:"fearfood",  t:"scale", min:1, max:5, q:"Honestly — how scared are you of eating more?", lo:"Not at all", hi:"Terrified"}
+ ]},
+
+ {key:"movement", title:"Movement & training", qs:[
+  {k:"trains",    t:"chip", q:"Do you train with weights right now?", opts:["No","1–2x a week","3–4x a week","5+ a week"]},
+  {k:"wheretrain",t:"chip", q:"Where do you train?", opts:["Home gym","Commercial gym","Both","Nowhere yet"]},
+  {k:"equipment", t:"multi", q:"What do you actually have access to?", opts:["Full gym","Barbell + rack","Dumbbells","Kettlebells","Bands","Cables / machines","Pull-up bar","Bench","Cardio equipment","Just my body"]},
+  {k:"steps",     t:"chip", q:"Steps on a normal day?", opts:["Under 5,000","5,000–7,500","7,500–10,000","10,000+","No idea"]},
+  {k:"tracker",   t:"chip", q:"Wearing anything that tracks?", opts:["Apple Watch","Whoop","Oura","Garmin","Fitbit","Just my phone","Nothing"]},
+  {k:"traindays", t:"chip", q:"How many days a week can you realistically train?", opts:["2","3","4","5+"]}
+ ]},
+
+ {key:"recovery", title:"Sleep, stress & recovery", intro:"This is the block most programs skip. It's usually the one doing the most damage.", qs:[
+  {k:"sleephrs",  t:"chip", q:"Sleep on a normal night?", opts:["Under 5 hrs","5–6 hrs","6–7 hrs","7–8 hrs","8+ hrs"]},
+  {k:"sleepqual", t:"scale", min:1, max:5, q:"How good is that sleep?", lo:"Terrible", hi:"Great"},
+  {k:"sleepwreck",t:"multi", q:"What wrecks it?", opts:["Can't fall asleep","Wake at 2–3am","Kids","Phone","Working late","Alcohol","Travel","Pain","Nothing — I sleep fine"]},
+  {k:"stress",    t:"scale", min:1, max:10, q:"Stress right now?", lo:"Calm", hi:"Maxed"},
+  {k:"stresssrc", t:"multi", q:"Where's it coming from?", opts:["Work","Money","Family","My health","Leadership / ministry","Marriage","Caring for a parent","A season that'll pass","Rather not say"]},
+  {k:"stresseat", t:"chip", q:"When you're stressed, what happens to your eating?", opts:["I eat more","I eat less","I eat worse","Doesn't change"]},
+  {k:"amenergy",  t:"scale", min:1, max:5, q:"Energy in the morning?", lo:"Empty", hi:"Firing"},
+  {k:"pmenergy",  t:"scale", min:1, max:5, q:"Energy at 3pm?", lo:"Empty", hi:"Firing"}
+ ]},
+
+ {key:"cycle", title:"Cycle & hormones", when:function(){ return M.intake && M.intake.sex==="Female"; },
+  intro:"Most plans are built as though this doesn't exist. It changes almost everything about how we read your week.", qs:[
+  {k:"cyclestatus", t:"chip", q:"Where are you in all this?", opts:["Cycling regularly","Irregular","On contraception","Perimenopause","Menopause","Post-menopause","Rather not say"]},
+  {k:"cycleaccount",t:"chip", q:"Want your plan and check-ins to account for it?", opts:["Yes","No"]},
+  {k:"cyclesym",  t:"multi", q:"Around your period, what shows up?", opts:["Cravings","Appetite spike","Energy crash","The scale jumps","Mood","Bloating","Nothing much","Not applicable"]},
+  {k:"menosym",   t:"multi", q:"Any of these lately?", opts:["Hot flashes","Night sweats","2am wake-ups","Brain fog","Mood swings","Joint aches","Belly fat that's new","None of these"]},
+  {k:"harddays",  t:"textarea", q:"Which days are hardest, and what actually helps?"}
+ ]},
+
+ {key:"honest", title:"The honest one", note:"Last real question, and it's the one that matters most. There are no wrong answers and I'm not grading you. Most people already know the answer here — they've just never been asked.", qs:[
+  {k:"inway",   t:"chip", req:true, q:"What's actually in your way?", opts:["I don't really know what to do","I know what to do — I just don't do it consistently","My life won't hold a plan right now","My body doesn't respond the way it used to","I think something medical is going on","I do great, then fall off, then start over"]},
+  {k:"bestweek", t:"textarea", q:"On your best week, what does your eating look like?"},
+  {k:"worstweek",t:"textarea", q:"On your worst week?"},
+  {k:"onething", t:"textarea", q:"If one thing changed, and everything else stayed the same — what's the one thing?"},
+  {k:"coachstyle",t:"chip", q:"How do you want to be coached?", opts:["Tell me exactly what to do","Teach me how to decide","Some of both"]}
+ ]},
+
+ {key:"wholelife", title:"Whole life", note:"Legacy Performance is founded on biblical values, but it's built for anyone. This part is optional — skip it and nothing about your plan changes.", qs:[
+  {k:"faithrole", t:"chip", q:"Does faith play a part in how you think about your health?", opts:["Yes, it's central","Somewhat","Not really","Rather not say"]},
+  {k:"stewardship",t:"textarea", q:"Where does stewardship of your body sit for you right now?", when:function(){ return DEEP.faithrole==="Yes, it's central"||DEEP.faithrole==="Somewhat"; }},
+  {k:"whocounts", t:"textarea", q:"Who's counting on you being healthy?"},
+  {k:"nonneg",    t:"multi", q:"What's non-negotiable in your week?", opts:["Church","Family dinners","Kids' activities","Regular travel","Early mornings","Late nights","Date night","A Sabbath / day off"]}
+ ]},
+
+ {key:"together", title:"Working together", qs:[
+  {k:"checkinday",t:"chip", q:"Best day for your weekly check-in?", opts:["Saturday","Sunday","Monday","Friday"]},
+  {k:"contact",   t:"chip", q:"Best way to reach you?", opts:["Skool","Text","Email","Everfit"]},
+  {k:"coachhist", t:"textarea", q:"Worked with a coach before? What worked, what didn't?"},
+  {k:"anythingelse",t:"textarea", q:"Anything else I should know?"}
+ ]}
+];
+
+function deepList(){ return DEEP_BLOCKS.filter(function(b){ return !b.when || b.when(); }); }
+function deepQs(b){ return b.qs.filter(function(q){ return !q.when || q.when(); }); }
+function deepVal(k){ return DEEP[k]; }
+function deepHas(k){ var v=DEEP[k]; return v!=null && v!=="" && !(v instanceof Array && !v.length); }
+function deepDone(){ return !!DEEP._done; }
+/* how far through they are — drives the "finish your profile" nudge */
+function deepProgress(){ var L=deepList(), n=0;
+  L.forEach(function(b){ if(deepQs(b).some(function(q){ return deepHas(q.k); })) n++; });
+  return {done:n, total:L.length}; }
+
+function showDeep(){
+  DEEP=loadLS(LS_DEEP,"{}")||{};
+  var L=deepList();
+  DEEP_I=0;                                   // resume at the first block with nothing answered
+  for(var i=0;i<L.length;i++){ if(!deepQs(L[i]).some(function(q){return deepHas(q.k);})){ DEEP_I=i; break; } DEEP_I=Math.min(i+1,L.length-1); }
+  renderDeep(); show("deep");
+}
+function deepQHTML(q){
+  var v=DEEP[q.k];
+  var h='<div class="wiz-q">'+esc(q.q)+(q.req?' <span class="wiz-hint" style="display:inline;font-weight:400">— needed</span>':'')+'</div>';
+  if(q.hint) h+='<div class="wiz-hint" style="margin-top:-4px">'+esc(q.hint)+'</div>';
+  if(q.t==="chip"||q.t==="multi"){
+    var multi=q.t==="multi";
+    h+='<div class="chips" data-key="'+q.k+'" data-multi="'+(multi?1:0)+'">'+q.opts.map(function(o){
+      var sel = multi ? ((v||[]).indexOf(o)>=0) : (v===o);
+      return '<button type="button" class="chip'+(sel?' on':'')+'" data-v="'+esc(o)+'" onclick="deepPick(this)">'+esc(o)+'</button>';
+    }).join("")+'</div>';
+  } else if(q.t==="scale"){
+    var btns=""; for(var i=q.min;i<=q.max;i++) btns+='<button type="button" class="'+(String(v)===String(i)?'on':'')+'" data-v="'+i+'" onclick="deepScale(this)">'+i+'</button>';
+    h+='<div class="dp-scale" data-key="'+q.k+'">'+btns+'</div><div class="dp-scale-l"><span>'+esc(q.lo||"")+'</span><span>'+esc(q.hi||"")+'</span></div>';
+  } else if(q.t==="date"){
+    h+='<input class="input" type="date" id="dp_'+q.k+'" value="'+esc(v||"")+'">';
+  } else {
+    h+='<textarea class="input" id="dp_'+q.k+'" rows="2" placeholder="">'+esc(v||"")+'</textarea>';
+  }
+  return h;
+}
+function renderDeep(){
+  var L=deepList(), b=L[DEEP_I]; if(!b) return deepFinish();
+  g("deepFill").style.width=((DEEP_I)/L.length*100).toFixed(0)+"%";
+  g("deepEyebrow").textContent="The Deep Read · block "+(DEEP_I+1)+" of "+L.length;
+  g("deepTitle").textContent=b.title;
+  g("deepIntro").innerHTML = b.note ? '' : (b.intro?esc(b.intro):'');
+  g("deepIntro").style.display = b.note||!b.intro ? "none":"block";
+  g("deepBody").innerHTML=(b.note?'<div class="dp-note">'+esc(b.note)+'</div>':'')
+    + deepQs(b).map(deepQHTML).join("")
+    + '<div class="dp-skip">Skip anything you\'d rather not answer — only what\'s marked <b>needed</b> is required.</div>';
+  g("deepBackBtn").style.visibility = DEEP_I===0?"hidden":"visible";
+  g("deepNextBtn").textContent = DEEP_I===L.length-1 ? "Finish & build my system →" : "Next";
+  g("deepStatus").textContent="";
+}
+function deepPick(btn){
+  var p=btn.parentNode, k=p.dataset.key, multi=p.dataset.multi==="1", v=btn.dataset.v;
+  if(multi){ DEEP[k]=DEEP[k]||[]; var i=DEEP[k].indexOf(v);
+    if(i>=0){ DEEP[k].splice(i,1); btn.classList.remove("on"); } else { DEEP[k].push(v); btn.classList.add("on"); } }
+  else { Array.from(p.children).forEach(function(x){x.classList.remove("on");}); btn.classList.add("on"); DEEP[k]=v;
+    if(k==="glp1"||k==="faithrole") renderDeep(); }   // these open/close follow-ups
+}
+function deepScale(btn){
+  var p=btn.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");});
+  btn.classList.add("on"); DEEP[p.dataset.key]=+btn.dataset.v;
+}
+function deepCollect(){
+  var b=deepList()[DEEP_I]; if(!b) return null;
+  deepQs(b).forEach(function(q){
+    if(q.t==="textarea"||q.t==="date"){ var el=g("dp_"+q.k); if(el) DEEP[q.k]=el.value.trim(); }
+  });
+  var missing=deepQs(b).filter(function(q){ return q.req && !deepHas(q.k); });
+  return missing.length ? "Just this one, then we're through: "+missing[0].q : null;
+}
+function deepSave(){ saveLS(LS_DEEP, DEEP); postDeep(false); }
+function deepNext(){
+  var err=deepCollect();
+  if(err){ var st=g("deepStatus"); st.textContent=err; st.style.color="var(--stall-tx)"; return; }
+  deepSave();
+  var L=deepList();
+  if(DEEP_I>=L.length-1) return deepFinish();
+  DEEP_I++; renderDeep(); window.scrollTo(0,0);
+}
+function deepBack(){ deepCollect(); saveLS(LS_DEEP,DEEP); if(DEEP_I>0){ DEEP_I--; renderDeep(); window.scrollTo(0,0); } }
+function deepPause(){ deepCollect(); deepSave(); M.deep=DEEP; showHome(); }
+function deepFinish(){
+  DEEP._done=true; saveLS(LS_DEEP,DEEP); M.deep=DEEP; postDeep(true);
+  g("deepEyebrow").textContent="The Deep Read";
+  g("deepTitle").textContent="Here's your read";
+  g("deepFill").style.width="100%";
+  g("deepIntro").style.display="none";
+  g("deepBody").innerHTML = readHTML(M.intake,{})
+    + '<div class="dp-fin" style="margin-top:16px">That\'s your system. Everything in your dashboard is now built off these answers — your numbers, your plan, your check-ins, and what your coach sees.</div>';
+  g("deepBackBtn").style.visibility="hidden";
+  g("deepNextBtn").textContent="Go to my dashboard →";
+  g("deepNextBtn").onclick=function(){ g("deepNextBtn").onclick=null; showHome(); };
+  window.scrollTo(0,0);
+}
+/* One JSON column on the client's Intake row (same pattern as type:mealplan's Plan blob) +
+   a few flattened columns the Command Center scans. Upserts by email, so partial saves are safe. */
+async function postDeep(done){
+  var c=computeConstraint(M.intake)||{};
+  await postToSheet({ type:"intakedeep", email:ID.email, ts:new Date().toISOString(),
+    deep:JSON.stringify(DEEP), deepdone:done?"Yes":"", constraint:c.name||"", constraintkey:c.key||"",
+    whynow:DEEP.whynow||"", inway:DEEP.inway||"", coachstyle:DEEP.coachstyle||"", readiness:DEEP.readiness||"" });
 }
 
 /* ============================ SETUP WIZARD ============================ */
@@ -2137,6 +2618,7 @@ function fillPrintDoc(it){
   pd.innerHTML=''
     +'<div class="pd-head"><img src="logo.png" alt="Legacy Performance" class="pd-logo"/><div class="pd-meta">'+esc(today)+'</div></div>'
     +'<div class="pd-cover"><div class="pd-eyebrow">Your Roadmap · '+esc(tn)+'</div><h1 class="pd-name">'+esc(name)+'</h1><div class="pd-tag">Your personalized path forward — built from your data.</div></div>'
+    +'<div class="pd-section"><h2>Your Read</h2>'+readHTML(it,{})+'</div>'
     +'<div class="pd-section"><h2>Your Roadmap</h2>'+roadmapHTML(it)+'</div>'
     +'<div class="pd-section pd-break"><h2>Your Power Food System</h2>'+nutritionHTML(it)+'</div>'
     +((M.mealplan&&(M.mealplan.days||[]).length)?'<div class="pd-section pd-break"><h2>Your Meal Plan</h2>'+mealPlanPrintHTML()+'</div>':'')
@@ -2242,13 +2724,7 @@ function wizCompute(){
 }
 /* computePFS() now lives in nutrition-engine.js (shared with the Command Center). */
 function wizResult(){
-  var t=WIZ.track, p=WIZ.pfs, sig=WIZ.signal;
-  var trackName={"Lean":"Live Lean","Strong":"Live Strong","Long":"Live Long","Reverse Diet":"Reverse Diet"}[t]||t;
-  var why="";
-  if(WIZ.pregnantFlag) why="Because you're pregnant or trying, we hold you at nourishment — no deficit. We'll keep you strong and fueled, and revisit fat goals later.";
-  else if(WIZ.reverse) why="You ranked "+({"Lean":"getting lean","Strong":"getting strong","Long":"longevity"}[ (WIZ.priorities||["Lean"])[0] ]||"your goal")+" first, and we'll get you there. But your history — "+WIZ.diethistory.toLowerCase()+" of dieting"+(/little|restric/i.test(WIZ.fueling)?", eating pretty little":"")+((WIZ.flags||[]).length?", and the patterns you flagged":"")+" — points to a metabolism that's adapted down. Cutting harder would backfire. So your first move is to rebuild, eating a bit more, week by week, until your body trusts food again. Then leaning out actually sticks.";
-  else why="Based on your goals and history, "+trackName+" is your starting lane. Nothing here is restrictive or extreme — it's a real, sustainable starting point built from your numbers.";
-  var sigTxt={"strong":"Strong signal","moderate":"Worth watching","clear":"Your pick"}[sig]||"";
+  var t=WIZ.track, p=WIZ.pfs;
   var pace;
   if(t==="Reverse Diet") pace='You\'re likely eating well under the ~'+p.tdee+' calories your body could handle. <b>'+p.calories+' is our estimate of where you\'re at now</b> — after your first week of Foundations you\'ll know your real number and set it in your dashboard. From there we add a little each week to rebuild your metabolism, so fat loss finally sticks.';
   else if(t==="Strong") pace='You\'re likely around ~'+p.tdee+' to hold your current weight. We start you at '+p.calories+', a touch above that, to fuel building.';
@@ -2260,8 +2736,8 @@ function wizResult(){
   if(f.indexOf("Lactose-free")>=0) protList=protList.replace(/Greek yogurt, |cottage cheese, /g,"");
   var carbList = "potatoes, white rice, oats"+(f.indexOf("Gluten-free")>=0?"":", sourdough")+", sweet potato, fruit";
   var fatList = "avocado, olive oil, nuts & nut butter"+(f.indexOf("Lactose-free")>=0?"":", cheese")+", egg yolks";
-  return '<div class="res-read"><span class="res-track">'+esc(trackName)+'</span><span class="res-sig">'+esc(sigTxt)+'</span><div class="res-why">'+esc(why)+'</div></div>'
-    +'<div class="sec-h"><h2>Your Power Food System</h2></div>'
+  return readHTML(WIZ, {})
+    +'<div class="sec-h" style="margin-top:16px"><h2>Your Power Food System</h2></div>'
     +'<p class="wiz-hint" style="margin-top:-4px">Your starting daily targets. This is an estimate off your numbers — Foundations dials it in with your real data.</p>'
     +'<div class="macro-row"><div class="macro"><div class="mn">'+p.calories+'</div><div class="ml">Calories</div></div>'
     +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
@@ -2276,19 +2752,30 @@ function wizResult(){
     +'<p class="wiz-hint" style="margin-top:6px">Build every plate: a palm of protein + a fist of a smart carb + a mountain of veg. Keep it that simple to start.</p>'
     +'<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:14px"><div class="res-why" style="color:var(--ink)"><b>Your next step:</b> this is your starting point. Head into the <b>Foundations</b> course in Skool — that\'s where you collect the data and learn the system so we can refine this into exactly what your body needs.</div></div>'
     +(hasCNS()?'':'<p class="wiz-hint" style="margin-top:10px">Want this <b>done for you</b> — real meal plans built around the foods you actually eat? Lock this in, then ask '+esc(CONFIG.coachName)+' about the <b>Complete Nutrition System</b> build on your dashboard.</p>')
-    +'<div class="actions"><button class="btn btn-primary" onclick="wizSubmit()" id="wizDone">Lock it in & go to my dashboard →</button><div class="status" id="wizSubStatus"></div></div>';
+    // The Layer 1 → Layer 2 handoff. The number is honest but generic — this is where we say so.
+    +'<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:16px">'
+      +'<div class="sec-h"><h2>That\'s your starting number.</h2></div>'
+      +'<div class="res-why" style="color:var(--ink);margin-top:0">It\'s built off your body and your goal — and it\'s honest, but it\'s generic. It doesn\'t know your schedule, your travel, who you cook for, or why the last few times didn\'t stick.<br><br>Give me about seven more minutes and I\'ll build the whole system: the plan, the order to do it in, and the one thing to fix first.</div>'
+    +'</div>'
+    +'<div class="actions"><button class="btn btn-primary" onclick="wizSubmit(true)" id="wizDone">Build my system →</button>'
+      +'<button class="btn btn-ghost" style="margin-top:10px" onclick="wizSubmit(false)">Just take me to my dashboard</button>'
+      +'<div class="status" id="wizSubStatus"></div></div>';
 }
-async function wizSubmit(){
+async function wizSubmit(goDeep){
   var st=g("wizSubStatus"); g("wizDone").disabled=true; st.textContent="Saving your setup…"; st.style.color="var(--muted)";
   var payload={type:"intake", email:ID.email, ts:new Date().toISOString(), sex:WIZ.sex, age:WIZ.age, height:WIZ.height,
     weight:WIZ.weight, goalweight:WIZ.goalweight, activity:WIZ.activity, track:WIZ.track, signal:WIZ.signal,
     pregnant:WIZ.pregnant||"", diethistory:WIZ.diethistory, fueling:WIZ.fueling, flags:WIZ.flags||[],
     priorities:WIZ.priorities||[], extragoals:WIZ.extragoals||[], interests:WIZ.interests||[], filters:WIZ.filters||[]};
   await postToSheet(payload);
-  var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, weight:WIZ.weight, goalweight:WIZ.goalweight, sex:WIZ.sex, filters:WIZ.filters||[]};
+  var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, weight:WIZ.weight, goalweight:WIZ.goalweight, sex:WIZ.sex, filters:WIZ.filters||[],
+    // carried locally so The Read works on this device before the first server round-trip
+    age:WIZ.age, height:WIZ.height, activity:WIZ.activity, pregnant:WIZ.pregnant||'', diethistory:WIZ.diethistory||'',
+    fueling:WIZ.fueling||'', flagsRaw:(WIZ.flags||[]).join(', '), priorities:WIZ.priorities||[],
+    extragoals:WIZ.extragoals||[], interests:WIZ.interests||[]};
   saveLS(LS_INTAKE, rec);
   M.intake = rec;
-  showHome();
+  if(goDeep) showDeep(); else showHome();
 }
 
 /* ============================ WRITE DOORWAY ============================ */
@@ -2310,9 +2797,72 @@ function boot(){
     }
   });
 }
+/* ============================ PREVIEW BENCH (?preview=1) ============================
+   Ten personas, one per constraint, wired to the live engine. Lets Jayme read every branch's copy
+   and walk the real Deep Read without creating accounts. Nothing here runs without the flag. */
+var PREVIEW_PEOPLE=[
+ {n:"Nourishment",  d:"pregnant / trying",        it:{sex:"Female",age:33,goalweight:140,activity:"Active",pregnant:"Yes",track:"Long",diethistory:"Not really",fueling:"Eating well"}, deep:{}},
+ {n:"Clinical",     d:"“something medical”",      it:{sex:"Male",age:44,goalweight:195,activity:"Active",track:"Lean",diethistory:"Under a year",fueling:"Eating well"}, deep:{inway:"I think something medical is going on"}},
+ {n:"Fuel",         d:"6 yrs dieting, restricting",it:{sex:"Female",age:38,goalweight:135,activity:"Very active",pregnant:"No",track:"Reverse Diet",diethistory:"3+ years",fueling:"Eating pretty little — restricting",flagsRaw:"Lost weight before, then hit a wall where nothing moved, I do a lot of cardio and still feel stuck"}, deep:{}},
+ {n:"Life stage",   d:"perimenopause, stated",    it:{sex:"Female",age:49,goalweight:150,activity:"Lightly active",pregnant:"No",track:"Lean",diethistory:"Under a year",fueling:"Eating well"}, deep:{cyclestatus:"Perimenopause",menosym:["Night sweats","2am wake-ups","Brain fog"]}},
+ {n:"Life stage*",  d:"inferred from age only",   it:{sex:"Female",age:49,goalweight:150,activity:"Lightly active",pregnant:"No",track:"Lean",diethistory:"Under a year",fueling:"Eating well"}, deep:{}},
+ {n:"Recovery",     d:"5–6 hrs, stress 9",        it:{sex:"Male",age:42,goalweight:190,activity:"Active",track:"Lean",diethistory:"Under a year",fueling:"Eating well"}, deep:{sleephrs:"5–6 hrs",sleepqual:2,stress:9,stresseat:"I eat more"}},
+ {n:"Protein",      d:"reported 78g vs 148g floor",it:{sex:"Male",age:37,goalweight:185,activity:"Active",track:"Lean",diethistory:"Under a year",fueling:"Eating well"}, deep:{sleephrs:"7–8 hrs",sleepqual:4,stress:3}, checkins:[{ts:Date.now(),weight:206,protein:78,cons:88}]},
+ {n:"Structure",    d:"2 meals, 10+ out",         it:{sex:"Male",age:40,goalweight:195,activity:"Active",track:"Lean",diethistory:"Under a year",fueling:"Eating well"}, deep:{mealsday:"2",skips:"Most days",mealsout:"10+",sleephrs:"7–8 hrs",stress:4}},
+ {n:"Consistency",  d:"diet / burn out / repeat", it:{sex:"Male",age:41,goalweight:190,activity:"Active",track:"Lean",diethistory:"Under a year",fueling:"Eating well",flagsRaw:"Diet hard, burn out, gain it back — on repeat"}, deep:{}},
+ {n:"Movement",     d:"sedentary",                it:{sex:"Male",age:36,goalweight:185,activity:"Sedentary",track:"Lean",diethistory:"Not really",fueling:"Eating well"}, deep:{}},
+ {n:"Knowledge",    d:"clean slate (default)",    it:{sex:"Male",age:34,goalweight:180,activity:"Active",track:"Strong",diethistory:"Not really",fueling:"Eating well"}, deep:{}},
+ {n:"Knowledge*",   d:"“body doesn’t respond”",   it:{sex:"Male",age:45,goalweight:190,activity:"Active",track:"Lean",diethistory:"Under a year",fueling:"Eating well"}, deep:{inway:"My body doesn't respond the way it used to"}}
+];
+function previewLoad(i){
+  var p=PREVIEW_PEOPLE[i];
+  var it=Object.assign({done:true,signal:"clear",height:68,weight:(p.it.goalweight+22),filters:[],priorities:[],extragoals:[],interests:[],flagsRaw:""}, p.it);
+  it.pfsBase=computePFS(it,it.track); it.anchor=it.pfsBase; it.pfs=it.pfsBase; it.phaseIdx=0;
+  M.intake=it; M.deep=p.deep||{}; DEEP=M.deep;
+  M.checkins=p.checkins||[]; M.monthly=[]; M.quarterly=[]; M.notes=[]; M.clientnotes=[]; M.prs=[];
+  ID={name:"Preview — "+p.n, email:"preview@legacy.test", gender:it.sex==="Female"?"woman":"man"};
+  applyTheme(it.sex==="Female"?"parchment":"charcoal", false);
+  showHome();
+  Array.from(document.querySelectorAll('#pvBar button')).forEach(function(b,j){ b.classList.toggle('on', j===i); });
+  var c=computeConstraint(it);
+  g("pvNow").textContent = p.n+"  →  fires ["+(c?c.key:"none")+"]";
+}
+function startPreview(){
+  ID={name:"Preview",email:"preview@legacy.test",gender:"man"};
+  buildModel(null);
+  var bar=document.createElement("div"); bar.id="pvBar";
+  bar.innerHTML='<div class="pv-h"><b>Preview bench</b> — every constraint, live engine. <span id="pvNow"></span></div>'
+    +'<div class="pv-btns">'+PREVIEW_PEOPLE.map(function(p,i){
+        return '<button onclick="previewLoad('+i+')"><b>'+esc(p.n)+'</b><span>'+esc(p.d)+'</span></button>'; }).join("")
+    +'</div><div class="pv-h" style="border:0;padding-top:6px">'
+      +'<button class="pv-alt" onclick="showDeep()">▶ Walk the Deep Read (all blocks)</button> '
+      +'<button class="pv-alt" onclick="showWizard()">▶ Walk setup from scratch</button> '
+      +'<button class="pv-alt" onclick="M.checkins=[{ts:1,weight:200,cons:85},{ts:2,weight:199,cons:88},{ts:3,weight:199,cons:90},{ts:4,weight:198,cons:86},{ts:5,weight:197,cons:91}];renderRead();showHome();">▶ Show the 5-check-ins-in variant</button>'
+    +'</div>';
+  document.body.appendChild(bar);
+  var st=document.createElement("style");
+  st.textContent='#pvBar{position:fixed;left:0;right:0;bottom:0;z-index:99;background:#14140f;color:#EAE3D6;'
+    +'border-top:2px solid #C1AD72;font-family:Montserrat,system-ui,sans-serif;max-height:47vh;overflow:auto;box-shadow:0 -8px 28px rgba(0,0,0,.45)}'
+    +'#pvBar .pv-h{font-size:11.5px;padding:8px 12px;border-bottom:1px solid #333;color:#b9b2a4}'
+    +'#pvBar .pv-h b{color:#C1AD72;letter-spacing:.05em}#pvNow{color:#8FA97A;font-weight:700;margin-left:8px}'
+    +'#pvBar .pv-btns{display:flex;flex-wrap:wrap;gap:6px;padding:9px 12px}'
+    +'#pvBar .pv-btns button{background:#232319;border:1px solid #3d3d30;color:#EAE3D6;border-radius:8px;'
+    +'padding:6px 10px;cursor:pointer;font-family:inherit;text-align:left;line-height:1.25}'
+    +'#pvBar .pv-btns button b{display:block;font-size:12px}#pvBar .pv-btns button span{font-size:10.5px;color:#9a9484}'
+    +'#pvBar .pv-btns button.on{background:#4A5C3E;border-color:#8FA97A}'
+    +'#pvBar .pv-alt{background:none;border:1px solid #3d3d30;color:#C1AD72;border-radius:7px;padding:5px 9px;'
+    +'font-family:inherit;font-size:11px;cursor:pointer;margin:2px 0}'
+    +'body{padding-bottom:47vh!important}';
+  document.head.appendChild(st);
+  previewLoad(0);
+}
+
 (function(){
   // ?fresh=1 → wipe this device's saved data and start a brand-new experience (for testing/demos).
-  if(getParam('fresh')){ try{ ['lp_client_id','lp_client_token','lp_client_log','lp_client_pr','lp_client_note','lp_client_monthly','lp_client_quarterly','lp_client_intake'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} }
+  if(getParam('fresh')){ try{ ['lp_client_id','lp_client_token','lp_client_log','lp_client_pr','lp_client_note','lp_client_monthly','lp_client_quarterly','lp_client_intake','lp_client_deep'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} }
+  // ?preview=1 → the constraint-engine test bench. Never renders without the flag, so a real client
+  // can't reach it. Each persona drives the REAL engine on the REAL page — not a mock.
+  if(getParam('preview')){ startPreview(); return; }
   // Identity by magic-link token first (no typing), then remembered token, then email fallback.
   TOKEN = getParam('fresh') ? null : (getParam('k') || (function(){ try{ return localStorage.getItem(LS_TOKEN); }catch(e){ return null; } })());
   if(TOKEN){ try{ localStorage.setItem(LS_TOKEN, TOKEN); }catch(e){} }
