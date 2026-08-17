@@ -230,6 +230,15 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .read-move{margin-top:12px;background:var(--touch-soft);border-radius:9px;padding:11px 13px}
 .read-move-l{font-size:10px;letter-spacing:.13em;text-transform:uppercase;font-weight:700;color:var(--ink-soft);margin-bottom:4px}
 .read-move-t{font-size:14.5px;font-weight:600;color:var(--headline);line-height:1.45}
+.std-note{font-size:11.5px;color:var(--muted);margin:-1px 0 10px;line-height:1.45}
+ol.stds{list-style:none;margin:0;padding:0;counter-reset:std;display:flex;flex-direction:column;gap:11px}
+ol.stds li{counter-increment:std;position:relative;padding-left:29px}
+ol.stds li::before{content:counter(std);position:absolute;left:0;top:0;width:21px;height:21px;
+  border-radius:50%;background:var(--touch);color:var(--parchment);font-size:11.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center}
+.std-t{font-size:14.5px;font-weight:600;color:var(--headline);line-height:1.35}
+.std-p{font-size:10px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--muted);margin-top:2px}
+.std-w{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:4px}
 .read-not{font-size:12.5px;color:var(--ink-soft);line-height:1.55;margin-top:12px}
 .read-not b{color:var(--headline)}
 .read-hedge{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:9px;font-style:italic}
@@ -1466,10 +1475,12 @@ function computeConstraint(it){
   /* 1b — CLINICAL. They told us something medical is going on. Not our lane: point at the provider,
      build the lifestyle side around whatever they're told. Never interpret. (IHN-compliance-reference) */
   if(!pregnant && inway==="I think something medical is going on") return { key:"clinical", name:"Get it looked at",
-    head:"Before we build anything, get this looked at.",
-    why:"You told me you think something medical is going on. I'm going to take you at your word on that — and I'm not going to guess at it, because diagnosing isn't my lane and anyone who tells you otherwise is selling something. What I can do is build everything around whatever your provider tells you.",
-    move:"Book the appointment. Then come back and tell me what they said.",
-    not:"We're not running a deficit, not chasing the scale, and not starting a protocol on top of an unanswered question. In the meantime: eat protein, walk, sleep. None of that interferes with anything, and all of it helps."+(floor?" Protein target is about "+floor+"g.":"") };
+    head:"Get this looked at — and start here while you do.",
+    why:"You told me you think something medical is going on. I'm taking you at your word, and I'm not going to guess at it: diagnosing isn't my lane, and anyone who tells you otherwise is selling something. But you're not going to sit and wait either. There's a version of this work that's completely safe to run with an open question — and that's exactly where we're putting you.",
+    /* Lane override: hold at maintenance, never a deficit, while a medical question is open. */
+    lane:"Sustain", laneNote:"Maintenance and longevity. No deficit while a question is open.",
+    move:"Book the appointment. Then start Foundations — track your food for seven days.",
+    not:"We're not running a deficit, not chasing the scale, and not starting any protocol on top of an unanswered question. Protein"+(floor?" (about "+floor+"g)":"")+", walking, sleep, and honest data — none of that interferes with anything your provider might do, and all of it helps. One more thing: the week of tracking you'll have by your appointment is more useful to them than anything you'd remember off the top of your head. Bring it." };
 
   /* 1 — NOURISHMENT. Pregnancy/TTC overrides everything; a deficit is simply the wrong assignment. */
   if(pregnant) return { key:"nourishment", name:"Nourishment",
@@ -1496,7 +1507,9 @@ function computeConstraint(it){
      age inference (hedged, correctable) only while that block is unanswered. */
   var menoStated=/Perimenopause|^Menopause|Post-menopause/.test(String(D.cyclestatus||""));
   var menoSym=(D.menosym||[]).filter(function(s){return s!=="None of these";}).length;
-  if(it.sex==="Female" && (menoStated || (!D.cyclestatus && age>=45))) return { key:"lifestage", name:"Life stage",
+  /* Age fallback is 40, not 45 — perimenopause routinely starts in the late thirties, and the
+     symptom answers (open from 35) take over the moment she gives them. */
+  if(it.sex==="Female" && (menoStated || menoSym>=2 || (!D.cyclestatus && age>=40))) return { key:"lifestage", name:"Life stage",
     head:"Your body changed the rules. Nobody told you.",
     why:(menoStated
       ? "You told me you're in "+String(D.cyclestatus).toLowerCase()+(menoSym?", and you're dealing with "+menoSym+" of the symptoms I asked about":"")+". So let's name what that actually means: "
@@ -1504,7 +1517,13 @@ function computeConstraint(it){
       +"what you're up against isn't effort. As estrogen drops you lose muscle faster, hold more around the middle, and recover slower from everything. The plan that worked at 32 genuinely does not work now. That isn't you failing. It's the rules changing without anyone telling you.",
     move:"Protein floor first"+(floor?" — "+floor+"g a day":"")+", and get under a bar three times a week.",
     not:"We're not cutting calories hard, we're not adding more cardio, and we're not weighing you every morning. Muscle and protein are the levers that work in this season. Cardio and restriction are the ones that backfire.",
-    hedge:menoStated?null:"Not where you're at? Take the Deep Read and I'll build this off your actual answer instead of your age." };
+    /* Routes to a provider; never asserts eligibility for anything — that determination isn't ours
+       to make. Family planning is surfaced because it's the first thing a provider needs to know. */
+    hedge: (menoSym>=1 && (+D.symimpact||0)>=3)
+        ? "One more thing, and then I'll stay in my lane: what you've described is worth raising with a provider. There are medical options for this season, and whether any of them fit you is entirely their call — not mine. I'd just hate for you to white-knuckle something that has an answer."
+          + (/Yes, we're planning|Possibly/.test(String(D.morekids||"")) ? " And tell them more children are still on the table — that changes the conversation, and they need to know it first." : "")
+      : (menoStated ? null
+        : "Not where you're at? Take the Deep Read and I'll build this off your actual answer instead of your age.") };
 
   /* 4 — RECOVERY. A deficit on five hours of sleep is a losing trade. */
   var thinSleep=/Under 5|5–6/.test(String(D.sleephrs||"")), poorSleep=(+D.sleepqual||9)<=2, highStress=(+D.stress||0)>=8;
@@ -1568,10 +1587,9 @@ function computeConstraint(it){
 
   /* 8 — MOVEMENT. */
   if(it.activity==="Sedentary" || (String(D.trains||"")==="No" && /Under 5,000/.test(String(D.steps||"")))) return { key:"movement", name:"Movement",
-    head:"Before we touch your food, we need to get you moving.",
-    why:"You put yourself at sedentary — under about 5,000 steps a day, little or no training. That's the single biggest lever you've got right now, and it isn't close. When you're barely moving, cutting calories is the only tool left in the box, and that tool runs out fast. Movement is what gives us room to work.",
-    move:"Get to 7,500 steps a day, and put two resistance sessions on the calendar this week.",
-    not:"We're not counting a single macro yet. Steps and two sessions. That's it. Once your body is spending energy again, the food side gets a lot easier — and a lot less restrictive." };
+    head:"Movement is the lever you've got the most room in.",
+    why:"You're barely moving right now — and that's not a character flaw, it's an opportunity, because there's more room in that lever than any other one you have. Here's what most people get wrong about it: this doesn't mean food doesn't matter. It means that when you're not moving, food is the ONLY tool you've got, and that's a brutal way to do this. Getting your body spending energy again is what keeps the food side from ever having to get extreme.",
+    not:"We're not chasing a step count for its own sake, and we're not adding hard cardio. Move more, eat well, get strong. Those run together, not in a queue." };
 
   /* 9 — KNOWLEDGE (default). Nothing is fighting them; they just don't have a system yet.
      Two variants, because "my body doesn't respond" deserves a different sentence than "I don't know
@@ -1593,18 +1611,86 @@ function computeConstraint(it){
 var READ_LANE={ "Reverse Diet":"We rebuild first, then we lean you out.", "Lean":"A real deficit — not a crash.",
   "Strong":"Fueled to build.", "Long":"Steady, with a longevity focus.", "Sustain":"Steady, with a longevity focus." };
 
+/* ===================== THE DAILY STANDARDS =====================
+   Their three non-negotiables, GENERATED from their answers and tied back to the Pillars — not a
+   list they pick from cold. The constraint's own pillar always leads; the other two come from the
+   biggest gaps their answers show; anything still empty backfills from the universal cornerstones.
+   8 Pillars (Didache, locked): 1 Protein · 2 Nutrition Calibration · 3 Movement · 4 Resistance ·
+   5 Hydration · 6 Sleep, Stress & Rest · 7 Relational Stewardship · 8 Feedback.
+   (Pillar 8 / Feedback isn't a candidate — the Saturday check-in already carries it for everyone.) */
+var PILLAR_NAME={1:"Protein",2:"Nutrition Calibration",3:"Movement",4:"Resistance",
+  5:"Hydration",6:"Sleep, Stress & Rest",7:"Relational Stewardship",8:"Feedback"};
+
+function stdProtein(it){ var f=readFloor(it);
+  return {p:1, t:"Protein at every meal"+(f?" — "+f+"g a day":""), w:"That's the floor, not the ceiling. It's the highest-leverage number you have."}; }
+function stdTrack(){ return {p:2, t:"Log everything you eat", w:"Every day, honestly, no editing. You can't adjust a number you've never looked at."}; }
+function stdEatTarget(it){ return {p:2, t:"Eat your target — "+((it.pfs&&it.pfs.calories)||"your number")+" calories", w:"Hitting it on the low days matters more than the high ones."}; }
+function stdMealTimes(){ return {p:2, t:"Eat at your three set times", w:"Same times every day, even the strange ones. Structure first, numbers after."}; }
+function stdProduce(){ return {p:2, t:"600–800g of fruit & veg", w:"Volume, fibre, and fullness — it does more work than any supplement you could buy."}; }
+function stdSteps(cur){ var target = /5,000–7,500/.test(cur||"") ? "8,000" : "7,500";  // unknown → the entry target
+  return {p:3, t:"Walk "+target+" steps", w:"Not a workout. Just movement your body counts, spread through the day."}; }
+function stdResistance(n){ return {p:4, t:n+" resistance sessions this week", w:"Muscle is the organ of longevity. This is the one that protects everything else."}; }
+function stdWater(){ return {p:5, t:"Drink your water target", w:"Set this with your coach — most people are further behind than they think."}; }
+function stdSleep(D){ var wrecked=(D.sleepwreck||[]);
+  var t = wrecked.indexOf("Phone")>=0 ? "Phone out of the room at night"
+        : wrecked.indexOf("Working late")>=0 ? "Laptop closed by a set time"
+        : "In bed at the same time every night";
+  return {p:6, t:t, w:"Pick the one you'll actually hold. Sleep is upstream of your appetite, your willpower, and your recovery."}; }
+function stdTable(){ return {p:7, t:"Sit down to dinner with your people", w:"You told me this is non-negotiable. Protecting it is part of the plan, not a break from it."}; }
+
+function computeStandards(it, c){
+  var D=(M&&M.deep)||{}, out=[], seen={}, perPillar={};
+  /* Dedupe by the standard itself, not by pillar — "log your food" and "600–800g of produce" are both
+     Nutrition Calibration but are genuinely different daily behaviours. Cap at 2 per pillar so nobody
+     walks away with three food standards and nothing for movement or sleep. */
+  var add=function(s){
+    if(!s || seen[s.t] || (perPillar[s.p]||0) >= 2) return;
+    seen[s.t]=1; perPillar[s.p]=(perPillar[s.p]||0)+1; out.push(s);
+  };
+
+  /* 1 — the constraint's own pillar leads. */
+  var lead={ nourishment:stdProtein(it), protein:stdProtein(it), lifestage:stdProtein(it),
+    clinical:stdTrack(), knowledge:stdTrack(), consistency:stdProtein(it),
+    fuel:stdEatTarget(it), structure:stdMealTimes(), recovery:stdSleep(D),
+    movement:stdSteps(D.steps) }[c && c.key];
+  add(lead);
+
+  /* 2 — then the biggest gaps their own answers show, most consequential first. */
+  var thinSleep=/Under 5|5–6/.test(String(D.sleephrs||"")), poorSleep=(+D.sleepqual||9)<=2, highStress=(+D.stress||0)>=8;
+  if(thinSleep||poorSleep||highStress) add(stdSleep(D));
+  if(String(D.trains||"")==="No") add(stdResistance(2));
+  else if(/1–2x/.test(String(D.trains||""))) add(stdResistance(3));
+  else if(c && c.key==="lifestage") add(stdResistance(3));                 // muscle is the lever in this season
+  if(/Under 5,000|5,000–7,500/.test(String(D.steps||"")) || it.activity==="Sedentary") add(stdSteps(D.steps));
+  if(/^(1|2)$/.test(String(D.mealsday||"")) || String(D.skips||"")==="Most days") add(stdMealTimes());
+  if((D.nonneg||[]).indexOf("Family dinners")>=0) add(stdTable());
+
+  /* 3 — backfill from the cornerstones so everyone leaves with three. Produce beats hydration here
+     on purpose: there's no hydration question yet, so that standard can't carry a real number. */
+  add(stdProtein(it)); add(stdTrack()); add(stdProduce()); add(stdWater());
+  return out.slice(0,3);
+}
+
 /* opts.stale = they're several check-ins in, so the starting move is history, not this week's instruction. */
 function readHTML(it, opts){
   var c=computeConstraint(it); if(!c) return "";
   opts=opts||{};
   var tn=TRACK_NAME[it.track]||it.track||"", lane=READ_LANE[it.track]||"";
+  /* A constraint can override the lane when their goal-picked track is the wrong place to be —
+     e.g. an open medical question holds them at maintenance regardless of what they picked. */
+  if(c.lane){ tn=c.lane; lane=c.laneNote||""; }
   return '<div class="read">'
     +'<div class="read-top"><span class="read-chip">'+esc(c.name)+'</span><span class="read-tag">Your Read</span></div>'
     +'<div class="read-head">'+esc(c.head)+'</div>'
     +'<div class="read-why">'+esc(c.why)+'</div>'
     +(tn?'<div class="read-lane"><b>Your lane · '+esc(tn)+'</b>'+(lane?' — '+esc(lane):'')+'</div>':'')
-    +'<div class="read-move"><div class="read-move-l">'+(opts.stale?"Where you started":"Your first move")+'</div>'
-      +'<div class="read-move-t">'+esc(c.move)+'</div></div>'
+    +'<div class="read-move"><div class="read-move-l">'+(opts.stale?"Where you started":"Your Daily Standards")+'</div>'
+      +'<div class="std-note">Three things. Every day. Six out of seven is the bar — not seven.</div>'
+      +'<ol class="stds">'+computeStandards(it,c).map(function(s){
+          return '<li><div class="std-t">'+esc(s.t)+'</div>'
+            +'<div class="std-p">Pillar '+s.p+' · '+esc(PILLAR_NAME[s.p]||"")+'</div>'
+            +'<div class="std-w">'+esc(s.w)+'</div></li>'; }).join("")
+      +'</ol></div>'
     +(opts.stale?'<div class="read-hedge">You\'re '+opts.stale+' check-ins in now — your move for <b>this</b> week lives in your latest check-in.</div>':'')
     +'<div class="read-not"><b>What we\'re not doing yet.</b> '+esc(c.not)+'</div>'
     +(c.hedge&&!opts.stale?'<div class="read-hedge">'+esc(c.hedge)+'</div>':'')
@@ -1711,11 +1797,24 @@ var DEEP_BLOCKS=[
  ]},
 
  {key:"cycle", title:"Cycle & hormones", when:function(){ return M.intake && M.intake.sex==="Female"; },
-  intro:"Most plans are built as though this doesn't exist. It changes almost everything about how we read your week.", qs:[
+  note:"Most plans are built as though this doesn't exist, and it changes almost everything about how we read your week. To be clear about my lane: I coach the food, training, and lifestyle side. Anything hormonal or medical belongs to a provider — these questions just tell me how to build around you, and when to point you toward that conversation.", qs:[
   {k:"cyclestatus", t:"chip", q:"Where are you in all this?", opts:["Cycling regularly","Irregular","On contraception","Perimenopause","Menopause","Post-menopause","Rather not say"]},
   {k:"cycleaccount",t:"chip", q:"Want your plan and check-ins to account for it?", opts:["Yes","No"]},
   {k:"cyclesym",  t:"multi", q:"Around your period, what shows up?", opts:["Cravings","Appetite spike","Energy crash","The scale jumps","Mood","Bloating","Nothing much","Not applicable"]},
-  {k:"menosym",   t:"multi", q:"Any of these lately?", opts:["Hot flashes","Night sweats","2am wake-ups","Brain fog","Mood swings","Joint aches","Belly fat that's new","None of these"]},
+  /* Symptom questions open at 35 — perimenopause commonly starts well before anyone names it. */
+  {k:"menosym",   t:"multi", q:"Any of these lately?", when:function(){ return (+((M.intake||{}).age)||0)>=35; },
+    hint:"These can start a lot earlier than most women are told.",
+    opts:["Hot flashes","Night sweats","2am wake-ups","Brain fog","Mood swings","Joint aches","Belly fat that's new","Heavier or unpredictable periods","Low libido","Anxiety that's new","None of these"]},
+  {k:"symhowlong",t:"chip", q:"How long has that been going on?", when:function(){ return (D_menoAny()); },
+    opts:["A few months","6–12 months","1–2 years","Longer than that"]},
+  {k:"symimpact", t:"scale", min:1, max:5, q:"How much is it affecting your day-to-day?", when:function(){ return (D_menoAny()); }, lo:"Barely", hi:"A lot"},
+  {k:"provtalk",  t:"chip", q:"Have you talked with a provider about any of this?", when:function(){ return (D_menoAny()); },
+    opts:["Yes, and I'm on something","Yes, but nothing came of it","No, not yet","I wouldn't know who to ask"]},
+  /* Family planning — asked of every woman. It changes the nutrition call on its own (no deficit if
+     she's trying), and it's the first thing a provider needs to know in any hormone conversation. */
+  {k:"morekids",  t:"chip", q:"Are more children on the table for you?",
+    hint:"This changes how I build your plan — and it's the first thing a provider would want to know.",
+    opts:["Yes, we're planning to","Possibly, we haven't decided","No, we're done","Not applicable","Rather not say"]},
   {k:"harddays",  t:"textarea", q:"Which days are hardest, and what actually helps?"}
  ]},
 
@@ -1742,6 +1841,8 @@ var DEEP_BLOCKS=[
  ]}
 ];
 
+/* Did she tick any real menopause-type symptom? Opens the follow-up questions. */
+function D_menoAny(){ return (DEEP.menosym||[]).filter(function(s){ return s!=="None of these"; }).length>0; }
 function deepList(){ return DEEP_BLOCKS.filter(function(b){ return !b.when || b.when(); }); }
 function deepQs(b){ return b.qs.filter(function(q){ return !q.when || q.when(); }); }
 function deepVal(k){ return DEEP[k]; }
@@ -1795,8 +1896,11 @@ function renderDeep(){
 }
 function deepPick(btn){
   var p=btn.parentNode, k=p.dataset.key, multi=p.dataset.multi==="1", v=btn.dataset.v;
-  if(multi){ DEEP[k]=DEEP[k]||[]; var i=DEEP[k].indexOf(v);
-    if(i>=0){ DEEP[k].splice(i,1); btn.classList.remove("on"); } else { DEEP[k].push(v); btn.classList.add("on"); } }
+  if(multi){ DEEP[k]=DEEP[k]||[]; var i=DEEP[k].indexOf(v), was=(k==="menosym")&&D_menoAny();
+    if(i>=0){ DEEP[k].splice(i,1); btn.classList.remove("on"); } else { DEEP[k].push(v); btn.classList.add("on"); }
+    // menosym gates three follow-ups — re-render only when it crosses none ⇄ some, not on every tap
+    if(k==="menosym" && was!==D_menoAny()) renderDeep();
+  }
   else { Array.from(p.children).forEach(function(x){x.classList.remove("on");}); btn.classList.add("on"); DEEP[k]=v;
     if(k==="glp1"||k==="faithrole") renderDeep(); }   // these open/close follow-ups
 }
