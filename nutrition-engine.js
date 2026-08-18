@@ -37,6 +37,14 @@ function computePFS(w, track){
 
 function mealsPerDay(){ return 3; }
 
+/* Fruit & veg target scales with calories, by phase: more volume on a cut, less needed on a bulk.
+   grams per 1,000 kcal. Sustain @2,000 cal = 800g (the anchor). */
+var PRODUCE_RATE = {"Lean":500, "Sustain":400, "Long":400, "Strong":300, "Reverse Diet":400};
+function produceTarget(calories, track){
+  var rate = PRODUCE_RATE[track] || 400;
+  return Math.round((+calories/1000)*rate/50)*50;   // nearest 50g
+}
+
 /* 4-2-1 weekly cycling — same weekly total, redistributed: 4 moderate days, 2 low, 1 high.
    Protein holds every day; the flex lives in carbs & fat. Low = 80% of target, High = 140% (2 low + 1 high = balanced). */
 function fourTwoOne(cal, protein, sex){

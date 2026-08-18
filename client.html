@@ -1652,7 +1652,7 @@ function stdProtein(it){ var f=readFloor(it);
 function stdTrack(){ return {p:2, t:"Log everything you eat", w:"Every day, honestly, no editing. You can't adjust a number you've never looked at."}; }
 function stdEatTarget(it){ return {p:2, t:"Eat your target — "+((it.pfs&&it.pfs.calories)||"your number")+" calories", w:"Hitting it on the low days matters more than the high ones."}; }
 function stdMealTimes(){ return {p:2, t:"Eat at your three set times", w:"Same times every day, even the strange ones. Structure first, numbers after."}; }
-function stdProduce(){ return {p:2, t:"600–800g of fruit & veg", w:"Volume, fibre, and fullness — it does more work than any supplement you could buy."}; }
+function stdProduce(){ var it=M.intake, g=(it&&it.pfs)?produceTarget(it.pfs.calories,it.track):null; return {p:2, t:(g?g+"g of fruit & veg":"500g of fruit & veg per 1,000 cal"), w:"Volume, fibre, and fullness — it does more work than any supplement you could buy."}; }
 function stdSteps(cur){ var target = /5,000–7,500/.test(cur||"") ? "8,000" : "7,500";  // unknown → the entry target
   return {p:3, t:"Walk "+target+" steps", w:"Not a workout. Just movement your body counts, spread through the day."}; }
 function stdResistance(n){ return {p:4, t:n+" resistance sessions this week", w:"Muscle is the organ of longevity. This is the one that protects everything else."}; }
@@ -2115,7 +2115,7 @@ var FDN_NUMBERS=[
   {k:'track',   label:'Log your weekly averages (calories + protein)', auto:'avgs'},
   {k:'floor',   label:'Hit your protein floor', gate:'protein'},
   {k:'target',  label:'Know your target & deficit', auto:'intake'},
-  {k:'produce', label:'600–800g fruit & veg, daily'}
+  {k:'produce', labelFn:function(){ var it=M.intake; return (it&&it.pfs)?(produceTarget(it.pfs.calories,it.track)+'g fruit & veg, daily'):'Fruit & veg — 500g per 1,000 cal'; }}
 ];
 var FDN_STANDARDS=[   // the 8 Pillars, run as Daily Standards
   {k:'p_protein',    label:'Protein — anchor every meal'},
@@ -2146,8 +2146,9 @@ function toggleFdn(k){
 }
 function fdnRow(t){
   var d=fdnDone(t), auto=(t.auto||t.gate) && d && M.onboardingDone.indexOf('fdn:'+t.k)<0;
+  var label=t.labelFn?t.labelFn():t.label;
   return '<div class="ob-step'+(d?' done':'')+'"'+(auto?'':' onclick="toggleFdn(\''+t.k+'\')"')+'>'
-    +'<span class="ob-check">'+(d?'✓':'')+'</span><span class="ob-label">'+esc(t.label)+'</span>'
+    +'<span class="ob-check">'+(d?'✓':'')+'</span><span class="ob-label">'+esc(label)+'</span>'
     +(auto?'<span class="ob-auto">'+(t.gate?'from your data':'auto')+'</span>':'')+'</div>';
 }
 function renderFoundations(){
@@ -2370,7 +2371,7 @@ function nutritionHTML(it){
       +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
       +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
       +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
-    +'<p class="wiz-hint" style="margin:2px 0 0">Protein is the anchor and never moves. Aim ~800g produce a day (480g veg / 320g fruit) and about half your bodyweight in ounces of water.</p>'
+    +'<p class="wiz-hint" style="margin:2px 0 0">Protein is the anchor and never moves. Aim ~'+produceTarget(p.calories,it.track)+'g produce a day (about 60% veg, 40% fruit) and about half your bodyweight in ounces of water.</p>'
     +'<div class="lp-sub">How to build every meal</div>'
     +'<div class="lp-steps"><div><b>1.</b> Protein first — start the plate with it.</div>'
       +'<div><b>2.</b> Add a smart carb (a fist).</div>'
@@ -2537,7 +2538,7 @@ function roadmapHTML(it){
     +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Maintenance")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
     +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Phase 1 sits about '+Math.abs(deficit)+' cal/day '+(deficit>=0?"below":"above")+' your estimated maintenance, roughly '+pace+' lb a week. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
   var targets='<div class="lp-sub">Your targets</div>'
-    +'<p class="wiz-hint" style="margin:0"><b style="color:var(--accent)">Protein '+p.protein+'g</b> — fixed in every phase, the anchor of every meal. Phase 1 starts at <b>'+first.calories+' cal</b> ('+first.carbs+'g carbs · '+first.fat+'g fat). ~800g produce and ~'+Math.round((curW||it.weight)/2)+' oz water a day.</p>';
+    +'<p class="wiz-hint" style="margin:0"><b style="color:var(--accent)">Protein '+p.protein+'g</b> — fixed in every phase, the anchor of every meal. Phase 1 starts at <b>'+first.calories+' cal</b> ('+first.carbs+'g carbs · '+first.fat+'g fat). ~'+produceTarget(first.calories,it.track)+'g produce and ~'+Math.round((curW||it.weight)/2)+' oz water a day.</p>';
   var rows=ladder.map(function(ph){
     return '<tr'+(ph.current?' class="rm-now"':'')+'><td>'+esc(ph.label)+(ph.current?' <span class="rm-badge">now</span>':'')+'</td><td>'+ph.calories+'</td><td>'+ph.protein+'g</td><td>'+ph.carbs+'g</td><td>'+ph.fat+'g</td></tr>';
   }).join("");
@@ -2954,7 +2955,7 @@ function wizResult(){
     +'<div class="foodcol"><b>Proteins:</b> <span>'+esc(protList)+'</span></div>'
     +'<div class="foodcol"><b>Smart carbs:</b> <span>'+esc(carbList)+'</span></div>'
     +'<div class="foodcol"><b>Fats (keep moderate):</b> <span>'+esc(fatList)+'</span></div>'
-    +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — aim for a big pile at every meal (~800g produce/day)</span></div>'
+    +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — aim for a big pile at every meal (~'+produceTarget(p.calories,t)+'g produce/day)</span></div>'
     +'<p class="wiz-hint" style="margin-top:6px">Build every plate: a palm of protein + a fist of a smart carb + a mountain of veg. Keep it that simple to start.</p>'
     +'<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:14px"><div class="res-why" style="color:var(--ink)"><b>Your next step:</b> this is your starting point. Head into the <b>Foundations</b> course in Skool — that\'s where you collect the data and learn the system so we can refine this into exactly what your body needs.</div></div>'
     +(hasCNS()?'':'<p class="wiz-hint" style="margin-top:10px">Want this <b>done for you</b> — real meal plans built around the foods you actually eat? Lock this in, then ask '+esc(CONFIG.coachName)+' about the <b>Complete Nutrition System</b> build on your dashboard.</p>')
