@@ -2890,7 +2890,9 @@ function journeyPanel(d, email){
   var lastRaw=ciRaw.length?ciRaw[ciRaw.length-1]:null;
   var cnsI=(d.cnsintake&&d.cnsintake.length)?d.cnsintake[d.cnsintake.length-1]:null;
   var genI=(d.geneticsintake&&d.geneticsintake.length)?d.geneticsintake[d.geneticsintake.length-1]:null;
-  var tok=''; (__rosterCache||[]).forEach(function(r){ if(String(rv(r,'Email')).trim().toLowerCase()===String(email).toLowerCase()) tok=String(rv(r,'Token')).trim(); });
+  var tok='', rrow=null; (__rosterCache||[]).forEach(function(r){ if(String(rv(r,'Email')).trim().toLowerCase()===String(email).toLowerCase()){ tok=String(rv(r,'Token')).trim(); rrow=r; } });
+  var rf=function(k){ return rrow?rv(rrow,k):''; };
+  var fmtHt=function(x){ x=+x; return (x>0&&x<100)?(Math.floor(x/12)+"'"+(x%12)+'"'):''; };
   var link=tok?(CLIENT_BASE+"?k="+tok):"";
   var week1 = intk && first && daysSince(first.ts)>=6;
   // interest flags
@@ -2899,6 +2901,22 @@ function journeyPanel(d, email){
 
   var h='<div class="view-head" style="margin-top:4px"><h1>'+esc(d.name||email)+'</h1><p class="view-sub">'+esc(d.tier||'—')+' · '
     +(d.active===false?'<b style="color:var(--stall-tx)">inactive</b>':(d.active?'active':'not in roster'))+'</p></div>';
+
+  /* ===== PROFILE — email + everything they told you, always visible ===== */
+  h+='<div class="tile" style="margin-bottom:12px"><div class="nav-h" style="padding:0 0 8px">Profile</div>'
+    +'<div style="display:flex;flex-wrap:wrap;gap:13px 22px">'
+    + jpFld('Email', email)
+    + jpFld('Gender', d.gender||rf('Gender')||(intk&&intk['Sex']))
+    + jpFld('Goal', rf('Goal'))
+    + jpFld('Status', rf('Status'))
+    + jpFld('Started', rf('Start Date')||rf('Start'))
+    + (intk ? ( jpFld('Age',intk['Age']) + jpFld('Height', fmtHt(intk['Height'])||intk['Height'])
+        + jpFld('Current wt', intk['Current wt']?intk['Current wt']+' lb':'') + jpFld('Goal wt', intk['Goal wt']?intk['Goal wt']+' lb':'')
+        + jpFld('Activity',intk['Activity']) ) : '')
+    +'</div>'
+    + (intk ? '' : '<div style="font-size:12px;color:var(--muted);margin-top:8px">Height, weight, age &amp; activity fill in once they complete setup.</div>')
+    + (rf('Notes') ? '<div style="font-size:12px;color:var(--ink-soft);margin-top:8px"><b style="color:var(--muted)">Notes:</b> '+esc(rf('Notes'))+'</div>' : '')
+    +'</div>';
 
   /* ===== PINNED ACTION ZONE — what you decide on, always visible ===== */
   // live auto-adjust verdict (mirrors the client's "your move this week")
