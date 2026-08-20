@@ -9,3 +9,10 @@ COMMAND-CENTER-V2-BUILD.md
 
 # full internal catalog — keep local, only the curated products-member.csv ships
 products-all.csv
+
+# clasp / Apps Script CLI — contains the scriptId, and this repo is PUBLIC
+.clasp.json
+appsscript/
+
+# internal ops script — not for the public site
+redeploy.sh

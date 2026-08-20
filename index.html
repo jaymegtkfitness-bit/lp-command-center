@@ -770,6 +770,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 </div></section>
 
 <section class="view active" id="view-tasks"><div class="wrap tasks-wrap" id="tasksView"></div></section>
+<section class="view" id="view-ea"><div class="wrap" id="eaView"></div></section>
 <section class="view" id="view-launch"><div class="wrap" id="launchView"></div></section>
 <section class="view" id="view-goals"><div class="wrap" id="goalsView"></div></section>
 <section class="view" id="view-revenue"><div class="wrap" id="revenueView"></div></section>
@@ -2158,7 +2159,7 @@ function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCa
 /* ============================ NAVIGATION + BUSINESS VIEWS ============================ */
 const NAV = [
   {group:"Personal", items:[["goals","Big Goals"]]},
-  {group:"Plan", items:[["tasks","This Week"]]},
+  {group:"Plan", items:[["tasks","This Week"],["ea","EA Inbox"]]},
   {group:"Launch", items:[["launch","Fitbody Launch"]]},
   {group:"Fulfillment", items:[["journey","Member Journey"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["calls","Fulfillment Calls"],["links","Client Links"]]},
   {group:"Grow", items:[["grow","Conveyor Belt"],["free","Free Members"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
@@ -2176,6 +2177,7 @@ function showTab(id){
   const v=document.getElementById("view-"+id); if(v) v.classList.add("active");
   renderSidebar(id);
   if(id==="tasks"){ syncTasks(); renderTasks(); }
+  else if(id==="ea") renderEA();
   else if(id==="launch") renderLaunch();
   else if(id==="goals") renderGoals();
   else if(id==="workshops"){ syncTasks(); renderWorkshops(); }
@@ -2450,6 +2452,173 @@ function renderOrders(){
     list.innerHTML=head+cards;
   });
 }
+/* ---- EA INBOX — the executive assistant's dispatch queue --------------------------
+   Every channel (this composer, the wife's ea.html page, later SMS/Telegram/email) POSTs the
+   SAME {type:'inbox'} shape to the doorway, which APPENDS a row. Append-only on purpose:
+   saveState() rewrites the whole App State blob and has wiped goals/score/workshops before.
+   Nothing here ever touches App State.                                                      */
+var INBOX_STATUSES = ['Open','In progress','Done','Blocked','Flagged'];
+var EA_KINDS = [
+  ['task','Task'], ['calendar','Calendar'], ['client','Client follow-up'],
+  ['content','Content'], ['platform','Platform job'], ['order','Order'], ['note','Note']
+];
+
+/* The EA passphrase is NOT stored in this file — index.html ships to a PUBLIC repo.
+   It lives in the doorway's Script Properties (server-side) and in this browser's
+   localStorage after one unlock. Same key the wife's ea.html uses. */
+var EA_KEY_STORE = 'lp_ea_key';
+function eaKey(){ try{ return localStorage.getItem(EA_KEY_STORE) || ''; }catch(e){ return ''; } }
+
+function eaCheckKeyRemote(k, cb){
+  if(!CONFIG.writeUrl){ cb(null); return; }
+  var name='__lpK'+Date.now(), s=document.createElement('script'), done=false;
+  window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt); };
+  s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
+  s.src=CONFIG.writeUrl+'?action=eacheck&key='+encodeURIComponent(k)+'&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 12000);
+}
+
+function eaUnlock(){
+  var v=document.getElementById('eaPass').value.trim();
+  var out=document.getElementById('eaPassMsg');
+  if(!v){ out.textContent='Enter the passphrase.'; return; }
+  out.textContent='Checking…';
+  eaCheckKeyRemote(v, function(d){
+    if(d && d.ok){ try{ localStorage.setItem(EA_KEY_STORE, v); }catch(e){} renderEA(); }
+    else if(d){ out.textContent='That’s not it.'; }
+    else{ out.textContent='Couldn’t reach the doorway.'; }
+  });
+}
+function eaForgetKey(){ try{ localStorage.removeItem(EA_KEY_STORE); }catch(e){} renderEA(); }
+
+function fetchInbox(cb){
+  if(!CONFIG.writeUrl){ cb(null); return; }
+  var name='__lpI'+Date.now(), s=document.createElement('script'), done=false;
+  window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
+  s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
+  s.src=CONFIG.writeUrl+'?action=inbox&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
+}
+
+/* Row # comes back from the doorway as _row, so status updates address one cell —
+   no timestamp string matching, nothing to mis-escape. */
+function setInboxStatus(row, status){ postToSheet({type:'inboxstatus', row:row, status:status}); }
+
+function eaSend(){
+  var kind = document.getElementById('eaKind').value;
+  var msg  = document.getElementById('eaMsg').value.trim();
+  var when = document.getElementById('eaWhen').value;
+  var out  = document.getElementById('eaSendMsg');
+  if(!msg){ out.textContent='Type something first.'; out.style.color='var(--muted)'; return; }
+  if(kind==='calendar' && !when){ out.textContent='Calendar items need a date + time.'; out.style.color='var(--muted)'; return; }
+  postToSheet({
+    type:'inbox', from:'jayme', channel:'dashboard', kind:kind, message:msg,
+    when: when ? new Date(when).toISOString() : '', key: eaKey()
+  });
+  document.getElementById('eaMsg').value=''; document.getElementById('eaWhen').value='';
+  out.textContent='Captured ✓'; out.style.color='var(--gold)';
+  setTimeout(renderEA, 1200);   /* let the append land before we re-read */
+}
+
+function eaKindChanged(){
+  var isCal = document.getElementById('eaKind').value==='calendar';
+  document.getElementById('eaWhenWrap').style.display = isCal ? '' : 'none';
+}
+
+function renderEA(){
+  var box=document.getElementById("eaView");
+  var kindOpts = EA_KINDS.map(function(k){ return '<option value="'+k[0]+'">'+k[1]+'</option>'; }).join('');
+  var inp='padding:10px 12px;border-radius:9px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-size:14px;font-family:inherit';
+
+  var head0='<div class="view-head"><h1>EA Inbox</h1>'
+    +'<p class="view-sub">Everything dispatched to your assistant — from you, from your wife, from anywhere. '
+    +'Captured the moment it&rsquo;s sent so it can&rsquo;t get lost.</p></div>';
+
+  /* No passphrase on this browser yet — unlock before composing. Reading the queue is
+     still allowed; the key gates what can ACT, not what you can see. */
+  if(!eaKey()){
+    box.innerHTML=head0
+      +'<div class="tile" style="margin-bottom:16px">'
+        +'<div style="font-size:13.5px;color:var(--ink);margin-bottom:10px">'
+        +'Enter the EA passphrase to capture from this browser. '
+        +'<span style="color:var(--muted)">One time — it stays on this device.</span></div>'
+        +'<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">'
+          +'<input type="password" id="eaPass" placeholder="Passphrase" style="'+inp+';flex:1;min-width:180px" />'
+          +'<button onclick="eaUnlock()" style="padding:10px 20px;border:0;border-radius:9px;background:var(--gold);'
+          +'color:#1C1C1C;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">Unlock</button>'
+        +'</div>'
+        +'<div id="eaPassMsg" style="font-size:12.5px;color:var(--muted);margin-top:8px"></div>'
+      +'</div>'
+      +'<div id="eaList"><p class="tool-d">Loading&hellip;</p></div>';
+    eaRenderList();
+    return;
+  }
+
+  box.innerHTML=head0
+    +'<div class="tile" style="margin-bottom:16px">'
+      +'<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px">'
+        +'<select id="eaKind" onchange="eaKindChanged()" style="'+inp+'">'+kindOpts+'</select>'
+        +'<span id="eaWhenWrap" style="display:none"><input type="datetime-local" id="eaWhen" style="'+inp+'" /></span>'
+      +'</div>'
+      +'<textarea id="eaMsg" rows="3" placeholder="Follow up with Sherrie about her deload week&hellip;" '
+        +'style="width:100%;'+inp+';resize:vertical;line-height:1.5"></textarea>'
+      +'<div style="display:flex;justify-content:space-between;align-items:center;margin-top:10px;gap:12px">'
+        +'<span id="eaSendMsg" style="font-size:12.5px;color:var(--muted)"></span>'
+        +'<button onclick="eaSend()" style="padding:10px 20px;border:0;border-radius:9px;background:var(--gold);'
+        +'color:#1C1C1C;font-weight:700;font-size:14px;cursor:pointer;font-family:inherit">Capture</button>'
+      +'</div>'
+    +'</div>'
+    +'<div id="eaList"><p class="tool-d">Loading&hellip;</p></div>';
+
+  eaKindChanged();
+  eaRenderList();
+}
+
+function eaRenderList(){
+  var inp='padding:10px 12px;border-radius:9px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-size:14px;font-family:inherit';
+  fetchInbox(function(rows){
+    var list=document.getElementById("eaList");
+    if(!rows){ list.innerHTML='<p class="tool-d">Couldn&rsquo;t load the inbox. Check that the doorway is redeployed with the EA Inbox handlers.</p>'; return; }
+    if(!rows.length){ list.innerHTML='<p class="tool-d">Nothing in the inbox yet. Capture something above, or send one from your phone.</p>'; return; }
+
+    rows.sort(function(a,b){ return String(rv(b,'Timestamp')).localeCompare(String(rv(a,'Timestamp'))); });
+    var open = rows.filter(function(r){ var st=String(rv(r,'Status')||'Open'); return st!=='Done'; });
+    var flagged = rows.filter(function(r){ return String(rv(r,'Status'))==='Flagged'; });
+
+    var head='<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px">'
+      +'<div class="tile" style="min-width:140px"><b style="font-size:22px;color:var(--gold)">'+open.length+'</b>'
+      +'<div style="color:var(--muted);font-size:12px">open</div></div>'
+      +(flagged.length?'<div class="tile" style="min-width:140px"><b style="font-size:22px;color:#c98b8b">'+flagged.length+'</b>'
+      +'<div style="color:var(--muted);font-size:12px">needs your eyes</div></div>':'')
+      +'</div>';
+
+    var cards=rows.map(function(r){
+      var status=String(rv(r,'Status')||'Open');
+      var from=String(rv(r,'From')||''), kind=String(rv(r,'Kind')||''), when=rv(r,'When');
+      var opts=INBOX_STATUSES.map(function(x){ return '<option'+(x===status?' selected':'')+'>'+x+'</option>'; }).join('');
+      var flag = status==='Flagged';
+      return '<div class="tile" style="margin-bottom:10px'
+          +(status==='Done'?';opacity:.5':'')
+          +(flag?';border-color:#7d4a4a':'')+'">'
+        +'<div style="display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;align-items:baseline">'
+          +'<div><b>'+esc(from)+'</b> <span class="pill quiet" style="margin-left:4px">'+esc(kind)+'</span>'
+          +' <span style="color:var(--muted);font-size:12px">via '+esc(rv(r,'Channel')||'')+'</span></div>'
+          +'<div style="color:var(--muted);font-size:12px">'+esc(fmtDate(parseTs(String(rv(r,'Timestamp')))))+'</div>'
+        +'</div>'
+        +(when?'<div style="margin-top:6px;font-size:12.5px;color:var(--gold)">📅 '+esc(String(when))+'</div>':'')
+        +'<div style="margin:8px 0;font-size:13.5px;color:var(--ink);white-space:pre-wrap">'+esc(rv(r,'Message'))+'</div>'
+        +(flag?'<div style="font-size:12.5px;color:#c98b8b;margin-bottom:8px">Outside what this sender is authorized to ask for — captured, not acted on.</div>':'')
+        +'<div style="display:flex;justify-content:flex-end">'
+          +'<select onchange="setInboxStatus('+(r._row||0)+',this.value)" style="'+inp+'">'+opts+'</select>'
+        +'</div>'
+      +'</div>';
+    }).join('');
+    list.innerHTML=head+cards;
+  });
+}
+
 /* ---- Requests & Travel — client life/coaching requests in one queue ---- */
 var REQ_STATUSES=['New','In progress','Done'];
 function fetchRequests(cb){
