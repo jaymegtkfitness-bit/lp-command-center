@@ -2671,20 +2671,42 @@ function submitCns(){
 }
 function renderGenForm(){
   g("genForm").innerHTML=
-     '<div class="field"><label>What do you most want your Blueprint to guide?</label>'+mchipsHtml('gen_goal',["Nutrition","Training response","Longevity","Hormones","All of it"])+'</div>'
+     '<p class="wiz-hint" style="margin:0 0 12px">A few questions so your Blueprint maps to <b>you</b> — how your body actually runs, not just your DNA. The more honest, the sharper the read. This isn\'t medical advice; it helps '+esc(CONFIG.coachName)+' personalize your build.</p>'
+    +'<div class="field"><label>What do you most want your Blueprint to guide?</label>'+mchipsHtml('gen_goal',["Nutrition","Training response","Metabolism","Longevity","Hormones","Recovery","All of it"])+'</div>'
+    +'<div class="block"><div class="blocklabel">Inflammation &amp; joints</div>'
+      +'<div class="field"><label>How often do you deal with inflammation, stiffness, or joint pain?</label>'+mchipsHtml('gen_inflammation',["Rarely","Sometimes","Often","Daily"])+'</div>'
+      +'<div class="field" style="margin-bottom:0"><label>Which joints/areas, and any injuries? <span class="hint">(optional)</span></label><textarea class="input" id="gen_joints" rows="2"></textarea></div></div>'
+    +'<div class="block"><div class="blocklabel">Digestion &amp; gut</div>'
+      +'<div class="field"><label>How is your digestion overall?</label>'+mchipsHtml('gen_digestion',["Solid","Occasional issues","Frequent (bloating, irregular)"])+'</div>'
+      +'<div class="field" style="margin-bottom:0"><label>Foods that don\'t sit well, or known sensitivities? <span class="hint">(optional)</span></label><textarea class="input" id="gen_foodsens" rows="2"></textarea></div></div>'
+    +'<div class="block"><div class="blocklabel">Hormones</div>'
+      +'<div class="field"><label>Are you currently on HRT or TRT?</label>'+mchipsHtml('gen_hrt',["No","HRT","TRT","Considering it"])+'</div>'
+      +'<div class="field" style="margin-bottom:0"><label>Any other hormones, peptides, or GLP-1 (tirzepatide, semaglutide, etc.)? <span class="hint">(optional)</span></label><textarea class="input" id="gen_hormones" rows="2"></textarea></div></div>'
+    +'<div class="block"><div class="blocklabel">Energy, sleep &amp; caffeine</div>'
+      +'<div class="field"><label>Daily energy</label>'+mchipsHtml('gen_energy',["Low","Up &amp; down","Steady"])+'</div>'
+      +'<div class="field"><label>Sleep quality</label>'+mchipsHtml('gen_sleep',["Poor","Okay","Good"])+'</div>'
+      +'<div class="field" style="margin-bottom:0"><label>Caffeine per day</label>'+mchipsHtml('gen_caffeine',["None","1","2–3","4+"])+'</div></div>'
+    +'<div class="field"><label>How does your body seem to respond to food?</label>'+mchipsHtml('gen_nutrition',["Better on carbs","Better on higher fat","Both work","Not sure"])+'</div>'
+    +'<div class="field"><label>Current medications &amp; supplements <span class="hint">— what &amp; why</span></label><textarea class="input" id="gen_meds" rows="2"></textarea></div>'
+    +'<div class="field"><label>Relevant family health history</label>'+mchipsHtml('gen_familytags',["Heart disease","Diabetes","Thyroid","Autoimmune","High blood pressure","Cancer","None"])+'<textarea class="input" id="gen_family" rows="2" placeholder="Anything worth flagging (optional)" style="margin-top:8px"></textarea></div>'
     +'<div class="field"><label>Your current health focus</label><textarea class="input" id="gen_focus" rows="2"></textarea></div>'
-    +'<div class="field"><label>Relevant family health history <span class="hint">(optional)</span></label><textarea class="input" id="gen_family" rows="2"></textarea></div>'
     +'<div class="field"><label>Anything else I should know?</label><textarea class="input" id="gen_notes" rows="2"></textarea></div>'
     +'<div class="actions"><button class="btn btn-primary" onclick="submitGenetics()">Submit</button> <span class="status" id="genStatus"></span></div>';
 }
 function showGeneticsSetup(){ renderGenForm(); show("geneticssetup"); }
 function submitGenetics(){
   if(!ID||!ID.email) return;
+  var fam=[mval('gen_familytags'), g('gen_family').value].filter(function(x){return x&&x.trim();}).join(' — ');
   var payload={type:"geneticsintake", email:ID.email, name:ID.name||"", ts:new Date().toISOString(),
-    goal:mval('gen_goal'), focus:g('gen_focus').value, family:g('gen_family').value, notes:g('gen_notes').value};
+    goal:mval('gen_goal'), inflammation:mval('gen_inflammation'), joints:g('gen_joints').value,
+    digestion:mval('gen_digestion'), foodsens:g('gen_foodsens').value,
+    hrt:mval('gen_hrt'), hormones:g('gen_hormones').value,
+    energy:mval('gen_energy'), sleep:mval('gen_sleep'), caffeine:mval('gen_caffeine'),
+    nutrition:mval('gen_nutrition'), meds:g('gen_meds').value,
+    family:fam, focus:g('gen_focus').value, notes:g('gen_notes').value};
   if(CONFIG.writeUrl) postToSheet(payload);
   M.geneticsintake=(M.geneticsintake||[]).concat([{Timestamp:payload.ts}]);
-  var s=g('genStatus'); if(s){ s.textContent="Sent ✓ Your kit ships to the address on your order."; s.style.color="var(--good-tx)"; }
+  var s=g('genStatus'); if(s){ s.textContent="Sent ✓ "+esc(CONFIG.coachName)+" has your details for your Blueprint build."; s.style.color="var(--good-tx)"; }
   setTimeout(showHome, 1400);
 }
 function renderGeneticsCard(){

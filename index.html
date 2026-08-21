@@ -3013,9 +3013,16 @@ function journeyPanel(d, email){
     +'<div style="font-size:13px;margin-bottom:10px">Status: <span class="pill quiet">'+esc(gv)+'</span></div>';
   if(genI){
     h+='<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
-      + jpFld('Goal',genI['Goal']) + jpFld('Health focus',genI['Health focus'])
+      + jpFld('Guide',genI['Goal']) + jpFld('Inflammation',genI['Inflammation']) + jpFld('Digestion',genI['Digestion'])
+      + jpFld('On HRT/TRT',genI['On HRT/TRT']) + jpFld('Energy',genI['Energy']) + jpFld('Sleep',genI['Sleep'])
+      + jpFld('Caffeine',genI['Caffeine']) + jpFld('Nutrition response',genI['Nutrition response'])
       + '</div>'
+      + jpText('Joint health / injuries',genI['Joint health'])
+      + jpText('Food sensitivities',genI['Food sensitivities'])
+      + jpText('Other hormones / peptides / GLP-1',genI['Other hormones/peptides'])
+      + jpText('Meds & supplements',genI['Meds & supplements'])
       + jpText('Family history',genI['Family history'])
+      + jpText('Health focus',genI['Health focus'])
       + jpText('Notes',genI['Notes']);
   } else h+='<div class="tool-d">'+(gv==='none'?'No Genetic Blueprint yet.':'Purchased — no intake submitted yet.')+'</div>';
   h+='</div></div>';
