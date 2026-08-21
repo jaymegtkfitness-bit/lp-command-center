@@ -67,6 +67,23 @@
 .mp-chip{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:6px 14px;font:600 12.5px/1 'Montserrat',sans-serif;cursor:pointer}
 .mp-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
 .mp-meal{padding:11px 0;border-top:1px solid var(--line)}
+/* ===== Awareness Loop (body-as-a-loop) ===== */
+.aw-circle{position:relative;width:min(80vw,300px);aspect-ratio:1;margin:18px auto 6px}
+.aw-circle .ring{position:absolute;inset:0;border-radius:50%;border:2px solid var(--touch-soft)}
+.aw-circle .ring2{position:absolute;inset:0;border-radius:50%;border:2px solid transparent;border-top-color:var(--accent);border-left-color:var(--accent)}
+.aw-mid{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;width:72px}
+.aw-mid .m-arrow{font-size:17px;color:var(--touch);line-height:1}
+.aw-mid .m-lbl{font:600 9px/1.2 'Montserrat',sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-top:4px}
+.aw-node{position:absolute;width:82px;text-align:center}
+.aw-node .an-lbl{font:700 10.5px/1.1 'Montserrat',sans-serif;letter-spacing:.03em;color:var(--ink);text-transform:uppercase}
+.aw-node .an-val{font-family:'Cinzel',serif;font-weight:700;font-size:15px;color:var(--headline);margin-top:2px}
+.aw-node .an-val.good{color:var(--good-tx)} .aw-node .an-val.watch{color:var(--stall-tx)}
+.aw-node .an-sub{font:600 9px/1.15 'Montserrat',sans-serif;color:var(--muted);margin-top:2px}
+.aw-node.n-top{top:14px;left:50%;transform:translateX(-50%)}
+.aw-node.n-bottom{bottom:14px;left:50%;transform:translateX(-50%)}
+.aw-node.n-left{left:2px;top:50%;transform:translateY(-50%)}
+.aw-node.n-right{right:2px;top:50%;transform:translateY(-50%)}
+.aw-legend{font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.5;margin-top:6px}
 .mp-meal:first-child{border-top:none}
 .mp-meal-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .mp-meal-h b{font-size:14.5px;color:var(--headline)}
@@ -405,22 +422,16 @@ select.input{appearance:none}
 
   <!-- ============ ONBOARD ============ -->
   <section id="onboard" class="hidden">
-    <div class="eyebrow">Welcome to your</div>
+    <div class="eyebrow">One last step</div>
     <h1>Legacy Performance Client Dashboard</h1>
-    <p class="sub">Let's set up your dashboard — your home base for check-ins, progress, and your Power Food System. 30 seconds, once on this device.</p>
+    <p class="sub">Your name and the email you signed up with. That's it — takes 10 seconds, once on this device.</p>
     <div class="card">
       <div class="field"><label>Your name</label>
         <input class="input" id="ob_name" placeholder="First and last" autocomplete="name" /></div>
       <div class="field"><label>Your email <span class="hint">— the same email you signed up with</span></label>
         <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
-      <div class="field"><label>Gender</label>
-        <div class="gender" id="ob_gender" data-val="">
-          <button type="button" data-v="man" onclick="pickGender(this)">Male</button>
-          <button type="button" data-v="woman" onclick="pickGender(this)">Female</button>
-        </div>
-      </div>
       <div class="actions">
-        <button class="btn btn-primary" onclick="saveIdentity()">Enter my dashboard</button>
+        <button class="btn btn-primary" onclick="saveIdentity()">Enter my dashboard →</button>
         <div class="status" id="obStatus"></div>
       </div>
     </div>
@@ -498,6 +509,9 @@ select.input{appearance:none}
         <div class="stat"><div class="n" id="stChange">—</div><div class="l">Since start</div></div>
         <div class="stat"><div class="n" id="stTotal">0</div><div class="l">Check-ins</div></div>
       </div>
+
+      <!-- Awareness Loop — your body as one system, at a glance -->
+      <div class="card" id="awCard"><div id="awBox"></div></div>
 
       <div class="actions" style="margin-top:16px">
         <button class="btn btn-primary" onclick="showCheckin()" id="ciCta">Start this week's check-in</button>
@@ -865,17 +879,14 @@ function showClientTab(tab){
 }
 function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; } // palette applies on dashboard entry, not on pick
 function saveIdentity(){
-  var name=g("ob_name").value.trim(), email=g("ob_email").value.trim().toLowerCase(), gender=g("ob_gender").dataset.val, st=g("obStatus");
+  var name=g("ob_name").value.trim(), email=g("ob_email").value.trim().toLowerCase(), st=g("obStatus");
   if(!name){ st.textContent="Add your name to continue."; st.style.color="var(--stall-tx)"; return; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ st.textContent="That email doesn't look right — double-check it."; st.style.color="var(--stall-tx)"; return; }
-  if(!gender){ st.textContent="Pick Male or Female."; st.style.color="var(--stall-tx)"; return; }
-  ID={name:name,email:email,gender:gender}; saveLS(LS_ID, ID);
+  ID={name:name,email:email}; saveLS(LS_ID, ID);
   boot();  // palette applies when the dashboard renders, not now
 }
 function editIdentity(){
-  if(ID){ g("ob_name").value=ID.name; g("ob_email").value=ID.email;
-    Array.from(g("ob_gender").children).forEach(function(b){ b.classList.toggle("on", b.dataset.v===ID.gender); });
-    g("ob_gender").dataset.val=ID.gender||""; }
+  if(ID){ g("ob_name").value=ID.name; g("ob_email").value=ID.email; }
   show("onboard");
 }
 
@@ -1058,6 +1069,7 @@ function renderHome(){
   }
   drawTrend(h);
   drawBiofeedback(h);
+  renderAwarenessCircle(h);
   renderCoachNotes();
   renderPRs();
   renderClientNotes();
@@ -1114,6 +1126,33 @@ function drawBiofeedback(log){
     var last=null; for(var i=series.length-1;i>=0;i--){ if(series[i]!=null){ last=series[i]; break; } }
     return '<div class="bf-row"><span class="bl">'+m[1]+'</span><span>'+sparkline(series)+'</span><span class="bv">'+(last!=null?last:"—")+'</span></div>';
   }).join("")+'<div style="color:var(--muted);font-size:11px;margin-top:8px">Latest rating shown at right · each line is your trend (1–5).</div>';
+}
+
+function renderAwarenessCircle(h){
+  var box=g("awBox"); if(!box) return;
+  var last=(h&&h.length)?h[h.length-1]:null;
+  function avg(keys){ var s=0,n=0; keys.forEach(function(k){ var v=last?last[k]:null; if(v!=null){s+=+v;n++;} }); return n?s/n:null; }
+  function p1(v){ return v==null?null:(Math.round(v*10)/10); }
+  function band(v){ return v==null?"":(v>=3.7?"good":(v>=2.8?"":"watch")); }   // 1–5 biofeedback
+  var sig=avg(["energy","mood","digestion","inflammation"]);   // Signals — how you feel inside
+  var rec=avg(["sleep","recovery"]);                            // Recovery — sleep & bounce-back
+  var cal=last?last.cal:null, pro=last?last.protein:null, steps=last?last.steps:null, wo=last?last.workouts:null;
+  var demo=!last;
+  if(demo){ sig=3.9; rec=3.4; cal=2050; pro=138; steps=8600; wo=3; }
+  var nodes=[
+    {cls:"n-top",    lbl:"Signals",  val:(sig!=null?p1(sig)+" / 5":"—"),                    sub:"how you feel", st:band(sig)},
+    {cls:"n-right",  lbl:"Fuel",     val:(pro!=null?Math.round(pro)+"g":"—"),                sub:(cal!=null?Math.round(cal).toLocaleString()+" cal":"protein"), st:""},
+    {cls:"n-bottom", lbl:"Output",   val:(steps!=null?Math.round(steps).toLocaleString():"—"), sub:(wo!=null?wo+" workouts":"steps / day"), st:""},
+    {cls:"n-left",   lbl:"Recovery", val:(rec!=null?p1(rec)+" / 5":"—"),                    sub:"sleep & bounce-back", st:band(rec)}
+  ];
+  box.innerHTML='<div class="sec-h"><h2>Your Awareness Loop</h2></div>'
+    +'<div class="aw-circle"><div class="ring"></div><div class="ring2"></div>'
+    +'<div class="aw-mid"><div class="m-arrow">↻</div><div class="m-lbl">'+(demo?"sample":"this week")+'</div></div>'
+    + nodes.map(function(n){ return '<div class="aw-node '+n.cls+'"><div class="an-lbl">'+n.lbl+'</div>'
+        +'<div class="an-val'+(n.st?" "+n.st:"")+'">'+n.val+'</div><div class="an-sub">'+n.sub+'</div></div>'; }).join("")
+    +'</div>'
+    +'<div class="aw-legend">Your body runs as a loop. Awareness is seeing all four, not just the scale.'
+    +(demo?'<br><span style="color:var(--muted)">Sample — your numbers fill in as you check in.</span>':'')+'</div>';
 }
 
 function renderCoachNotes(){
