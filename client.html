@@ -156,12 +156,25 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .sec-h::before{content:"";width:4px;height:16px;border-radius:3px;background:var(--touch);flex:none} /* green(men)/gold(women) touch on every section */
 
 /* Stat tiles */
-.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:16px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:15px 12px;text-align:center;position:relative;overflow:hidden}
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 14px;text-align:center;position:relative;overflow:hidden}
 .stat::after{content:"";position:absolute;left:16px;right:16px;bottom:10px;height:2px;border-radius:2px;background:var(--touch-soft)}
-.stat .n{font-family:'Cinzel',serif;font-size:26px;font-weight:600;color:var(--accent);line-height:1}
+.stat .n{font-family:'Cinzel',serif;font-size:33px;font-weight:600;color:var(--accent);line-height:1}
 .stat .n.pos{color:var(--good-tx)} .stat .n.neg{color:var(--stall-tx)}
-.stat .l{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:9px;font-weight:600}
+.stat .l{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:10px;font-weight:600}
+/* Journey hero card (mockup look) — the outer #journeyCard frame is removed; the .jhero IS the card */
+#journeyCard{padding:0;background:transparent;border:none}
+#journeyCard > .sec-h{display:none}
+.jhero{border:1px solid var(--line);border-radius:18px;padding:18px 18px 20px}
+.jtrack{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--parchment);padding:6px 12px;border-radius:999px}
+.jphase{font-family:'Cinzel',serif;font-weight:600;font-size:25px;color:var(--headline);margin-top:13px;line-height:1.1}
+.jsub{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.jbar{height:9px;border-radius:99px;background:rgba(0,0,0,.4);margin-top:15px;overflow:hidden;border:1px solid rgba(0,0,0,.5)}
+.jbar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--rust),var(--gold))}
+.jskill{display:flex;gap:11px;align-items:center;margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}
+.jskill .jtag{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.jskill .jtxt{font-weight:700;font-size:15px;color:var(--headline);margin-top:2px}
+.jgen{margin-top:12px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:13px 15px}
 
 /* Charts */
 .chart svg{width:100%;height:120px;display:block}
@@ -554,6 +567,12 @@ select.input{appearance:none}
       <!-- Onboarding checklist -->
       <div class="card" id="obCard" style="display:none"><div id="obBox"></div></div>
 
+      <!-- Your journey — the hero card, leads the Home screen -->
+      <div class="card" id="journeyCard">
+        <div class="sec-h"><h2>Your Journey</h2></div>
+        <div id="journeyBox"></div>
+      </div>
+
       <!-- Daily Standards — the daily-driver card. Everfit's daily task deep-links to #standards,
            so tapping the task lands them here on their three non-negotiables. Sits at the very top
            because it's the thing they open the dashboard for every single day. -->
@@ -589,11 +608,6 @@ select.input{appearance:none}
         <a class="btn btn-primary" id="bookCallLink" href="#" target="_blank" rel="noopener">Book my call →</a>
       </div>
 
-      <!-- Your journey -->
-      <div class="card" id="journeyCard">
-        <div class="sec-h"><h2>Your Journey</h2></div>
-        <div id="journeyBox"></div>
-      </div>
 
       <!-- Genetic Blueprint (shows once purchased) -->
       <div class="card" id="geneticsCard" style="display:none">
@@ -933,20 +947,27 @@ function showClientTab(tab){
    baseline collector + adjustment engine (see Dashboard-Redesign-Spec.md "Legacy Coach"). */
 function renderCoach(){
   var box=g("ctab-coach"); if(!box) return;
-  var track=(M&&M.intake&&M.intake.track)||"";
+  var it=M&&M.intake, track=(it&&it.track)||"";
+  var inFdn=(typeof inFoundations==='function')?inFoundations():false;
   var cks=(M&&M.checkins)||[], last=cks.length?cks[cks.length-1]:null;
-  var verdict, read;
-  if(!last){
-    verdict="Let's collect your baseline.";
-    read="Five days of tracked calories, protein, steps and sleep. Submit a check-in and I'll set your starting direction.";
+  var rk, verdict, read;
+  if(!it || !it.done){
+    rk="Start here"; verdict="Let's find your starting point.";
+    read="Answer a few questions and I'll set your provisional track — then five days of tracking confirms it.";
+  } else if(inFdn){
+    rk="Right now"; verdict="Collect your baseline.";
+    read="Five days of tracked calories, protein, steps and sleep. Submit a check-in and I'll lock in your track from there.";
+  } else if(!last){
+    rk="Right now"; verdict="Time for your first check-in.";
+    read="Log your week and I'll read the trend and call your next move.";
   } else {
-    verdict="You're on track — keep going.";
-    read="Your latest check-in is in. Hold your numbers where they are; your next check-in decides the move.";
+    rk="Latest read"; verdict="You're on "+track+" — keep going.";
+    read="Your latest check-in is in. Hold your numbers where they are; your next check-in decides the adjustment.";
   }
   var tc = /lean/i.test(track)?'var(--rust)':(/strong/i.test(track)?'var(--blue)':'var(--gold)');
   var h = '<div class="coach-hero"><span class="coach-shield"><img src="shield-navmark.png" alt=""></span>'
         + '<div class="coach-ttl">LP Coach</div><div class="coach-sub">Your plan, read and adjusted &mdash; the way your coach would.</div></div>'
-        + '<div class="card readcard"><div class="rk">This week\'s read</div><div class="verd">'+esc(verdict)+'</div><div class="rtxt">'+esc(read)+'</div></div>';
+        + '<div class="card readcard"><div class="rk">'+esc(rk)+'</div><div class="verd">'+esc(verdict)+'</div><div class="rtxt">'+esc(read)+'</div></div>';
   if(track) h += '<div class="card"><div class="recrow"><div><div class="rlabel">Your track</div><div class="rval">'+esc(track)+'</div></div><span class="tbadge" style="background:'+tc+'">'+esc(track)+'</span></div></div>';
   h += '<button class="btn btn-primary" style="margin-top:8px" onclick="showCheckin()">Submit a check-in</button>';
   box.innerHTML=h;
@@ -2340,7 +2361,7 @@ function isOnProtocol(){ return /^\s*(y|yes|true|1)/i.test(String(M.onProtocol||
 function cadenceLevel(){ var t=String(M.tier||"").toLowerCase(); if(isOneToOne(M.tier)) return 3; if(/built to last|vip/.test(t)) return 2; return 1; }
 function gateTiers(){
   var lvl=cadenceLevel(), mo=g("moCta"), qt=g("qtCta");
-  if(mo) mo.style.display = lvl>=2 ? "" : "none";
+  if(mo) mo.style.display = isOneToOne(M.tier) ? "" : "none";   // Monthly Debrief = 1:1 clients only
   if(qt) qt.style.display = lvl>=3 ? "" : "none";
   var bc=g("bookCallCard");
   if(bc){
@@ -2566,15 +2587,31 @@ function geneticsStatus(){
 }
 function renderJourneyCard(){
   var box=g("journeyBox"); if(!box) return;
-  var cur=journeyStage(), gs=geneticsStatus();
-  var chips=JOURNEY_STAGES.map(function(s,i){
-    var cls=i<cur?"j-done":(i===cur?"j-now":"j-todo");
-    return '<span class="jchip '+cls+'">'+esc(s.k)+'</span>';
-  }).join('<span class="jarrow">→</span>');
-  box.innerHTML='<div class="jsteps">'+chips+'</div>'
-    +'<p class="wiz-hint" style="margin:12px 0 0"><b style="color:var(--accent)">'+esc(JOURNEY_STAGES[cur].k)+':</b> '+esc(JOURNEY_STAGES[cur].d)+'</p>'
-    +'<div class="jgen"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Genetic Blueprint</div>'
+  var it=M.intake, track=(it&&it.track)||'', gs=geneticsStatus();
+  var inFdn=(typeof inFoundations==='function')?inFoundations():false;
+  var tcVar=/lean/i.test(track)?'var(--rust)':(/strong/i.test(track)?'var(--blue)':'var(--gold)');
+  var glow=/lean/i.test(track)?'rgba(154,74,58,.28)':(/strong/i.test(track)?'rgba(74,122,154,.26)':'rgba(193,173,114,.20)');
+  var cks=M.checkins||[];
+  var phase, sub, pct, skillTag, skill;
+  if(!it || !it.done){ phase='Getting set up'; sub='Build your starting point to unlock your track.'; pct=8; }
+  else if(inFdn){
+    var d=Math.min(cks.length,5);
+    phase='Foundations'; sub='Building your baseline · '+d+' of 5 check-ins in'; pct=d/5*100;
+    skillTag='This skill'; skill='Hit your protein floor';
+  } else {
+    var st=journeyStage(); phase=(JOURNEY_STAGES[st]||{}).k||'Active'; sub=(JOURNEY_STAGES[st]||{}).d||'';
+    pct=Math.min((st+1)/JOURNEY_STAGES.length*100,100);
+  }
+  var trackLabel = track ? (track + (/track|diet/i.test(track)?'':' Track')) : '';
+  var h='<div class="jhero" style="background:radial-gradient(120% 150% at 85% 0%,'+glow+',transparent 60%),linear-gradient(150deg,#2a2620,#231f19 60%,var(--surface))">';
+  if(trackLabel) h+='<span class="jtrack" style="background:'+tcVar+'">&#9670; '+esc(trackLabel)+'</span>';
+  h+='<div class="jphase">'+esc(phase)+'</div><div class="jsub">'+esc(sub)+'</div>';
+  h+='<div class="jbar"><i style="width:'+pct.toFixed(0)+'%"></i></div>';
+  if(skill) h+='<div class="jskill"><div><div class="jtag">'+esc(skillTag)+'</div><div class="jtxt">'+esc(skill)+'</div></div></div>';
+  h+='</div>';
+  h+='<div class="jgen"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Genetic Blueprint</div>'
     +'<div style="color:'+gs.color+';font-size:13.5px;font-weight:600;margin-top:2px">'+esc(gs.label)+'</div></div>';
+  box.innerHTML=h;
 }
 function renderPFS(){
   var box=g("pfsBox"), it=M.intake;
