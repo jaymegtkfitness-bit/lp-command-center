@@ -3001,7 +3001,7 @@ function renderWiz(){
   var b="";
   if(step==="about"){
     b+='<div class="wiz-q">Sex <span class="wiz-hint">— used for your calorie math</span></div>'+wizChips("sex",["Male","Female"]);
-    b+='<div class="wiz-two"><div class="field"><label>Age</label><input class="input" type="number" inputmode="numeric" id="w_age" value="'+(WIZ.age||"")+'"></div>'
+    b+='<div class="wiz-two"><div class="field"><label>Date of birth</label><input class="input" type="date" id="w_dob" value="'+(WIZ.dob||"")+'"></div>'
       +'<div class="field"><label>Height</label><div style="display:flex;gap:6px"><input class="input" type="number" inputmode="numeric" id="w_ft" placeholder="ft" value="'+(WIZ.ft||"")+'"><input class="input" type="number" inputmode="numeric" id="w_in" placeholder="in" value="'+(WIZ.inch||"")+'"></div></div></div>';
     b+='<div class="wiz-two"><div class="field"><label>Current weight (lb)</label><input class="input" type="number" inputmode="decimal" id="w_cur" value="'+(WIZ.weight||"")+'"></div>'
       +'<div class="field"><label>Goal weight (lb)</label><input class="input" type="number" inputmode="decimal" id="w_goal" value="'+(WIZ.goalweight||"")+'"></div></div>';
@@ -3040,10 +3040,17 @@ function wizNext(){
   renderWiz(); window.scrollTo(0,0);
 }
 function wizBack(){ if(WIZ_I>0){ WIZ_I--; renderWiz(); window.scrollTo(0,0); } }
+function ageFromDob(s){
+  var d=new Date(s); if(isNaN(d.getTime())) return 0;
+  var now=new Date(), a=now.getFullYear()-d.getFullYear(), m=now.getMonth()-d.getMonth();
+  if(m<0 || (m===0 && now.getDate()<d.getDate())) a--;
+  return (a>0 && a<120) ? a : 0;
+}
 function wizCollect(step){
   if(step==="about"){
     if(!WIZ.sex) return "Pick Male or Female.";
-    WIZ.age=+g("w_age").value; if(!WIZ.age) return "Add your age.";
+    WIZ.dob=g("w_dob").value; if(!WIZ.dob) return "Add your date of birth.";
+    WIZ.age=ageFromDob(WIZ.dob); if(!WIZ.age) return "That date of birth doesn't look right.";
     WIZ.ft=+g("w_ft").value; WIZ.inch=+g("w_in").value||0; WIZ.height=WIZ.ft*12+WIZ.inch; if(!WIZ.ft) return "Add your height.";
     WIZ.weight=parseFloat(g("w_cur").value); if(isNaN(WIZ.weight)) return "Add your current weight.";
     WIZ.goalweight=parseFloat(g("w_goal").value); if(isNaN(WIZ.goalweight)) return "Add your goal weight.";
@@ -3111,11 +3118,12 @@ function wizResult(){
 }
 async function wizSubmit(goDeep){
   var st=g("wizSubStatus"); g("wizDone").disabled=true; st.textContent="Saving your setup…"; st.style.color="var(--muted)";
-  var payload={type:"intake", email:ID.email, ts:new Date().toISOString(), sex:WIZ.sex, age:WIZ.age, height:WIZ.height,
+  var payload={type:"intake", email:ID.email, ts:new Date().toISOString(), sex:WIZ.sex, age:WIZ.age, dob:WIZ.dob||"", height:WIZ.height,
     weight:WIZ.weight, goalweight:WIZ.goalweight, activity:WIZ.activity, track:WIZ.track, signal:WIZ.signal,
     pregnant:WIZ.pregnant||"", diethistory:WIZ.diethistory, fueling:WIZ.fueling, flags:WIZ.flags||[],
     priorities:WIZ.priorities||[], extragoals:WIZ.extragoals||[], interests:WIZ.interests||[], filters:WIZ.filters||[]};
   await postToSheet(payload);
+  if(WIZ.dob) postToSheet({type:"rosterset", field:"DOB", email:ID.email, value:WIZ.dob});   // land DOB on the Roster so the identity gate can verify this member
   var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, weight:WIZ.weight, goalweight:WIZ.goalweight, sex:WIZ.sex, filters:WIZ.filters||[],
     // carried locally so The Read works on this device before the first server round-trip
     age:WIZ.age, height:WIZ.height, activity:WIZ.activity, pregnant:WIZ.pregnant||'', diethistory:WIZ.diethistory||'',
