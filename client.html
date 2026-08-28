@@ -440,20 +440,26 @@ select.input{appearance:none}
 
   <!-- ============ ONBOARD ============ -->
   <section id="onboard" class="hidden">
-    <div class="eyebrow">One last step</div>
+    <div class="eyebrow">Let's get you in</div>
     <h1>Legacy Performance Client Dashboard</h1>
-    <p class="sub">Your name and the email you signed up with. That's it — takes 10 seconds, once on this device.</p>
+    <p class="sub">Confirm it's you. This links you to your coaching and keeps your data yours — 15 seconds, once on this device.</p>
     <div class="card">
-      <div class="field"><label>Your name</label>
-        <input class="input" id="ob_name" placeholder="First and last" autocomplete="name" /></div>
-      <div class="field"><label>Your email <span class="hint">— the same email you signed up with</span></label>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+        <div class="field"><label>First name</label>
+          <input class="input" id="ob_first" placeholder="First" autocomplete="given-name" /></div>
+        <div class="field"><label>Last name</label>
+          <input class="input" id="ob_last" placeholder="Last" autocomplete="family-name" /></div>
+      </div>
+      <div class="field"><label>Date of birth</label>
+        <input class="input" id="ob_dob" type="date" autocomplete="bday" /></div>
+      <div class="field"><label>Email <span class="hint">— the one you signed up with</span></label>
         <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
       <div class="actions">
-        <button class="btn btn-primary" onclick="saveIdentity()">Enter my dashboard →</button>
+        <button class="btn btn-primary" id="obBtn" onclick="verifyMe()">Enter my dashboard →</button>
         <div class="status" id="obStatus"></div>
       </div>
     </div>
-    <p class="foot">Your email is the key that links your check-ins to your coaching. It stays on your device.</p>
+    <p class="foot">We match your name, birthday, and email to your coaching account — so no one else can open your data, and you never get split into two profiles. Not you? <a href="#" onclick="editIdentity();return false;">Start over</a>.</p>
   </section>
 
   <!-- ============ SETUP WIZARD ============ -->
@@ -913,15 +919,46 @@ function showClientTab(tab){
   window.scrollTo(0,0);
 }
 function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; } // palette applies on dashboard entry, not on pick
-function saveIdentity(){
-  var name=g("ob_name").value.trim(), email=g("ob_email").value.trim().toLowerCase(), st=g("obStatus");
-  if(!name){ st.textContent="Add your name to continue."; st.style.color="var(--stall-tx)"; return; }
-  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ st.textContent="That email doesn't look right — double-check it."; st.style.color="var(--stall-tx)"; return; }
-  ID={name:name,email:email}; saveLS(LS_ID, ID);
-  boot();  // palette applies when the dashboard renders, not now
+/* Identity GATE — no typing yourself into existence. Prove it's you (first + last + DOB + email,
+   ALL matching your Roster row) and the server hands back your private token. Stops the
+   new-browser/new-email fork and stops a stranger opening your data. A magic link (?k=) skips this. */
+function verifyMe(){
+  var fn=g("ob_first").value.trim(), ln=g("ob_last").value.trim(),
+      dob=g("ob_dob").value, email=g("ob_email").value.trim().toLowerCase(), st=g("obStatus"), btn=g("obBtn");
+  function fail(m){ st.textContent=m; st.style.color="var(--stall-tx)"; if(btn){ btn.disabled=false; } }
+  if(!fn || !ln) return fail("Enter your first and last name.");
+  if(!dob) return fail("Add your date of birth.");
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("That email doesn't look right — double-check it.");
+  if(!CONFIG.writeUrl){ ID={name:fn+" "+ln, email:email}; saveLS(LS_ID, ID); boot(); return; }   // demo mode (no server)
+  st.textContent="Checking…"; st.style.color="var(--muted)"; if(btn){ btn.disabled=true; }
+  verifyJSONP(fn, ln, dob, email, function(res){
+    if(res && res.ok && res.token){
+      try{ localStorage.setItem(LS_TOKEN, res.token); }catch(e){}
+      TOKEN=res.token; ID={ name:res.name||(fn+" "+ln), email:email }; saveLS(LS_ID, ID);
+      st.textContent="You're in — loading…"; st.style.color="var(--accent)";
+      location.reload();   // boot re-runs on the token path
+    }
+    else if(res && res.reason==='mismatch') fail("Those details don't match what we have. Check your name, birthday, and email — or contact your coach.");
+    else if(res && res.reason==='notfound') fail("We couldn't find that email. Use the one you signed up with, or reach out to your coach.");
+    else if(res && res.reason==='incomplete') fail("Please fill in all four fields.");
+    else fail("Couldn't reach the server — check your connection and try again.");
+  });
+}
+function saveIdentity(){ verifyMe(); }   // legacy alias, in case anything still calls it
+function verifyJSONP(fn, ln, dob, email, cb){
+  var done=false, name="__vf"+Date.now(), s=document.createElement("script");
+  window[name]=function(data){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(data); };
+  s.onerror=function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } };
+  s.src=CONFIG.writeUrl+"?action=verify&firstname="+encodeURIComponent(fn)+"&lastname="+encodeURIComponent(ln)
+        +"&dob="+encodeURIComponent(dob)+"&email="+encodeURIComponent(email)+"&callback="+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } }, 8000);
 }
 function editIdentity(){
-  if(ID){ g("ob_name").value=ID.name; g("ob_email").value=ID.email; }
+  try{ localStorage.removeItem(LS_TOKEN); }catch(e){}
+  TOKEN=null;
+  ["ob_first","ob_last","ob_dob","ob_email"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
+  var st=g("obStatus"); if(st) st.textContent="";
   show("onboard");
 }
 
