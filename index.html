@@ -2383,10 +2383,11 @@ function renderLinks(){
       var email=String(rv(r,'Email')).trim(), token=String(rv(r,'Token')).trim(),
           name=String(rv(r,'Name')).trim()||email, status=String(rv(r,'Status')).trim();
       var link=token?(CLIENT_BASE+"?k="+token):"";
+      var cilink=token?(link+"&view=checkin"):"";
       var cls=/active/i.test(status)?'good':'quiet';
       return '<div class="link-row"><div class="link-who"><span class="link-name">'+esc(name)+'</span>'
         +'<span class="pill '+cls+'">'+esc(status||'—')+'</span><div class="link-email">'+esc(email)+'</div></div>'
-        +(link?('<div class="link-copy"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy link</button></div>')
+        +(link?('<div class="link-copy"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy link</button><button onclick="copyLink(this,\''+esc(cilink)+'\')" title="Opens straight to their weekly check-in form">Check-in link</button></div>')
               :'<div class="tool-d">No token yet — open once, it auto-generates.</div>')+'</div>';
     }).join("");
   });
@@ -2948,7 +2949,8 @@ function journeyPanel(d, email){
     +'<div style="display:flex;gap:8px;flex-wrap:wrap">'+gbtn('none','None')+gbtn('pending','Pending')+gbtn('in','Results in')+'</div></div>';
 
   // their client link
-  if(link) h+='<div class="link-copy" style="max-width:none;margin-bottom:16px"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy their link</button></div>';
+  if(link){ var cilink=link+"&view=checkin";
+    h+='<div class="link-copy" style="max-width:none;margin-bottom:16px"><input readonly value="'+esc(link)+'" onclick="this.select()"><button onclick="copyLink(this,\''+esc(link)+'\')">Copy their link</button><button onclick="copyLink(this,\''+esc(cilink)+'\')" title="Opens straight to their weekly check-in form">Check-in link</button></div>'; }
 
   /* ===== TABBED REFERENCE ZONE — what you look up ===== */
   h+='<div class="jp-tabs" style="display:flex;gap:2px;border-bottom:1px solid var(--line);margin:0 0 14px;flex-wrap:wrap">'

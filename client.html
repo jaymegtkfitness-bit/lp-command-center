@@ -339,6 +339,18 @@ select.input{appearance:none}
 
 .actions{margin-top:18px}
 .status{display:block;text-align:center;margin-top:11px;font-size:13px;min-height:18px}
+/* ===== LITE (free tier) — same URL, membership-gated ===== */
+#liteBanner{display:none}
+.lite #liteBanner{display:block;background:var(--gold);color:#1C1C1C;border-radius:12px;padding:12px 15px;margin:0 0 14px;font-weight:600;text-align:center;line-height:1.4}
+.lite #liteBanner a{color:#1C1C1C;font-weight:800;text-decoration:underline;white-space:nowrap}
+#liteUpsell{display:none}
+.lite #liteUpsell{display:block}
+.lite #ctab-btn-progress,.lite #ctab-btn-wellness{display:none!important}
+.lite #stdCard,.lite #readCard,.lite #awCard,.lite #journeyCard,.lite #geneticsCard,.lite #coachCard,.lite #requestsCard,.lite #bookCallCard,.lite #obCard,.lite #ciCta,.lite #moCta,.lite #qtCta,.lite .stats{display:none!important}
+/* NOTE: #fdnCard (Foundations checklist) is intentionally NOT hidden in LITE — it's the free trial. renderFoundations() shows it once they've set up. */
+.litebox{margin:2px 0 2px}
+.litebox .lk{display:flex;gap:9px;align-items:flex-start;margin:8px 0;color:var(--muted);font-size:14px;line-height:1.4}
+.litebox .lk::before{content:"🔒";opacity:.75;flex:none}
 .hidden{display:none!important}
 .foot{text-align:center;color:var(--muted);font-size:11px;margin-top:26px;line-height:1.6}
 .pill{display:inline-block;background:var(--good-bg);color:var(--good-tx);border-radius:20px;padding:4px 11px;font-size:11px;font-weight:700;letter-spacing:.04em}
@@ -488,6 +500,22 @@ select.input{appearance:none}
 
     <!-- ===== HOME TAB ===== -->
     <div class="ctab-panel" id="ctab-home">
+      <!-- LITE (free tier) banner + upsell — hidden unless #home has class .lite -->
+      <div id="liteBanner">You're on the free plan. <a id="liteBannerLink" href="#" target="_blank" rel="noopener">Unlock your full dashboard →</a></div>
+      <div class="card" id="liteUpsell">
+        <div class="sec-h"><h2>You're on the free trial</h2></div>
+        <p class="empty" style="margin:0 0 10px">You've got your <b>Power Food System</b> and the <b>Foundations checklist</b> to run right now, free. This is a taste of the system. Membership turns on the whole thing:</p>
+        <div class="litebox">
+          <div class="lk">Weekly check-ins and the weekly coaching call</div>
+          <div class="lk">Your progress and weight trends over time</div>
+          <div class="lk">Your Awareness Loop — your whole body at a glance</div>
+          <div class="lk">Your coach's eyes on every check-in</div>
+          <div class="lk">The Everfit app and Cronometer, connected</div>
+        </div>
+        <a class="btn btn-primary" id="liteUpgradeBtn" href="#" target="_blank" rel="noopener" style="margin-top:12px">Join the membership →</a>
+        <p class="empty" style="margin:12px 0 0;font-size:12.5px">Want it all built for you? The <b>Legacy Build</b> — your OS install — sets up your entire system, done for you. Ask about it on your call.</p>
+      </div>
+
       <!-- Onboarding checklist -->
       <div class="card" id="obCard" style="display:none"><div id="obBox"></div></div>
 
@@ -794,6 +822,7 @@ select.input{appearance:none}
 var CONFIG = {
   writeUrl: "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
   coachName: "Jayme",
+  upgradeUrl: "",  // Skool about/upgrade page — where LITE (free) members go to start the $97 membership. "" falls back to the Skool app link.
   completeSystemUrl: "https://dashboard.legacyperformance.co/complete-nutrition-system.html",  // paid Complete Nutrition System build — landing page
   completeSystemPrice: "$497",     // today's price shown on the upsell card
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
@@ -892,7 +921,14 @@ function editIdentity(){
 
 /* ============================ NAVIGATION ============================ */
 function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
-function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); jumpToHash(); }  // theme + reset to Home tab on entry
+function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); applyLite(); jumpToHash(); }  // theme + reset to Home tab on entry
+/* LITE (free tier): same URL, membership-gated. Free members keep the Power Food System + weekly
+   check-in; everything else locks behind the upgrade CTA → Skool. Toggled by M.lite. */
+function applyLite(){
+  var home=g("home"); if(home) home.classList.toggle("lite", !!M.lite);
+  if(M.lite){ var u=CONFIG.upgradeUrl||CONFIG.skoolAppUrl||"#";
+    ["liteBannerLink","liteUpgradeBtn"].forEach(function(id){ var e=g(id); if(e) e.href=u; }); }
+}
 /* Deep links from Everfit's daily task: <dashboard-link>?k=…#standards lands on the Standards card. */
 function jumpToHash(){
   var h=(location.hash||"").replace("#",""); if(!h) return;
@@ -2767,6 +2803,7 @@ function checkSetupParam(){
   var sp=getParam('setup');
   if(sp==='cns') showCnsSetup();          // they just purchased — open the intake even before the Complete flag is flipped
   else if(sp==='genetics') showGeneticsSetup();
+  else if(sp==='checkin' || getParam('view')==='checkin') showCheckin();  // deep-link straight into this week's check-in form
 }
 /* ---- Self-serve meal generator — client edits foods → regenerates their own plan (free, instant) ---- */
 var LS_FOODS="lp_client_foods", LS_MEALPLAN="lp_client_mealplan";
@@ -3059,7 +3096,7 @@ function boot(){
   if(M.checkins.length || M.intake) showHome();  // returning user with data → show now; new users wait for the wizard
   loadClientData(function(server){
     if(server){
-      if(server.active===false){ showLocked(); return; }
+      if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
       buildModel(server);
       if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
     }
@@ -3105,6 +3142,8 @@ function startPreview(){
     +'</div><div class="pv-h" style="border:0;padding-top:6px">'
       +'<button class="pv-alt" onclick="showDeep()">▶ Walk the Deep Read (all blocks)</button> '
       +'<button class="pv-alt" onclick="showWizard()">▶ Walk setup from scratch</button> '
+      +'<button class="pv-alt" onclick="M.lite=true;showHome();">▶ Free member (LITE view)</button> '
+      +'<button class="pv-alt" onclick="M.lite=false;showHome();">▶ Full member (paid view)</button> '
       +'<button class="pv-alt" onclick="M.checkins=[{ts:1,weight:200,cons:85},{ts:2,weight:199,cons:88},{ts:3,weight:199,cons:90},{ts:4,weight:198,cons:86},{ts:5,weight:197,cons:91}];renderRead();showHome();">▶ Show the 5-check-ins-in variant</button>'
     +'</div>';
   document.body.appendChild(bar);
@@ -3142,7 +3181,7 @@ function startPreview(){
         var gsv = /^m/i.test(server.gender||"") ? "man" : (/^f/i.test(server.gender||"") ? "woman" : ((ID&&ID.gender)||"woman"));
         ID = { email:server.email, name:server.name||(ID&&ID.name)||"", gender:gsv };
         saveLS(LS_ID, ID);
-        if(server.active===false){ showLocked(); return; }
+        if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
         buildModel(server);
         if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
       } else if(ID && ID.email){ boot(); }
