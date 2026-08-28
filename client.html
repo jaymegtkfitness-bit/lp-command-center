@@ -26,6 +26,7 @@
   --bg:#1C1C1C; --header-bg:#141310; --surface:#26241f; --surface-2:#302d26;
   --headline:#F2EDE4; --ink:#EAE4D8; --ink-soft:#cfc9bc; --muted:#948d7e; --line:rgba(242,237,228,.10);
   --accent:#C1AD72; --accent-ink:#1C1C1C; --accent-soft:rgba(193,173,114,.16);  /* GOLD primary */
+  --rust:#9A4A3A; --blue:#4A7A9A;   /* semantic track colors — Lean=rust, Strong=blue, Sustain=gold */
   --touch:#8FA97A; --touch-soft:rgba(124,146,104,.20);                          /* GREEN touch */
   --good:#8FA97A; --good-bg:rgba(74,92,62,.30); --good-tx:#a9c090;
   --stall:#cf8b6b; --stall-bg:rgba(180,102,74,.22); --stall-tx:#e0a487;
@@ -50,9 +51,27 @@
   --shadow:0 1px 2px rgba(0,0,0,.25),0 10px 30px rgba(0,0,0,.30);
 }
 /* Tabbed layout + theme picker */
-.ctabs{display:flex;gap:4px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px;margin:18px 0 8px}
-.ctab{flex:1;text-align:center;padding:9px 6px;border-radius:9px;font:600 13px/1 'Montserrat',sans-serif;color:var(--muted);background:transparent;border:none;cursor:pointer;transition:background .15s}
-.ctab.on{background:var(--accent);color:var(--accent-ink)}
+/* Bottom app nav — 5 tabs, LP Coach shield centered; white inactive, gold active; dark bar in every theme (--header-bg stays dark) */
+.ctabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;justify-content:space-around;align-items:flex-end;background:var(--header-bg);border:none;border-top:1px solid var(--line);border-radius:0;padding:9px 6px calc(9px + env(safe-area-inset-bottom));margin:0}
+.ctab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;border-radius:0;font:700 9.5px/1.15 'Montserrat',sans-serif;color:var(--parchment);background:transparent;border:none;cursor:pointer}
+.ctab svg{width:22px;height:22px;stroke:currentColor;fill:none}
+.ctab.on{background:transparent;color:var(--gold)}
+.ctab-coach{position:relative}
+.ctab-coach .navshield{width:44px;height:44px;margin-top:-22px;display:grid;place-items:center;filter:drop-shadow(0 5px 10px rgba(0,0,0,.5))}
+.ctab-coach .navshield img{width:100%;height:100%;object-fit:contain;display:block}
+/* LP Coach panel */
+.coach-hero{text-align:center;padding:6px 0 8px}
+.coach-hero .coach-shield{width:62px;height:62px;display:inline-grid;place-items:center}
+.coach-hero .coach-shield img{width:100%;height:100%;object-fit:contain}
+.coach-hero .coach-ttl{font-family:'Cinzel',serif;font-weight:700;font-size:22px;color:var(--headline);margin-top:6px;letter-spacing:.02em}
+.coach-hero .coach-sub{font-size:12.5px;color:var(--muted);margin-top:3px}
+.readcard .rk{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.readcard .verd{font-family:'Cinzel',serif;font-weight:600;font-size:18px;color:var(--headline);margin-top:8px}
+.readcard .rtxt{font-size:13px;color:var(--ink-soft);margin-top:5px;line-height:1.5}
+.recrow{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.recrow .rlabel{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.recrow .rval{font-weight:700;font-size:15px;color:var(--headline);margin-top:3px}
+.tbadge{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:99px;color:var(--parchment)}
 .ctab-panel.hidden{display:none}
 .themepick{display:flex;gap:12px;align-items:center;margin-top:10px}
 .swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
@@ -126,7 +145,7 @@ header{background:var(--parchment);padding:14px 20px;display:flex;align-items:ce
   border-radius:8px;padding:6px 10px;font-family:inherit;font-size:16px;line-height:1;cursor:pointer}
 
 /* Layout */
-.wrap{max-width:640px;margin:0 auto;padding:20px 18px 64px}
+.wrap{max-width:640px;margin:0 auto;padding:20px 18px 104px}   /* extra bottom room to clear the fixed nav */
 .eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
 h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headline);margin:6px 0 0;line-height:1.15}
 .sub{color:var(--muted);font-size:13px;margin:8px 0 0;line-height:1.6}
@@ -502,13 +521,17 @@ select.input{appearance:none}
     <h1 id="greeting">Welcome back</h1>
     <p class="sub" id="homeSub">Your dashboard updates every time you check in — and it's the same view your coach sees.</p>
 
-    <!-- ===== TAB BAR ===== -->
-    <div class="ctabs">
-      <button class="ctab on" id="ctab-btn-home"      onclick="showClientTab('home')">Home</button>
-      <button class="ctab"    id="ctab-btn-nutrition" onclick="showClientTab('nutrition')">Nutrition</button>
-      <button class="ctab"    id="ctab-btn-progress"  onclick="showClientTab('progress')">Progress</button>
-      <button class="ctab"    id="ctab-btn-wellness"  onclick="showClientTab('wellness')">Wellness</button>
-    </div>
+    <!-- ===== BOTTOM APP NAV ===== -->
+    <nav class="ctabs">
+      <button class="ctab on" id="ctab-btn-home" onclick="showClientTab('home')"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5M5 9.5V20h14V9.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</button>
+      <button class="ctab" id="ctab-btn-nutrition" onclick="showClientTab('nutrition')"><svg viewBox="0 0 24 24"><path d="M12 21c5-3 8-6.5 8-11a5 5 0 00-8-3 5 5 0 00-8 3c0 4.5 3 8 8 11z" stroke-width="1.7" stroke-linejoin="round"/></svg>Nutrition</button>
+      <button class="ctab ctab-coach" id="ctab-btn-coach" onclick="showClientTab('coach')"><span class="navshield"><img src="shield-navmark.png" alt="LP Coach" /></span>Coach</button>
+      <button class="ctab" id="ctab-btn-wellness" onclick="showClientTab('wellness')"><svg viewBox="0 0 24 24"><path d="M10.5 13.5l3-3a4 4 0 015.6 5.6l-4 4a4 4 0 01-5.6 0M13.5 10.5l-3 3a4 4 0 01-5.6-5.6l4-4a4 4 0 015.6 0" stroke-width="1.6" stroke-linecap="round"/></svg>Wellness</button>
+      <button class="ctab" id="ctab-btn-progress" onclick="showClientTab('progress')"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke-width="1.7" stroke-linecap="round"/></svg>Progress</button>
+    </nav>
+
+    <!-- ===== LP COACH TAB ===== -->
+    <div class="ctab-panel hidden" id="ctab-coach"></div>
 
     <!-- ===== HOME TAB ===== -->
     <div class="ctab-panel" id="ctab-home">
@@ -709,15 +732,7 @@ select.input{appearance:none}
       </div>
     </div>
 
-    <!-- ===== FOOTER: theme picker + identity ===== -->
-    <div style="margin-top:18px">
-      <div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Dashboard color</div>
-      <div class="themepick" id="themePick">
-        <button class="swatch" data-theme-val="charcoal"  title="Charcoal" style="background:#1C1C1C" onclick="applyTheme('charcoal',true)"></button>
-        <button class="swatch" data-theme-val="parchment" title="Parchment" style="background:#F2EDE4" onclick="applyTheme('parchment',true)"></button>
-        <button class="swatch" data-theme-val="olive"     title="Olive" style="background:#4A5C3E" onclick="applyTheme('olive',true)"></button>
-      </div>
-    </div>
+    <!-- ===== FOOTER: identity ===== -->
     <div style="margin-top:14px"><button class="btn btn-ghost" onclick="editIdentity()">Update name / email</button></div>
     <p class="foot" id="syncNote"></p>
   </section>
@@ -895,12 +910,7 @@ function saveLS(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e)
 /* ============================ IDENTITY ============================ */
 function loadIdentity(){ try{ return JSON.parse(localStorage.getItem(LS_ID)||"null"); }catch(e){ return null; } }
 /* User-choice color themes (charcoal / parchment / olive) — replaces the old gender-driven palette. */
-function currentTheme(){
-  try{ var t=localStorage.getItem(LS_THEME); if(t) return t; }catch(e){}
-  var gp=(window.ID&&ID.gender)||'';                    // continuity: existing gendered clients keep their look until they pick
-  if(gp==='woman'||gp==='parchment') return 'parchment';
-  return 'charcoal';
-}
+function currentTheme(){ return 'charcoal'; }   // charcoal only — no color options
 function applyTheme(theme, save){
   var t=(theme==='man')?'charcoal':(theme==='woman')?'parchment':theme;
   if(['charcoal','parchment','olive'].indexOf(t)<0) t='charcoal';
@@ -911,12 +921,35 @@ function applyTheme(theme, save){
 function applyGender(gen){ applyTheme(currentTheme()); }   // back-compat shim; theme now drives the palette
 function showClientTab(tab){
   CLIENT_TAB=tab;
-  ["home","nutrition","progress","wellness"].forEach(function(t){
+  ["home","nutrition","coach","progress","wellness"].forEach(function(t){
     var panel=g("ctab-"+t), btn=g("ctab-btn-"+t);
     if(panel) panel.classList.toggle("hidden", t!==tab);
     if(btn) btn.classList.toggle("on", t===tab);
   });
+  if(tab==="coach") renderCoach();
   window.scrollTo(0,0);
+}
+/* LP Coach — the decision surface (v1: the read + your track + submit a check-in). Grows into the
+   baseline collector + adjustment engine (see Dashboard-Redesign-Spec.md "Legacy Coach"). */
+function renderCoach(){
+  var box=g("ctab-coach"); if(!box) return;
+  var track=(M&&M.intake&&M.intake.track)||"";
+  var cks=(M&&M.checkins)||[], last=cks.length?cks[cks.length-1]:null;
+  var verdict, read;
+  if(!last){
+    verdict="Let's collect your baseline.";
+    read="Five days of tracked calories, protein, steps and sleep. Submit a check-in and I'll set your starting direction.";
+  } else {
+    verdict="You're on track — keep going.";
+    read="Your latest check-in is in. Hold your numbers where they are; your next check-in decides the move.";
+  }
+  var tc = /lean/i.test(track)?'var(--rust)':(/strong/i.test(track)?'var(--blue)':'var(--gold)');
+  var h = '<div class="coach-hero"><span class="coach-shield"><img src="shield-navmark.png" alt=""></span>'
+        + '<div class="coach-ttl">LP Coach</div><div class="coach-sub">Your plan, read and adjusted &mdash; the way your coach would.</div></div>'
+        + '<div class="card readcard"><div class="rk">This week\'s read</div><div class="verd">'+esc(verdict)+'</div><div class="rtxt">'+esc(read)+'</div></div>';
+  if(track) h += '<div class="card"><div class="recrow"><div><div class="rlabel">Your track</div><div class="rval">'+esc(track)+'</div></div><span class="tbadge" style="background:'+tc+'">'+esc(track)+'</span></div></div>';
+  h += '<button class="btn btn-primary" style="margin-top:8px" onclick="showCheckin()">Submit a check-in</button>';
+  box.innerHTML=h;
 }
 function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; } // palette applies on dashboard entry, not on pick
 /* Identity GATE — no typing yourself into existence. Prove it's you (first + last + DOB + email,
@@ -3177,7 +3210,7 @@ function previewLoad(i){
   M.intake=it; M.deep=p.deep||{}; DEEP=M.deep;
   M.checkins=p.checkins||[]; M.monthly=[]; M.quarterly=[]; M.notes=[]; M.clientnotes=[]; M.prs=[];
   ID={name:"Preview — "+p.n, email:"preview@legacy.test", gender:it.sex==="Female"?"woman":"man"};
-  applyTheme(it.sex==="Female"?"parchment":"charcoal", false);
+  applyTheme("charcoal", false);   // redesign: charcoal for all
   showHome();
   Array.from(document.querySelectorAll('#pvBar button')).forEach(function(b,j){ b.classList.toggle('on', j===i); });
   var c=computeConstraint(it);
