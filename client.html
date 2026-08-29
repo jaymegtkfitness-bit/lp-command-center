@@ -3805,11 +3805,17 @@ function previewLoad(i){
   var c=computeConstraint(it);
   g("pvNow").textContent = p.n+"  →  fires ["+(c?c.key:"none")+"]";
 }
+function pvToggle(){
+  var b=document.getElementById('pvBar'); if(!b) return;
+  var min=b.classList.toggle('pvmin');
+  document.body.style.paddingBottom = min ? '76px' : '47vh';   // clear the fixed bench so the real bottom nav is usable
+  var t=document.getElementById('pvToggleBtn'); if(t) t.textContent = min ? '▸ show' : '▾ hide (see nav)';
+}
 function startPreview(){
   ID={name:"Preview",email:"preview@legacy.test",gender:"man"};
   buildModel(null);
   var bar=document.createElement("div"); bar.id="pvBar";
-  bar.innerHTML='<div class="pv-h"><b>Preview bench</b> — every constraint, live engine. <span id="pvNow"></span></div>'
+  bar.innerHTML='<div class="pv-h"><b>Preview bench</b> — every constraint, live engine. <span id="pvNow"></span><button id="pvToggleBtn" onclick="pvToggle()" style="float:right;background:none;border:1px solid #C1AD72;color:#C1AD72;border-radius:6px;font-size:10.5px;padding:2px 8px;cursor:pointer">▾ hide (see nav)</button></div>'
     +'<div class="pv-btns">'+PREVIEW_PEOPLE.map(function(p,i){
         return '<button onclick="previewLoad('+i+')"><b>'+esc(p.n)+'</b><span>'+esc(p.d)+'</span></button>'; }).join("")
     +'</div><div class="pv-h" style="border:0;padding-top:6px">'
@@ -3832,6 +3838,8 @@ function startPreview(){
     +'#pvBar .pv-btns button.on{background:#4A5C3E;border-color:#8FA97A}'
     +'#pvBar .pv-alt{background:none;border:1px solid #3d3d30;color:#C1AD72;border-radius:7px;padding:5px 9px;'
     +'font-family:inherit;font-size:11px;cursor:pointer;margin:2px 0}'
+    +'#pvBar.pvmin{left:auto;right:8px;bottom:66px;width:auto;max-height:none;border-radius:10px;border:1px solid #C1AD72;box-shadow:0 4px 18px rgba(0,0,0,.5)}'
+    +'#pvBar.pvmin .pv-btns{display:none}#pvBar.pvmin .pv-h:last-of-type{display:none}#pvBar.pvmin .pv-h{border-bottom:0;white-space:nowrap}'
     +'body{padding-bottom:47vh!important}';
   document.head.appendChild(st);
   previewLoad(0);
