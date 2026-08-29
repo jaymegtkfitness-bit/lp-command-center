@@ -2423,6 +2423,8 @@ function renderStandards(){
   var card=g("stdCard"), box=g("stdBox"), it=M.intake;
   if(!card) return;
   if(!it || !it.done){ card.style.display="none"; return; }
+  // GRADUATION: the Daily Standards checklist is a Foundations-era scaffold — retire it once the arc is done.
+  if(typeof inFoundations==='function' && !inFoundations()){ card.style.display="none"; return; }
   card.style.display="";
   var c=computeConstraint(it), list=computeStandards(it,c), hit=stdDone();
   var n=hit.length, all=(n>=list.length), arc=inFoundations()?FDN_ARC[fdnWeek()-1]:null;
@@ -2803,6 +2805,9 @@ function renderFoundations(){
   var card=g("fdnCard"); if(!card) return;
   var it=M.intake;
   if(!it || !it.pfs){ card.style.display='none'; return; }   // shows once they're set up (have targets)
+  // GRADUATION: once they've completed the Foundations arc, the checklist goes away to keep Home clean.
+  // Their persistent stats (weight, consistency, check-ins, awareness loop, blueprint) stay; targets live in Nutrition.
+  if(typeof inFoundations==='function' && !inFoundations()){ card.style.display='none'; return; }
   var all=FDN_NUMBERS.concat(FDN_STANDARDS), done=all.filter(fdnDone).length, total=all.length;
   card.style.display='';
   var floor=proteinFloor(), c=latestCheckin();
