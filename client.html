@@ -72,6 +72,25 @@
 .recrow .rlabel{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .recrow .rval{font-weight:700;font-size:15px;color:var(--headline);margin-top:3px}
 .tbadge{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:99px;color:var(--parchment)}
+/* Nutrition hero — average-vs-target ring (olive) + protein & water floors */
+#nutHeroCard:has(#nutHeroBox:empty){display:none}
+.nh-ringwrap{display:grid;place-items:center;padding:4px 0 2px}
+.nh-ring{position:relative;width:188px;height:188px;border-radius:50%;display:grid;place-items:center}
+.nh-ring::after{content:"";position:absolute;inset:14px;border-radius:50%;background:var(--surface);border:1px solid var(--line)}
+.nh-inner{position:relative;z-index:1;text-align:center}
+.nh-num{font-family:'Cinzel',serif;font-weight:700;font-size:37px;color:var(--headline);line-height:1;font-variant-numeric:tabular-nums}
+.nh-unit{font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:6px}
+.nh-goal{font-size:12px;color:var(--olive);font-weight:700;margin-top:8px;text-transform:capitalize}
+.nh-delta{display:flex;justify-content:center;gap:8px;margin-top:12px}
+.nh-pill{font-size:11.5px;font-weight:700;padding:5px 11px;border-radius:99px;border:1px solid var(--line);color:var(--ink-soft);background:var(--surface)}
+.nh-pill.good{color:var(--olive);border-color:rgba(110,133,86,.42);background:rgba(110,133,86,.15)}
+.nh-pill.warn{color:var(--gold);border-color:rgba(193,173,114,.42);background:rgba(193,173,114,.12)}
+.nh-cap{font-size:11px;color:var(--muted);text-align:center;margin-top:10px;line-height:1.4}
+.nh-duo{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:14px}
+.nh-mini{background:var(--surface-2);border:1px solid var(--line);border-radius:15px;padding:12px 13px;text-align:center}
+.nh-l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.nh-v{font-family:'Cinzel',serif;font-weight:600;font-size:20px;color:var(--headline);margin-top:5px}
+.nh-v small{font-size:12px;color:var(--muted);font-family:'Montserrat';font-weight:600}
 .ctab-panel.hidden{display:none}
 .themepick{display:flex;gap:12px;align-items:center;margin-top:10px}
 .swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
@@ -633,6 +652,9 @@ select.input{appearance:none}
 
     <!-- ===== NUTRITION TAB ===== -->
     <div class="ctab-panel hidden" id="ctab-nutrition">
+      <!-- Your Numbers — average-vs-target ring + protein & water floors -->
+      <div class="card" id="nutHeroCard"><div class="sec-h"><h2>Your Numbers</h2></div><div id="nutHeroBox"></div></div>
+
       <!-- Power Food System -->
       <div class="card">
         <div class="sec-h"><h2>Your Power Food System</h2></div>
@@ -1222,6 +1244,7 @@ function renderHome(){
   renderGeneticsCard();
   renderRequestsCard();
   renderPFS();
+  renderNutritionHero();
   renderRoadmap();
   renderMealPlan();
   renderCronometer();
@@ -2614,6 +2637,39 @@ function renderJourneyCard(){
   h+='</div>';
   h+='<div class="jgen"><div style="font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)">Genetic Blueprint</div>'
     +'<div style="color:'+gs.color+';font-size:13.5px;font-weight:600;margin-top:2px">'+esc(gs.label)+'</div></div>';
+  box.innerHTML=h;
+}
+/* Nutrition hero — the average-vs-target ring (avg intake from check-ins vs the target),
+   plus the protein floor and the water floor (half bodyweight in oz). Nutrition = olive. */
+function renderNutritionHero(){
+  var box=g("nutHeroBox"); if(!box) return;
+  var it=M.intake;
+  if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }   // only once they have targets
+  var target=Math.round(it.pfs.calories);
+  var avg=avgRecentCal(M.checkins,4);
+  var pfloor=proteinFloor() || (isFinite(it.pfs.protein)?Math.round(it.pfs.protein):null);
+  var goalTxt=it.track||it.goal||'';
+  var cks=M.checkins||[], last=cks.length?cks[cks.length-1]:null;
+  var bw=(last&&last.weight)||it.weight||null, water=bw?Math.round(bw/2):null;
+  var pct, center, unit, deltaHTML;
+  if(avg==null){
+    center=target.toLocaleString(); unit='kcal target'; pct=0;
+    deltaHTML='<div class="nh-cap">Your average lands here once you start checking in — 5 days of data sets your read.</div>';
+  } else {
+    center=Math.round(avg).toLocaleString(); unit='avg kcal / day';
+    var diff=Math.round(avg-target); pct=Math.min(avg/target*100,100);
+    var txt=diff<0?(Math.abs(diff)+' under target'):(diff>0?(diff+' over target'):'on target');
+    deltaHTML='<div class="nh-delta"><span class="nh-pill tgt">Target '+target.toLocaleString()+'</span>'
+      +'<span class="nh-pill '+(diff<=0?'good':'warn')+'">'+txt+'</span></div>';
+  }
+  var ringBg='conic-gradient(var(--olive) 0 '+pct.toFixed(0)+'%, rgba(255,255,255,.07) '+pct.toFixed(0)+'% 100%)';
+  var h='<div class="nh-ringwrap"><div class="nh-ring" style="background:'+ringBg+'"><div class="nh-inner">'
+    +'<div class="nh-num">'+center+'</div><div class="nh-unit">'+unit+'</div>'
+    +(goalTxt?'<div class="nh-goal">'+esc(goalTxt)+'</div>':'')+'</div></div></div>'+deltaHTML
+    +'<div class="nh-duo">'
+    +'<div class="nh-mini"><div class="nh-l">Protein floor</div><div class="nh-v">'+(pfloor||'—')+'<small> g</small></div></div>'
+    +'<div class="nh-mini"><div class="nh-l">Water floor</div><div class="nh-v">'+(water||'—')+'<small> oz</small></div></div>'
+    +'</div>';
   box.innerHTML=h;
 }
 function renderPFS(){
