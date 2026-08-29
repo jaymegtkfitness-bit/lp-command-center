@@ -626,7 +626,15 @@ select.input{appearance:none}
           <div class="lk">The Everfit app and Cronometer, connected</div>
         </div>
         <a class="btn btn-primary" id="liteUpgradeBtn" href="#" target="_blank" rel="noopener" style="margin-top:12px">Join the membership →</a>
-        <p class="empty" style="margin:12px 0 0;font-size:12.5px">Want it all built for you? The <b>Legacy Build</b> — your OS install — sets up your entire system, done for you. Ask about it on your call.</p>
+        <p class="empty" style="margin:12px 0 0;font-size:12.5px">Want it all built for you? The <b>Legacy Performance OS Install</b> sets up your entire system — genetics, nutrition, training — done for you. Ask about it on your call.</p>
+      </div>
+
+      <!-- One-time DOB backfill (existing members without a DOB on file — so the identity gate works for them later) -->
+      <div class="card" id="dobPromptCard" style="display:none">
+        <div class="sec-h"><h2>One quick thing</h2></div>
+        <p class="empty" style="margin:0 0 10px">Add your date of birth so you can always get back into your dashboard — even on a new phone. Takes 5 seconds.</p>
+        <div class="field"><label>Date of birth</label><input class="input" type="date" id="dob_input" autocomplete="bday" /></div>
+        <div class="actions"><button class="btn btn-primary" onclick="saveDob()">Save date of birth</button><div class="status" id="dobStatus"></div></div>
       </div>
 
       <!-- Onboarding checklist -->
@@ -1251,6 +1259,7 @@ function buildModel(server){
   // Built for More auto-qualifies via hasCNS(); until the doorway returns this, only BFM gets CNS.
   M.onProtocol = (server && server.onProtocol!=null) ? String(server.onProtocol) : (M.onProtocol||'');
   M.genetics = (server && server.genetics!=null) ? String(server.genetics) : (M.genetics||'');
+  M.dob = (server && server.dob) ? String(server.dob) : (M.dob||'');
   M.complete = (server && (server.complete!=null ? server.complete : server.cns)) != null
     ? String(server.complete!=null ? server.complete : server.cns) : (M.complete||'');
   // ---- onboarding checklist progress ----
@@ -1297,6 +1306,7 @@ function renderHome(){
   renderStandards();
   renderRead();
   renderJourneyCard();
+  renderDobPrompt();
   renderGeneticsCard();
   renderRequestsCard();
   renderPFS();
@@ -2813,6 +2823,23 @@ function geneticsStatus(){
   if(x.indexOf('in')===0 || x==='complete' || x==='done') return {label:"Complete — your results are in", color:"var(--good-tx)"};
   if(x.indexOf('pend')===0 || x==='ordered')               return {label:"In progress — on the way", color:"var(--accent)"};
   return {label:"Not started — ask your coach about the Genetic Blueprint", color:"var(--muted)"};
+}
+/* One-time DOB backfill — existing members (token-authenticated) whose Roster DOB is blank get a
+   gentle prompt so the name+DOB+email identity gate can verify them later. New members already have
+   DOB from the intake, so they never see this. */
+function renderDobPrompt(){
+  var card=g("dobPromptCard"); if(!card) return;
+  var missing = !M.dob || String(M.dob).trim()==='';
+  card.style.display = (TOKEN && missing) ? '' : 'none';
+}
+async function saveDob(){
+  var v=g("dob_input").value, st=g("dobStatus");
+  if(!v){ st.textContent="Add your date of birth to save."; st.style.color="var(--stall-tx)"; return; }
+  st.textContent="Saving…"; st.style.color="var(--muted)";
+  if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"rosterset", field:"DOB", email:ID.email, value:v});
+  M.dob=v;
+  st.textContent="Saved &#10003; You're all set."; st.style.color="var(--good-tx)";
+  setTimeout(function(){ var c=g("dobPromptCard"); if(c) c.style.display='none'; }, 900);
 }
 function renderJourneyCard(){
   var box=g("journeyBox"); if(!box) return;
