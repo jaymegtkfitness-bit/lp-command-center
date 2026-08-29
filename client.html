@@ -91,6 +91,26 @@
 .nh-l{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700}
 .nh-v{font-family:'Cinzel',serif;font-weight:600;font-size:20px;color:var(--headline);margin-top:5px}
 .nh-v small{font-size:12px;color:var(--muted);font-family:'Montserrat';font-weight:600}
+/* Wellness tiles — the mockup catalog (supplements → Thorne, peptides, consult, phase of life, genetic unlock) */
+#wellnessCard{padding:0;background:transparent;border:none}
+.wkicker{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 2px 10px}
+.wsubh{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 2px 9px}
+.wtile{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:10px}
+.wtile.locked{background:linear-gradient(150deg,#231d19,#1c1b16);border:1px dashed #4a4436}
+.wthumb{width:48px;height:48px;border-radius:12px;flex:none;display:grid;place-items:center;font-weight:800;font-size:12px;color:#12140e}
+.tw-gold{background:linear-gradient(150deg,var(--gold),#9c8a53)}
+.tw-olive{background:linear-gradient(150deg,var(--olive),#3f5233)}
+.tw-blue{background:linear-gradient(150deg,var(--blue),#345566)}
+.tw-rust{background:linear-gradient(150deg,var(--rust),#5e2c22)}
+.wlock{background:var(--surface-2)!important;color:#c26450}
+.wbody{flex:1;min-width:0}
+.wt{font-weight:700;font-size:14px;color:var(--headline)}
+.wt.dim{color:var(--ink-soft)}
+.wd{font-size:11.5px;color:var(--muted);margin-top:1px}
+.wtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--blue);border:1px solid rgba(74,122,154,.5);padding:2px 6px;border-radius:99px;margin-top:4px;display:inline-block}
+.wgo{font-size:11.5px;font-weight:800;color:var(--gold);white-space:nowrap;text-decoration:none}
+.wchev{color:var(--muted);font-size:22px;font-weight:400;line-height:1}
+.wunlock{font-size:10.5px;font-weight:800;color:#c26450;white-space:nowrap}
 .ctab-panel.hidden{display:none}
 .themepick{display:flex;gap:12px;align-items:center;margin-top:10px}
 .swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
@@ -741,11 +761,10 @@ select.input{appearance:none}
 
     <!-- ===== WELLNESS TAB ===== -->
     <div class="ctab-panel hidden" id="ctab-wellness">
-      <!-- Wellness (provider-guided catalog + order request) -->
-      <div class="card" id="wellnessCard">
-        <div class="sec-h"><h2>Wellness</h2></div>
-        <p class="empty" style="margin:0 0 10px">Provider-guided peptides, GLP-1s, and hormones — at cost, no markup. Browse and send your coach an order request; your provider reviews eligibility.</p>
-        <a class="btn btn-primary" id="wellnessLink" href="wellness.html">Browse wellness &amp; request →</a>
+      <!-- Wellness (provider-guided catalog — mockup tiles, on-screen) -->
+      <div id="wellnessCard">
+        <div class="sec-h" style="margin:0 0 10px"><h2>Wellness</h2></div>
+        <div id="wellTilesBox"></div>
       </div>
 
       <!-- Dosing calculator -->
@@ -890,6 +909,7 @@ var CONFIG = {
   completeSystemPrice: "$497",     // today's price shown on the upsell card
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
   bookCallUrl: "https://legacyperformance.co/coaching-call",  // coaching call (Built for More 1:1 / included). "" hides.
+  thorneUrl: "",  // your Thorne dispensary / affiliate link — the supplement tiles link here. "" = placeholder (#).
   onboardCallUrl: "",  // dedicated onboarding-call link (separate workflow — Jayme building it). No fallback: Book button hides until set.
   skoolAppUrl: "https://apps.apple.com/us/app/skool-communities/id6447270545",  // Skool app (iOS)
   skoolAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.skool.skoolcommunities",  // Skool app (Android)
@@ -1232,6 +1252,7 @@ function renderHome(){
   renderPRs();
   renderClientNotes();
   renderRx();
+  renderWellnessTiles();
   var wl=g("wellnessLink"); if(wl) wl.href="wellness.html"+(TOKEN?("?k="+encodeURIComponent(TOKEN)):"");
   renderLog(h);
   renderMonthlyAverages(h);
@@ -1385,6 +1406,29 @@ function drawDoseSyringe(units){
 /* ---- Prescriber notes (client keeps their provider's instructions here) ---- */
 var LS_RX="lp_client_rx";
 function rxLoad(){ try{ return localStorage.getItem(LS_RX)||""; }catch(e){ return ""; } }
+/* Wellness catalog tiles (mockup, on-screen). Supplements link to Thorne (CONFIG.thorneUrl);
+   peptides route to the order-request; the customized stack unlocks with the Genetic Blueprint. */
+function renderWellnessTiles(){
+  var box=g("wellTilesBox"); if(!box) return;
+  var thorne=CONFIG.thorneUrl||'#', orderUrl='wellness.html'+(TOKEN?('?k='+encodeURIComponent(TOKEN)):'');
+  var gv=String(M.genetics||'none').toLowerCase(), genUnlocked=(gv.indexOf('in')===0||gv==='complete'||gv==='done');
+  var pep='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10.5 13.5l3-3a4 4 0 015.6 5.6l-4 4a4 4 0 01-5.6 0M13.5 10.5l-3 3a4 4 0 01-5.6-5.6l4-4a4 4 0 015.6 0" stroke="#12140e" stroke-width="1.7" stroke-linecap="round"/></svg>';
+  var chat='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 15s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01M12 21a9 9 0 100-18 9 9 0 000 18z" stroke="#12140e" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  var heart='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21c5-3 8-6.5 8-11a5 5 0 00-8-3 5 5 0 00-8 3c0 4.5 3 8 8 11z" stroke="#f2ede4" stroke-width="1.6" stroke-linejoin="round"/></svg>';
+  var lock='<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.7"/></svg>';
+  var dna='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 3c0 5 10 5 10 10S7 18 7 21M17 3c0 5-10 5-10 10s10 5 10 8" stroke="#12140e" stroke-width="1.6" stroke-linecap="round"/></svg>';
+  var arrow=' &#8599;';
+  var h='<div class="wkicker">Recommended for your plan</div>';
+  h+='<div class="wtile"><div class="wthumb tw-olive">WHEY</div><div class="wbody"><div class="wt">Whey Isolate</div><div class="wd">Daily protein base</div></div><a class="wgo" href="'+thorne+'" target="_blank" rel="noopener">Thorne'+arrow+'</a></div>';
+  h+='<div class="wtile"><div class="wthumb tw-gold">CREA</div><div class="wbody"><div class="wt">Creatine</div><div class="wd">Foundational &#183; daily</div></div><a class="wgo" href="'+thorne+'" target="_blank" rel="noopener">Thorne'+arrow+'</a></div>';
+  h+='<div class="wtile"><div class="wthumb tw-blue">'+pep+'</div><div class="wbody"><div class="wt">Peptide support</div><span class="wtag">Physician-guided</span></div><a class="wgo" href="'+orderUrl+'">Request &#8594;</a></div>';
+  h+='<div class="wtile"><div class="wthumb tw-gold">'+chat+'</div><div class="wbody"><div class="wt">Book a consultation</div><div class="wd">Talk it through with your coach</div></div><a class="wgo" href="'+(CONFIG.bookCallUrl||'#')+'" target="_blank" rel="noopener">Book &#8594;</a></div>';
+  h+='<div class="wsubh">Phase of Life</div>';
+  h+='<div class="wtile"><div class="wthumb tw-rust">'+heart+'</div><div class="wbody"><div class="wt">Menopause &amp; perimenopause</div><div class="wd">Resources for your season</div></div><span class="wchev">&#8250;</span></div>';
+  if(genUnlocked) h+='<div class="wtile"><div class="wthumb tw-gold">'+dna+'</div><div class="wbody"><div class="wt">Your customized stack</div><div class="wd">Built from your DNA results</div></div><span class="wchev">&#8250;</span></div>';
+  else h+='<div class="wtile locked"><div class="wthumb wlock">'+lock+'</div><div class="wbody"><div class="wt dim">Your customized stack</div><div class="wd">Unlocks with your Genetic Blueprint</div></div><span class="wunlock">Blueprint &#8594;</span></div>';
+  box.innerHTML=h;
+}
 function renderRx(){
   var box=g("rxBox"); if(!box) return;
   var saved=(M&&M.prescriberNote)?M.prescriberNote:rxLoad();
