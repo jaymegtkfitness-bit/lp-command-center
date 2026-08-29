@@ -1130,8 +1130,11 @@ function buildModel(server){
   var ovCal=sin?num(sin['Target calories']):null, ovPro=sin?num(sin['Target protein']):null, ovBy=(sin&&sin['Targets by'])||'';
   var lov=loadLS(LS_TARGETS,"null");
   if((ovCal==null||ovPro==null)&&lov){ if(ovCal==null)ovCal=num(lov.cal); if(ovPro==null)ovPro=num(lov.protein); if(!ovBy)ovBy=lov.by||''; }
-  if(it && it.goalweight){
-    it.pfsBase = computePFS(it, it.track);   // the formula default (used for the "recommended" + maintenance option)
+  if(it && (!isFinite(+it.goalweight) || +it.goalweight<=0) && typeof estimateGoalWeight==='function'){
+    var _est=estimateGoalWeight(it); if(_est){ it.goalweight=_est; it.goalWeightEstimated=true; }   // auto-estimate from height so the numbers always compute
+  }
+  if(it && isFinite(+it.goalweight) && +it.goalweight>0 && (it.pfsBase = computePFS(it, it.track))){
+    // formula default computed above (used for the "recommended" + maintenance option); null pfsBase (bad inputs) skips this whole block
     if(it.track==="Reverse Diet"){          // reverse anchors on ACTUAL intake, not the formula
       var rAvg=avgRecentCal(M.checkins, 3);
       it.pfsBase=macrosFrom(reverseStart(rAvg, it.goalweight), it.pfsBase.protein, it.sex); it.pfsBase.tdee=computeTDEE(it);
@@ -2595,9 +2598,9 @@ function renderJourneyCard(){
   var phase, sub, pct, skillTag, skill;
   if(!it || !it.done){ phase='Getting set up'; sub='Build your starting point to unlock your track.'; pct=8; }
   else if(inFdn){
-    var d=Math.min(cks.length,5);
-    phase='Foundations'; sub='Building your baseline · '+d+' of 5 check-ins in'; pct=d/5*100;
-    skillTag='This skill'; skill='Hit your protein floor';
+    phase='Foundations'; sub='Build your base — lock in your daily fundamentals';
+    pct=cks.length?Math.min(cks.length/5*100,100):6;
+    skillTag='Your fundamentals'; skill='Calories · Protein · Steps · Sleep';
   } else {
     var st=journeyStage(); phase=(JOURNEY_STAGES[st]||{}).k||'Active'; sub=(JOURNEY_STAGES[st]||{}).d||'';
     pct=Math.min((st+1)/JOURNEY_STAGES.length*100,100);
@@ -2615,7 +2618,7 @@ function renderJourneyCard(){
 }
 function renderPFS(){
   var box=g("pfsBox"), it=M.intake;
-  if(!it || !it.pfs){
+  if(!it || !it.pfs || !isFinite(it.pfs.calories) || !isFinite(it.pfs.protein)){   // never render NaN — fall back to the build prompt
     box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Build your starting nutrition targets — takes about 3 minutes.</div>'
       +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="showWizard()">Build my Power Food System →</button></div>';
     return;

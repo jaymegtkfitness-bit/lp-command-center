@@ -25,8 +25,21 @@ function computeTDEE(w){
 
 /* Daily macro targets from a client's numbers + track (the formula DEFAULT, before any override).
    w = {goalweight, sex, weight, height, age, activity}; track = Lean|Strong|Sustain|Reverse Diet. */
+/* Estimate a goal body weight from height + sex (Hamwi ideal body weight) when the member didn't
+   enter one — so the nutrition math always has a number to work from. Coach/client can override. */
+function estimateGoalWeight(w){
+  var h=+w.height;   // inches
+  if(isFinite(h) && h>0){
+    var isF=/^f/i.test(w.sex||'');
+    var lbs = isF ? (100 + 5*(h-60)) : (106 + 6*(h-60));
+    return Math.round(Math.max(90, lbs));
+  }
+  var cw=+w.weight; return (isFinite(cw) && cw>0) ? Math.round(cw) : null;   // last resort: current weight
+}
 function computePFS(w, track){
   var gbw=+w.goalweight;
+  if(!isFinite(gbw) || gbw<=0) gbw=estimateGoalWeight(w);   // auto-estimate from height/sex when not provided
+  if(!isFinite(gbw) || gbw<=0) return null;                 // truly no data at all → caller shows the "build" prompt, never NaN
   var mult={"Lean":15,"Strong":15,"Sustain":15,"Long":15,"Reverse Diet":10}[track]||15;
   var ppl={"Lean":1.0,"Sustain":0.9,"Long":0.9,"Strong":0.8,"Reverse Diet":1.0}[track]||1.0;
   var base=macrosFrom(Math.round(gbw*mult), Math.round(gbw*ppl), w.sex);
