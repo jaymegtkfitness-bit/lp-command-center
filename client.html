@@ -135,6 +135,22 @@
 .ci-unit span.on{background:var(--gold);color:#12140e}
 /* Phase-2 conditional follow-ups — long two-part options stack vertically */
 #ci_phase2{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}
+/* The Build scorecard */
+.bs-stones{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:16px}
+.bs-stone{display:flex;align-items:center;gap:8px;border:1px solid var(--line);border-radius:12px;padding:12px}
+.bs-stone.bs-hit{border-color:var(--good-tx);background:var(--good-bg)}
+.bs-stone.bs-miss{border-color:var(--accent);background:var(--accent-soft)}
+.bs-ic{font-size:15px}
+.bs-nm{font-weight:700;font-size:14px;color:var(--headline)}
+.bs-focus{border:1px solid var(--accent);background:var(--accent-soft);border-radius:14px;padding:14px;margin-bottom:12px}
+.bs-focus.bs-allhit{border-color:var(--good-tx);background:var(--good-bg)}
+.bs-eyebrow{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:8px}
+.bs-h{font-size:16px;font-weight:800;color:var(--headline);margin-bottom:4px}
+.bs-focus p{margin:0}
+.bs-line{display:flex;gap:10px;margin-top:9px}
+.bs-tag{flex:0 0 60px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:3px}
+.bs-line p,.bs-note p{margin:0;font-size:13.5px;color:var(--ink);line-height:1.45}
+.bs-note{display:flex;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:4px;margin-bottom:4px}
 .vchips{display:flex;flex-direction:column;gap:8px}
 .vchips .chip{text-align:left;white-space:normal;line-height:1.35;padding:11px 13px}
 .ctab-panel.hidden{display:none}
@@ -850,8 +866,10 @@ select.input{appearance:none}
           <input class="input" type="number" inputmode="numeric" id="ci_protein" placeholder="e.g. 165" /></div>
         <div class="field"><label>Average steps / day</label>
           <input class="input" type="number" inputmode="numeric" id="ci_steps" placeholder="e.g. 8500" /></div>
-        <div class="field" style="margin-bottom:0"><label>Workouts completed this week</label>
-          <input class="input" type="number" inputmode="numeric" id="ci_workouts" placeholder="e.g. 4" /></div></div>
+        <div class="field"><label>Resistance-training sessions this week <span class="hint" style="text-transform:none;letter-spacing:0">— lifting, not walks</span></label>
+          <input class="input" type="number" inputmode="numeric" id="ci_workouts" placeholder="e.g. 4" /></div>
+        <div class="field" style="margin-bottom:0"><label>Effort in the gym (1–10) <span class="hint" style="text-transform:none;letter-spacing:0">— how hard you pushed, honestly</span></label>
+          <div class="scl wide" id="scl-effort" data-val=""></div></div></div>
       <div class="block" id="ci_measBlock"><div class="blocklabel">Measurements <span class="hint" style="text-transform:none;letter-spacing:0">— optional, log what you take</span><span class="ci-unit" id="ci_unitTog"><span class="on" onclick="ciSetUnit('in')">in</span><span onclick="ciSetUnit('cm')">cm</span></span></div>
         <div class="mgrid">
           <div class="field"><label>Waist</label><input class="input" type="number" inputmode="decimal" id="ci_waist" placeholder="e.g. 34" /></div>
@@ -871,6 +889,14 @@ select.input{appearance:none}
       <div class="actions"><button class="btn btn-primary" onclick="submitCheckin()" id="ciSubmit">Submit check-in</button><div class="status" id="ciStatus"></div></div>
     </div>
     <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+  </section>
+
+  <!-- ============ THE BUILD (end-of-check-in scorecard) ============ -->
+  <section id="buildscore" class="hidden">
+    <div class="eyebrow">This Week's Build</div>
+    <h1>Here's your build.</h1>
+    <p class="sub">The four cornerstones — and the one thing to focus on next.</p>
+    <div class="card"><div id="bsBody"></div></div>
   </section>
 
   <!-- ============ MONTHLY DEBRIEF ============ -->
@@ -980,7 +1006,8 @@ var CONFIG = {
 var MARKERS = [
   ["energy","Energy","Energy"],["sleep","Sleep","Sleep quality"],["acuity","Mental focus","Mental acuity & focus"],
   ["strength","Strength","Strength & performance"],["digestion","Digestion","Digestion"],["hunger","Hunger","Hunger & cravings"],
-  ["libido","Libido","Libido"],["inflammation","Inflammation","Inflammation"],["mood","Mood","Mood & resilience"],["recovery","Recovery","Training recovery"]
+  ["libido","Libido","Libido"],["inflammation","Inflammation","Inflammation"],["mood","Mood","Mood & resilience"],["recovery","Recovery","Training recovery"],
+  ["stress","Stress","Stress"]
 ];
 var CONS = ["Under 60%","60–70%","70–85%","85–95%","95–100%"];
 var DIG_DIR = ["Loose","Normal","Constipated"];   // directional digestion → feeds the suggestion engine (loose vs backed-up = different coaching)
@@ -1113,7 +1140,7 @@ function editIdentity(){
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ ["onboard","home","checkin","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
+function show(idOn){ ["onboard","home","checkin","buildscore","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
 function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); applyLite(); jumpToHash(); }  // theme + reset to Home tab on entry
 /* LITE (free tier): same URL, membership-gated. Free members keep the Power Food System + weekly
    check-in; everything else locks behind the upgrade CTA → Skool. Toggled by M.lite. */
@@ -1630,6 +1657,8 @@ function buildForm(){
     return '<div class="scalerow"><span class="name">'+m[1]+'</span><div class="scl" id="scl-'+m[0]+'" data-val="">'+b+'</div></div>';
   }).join("");
   g("scl-food").innerHTML=Array.from({length:10},function(_,i){return '<button type="button" class="scl-btn" data-v="'+(i+1)+'" onclick="pickScale(this)">'+(i+1)+'</button>';}).join("");
+  g("scl-effort").innerHTML=Array.from({length:10},function(_,i){return '<button type="button" class="scl-btn" data-v="'+(i+1)+'" onclick="pickScale(this)">'+(i+1)+'</button>';}).join("");
+  g("scl-food").dataset.val=""; g("scl-effort").dataset.val="";   // reset persistent scale divs (rebuilding innerHTML doesn't clear data-val)
   g("ci_cons").innerHTML=CONS.map(function(x){return '<button type="button" class="chip" data-v="'+x+'" onclick="pickChip(this)">'+x+'</button>';}).join("");
   g("ci_digdir").innerHTML=DIG_DIR.map(function(x){return '<button type="button" class="chip" data-v="'+x+'" onclick="pickChip(this)">'+x+'</button>';}).join("");
   ["ci_weight","ci_cal","ci_protein","ci_steps","ci_workouts","ci_waist","ci_chest","ci_arm","ci_thigh","ci_calf","ci_victory","ci_focus","ci_notes"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
@@ -1647,50 +1676,148 @@ function pickChip(b){ var p=b.parentNode; Array.from(p.children).forEach(functio
    pillars flag on a low SCORE. Threshold adapts by tenure: ≤3 for the first 6 check-ins, then ≤2.
    Each answer carries a tag → legacy-coach maps tags → the coaching move. Seeded w/ protein + sleep;
    the rest of the questions get authored (brand-engine scoping) and drop into PHASE2_Q. */
+/* Two templates (Jayme's framing):
+   BEHAVIOR pillars — "are you doing it?" → ownership read (rows internal→external, 4v5 = the tell).
+   BIOFEEDBACK pillars — "you're doing it, what's the body saying?" → the options ARE the forks in
+   biofeedback-suggestions.md (one move = no follow-up). Calories is direction-aware (over/under).
+   Every question gets an "Other → type it" escape. Tags → the-build moves + legacy-coach. */
 var PHASE2_Q = {
-  protein: { kind:'number-miss', q:"How did protein go this week?", opts:[
-    {t:"Hitting it — and it's easy", tag:'protein_ok_easy'},
-    {t:"Hitting it, but it's hard to keep up", tag:'protein_ok_hard'},
-    {t:"Trying, but I lack variety / options", tag:'protein_variety'},
-    {t:"Not sure how to get it up", tag:'protein_knowledge'},
-    {t:"Getting it in, but digestion's off", tag:'protein_digestion'},
-    {t:"Honestly, life kept getting in the way", tag:'protein_circumstantial'}
+  protein: { kind:'behavior', q:"Protein came in under — what's closest to what happened?", opts:[
+    {t:"I know how — just didn't make it the priority", tag:'protein_owned'},
+    {t:"Trying, but I run out of ideas / variety", tag:'protein_variety'},
+    {t:"Eating it, but it wrecks my digestion / too full", tag:'protein_barrier'},
+    {t:"My week blew up and I had no plan — on me", tag:'protein_circ'},
+    {t:"It's tough with the food / people around me", tag:'protein_external'}
   ]},
-  sleep: { kind:'biofeedback', q:"Sleep's been rough — what's going on?", opts:[
+  steps: { kind:'behavior', q:"Steps came in low — what's closest?", opts:[
+    {t:"Knew I should — just didn't get them in", tag:'steps_owned'},
+    {t:"Didn't realize how low I actually was", tag:'steps_tracking'},
+    {t:"Pain / desk-bound / weather all week", tag:'steps_barrier'},
+    {t:"Slammed week, no time to walk", tag:'steps_circ'},
+    {t:"Hard with my schedule and everyone's demands", tag:'steps_external'}
+  ]},
+  resistance: { kind:'behavior', q:"Training sessions came in under — what's closest?", opts:[
+    {t:"Knew the plan — just didn't get to the gym", tag:'rt_owned'},
+    {t:"Not sure what to do / plan felt unclear", tag:'rt_knowledge'},
+    {t:"Body's beat up / pain / no recovery", tag:'rt_barrier'},
+    {t:"Travel / no gym access this week", tag:'rt_circ'},
+    {t:"Hard with my schedule and family time", tag:'rt_external'}
+  ]},
+  calories_over: { kind:'behavior', q:"Calories ran over target — what's closest?", opts:[
+    {t:"I know why — a few days got away from me", tag:'cal_owned'},
+    {t:"I'm hungry — hard to stay in the range", tag:'cal_hunger'},
+    {t:"Not really sure where my calories land", tag:'cal_tracking'},
+    {t:"Travel / events / eating out", tag:'cal_circ'},
+    {t:"Hard with how we eat at home", tag:'cal_external'}
+  ]},
+  calories_under: { kind:'behavior', q:"Calories came in under target — what's closest?", opts:[
+    {t:"I just didn't eat enough", tag:'cal_under_owned'},
+    {t:"I get full fast / not that hungry", tag:'cal_under_barrier'},
+    {t:"Not sure how to add without junk", tag:'cal_under_knowledge'},
+    {t:"Nervous about the scale going up", tag:'cal_under_fear'},
+    {t:"Busy — forgot to eat / no time", tag:'cal_under_circ'}
+  ]},
+  tracking: { kind:'meta', q:"Quick one — how'd you log your food this week?", opts:[
+    {t:"Weighed in grams", tag:'track_grams'},
+    {t:"Weighed in ounces", tag:'track_oz'},
+    {t:"AI photo / voice log", tag:'track_ai'},
+    {t:"Eyeballed it", tag:'track_eye'}
+  ]},
+  sleep: { kind:'biofeedback', q:"Sleep's been rough — what's it looking like?", opts:[
     {t:"Not enough hours", tag:'sleep_duration'},
-    {t:"Enough hours, but poor quality", tag:'sleep_quality'},
-    {t:"Stress is keeping me up", tag:'sleep_stress'},
-    {t:"Just a busy season right now", tag:'sleep_circumstantial'}
-  ]}
+    {t:"Enough hours, but not waking rested", tag:'sleep_quality'},
+    {t:"Stress / racing mind keeping me up", tag:'sleep_stress'},
+    {t:"Just a busy season", tag:'sleep_season'}
+  ]},
+  inflammation: { kind:'biofeedback', q:"Feeling inflamed — which is it?", opts:[
+    {t:"Puffy / watery", tag:'infl_puffy'},
+    {t:"Achy / sore", tag:'infl_achy'},
+    {t:"Both", tag:'infl_both'}
+  ]},
+  recovery: { kind:'biofeedback', q:"Recovery's lagging — what's the pattern?", opts:[
+    {t:"Still sore days later", tag:'rec_sore'},
+    {t:"Even light weeks bury me", tag:'rec_buried'},
+    {t:"Just one hard session", tag:'rec_oneoff'}
+  ]},
+  mood: { kind:'biofeedback', q:"Mood took a hit — what pulled you off baseline?", opts:[
+    {t:"A specific event", tag:'mood_event'},
+    {t:"Running on empty (sleep / fuel)", tag:'mood_empty'},
+    {t:"Been building for a while", tag:'mood_building'}
+  ]},
+  stress: { kind:'stress', q:"Stress has been high — where's it coming from?", opts:[
+    {t:"Physical (training / no sleep)", tag:'stress_physical'},
+    {t:"Mental (schedule / overwhelm)", tag:'stress_mental'},
+    {t:"Emotional (fear / low / shame)", tag:'stress_emotional'},
+    {t:"Relational (a person / relationship)", tag:'stress_relational'},
+    {t:"Occupational (work)", tag:'stress_occupational'}
+  ], follow:{ q:"How's it hitting your choices?", opts:[
+    {t:"Eating more", tag:'stress_eatmore'},
+    {t:"Eating less", tag:'stress_eatless'},
+    {t:"Skipping workouts", tag:'stress_skip'},
+    {t:"Holding steady", tag:'stress_steady'}
+  ]}}
 };
 var PHASE2_ACTIVE=false, PHASE2_FLAGS=[];
 function ciThreshold(){ return (M&&M.checkins&&M.checkins.length>=6)?2:3; }   // ≤3 first 6 check-ins, then ≤2
+/* ---- cornerstone targets ---- */
+function stepGoal(){ var it=M.intake,b=it&&it.steps; if(b==='Under 7,500')return 7500; if(b==='7,500–10,000')return 8000; if(b==='10,000+')return 10000; return 8000; }
+function rtTarget(){ var td=String((M.intake&&M.intake.traindays)||''); if(td==='5+')return 5; if(td==='3–4'||td==='3-4')return 3; if(td==='1–2'||td==='1-2')return 2; if(td==='0')return 0; var n=parseInt(td,10); return isNaN(n)?3:n; }
+function calTargetNow(){ var it=M.intake; if(!it)return null; return (it.anchor&&it.anchor.calories)||(it.pfs&&it.pfs.calories)||null; }
+function calMissDirection(cAvg){   // 'over' | 'under' | null — which way is the miss, given the track
+  if(cAvg==null)return null; var it=M.intake,tgt=calTargetNow(); if(!it||!tgt)return null;
+  var slack=Math.max(75,tgt*0.06), over=cAvg>tgt+slack, under=cAvg<tgt-slack, track=it.track||'';
+  if(/reverse/i.test(track)||track==='Strong') return under?'under':null;   // building → under is the miss
+  if(track==='Lean') return over?'over':null;                                // cut → over is the miss
+  if(over)return 'over'; if(under)return 'under'; return null;               // Sustain → either way off
+}
+function consLowFlag(){ var v=(g("ci_cons").dataset.val)||''; return v==='Under 60%'||v==='60–70%'; }
 function checkinFlags(){
-  var thr=ciThreshold(), flags=[], nv=function(id){ var v=parseFloat(g(id).value); return isNaN(v)?null:v; };
-  // number pillars — flag on a miss
-  var floor=(typeof proteinFloor==='function')?proteinFloor():null, pAvg=nv('ci_protein');
-  if(PHASE2_Q.protein && floor && pAvg!=null && pAvg<floor) flags.push('protein');
-  // biofeedback pillars — flag on a low score
-  Object.keys(PHASE2_Q).forEach(function(k){
-    if(PHASE2_Q[k].kind!=='biofeedback') return;
-    var el=g('scl-'+k), v=(el&&el.dataset.val)?+el.dataset.val:null;
-    if(v!=null && v<=thr && flags.indexOf(k)<0) flags.push(k);
+  var thr=ciThreshold(), flags=[];
+  var nv=function(id){ var el=g(id); if(!el)return null; var v=parseFloat(el.value); return isNaN(v)?null:v; };
+  var scl=function(k){ var el=g('scl-'+k); return (el&&el.dataset.val)?+el.dataset.val:null; };
+  // BEHAVIOR cornerstones — flag on a miss
+  var pf=(typeof proteinFloor==='function')?proteinFloor():null, pAvg=nv('ci_protein');
+  if(pf && pAvg!=null && pAvg<pf) flags.push('protein');
+  var cDir=calMissDirection(nv('ci_cal'));
+  if(cDir==='over') flags.push('calories_over'); else if(cDir==='under') flags.push('calories_under');
+  var sGoal=stepGoal(), sAvg=nv('ci_steps'); if(sGoal && sAvg!=null && sAvg<sGoal) flags.push('steps');
+  var rGoal=rtTarget(), wAvg=nv('ci_workouts'); if(rGoal && wAvg!=null && wAvg<rGoal) flags.push('resistance');
+  // ACCURACY gate — calories missed OR consistency low → establish trust in the number
+  if(cDir || consLowFlag()) flags.push('tracking');
+  // BIOFEEDBACK + stress — flag on a low score
+  ['sleep','inflammation','recovery','mood','stress'].forEach(function(k){
+    var v=scl(k); if(v!=null && v<=thr && flags.indexOf(k)<0) flags.push(k);
   });
   return flags;
+}
+function ciP2block(pillar, q, opts, allowOther){
+  var chips=opts.map(function(o){ return '<button type="button" class="chip" data-v="'+o.tag+'" onclick="ciP2pick(this,\''+pillar+'\')">'+esc(o.t)+'</button>'; }).join('');
+  if(allowOther) chips+='<button type="button" class="chip" data-v="'+pillar+'_other" onclick="ciP2pick(this,\''+pillar+'\')">Other…</button>';
+  return '<div class="field"><label>'+esc(q)+'</label><div class="chips vchips" data-pillar="'+pillar+'" data-val="">'+chips+'</div>'
+    +'<input class="input hidden" id="p2o_'+pillar+'" placeholder="Tell me in your words…" style="margin-top:8px" /></div>';
+}
+function ciP2pick(btn, pillar){
+  pickChip(btn);
+  var other=g('p2o_'+pillar); if(!other) return;
+  if(String(btn.dataset.v||'').slice(-6)==='_other'){ other.classList.remove('hidden'); other.focus(); } else other.classList.add('hidden');
 }
 function renderPhase2(flags){
   var box=g("ci_phase2");
   var h='<div class="eyebrow" style="margin-bottom:6px">A couple follow-ups</div>'
-    +'<p class="sub" style="margin:0 0 14px">Only on what flagged this week — so we point you at the right next move.</p>';
+    +'<p class="sub" style="margin:0 0 14px">Only on what flagged this week — so The Build points you at the right next move.</p>';
   flags.forEach(function(k){ var Q=PHASE2_Q[k]; if(!Q) return;
-    h+='<div class="field"><label>'+esc(Q.q)+'</label><div class="chips vchips" data-pillar="'+k+'" data-val="">'
-      +Q.opts.map(function(o){ return '<button type="button" class="chip" data-v="'+o.tag+'" onclick="pickChip(this)">'+esc(o.t)+'</button>'; }).join('')
-      +'</div></div>';
+    h+=ciP2block(k, Q.q, Q.opts, true);
+    if(Q.follow) h+=ciP2block(k+'__f', Q.follow.q, Q.follow.opts, false);
   });
   box.innerHTML=h;
 }
 function collectPhase2(){
-  var tags=[]; Array.prototype.forEach.call(g("ci_phase2").querySelectorAll('.chips[data-pillar]'), function(c){ if(c.dataset.val) tags.push(c.dataset.val); });
+  var tags=[];
+  Array.prototype.forEach.call(g("ci_phase2").querySelectorAll('.chips[data-pillar]'), function(c){
+    var v=c.dataset.val; if(!v) return;
+    if(v.slice(-6)==='_other'){ var inp=g('p2o_'+c.dataset.pillar), t=(inp&&inp.value.trim())||''; tags.push(v+(t?(':'+t):'')); }
+    else tags.push(v);
+  });
   return tags;
 }
 async function submitCheckin(){
@@ -1709,11 +1836,12 @@ async function finalizeCheckin(followTags){
   var food=g("scl-food").dataset.val?+g("scl-food").dataset.val:null;
   var numv=function(id){ var v=parseFloat(g(id).value); return isNaN(v)?null:v; };
   var cal=numv("ci_cal"), protein=numv("ci_protein"), steps=numv("ci_steps"), workouts=numv("ci_workouts");
+  var effort=g("scl-effort").dataset.val?+g("scl-effort").dataset.val:null;
   var digdir=g("ci_digdir").dataset.val||"";
   var meas={}, hasM=false; ["waist","chest","arm","thigh","calf"].forEach(function(k){ var v=numv("ci_"+k); if(v!=null){ meas[k]=v; hasM=true; } });
   var ts=new Date().toISOString();
   var payload={type:"checkin", email:ID.email, ts:ts, weight:weight, food:food, consistency:consistency,
-    avgcal:cal, avgprotein:protein, avgsteps:steps, workouts:workouts, digestiondir:digdir,
+    avgcal:cal, avgprotein:protein, avgsteps:steps, workouts:workouts, effort:effort, digestiondir:digdir,
     followups:(followTags||[]).join(', '),
     victory:g("ci_victory").value, focus:g("ci_focus").value, notes:g("ci_notes").value};
   MARKERS.forEach(function(m){ payload[m[0]]=mk[m[0]]; });
@@ -1721,7 +1849,7 @@ async function finalizeCheckin(followTags){
   var ok=await postToSheet(payload);
   var local=loadLS(LS_LOG,"[]");
   var entry={ts:Date.now(), weight:weight, food:food, cons:consistencyToNum(consistency), consLabel:consistency,
-    cal:cal, protein:protein, steps:steps, workouts:workouts, digdir:digdir, followups:followTags||[],
+    cal:cal, protein:protein, steps:steps, workouts:workouts, effort:effort, digdir:digdir, followups:followTags||[],
     victory:payload.victory, focus:payload.focus, notes:payload.notes};
   MARKERS.forEach(function(m){ entry[m[0]]=mk[m[0]]; });
   local.push(entry); saveLS(LS_LOG, local);
@@ -1736,9 +1864,99 @@ async function finalizeCheckin(followTags){
     ["waist","chest","arm","thigh","calf"].forEach(function(k){ if(meas[k]!=null) mrow[k.charAt(0).toUpperCase()+k.slice(1)]=meas[k]; });
     M.measurements.push(mrow);
   }
-  st.textContent = ok ? "Sent ✓ Your coach can see this week." : "Saved on your device ✓ (syncs when back online).";
-  st.style.color="var(--good-tx)"; g("ciSubmit").disabled=false;
-  setTimeout(showHome, 1300);
+  g("ciSubmit").disabled=false;
+  var grade=gradeBuild({protein:protein, cal:cal, steps:steps, workouts:workouts, effort:effort, cons:consistency, tags:followTags||[]});
+  renderBuildScore(grade, ok);   // → The Build scorecard (its own screen), not straight home
+}
+
+/* ============================ THE BUILD (scorecard) ============================
+   Grades the four cornerstones (protein · calories · steps · resistance = the Load-Bearing Four,
+   constant across all four tracks), celebrates every stone laid, then ONE focus = one mindset +
+   one tactical line for the highest-priority MISS (Jayme's order: protein > calories > steps > RT).
+   Sustaining Four are never graded — one rotating pointer. */
+var BUILD_MOVES = {
+  protein:{ _def:{mind:"Protein is the one that makes every other number easier — lock it first.", tac:"Anchor a palm of protein to every meal. Pick your 3 go-to sources tonight."},
+    protein_owned:{mind:"You already know how — this is a priority call, not a knowledge gap.", tac:"Put protein first on the plate at your two easiest meals. One thing, every day."},
+    protein_variety:{mind:"It's not willpower — it's a menu problem.", tac:"Add 2 new proteins this week (Greek yogurt, a PB2 shake, top sirloin) so it stops getting old."},
+    protein_barrier:{mind:"If it's not sitting right, we work around it — not push through it.", tac:"Shift some protein into a shake and spread it across more meals so nothing's too heavy at once."},
+    protein_circ:{mind:"The week ran you — so next week we plan for the chaos instead of hoping.", tac:"Pre-decide protein for your two hardest days. If-then: if it's a crazy day, then it's a shake + jerky."},
+    protein_external:{mind:"You can't out-discipline a kitchen that isn't set up for you — that's the real work.", tac:"Own one meal fully and hit protein there every day. Start where you have control."}
+  },
+  calories:{ _def:{mind:"We coach the two-week average, not any single day.", tac:"Get back into your target range — check your number at lunch, not at midnight."},
+    cal_owned:{mind:"A couple days doesn't undo a week — we read the average.", tac:"Name the two days that slipped and pre-decide those dinners for next week."},
+    cal_hunger:{mind:"Hungry isn't failure — it's a signal we can work with.", tac:"Push protein and veg volume up first; they fill you for the fewest calories."},
+    cal_tracking:{mind:"You can't steer a number you can't see — accuracy comes before adjustment.", tac:"Weigh your food in grams for 5 days, just to see the real picture."},
+    cal_circ:{mind:"Travel and events aren't the enemy — no plan for them is.", tac:"Pick your order before you arrive. One default meal at the spots you hit most."},
+    cal_external:{mind:"The house eats how the house eats — so we build your plate inside it.", tac:"Keep your protein + veg the same; let the rest of the table be the rest of the table."},
+    cal_under_owned:{mind:"On a reverse, eating enough IS the work — that's the rep.", tac:"Add one anchored snack you don't have to think about — same time, every day."},
+    cal_under_barrier:{mind:"Getting full fast is real — especially on a reverse or with supplementation. We plan around it.", tac:"Use calorie-dense adds (oils, nut butter, a shake) so you get there without more volume."},
+    cal_under_knowledge:{mind:"More food doesn't mean junk food.", tac:"Add calories with quality density — rice, oats, oils, fruit — not a free-for-all."},
+    cal_under_fear:{mind:"The scale ticks up a little on a reverse — that's water and food weight, not fat. We work the average, so there's nothing to fear.", tac:"Add ~50–100 calories this week and keep weighing 3x. Watch the trend, not the day."},
+    cal_under_circ:{mind:"Forgetting to eat is a systems gap, not a discipline one.", tac:"Set two eat-times as alarms. Make the food boring and ready so it just happens."}
+  },
+  steps:{ _def:{mind:"Steps are the quiet lever — they move the needle without touching your food.", tac:"Add one 10-minute walk after a meal. That's the whole assignment."},
+    steps_owned:{mind:"Nothing complicated here — just the reps.", tac:"One post-meal walk, same meal each day, until it's automatic."},
+    steps_tracking:{mind:"You can't manage what you don't see.", tac:"Watch your step count for 3 days — awareness alone usually pulls it up."},
+    steps_barrier:{mind:"If getting out is the problem, we bring the steps inside.", tac:"A walking pad during calls, or 3 short indoor walks — stack them, don't force one big one."},
+    steps_circ:{mind:"When the day owns you, we steal steps instead of scheduling them.", tac:"Park farther, take the stairs, walk one call — no separate 'workout' needed."},
+    steps_external:{mind:"You don't need a free hour — you need a few stolen minutes.", tac:"Two 5-minute walks between obligations beats one you never get to."}
+  },
+  resistance:{ _def:{mind:"Lifting is what tells your body to keep the muscle while you lose the fat.", tac:"Get your sessions in — even a 30-minute version beats a skipped one."},
+    rt_owned:{mind:"You know the plan — this is a scheduling win, not a training problem.", tac:"Put your sessions in the calendar as appointments you don't cancel."},
+    rt_knowledge:{mind:"Confusion kills consistency — let's make it obvious.", tac:"Open Everfit and just run the next assigned session. No decisions required."},
+    rt_barrier:{mind:"Beat-up isn't lazy — it's a recovery signal.", tac:"Ease the volume this week, hit the essentials, and prioritize protein + sleep to bounce back."},
+    rt_circ:{mind:"Access changed — the standard didn't.", tac:"Have a no-gym backup: a 20-minute hotel-room or bodyweight session you can run anywhere."},
+    rt_external:{mind:"The gym competes with real life — so we shrink it to fit.", tac:"Book two 30-minute sessions like meetings. Short and kept beats long and skipped."}
+  }
+};
+function buildMove(key, tags){
+  var m=BUILD_MOVES[key]||{}, pick=m._def;
+  (tags||[]).forEach(function(raw){ var tg=String(raw).split(':')[0]; if(m[tg]) pick=m[tg]; });
+  return {key:key, mind:pick.mind, tac:pick.tac};
+}
+var SUSTAIN_NOTES = [
+  {p:"Hydration", n:"Water to your floor — about half your bodyweight in ounces. More isn't better; sip through the day, don't flood."},
+  {p:"Rest", n:"You need ~10 hours of rest per 24. If 8 are sleep, find 2 restful — a book, a walk, a movie with people you love."},
+  {p:"Stress", n:"Every dose of stress needs a dose of rest. Try a 5-minute breather today — 4 counts in, 4 counts out."},
+  {p:"Sleep", n:"Quality lives in the 2 hours before bed: screens off, a warm shower, water front-loaded earlier in the day."},
+  {p:"Connection", n:"Who did you pour into this week? One real conversation does more for recovery than most people think."},
+  {p:"Rest", n:"Put your Sabbath on the calendar like a meeting. Rest you plan for is rest you actually take."},
+  {p:"Stress", n:"Bonus recovery if you've got it: a sauna, a cold plunge, or 10 quiet minutes of nothing."}
+];
+function sustainNote(){ var i=(M&&M.checkins?M.checkins.length:0)%SUSTAIN_NOTES.length; return SUSTAIN_NOTES[i]; }
+function gradeBuild(v){
+  var pf=(typeof proteinFloor==='function')?proteinFloor():null, tgt=calTargetNow(), sGoal=stepGoal(), rGoal=rtTarget();
+  var cDir=calMissDirection(v.cal);
+  var stt=function(hit){ return hit==null?'na':(hit?'hit':'miss'); };
+  var stones=[
+    {key:'protein',   label:'Protein',  status:stt((pf==null||v.protein==null)?null:(v.protein>=pf))},
+    {key:'calories',  label:'Calories', status:stt((tgt==null||v.cal==null)?null:(cDir==null))},
+    {key:'steps',     label:'Steps',    status:stt((sGoal==null||v.steps==null)?null:(v.steps>=sGoal))},
+    {key:'resistance',label:'Training', status:stt((!rGoal||v.workouts==null)?null:(v.workouts>=rGoal))}
+  ];
+  var order=['protein','calories','steps','resistance'], focusKey=null;
+  for(var i=0;i<order.length;i++){ var s=stones.filter(function(x){return x.key===order[i];})[0]; if(s&&s.status==='miss'){ focusKey=order[i]; break; } }
+  return { stones:stones, focus:focusKey?buildMove(focusKey, v.tags):null, allHit:stones.every(function(s){return s.status!=='miss';}) };
+}
+function renderBuildScore(grade, sent){
+  var icon={hit:'✅',miss:'🎯',na:'—'};
+  var h='<div class="bs-stones">'+grade.stones.map(function(s){
+      return '<div class="bs-stone bs-'+s.status+'"><span class="bs-ic">'+icon[s.status]+'</span><span class="bs-nm">'+s.label+'</span></div>';
+    }).join('')+'</div>';
+  if(grade.allHit){
+    h+='<div class="bs-focus bs-allhit"><div class="bs-h">All four cornerstones — laid.</div><p>That\'s a complete build. This is exactly how it\'s done — keep stacking weeks like this one.</p></div>';
+  } else if(grade.focus){
+    var lbl=grade.stones.filter(function(s){return s.key===grade.focus.key;})[0].label;
+    h+='<div class="bs-focus"><div class="bs-eyebrow">This week\'s focus · '+esc(lbl)+'</div>'
+      +'<div class="bs-line"><span class="bs-tag">Mindset</span><p>'+esc(grade.focus.mind)+'</p></div>'
+      +'<div class="bs-line"><span class="bs-tag">Do this</span><p>'+esc(grade.focus.tac)+'</p></div></div>';
+  }
+  var note=sustainNote();
+  h+='<div class="bs-note"><span class="bs-tag">'+esc(note.p)+'</span><p>'+esc(note.n)+'</p></div>';
+  h+='<div class="actions" style="margin-top:14px"><button class="btn btn-primary" onclick="showHome()">Done — back home</button>'
+    +'<div class="status" style="color:var(--good-tx);margin-top:8px">'+(sent?'Sent ✓ your coach can see this week.':'Saved on your device ✓ (syncs when back online).')+'</div></div>';
+  g("bsBody").innerHTML=h;
+  show("buildscore");
 }
 
 /* ============================ MONTHLY DEBRIEF ============================ */
