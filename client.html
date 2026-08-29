@@ -3849,7 +3849,51 @@ function startPreview(){
   previewLoad(0);
 }
 
+/* ============================ DEMO MODE (?demo=1 / ?rachel=1) ============================
+   Jayme's personal all-access preview: the REAL client app, no dev bench, every surface lit up
+   (CNS + meal plan, genetics, peptides, menopause lens, full check-in). Installable to the home
+   screen as its own app. Nothing here persists to the device; it rebuilds fresh every load. */
+function demoBoot(){
+  buildModel(null);
+  var now=Date.now(), day=86400000;
+  var it={ done:true, signal:"clear", sex:"Female", age:47, height:65, weight:171, goalweight:150,
+    activity:"Active", track:"Lean", steps:"7,500–10,000", trackingexp:"A little, not consistently",
+    trainloc:"Home / garage", traindays:"3–4", pregnant:"No", diethistory:"3+ years",
+    fueling:"Eating pretty little — restricting", filters:[], priorities:["Lean","Strong","Long"],
+    extragoals:["More energy","Mental clarity"], interests:["Peptides","Genetic testing"],
+    flagsRaw:"Lost weight before, then hit a wall where nothing moved" };
+  it.pfsBase=computePFS(it,it.track); it.anchor=it.pfsBase; it.pfs=it.pfsBase; it.phaseIdx=0;
+  M.intake=it;
+  M.deep={ deepdone:"Yes", constraint:"Life stage", constraintkey:"lifestage",
+    inway:"My body doesn't respond the way it used to",
+    whynow:"My daughter's wedding is in the spring and I want to feel like myself again.",
+    cyclestatus:"Perimenopause", cycleaccount:"Yes", cyclesym:["Cravings","The scale jumps","Mood"],
+    menosym:["Night sweats","2am wake-ups","Brain fog","Joint aches"], symimpact:3,
+    coachstyle:"Steady — guide me and adjust as we go", readiness:"8" };
+  DEEP=M.deep;
+  var pf=proteinFloor()||135;
+  M.checkins=[0,1,2,3].map(function(i){
+    return { ts:now-(3-i)*7*day, weight:+(171-i*0.9).toFixed(1), cons:80+i*4, consLabel:"85–95%",
+      cal:it.pfs.calories-40+i*15, protein:pf-18+i*7, steps:8200+i*300, workouts:3, effort:7,
+      digdir:"Normal", food:7, energy:3+(i%2), sleep:3, acuity:3, strength:4, digestion:4,
+      hunger:3, libido:3, inflammation:3, mood:3+(i%2), recovery:4, stress:3, followups:[] };
+  });
+  M.measurements=[0,2].map(function(i){ return { Timestamp:new Date(now-(3-i)*7*day).toISOString(),
+    Weight:+(171-i*0.9).toFixed(1), Waist:+(34-i*0.4).toFixed(1), Hip:41, Units:"in" }; });
+  M.lite=false; M.tier="Built for More"; M.complete="Yes"; M.onProtocol="Yes"; M.genetics="in";
+  M.geneticsintake=[{Timestamp:new Date(now-30*day).toISOString()}];
+  M.mealplan={ title:"Rachel — Lean Phase", note:"Built around your favorites. Protein anchors every meal.", ts:now,
+    days:[ {day:1,label:"Everyday",meals:[
+      {name:"Breakfast",items:["3 eggs + 2 egg whites","1 cup berries","black coffee"],cal:340,protein:32,carbs:18,fat:16},
+      {name:"Lunch",items:["6 oz chicken","1 cup jasmine rice","big salad + olive oil"],cal:520,protein:45,carbs:52,fat:16},
+      {name:"Snack",items:["Greek yogurt","1 scoop protein","1 apple"],cal:280,protein:34,carbs:30,fat:4},
+      {name:"Dinner",items:["6 oz salmon","roasted potatoes","asparagus"],cal:560,protein:42,carbs:44,fat:22} ]} ] };
+  ID={ name:"Rachel", email:"rachel@demo.legacy", gender:"woman" };
+  serverOk=true; applyTheme("charcoal", false); showHome();
+}
 (function(){
+  // ?demo=1 (or ?rachel=1) → Jayme's all-access preview app. Clean, no dev bench, everything unlocked.
+  if(getParam('demo') || getParam('rachel')){ demoBoot(); return; }
   // ?fresh=1 → wipe this device's saved data and start a brand-new experience (for testing/demos).
   if(getParam('fresh')){ try{ ['lp_client_id','lp_client_token','lp_client_log','lp_client_pr','lp_client_note','lp_client_monthly','lp_client_quarterly','lp_client_intake','lp_client_deep'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} }
   // ?preview=1 → the constraint-engine test bench. Never renders without the flag, so a real client
