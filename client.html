@@ -133,6 +133,10 @@
 .ci-unit{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden;font-size:11px;float:right}
 .ci-unit span{padding:4px 11px;font-weight:800;color:var(--muted);cursor:pointer}
 .ci-unit span.on{background:var(--gold);color:#12140e}
+/* Phase-2 conditional follow-ups — long two-part options stack vertically */
+#ci_phase2{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}
+.vchips{display:flex;flex-direction:column;gap:8px}
+.vchips .chip{text-align:left;white-space:normal;line-height:1.35;padding:11px 13px}
 .ctab-panel.hidden{display:none}
 .themepick{display:flex;gap:12px;align-items:center;margin-top:10px}
 .swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
@@ -843,6 +847,7 @@ select.input{appearance:none}
       <div class="field"><label>One non-scale victory this week</label><input class="input" id="ci_victory" placeholder="More energy, better sleep, hit the gym 4x…" /></div>
       <div class="field"><label>One thing you'll focus on next week</label><input class="input" id="ci_focus" placeholder="Protein at breakfast, walk after dinner…" /></div>
       <div class="field"><label>Anything else your coach should know? <span class="hint">(optional)</span></label><textarea class="input" id="ci_notes" rows="2"></textarea></div>
+      <div id="ci_phase2" class="hidden"></div>
       <div class="actions"><button class="btn btn-primary" onclick="submitCheckin()" id="ciSubmit">Submit check-in</button><div class="status" id="ciStatus"></div></div>
     </div>
     <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
@@ -1607,6 +1612,7 @@ function buildForm(){
   g("ci_digdir").innerHTML=DIG_DIR.map(function(x){return '<button type="button" class="chip" data-v="'+x+'" onclick="pickChip(this)">'+x+'</button>';}).join("");
   ["ci_weight","ci_cal","ci_protein","ci_steps","ci_workouts","ci_waist","ci_chest","ci_arm","ci_thigh","ci_calf","ci_victory","ci_focus","ci_notes"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
   CI_UNIT='in'; var ut=g("ci_unitTog"); if(ut){ Array.from(ut.children).forEach(function(s,i){ s.classList.toggle("on", i===0); }); }
+  PHASE2_ACTIVE=false; PHASE2_FLAGS=[]; var p2=g("ci_phase2"); if(p2){ p2.innerHTML=''; p2.classList.add("hidden"); } g("ciSubmit").textContent="Submit check-in";
   g("ciStatus").textContent="";
 }
 var CI_UNIT='in';
@@ -1614,9 +1620,69 @@ function ciSetUnit(u){ CI_UNIT=u; var ut=g("ci_unitTog"); if(ut) Array.from(ut.c
 function pickScale(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; }
 function pickChip(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; }
 
+/* ---- Phase-2 conditional follow-ups (the two-part outcome × reason questions) ------------------
+   Only the flagged pillars get a follow-up. Number pillars (protein) flag on a MISS; biofeedback
+   pillars flag on a low SCORE. Threshold adapts by tenure: ≤3 for the first 6 check-ins, then ≤2.
+   Each answer carries a tag → legacy-coach maps tags → the coaching move. Seeded w/ protein + sleep;
+   the rest of the questions get authored (brand-engine scoping) and drop into PHASE2_Q. */
+var PHASE2_Q = {
+  protein: { kind:'number-miss', q:"How did protein go this week?", opts:[
+    {t:"Hitting it — and it's easy", tag:'protein_ok_easy'},
+    {t:"Hitting it, but it's hard to keep up", tag:'protein_ok_hard'},
+    {t:"Trying, but I lack variety / options", tag:'protein_variety'},
+    {t:"Not sure how to get it up", tag:'protein_knowledge'},
+    {t:"Getting it in, but digestion's off", tag:'protein_digestion'},
+    {t:"Honestly, life kept getting in the way", tag:'protein_circumstantial'}
+  ]},
+  sleep: { kind:'biofeedback', q:"Sleep's been rough — what's going on?", opts:[
+    {t:"Not enough hours", tag:'sleep_duration'},
+    {t:"Enough hours, but poor quality", tag:'sleep_quality'},
+    {t:"Stress is keeping me up", tag:'sleep_stress'},
+    {t:"Just a busy season right now", tag:'sleep_circumstantial'}
+  ]}
+};
+var PHASE2_ACTIVE=false, PHASE2_FLAGS=[];
+function ciThreshold(){ return (M&&M.checkins&&M.checkins.length>=6)?2:3; }   // ≤3 first 6 check-ins, then ≤2
+function checkinFlags(){
+  var thr=ciThreshold(), flags=[], nv=function(id){ var v=parseFloat(g(id).value); return isNaN(v)?null:v; };
+  // number pillars — flag on a miss
+  var floor=(typeof proteinFloor==='function')?proteinFloor():null, pAvg=nv('ci_protein');
+  if(PHASE2_Q.protein && floor && pAvg!=null && pAvg<floor) flags.push('protein');
+  // biofeedback pillars — flag on a low score
+  Object.keys(PHASE2_Q).forEach(function(k){
+    if(PHASE2_Q[k].kind!=='biofeedback') return;
+    var el=g('scl-'+k), v=(el&&el.dataset.val)?+el.dataset.val:null;
+    if(v!=null && v<=thr && flags.indexOf(k)<0) flags.push(k);
+  });
+  return flags;
+}
+function renderPhase2(flags){
+  var box=g("ci_phase2");
+  var h='<div class="eyebrow" style="margin-bottom:6px">A couple follow-ups</div>'
+    +'<p class="sub" style="margin:0 0 14px">Only on what flagged this week — so we point you at the right next move.</p>';
+  flags.forEach(function(k){ var Q=PHASE2_Q[k]; if(!Q) return;
+    h+='<div class="field"><label>'+esc(Q.q)+'</label><div class="chips vchips" data-pillar="'+k+'" data-val="">'
+      +Q.opts.map(function(o){ return '<button type="button" class="chip" data-v="'+o.tag+'" onclick="pickChip(this)">'+esc(o.t)+'</button>'; }).join('')
+      +'</div></div>';
+  });
+  box.innerHTML=h;
+}
+function collectPhase2(){
+  var tags=[]; Array.prototype.forEach.call(g("ci_phase2").querySelectorAll('.chips[data-pillar]'), function(c){ if(c.dataset.val) tags.push(c.dataset.val); });
+  return tags;
+}
 async function submitCheckin(){
   var weight=parseFloat(g("ci_weight").value), consistency=g("ci_cons").dataset.val, st=g("ciStatus");
   if(isNaN(weight)||!consistency){ st.textContent="Add your weight and consistency to submit."; st.style.color="var(--stall-tx)"; return; }
+  if(!PHASE2_ACTIVE){
+    var _flags=checkinFlags();
+    if(_flags.length){ PHASE2_FLAGS=_flags; renderPhase2(_flags); g("ci_phase2").classList.remove("hidden"); PHASE2_ACTIVE=true;
+      g("ciSubmit").textContent="Submit check-in"; g("ci_phase2").scrollIntoView({block:"start",behavior:"smooth"}); return; }
+  }
+  return finalizeCheckin(PHASE2_ACTIVE?collectPhase2():[]);
+}
+async function finalizeCheckin(followTags){
+  var weight=parseFloat(g("ci_weight").value), consistency=g("ci_cons").dataset.val, st=g("ciStatus");
   var mk={}; MARKERS.forEach(function(m){ var el=g("scl-"+m[0]); mk[m[0]]=el&&el.dataset.val?+el.dataset.val:null; });
   var food=g("scl-food").dataset.val?+g("scl-food").dataset.val:null;
   var numv=function(id){ var v=parseFloat(g(id).value); return isNaN(v)?null:v; };
@@ -1626,13 +1692,14 @@ async function submitCheckin(){
   var ts=new Date().toISOString();
   var payload={type:"checkin", email:ID.email, ts:ts, weight:weight, food:food, consistency:consistency,
     avgcal:cal, avgprotein:protein, avgsteps:steps, workouts:workouts, digestiondir:digdir,
+    followups:(followTags||[]).join(', '),
     victory:g("ci_victory").value, focus:g("ci_focus").value, notes:g("ci_notes").value};
   MARKERS.forEach(function(m){ payload[m[0]]=mk[m[0]]; });
   st.textContent="Sending to your coach…"; st.style.color="var(--muted)"; g("ciSubmit").disabled=true;
   var ok=await postToSheet(payload);
   var local=loadLS(LS_LOG,"[]");
   var entry={ts:Date.now(), weight:weight, food:food, cons:consistencyToNum(consistency), consLabel:consistency,
-    cal:cal, protein:protein, steps:steps, workouts:workouts, digdir:digdir,
+    cal:cal, protein:protein, steps:steps, workouts:workouts, digdir:digdir, followups:followTags||[],
     victory:payload.victory, focus:payload.focus, notes:payload.notes};
   MARKERS.forEach(function(m){ entry[m[0]]=mk[m[0]]; });
   local.push(entry); saveLS(LS_LOG, local);
