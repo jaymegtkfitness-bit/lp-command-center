@@ -111,6 +111,23 @@
 .wgo{font-size:11.5px;font-weight:800;color:var(--gold);white-space:nowrap;text-decoration:none}
 .wchev{color:var(--muted);font-size:22px;font-weight:400;line-height:1}
 .wunlock{font-size:10.5px;font-weight:800;color:#c26450;white-space:nowrap}
+/* Progress hero — read-only metric selector + trend chart */
+.ph-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ph-ttl{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted);font-weight:700}
+.ph-unit{display:inline-flex;border:1px solid var(--line);border-radius:9px;overflow:hidden}
+.ph-unit span{font-size:11px;font-weight:800;padding:5px 11px;color:var(--muted);cursor:pointer}
+.ph-unit span.on{background:var(--gold);color:#12140e}
+.ph-chips{display:flex;gap:7px;overflow-x:auto;padding:6px 0 10px;scrollbar-width:none}
+.ph-chips::-webkit-scrollbar{display:none}
+.ph-chip{flex:none;font-size:12px;font-weight:700;padding:7px 13px;border-radius:99px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-soft);cursor:pointer}
+.ph-chip.on{background:var(--gold);color:#12140e;border-color:var(--gold)}
+.ph-big{font-family:'Cinzel',serif;font-weight:700;font-size:44px;color:var(--headline);line-height:1;font-variant-numeric:tabular-nums}
+.ph-big small{font-size:18px;color:var(--muted);font-weight:600;font-family:'Montserrat'}
+.ph-lbl{font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-top:5px}
+.ph-trend{display:inline-flex;align-items:center;gap:6px;margin-top:10px;font-size:12px;font-weight:700;padding:5px 11px;border-radius:99px}
+.ph-trend.down{color:var(--olive);background:rgba(110,133,86,.15);border:1px solid rgba(110,133,86,.4)}
+.ph-trend.up{color:#c26450;background:rgba(154,74,58,.15);border:1px solid rgba(154,74,58,.4)}
+.ph-cap{font-size:11.5px;color:var(--muted);margin-top:8px;line-height:1.4}
 .ctab-panel.hidden{display:none}
 .themepick{display:flex;gap:12px;align-items:center;margin-top:10px}
 .swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
@@ -705,11 +722,8 @@ select.input{appearance:none}
 
     <!-- ===== PROGRESS TAB ===== -->
     <div class="ctab-panel hidden" id="ctab-progress">
-      <!-- Weight trend -->
-      <div class="card chart">
-        <div class="sec-h"><h2>Weight trend</h2></div>
-        <div id="trendBox"><div class="empty">Your trend line appears after a couple of check-ins.</div></div>
-      </div>
+      <!-- Progress hero — read-only metric selector + trend chart -->
+      <div class="card" id="progHeroCard"><div id="progHeroBox"></div><div id="trendBox" style="display:none"></div></div>
 
       <!-- Monthly averages — the long-game snapshot -->
       <div class="card">
@@ -1246,6 +1260,7 @@ function renderHome(){
     g("ciCta").textContent = d>=7?"You're due — start this week's check-in":"Start this week's check-in";
   }
   drawTrend(h);
+  renderProgressHero();
   drawBiofeedback(h);
   renderAwarenessCircle(h);
   renderCoachNotes();
@@ -1406,6 +1421,51 @@ function drawDoseSyringe(units){
 /* ---- Prescriber notes (client keeps their provider's instructions here) ---- */
 var LS_RX="lp_client_rx";
 function rxLoad(){ try{ return localStorage.getItem(LS_RX)||""; }catch(e){ return ""; } }
+/* Progress hero — read-only metric selector (Weight + tape measurements) with a trend chart and
+   unit toggles (lb/kg, in/cm). Weight comes from check-ins; measurements from the Measurements tab. */
+var PROG_METRIC='Weight', PROG_UNIT_W='lb', PROG_UNIT_M='in';
+function progIsWeight(){ return PROG_METRIC==='Weight'; }
+function progUnit(){ return progIsWeight()?PROG_UNIT_W:PROG_UNIT_M; }
+function progSeries(){
+  if(progIsWeight()) return (M.checkins||[]).filter(function(e){return e.weight!=null;}).map(function(e){return {t:e.ts,v:+e.weight};});
+  var k=PROG_METRIC;
+  return (M.measurements||[]).filter(function(e){return e[k]!=null&&e[k]!==''&&!isNaN(+e[k]);}).map(function(e){return {t:new Date(e.Timestamp||e.ts).getTime(),v:+e[k]};});
+}
+function progConv(v){ var u=progUnit(); if(u==='kg')return v/2.2046; if(u==='cm')return v*2.54; return v; }
+function setProgMetric(m){ PROG_METRIC=m; renderProgressHero(); }
+function setProgUnit(u){ if(progIsWeight())PROG_UNIT_W=u; else PROG_UNIT_M=u; renderProgressHero(); }
+function progChart(vals){
+  if(vals.length<2) return '';
+  var W=300,H=88,mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals),pd=(mx-mn)*0.2||1,lo=mn-pd,hi=mx+pd,rng=hi-lo;
+  var xs=function(i){return (i/(vals.length-1)*W).toFixed(1);}, ys=function(v){return (H-6-((v-lo)/rng)*(H-12)).toFixed(1);};
+  var line=vals.map(function(v,i){return xs(i)+','+ys(v);}).join(' ');
+  return '<svg viewBox="0 0 '+W+' '+H+'" width="100%" height="88" preserveAspectRatio="none" style="margin-top:12px">'
+    +'<defs><linearGradient id="pgh" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--gold)" stop-opacity=".3"/><stop offset="1" stop-color="var(--gold)" stop-opacity="0"/></linearGradient></defs>'
+    +'<polygon points="0,'+H+' '+line+' '+W+','+H+'" fill="url(#pgh)"/>'
+    +'<polyline points="'+line+'" fill="none" stroke="var(--gold)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>'
+    +'<circle cx="'+xs(vals.length-1)+'" cy="'+ys(vals[vals.length-1])+'" r="4" fill="var(--gold)"/></svg>';
+}
+function renderProgressHero(){
+  var box=g("progHeroBox"); if(!box) return;
+  var metrics=['Weight','Waist','Chest','Arm','Thigh','Calf'];
+  var s=progSeries().slice().sort(function(a,b){return a.t-b.t;}), unit=progUnit();
+  var units=progIsWeight()?['lb','kg']:['in','cm'];
+  var chips=metrics.map(function(m){return '<span class="ph-chip'+(m===PROG_METRIC?' on':'')+'" onclick="setProgMetric(\''+m+'\')">'+m+'</span>';}).join('');
+  var utog='<span class="ph-unit">'+units.map(function(u){return '<span class="'+(u===unit?'on':'')+'" onclick="setProgUnit(\''+u+'\')">'+u+'</span>';}).join('')+'</span>';
+  var h='<div class="ph-top"><span class="ph-ttl">'+PROG_METRIC+' trend</span>'+utog+'</div><div class="ph-chips">'+chips+'</div>';
+  if(!s.length){
+    h+='<div class="ph-cap">No '+PROG_METRIC.toLowerCase()+' logged yet'+(progIsWeight()?' — it charts here after a couple of check-ins.':' — log it from a check-in and its trend builds here.')+'</div>';
+    box.innerHTML=h; return;
+  }
+  var cur=progConv(s[s.length-1].v), first=progConv(s[0].v), diff=cur-first;
+  h+='<div class="ph-big">'+(Math.round(cur*10)/10)+'<small> '+unit+'</small></div><div class="ph-lbl">'+PROG_METRIC+' &#183; current</div>';
+  if(s.length>1){
+    var dcls=diff<=0?'down':'up', dir=diff<0?'&#9660;':(diff>0?'&#9650;':'&#8211;');
+    h+='<div class="ph-trend '+dcls+'">'+dir+' '+Math.abs(Math.round(diff*10)/10)+' '+unit+' &#183; since start</div>';
+  }
+  h+=progChart(s.map(function(p){return progConv(p.v);}));
+  box.innerHTML=h;
+}
 /* Wellness catalog tiles (mockup, on-screen). Supplements link to Thorne (CONFIG.thorneUrl);
    peptides route to the order-request; the customized stack unlocks with the Genetic Blueprint. */
 function renderWellnessTiles(){
