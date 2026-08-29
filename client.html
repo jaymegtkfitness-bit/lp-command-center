@@ -1006,7 +1006,7 @@ var CONFIG = {
 var MARKERS = [
   ["energy","Energy","Energy"],["sleep","Sleep","Sleep quality"],["acuity","Mental focus","Mental acuity & focus"],
   ["strength","Strength","Strength & performance"],["digestion","Digestion","Digestion"],["hunger","Hunger","Hunger & cravings"],
-  ["libido","Libido","Libido"],["inflammation","Inflammation","Inflammation"],["mood","Mood","Mood & resilience"],["recovery","Recovery","Training recovery"],
+  ["libido","Libido","Libido"],["inflammation","System load","Inflammation"],["mood","Mood","Mood & resilience"],["recovery","Recovery","Training recovery"],
   ["stress","Stress","Stress"]
 ];
 var CONS = ["Under 60%","60–70%","70–85%","85–95%","95–100%"];
@@ -1729,10 +1729,13 @@ var PHASE2_Q = {
     {t:"Stress / racing mind keeping me up", tag:'sleep_stress'},
     {t:"Just a busy season", tag:'sleep_season'}
   ]},
-  inflammation: { kind:'biofeedback', q:"Feeling inflamed — which is it?", opts:[
-    {t:"Puffy / watery", tag:'infl_puffy'},
-    {t:"Achy / sore", tag:'infl_achy'},
-    {t:"Both", tag:'infl_both'}
+  /* Reframed from "Inflammation" → "System load" (2026-08-29): low-grade inflammation is a lab dx, not a
+     self-report — so we read run-down/recovery signals honestly and route persistent joint pain out. */
+  inflammation: { kind:'biofeedback', q:"System's feeling run-down — what's closest?", opts:[
+    {t:"Wiped out / low energy", tag:'load_fatigue'},
+    {t:"Sore, not bouncing back from training", tag:'load_recovery'},
+    {t:"Puffy / holding water", tag:'load_water'},
+    {t:"Achy joints that won't ease up", tag:'load_joints'}
   ]},
   recovery: { kind:'biofeedback', q:"Recovery's lagging — what's the pattern?", opts:[
     {t:"Still sore days later", tag:'rec_sore'},
