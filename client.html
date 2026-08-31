@@ -151,6 +151,11 @@
 .bs-tag{flex:0 0 60px;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.05em;color:var(--muted);padding-top:3px}
 .bs-line p,.bs-note p{margin:0;font-size:13.5px;color:var(--ink);line-height:1.45}
 .bs-note{display:flex;gap:10px;border-top:1px solid var(--line);padding-top:12px;margin-top:4px;margin-bottom:4px}
+/* top back button — one shared, injected at the top of each drill-in screen */
+.nav-back{display:inline-flex;align-items:center;gap:5px;background:none;border:0;color:var(--muted);font-family:inherit;font-size:13px;font-weight:600;letter-spacing:.02em;padding:2px 6px 12px 0;margin:0;cursor:pointer;line-height:1}
+.nav-back span{font-size:19px;line-height:1;margin-top:-2px}
+.nav-back:hover{color:var(--accent)}
+.nav-back:active{opacity:.6}
 .vchips{display:flex;flex-direction:column;gap:8px}
 .vchips .chip{text-align:left;white-space:normal;line-height:1.35;padding:11px 13px}
 .ctab-panel.hidden{display:none}
@@ -1140,7 +1145,24 @@ function editIdentity(){
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ ["onboard","home","checkin","buildscore","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); window.scrollTo(0,0); }
+function show(idOn){ CUR_SECTION=idOn; ["onboard","home","checkin","buildscore","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
+/* ---- Top "‹ Back" on every drill-in screen (Home uses the bottom nav, so it's excluded). One shared
+   button, moved to the top of whatever screen is showing. On the multi-step flows it steps back a step;
+   everywhere else it exits to Home. Subtle by design — present, not in the way. */
+var CUR_SECTION="home";
+var NAV_BACK_SCREENS=["checkin","buildscore","monthly","quarterly","wizard","deep","cnssetup","geneticssetup","mealbuilder"];
+function updateBackBtn(idOn){
+  var btn=document.getElementById("navBack");
+  if(!btn){ btn=document.createElement("button"); btn.id="navBack"; btn.type="button"; btn.className="nav-back";
+    btn.innerHTML='<span aria-hidden="true">‹</span> Back'; btn.onclick=goBack; }
+  if(NAV_BACK_SCREENS.indexOf(idOn)>=0){ var sec=document.getElementById(idOn); if(sec){ sec.insertBefore(btn, sec.firstChild); btn.style.display=""; } }
+  else { btn.style.display="none"; }
+}
+function goBack(){
+  if(CUR_SECTION==="wizard" && typeof WIZ_I!=="undefined" && WIZ_I>0){ wizBack(); return; }
+  if(CUR_SECTION==="deep"   && typeof DEEP_I!=="undefined" && DEEP_I>0){ deepBack(); return; }
+  showHome();
+}
 function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); applyLite(); jumpToHash(); }  // theme + reset to Home tab on entry
 /* LITE (free tier): same URL, membership-gated. Free members keep the Power Food System + weekly
    check-in; everything else locks behind the upgrade CTA → Skool. Toggled by M.lite. */
