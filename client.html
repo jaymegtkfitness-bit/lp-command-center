@@ -891,7 +891,10 @@ select.input{appearance:none}
     </div>
 
     <!-- ===== FOOTER: identity ===== -->
-    <div style="margin-top:14px"><button class="btn btn-ghost" onclick="editIdentity()">Update name / email</button></div>
+    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-ghost" onclick="retakeAssessment()">↻ Retake the Readiness Assessment</button>
+      <button class="btn btn-ghost" onclick="editIdentity()">Update name / email</button>
+    </div>
     <p class="foot" id="syncNote"></p>
   </section>
 
@@ -3527,7 +3530,11 @@ function checkSetupParam(){
   if(sp==='cns') showCnsSetup();          // they just purchased — open the intake even before the Complete flag is flipped
   else if(sp==='genetics') showGeneticsSetup();
   else if(sp==='checkin' || getParam('view')==='checkin') showCheckin();  // deep-link straight into this week's check-in form
+  else if(sp==='assessment' || getParam('view')==='assessment' || getParam('assess')) retakeAssessment();
 }
+/* Re-open the Readiness Assessment from the top — for review, or to re-run it after progress.
+   showWizard() already resets WIZ + the save-guard, so this always starts clean at the intro. */
+function retakeAssessment(){ if(typeof showWizard==='function') showWizard(); }
 /* ---- Self-serve meal generator — client edits foods → regenerates their own plan (free, instant) ---- */
 var LS_FOODS="lp_client_foods", LS_MEALPLAN="lp_client_mealplan";
 /* FOOD_DB, fmtQty(), generateMealPlan() now live in nutrition-engine.js (shared). */
