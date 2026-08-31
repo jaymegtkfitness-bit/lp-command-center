@@ -52,12 +52,12 @@
 }
 /* Tabbed layout + theme picker */
 /* Bottom app nav — 5 tabs, LP Coach shield centered; white inactive, gold active; dark bar in every theme (--header-bg stays dark) */
-.ctabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;justify-content:space-around;align-items:flex-end;background:var(--header-bg);border:none;border-top:1px solid var(--line);border-radius:0;padding:9px 6px calc(9px + env(safe-area-inset-bottom));margin:0}
-.ctab{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:0;border-radius:0;font:700 9.5px/1.15 'Montserrat',sans-serif;color:var(--parchment);background:transparent;border:none;cursor:pointer}
-.ctab svg{width:22px;height:22px;stroke:currentColor;fill:none}
+.ctabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;justify-content:space-around;align-items:flex-end;background:var(--header-bg);border:none;border-top:1.5px solid var(--line);border-radius:0;padding:11px 6px calc(12px + env(safe-area-inset-bottom));margin:0}
+.ctab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border-radius:0;font:700 11px/1.15 'Montserrat',sans-serif;letter-spacing:.02em;color:var(--parchment);background:transparent;border:none;cursor:pointer}
+.ctab svg{width:27px;height:27px;stroke:currentColor;fill:none}
 .ctab.on{background:transparent;color:var(--gold)}
 .ctab-coach{position:relative}
-.ctab-coach .navshield{width:44px;height:44px;margin-top:-22px;display:grid;place-items:center;filter:drop-shadow(0 5px 10px rgba(0,0,0,.5))}
+.ctab-coach .navshield{width:52px;height:52px;margin-top:-26px;display:grid;place-items:center;filter:drop-shadow(0 5px 10px rgba(0,0,0,.5))}
 .ctab-coach .navshield img{width:100%;height:100%;object-fit:contain;display:block}
 /* LP Coach panel */
 .coach-hero{text-align:center;padding:6px 0 8px}
@@ -94,19 +94,19 @@
 /* Wellness tiles — the mockup catalog (supplements → Thorne, peptides, consult, phase of life, genetic unlock) */
 #wellnessCard{padding:0;background:transparent;border:none}
 .wkicker{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:0 2px 10px}
-.wsubh{font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:16px 2px 9px}
-.wtile{display:flex;align-items:center;gap:13px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:13px 14px;margin-bottom:10px}
-.wtile.locked{background:linear-gradient(150deg,#231d19,#1c1b16);border:1px dashed #4a4436}
-.wthumb{width:48px;height:48px;border-radius:12px;flex:none;display:grid;place-items:center;font-weight:800;font-size:12px;color:#12140e}
+.wsubh{font-size:11.5px;letter-spacing:.18em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:18px 2px 11px}
+.wtile{display:flex;align-items:center;gap:15px;background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:16px 16px;margin-bottom:11px}
+.wtile.locked{background:linear-gradient(150deg,#231d19,#1c1b16);border:1.5px dashed #4a4436}
+.wthumb{width:56px;height:56px;border-radius:14px;flex:none;display:grid;place-items:center;font-weight:800;font-size:13px;color:#12140e}
 .tw-gold{background:linear-gradient(150deg,var(--gold),#9c8a53)}
 .tw-olive{background:linear-gradient(150deg,var(--olive),#3f5233)}
 .tw-blue{background:linear-gradient(150deg,var(--blue),#345566)}
 .tw-rust{background:linear-gradient(150deg,var(--rust),#5e2c22)}
 .wlock{background:var(--surface-2)!important;color:#c26450}
 .wbody{flex:1;min-width:0}
-.wt{font-weight:700;font-size:14px;color:var(--headline)}
+.wt{font-weight:700;font-size:16px;color:var(--headline);line-height:1.2}
 .wt.dim{color:var(--ink-soft)}
-.wd{font-size:11.5px;color:var(--muted);margin-top:1px}
+.wd{font-size:12.5px;color:var(--muted);margin-top:2px}
 .wtag{font-size:9px;font-weight:800;letter-spacing:.07em;text-transform:uppercase;color:var(--blue);border:1px solid rgba(74,122,154,.5);padding:2px 6px;border-radius:99px;margin-top:4px;display:inline-block}
 .wgo{font-size:11.5px;font-weight:800;color:var(--gold);white-space:nowrap;text-decoration:none}
 .wchev{color:var(--muted);font-size:22px;font-weight:400;line-height:1}
@@ -159,6 +159,7 @@
 .vchips{display:flex;flex-direction:column;gap:8px}
 .vchips .chip{text-align:left;white-space:normal;line-height:1.35;padding:11px 13px}
 .ctab-panel.hidden{display:none}
+#home{padding-bottom:calc(104px + env(safe-area-inset-bottom))}   /* clear the taller fixed bottom nav */
 .themepick{display:flex;gap:12px;align-items:center;margin-top:10px}
 .swatch{width:30px;height:30px;border-radius:50%;border:2px solid var(--line);cursor:pointer;padding:0}
 .swatch.on{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
@@ -236,25 +237,25 @@ header{background:var(--parchment);padding:14px 20px;display:flex;align-items:ce
 h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headline);margin:6px 0 0;line-height:1.15}
 .sub{color:var(--muted);font-size:13px;margin:8px 0 0;line-height:1.6}
 
-.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:17px 17px;margin-top:15px;box-shadow:var(--shadow)}
-.sec-h{display:flex;align-items:center;gap:9px;margin:0 0 12px}
-.sec-h h2{font-family:'Cinzel',serif;font-size:15.5px;font-weight:600;color:var(--headline);margin:0}
-.sec-h::before{content:"";width:4px;height:16px;border-radius:3px;background:var(--touch);flex:none} /* green(men)/gold(women) touch on every section */
+.card{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:20px 19px;margin-top:16px;box-shadow:var(--shadow)}
+.sec-h{display:flex;align-items:center;gap:10px;margin:0 0 14px}
+.sec-h h2{font-family:'Cinzel',serif;font-size:18.5px;font-weight:600;color:var(--headline);margin:0;line-height:1.15}
+.sec-h::before{content:"";width:5px;height:21px;border-radius:3px;background:var(--touch);flex:none} /* green(men)/gold(women) touch on every section */
 
 /* Stat tiles */
 .stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:16px}
-.stat{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px 14px;text-align:center;position:relative;overflow:hidden}
+.stat{background:var(--surface);border:1.5px solid var(--line);border-radius:18px;padding:22px 14px;text-align:center;position:relative;overflow:hidden}
 .stat::after{content:"";position:absolute;left:16px;right:16px;bottom:10px;height:2px;border-radius:2px;background:var(--touch-soft)}
-.stat .n{font-family:'Cinzel',serif;font-size:33px;font-weight:600;color:var(--accent);line-height:1}
+.stat .n{font-family:'Cinzel',serif;font-size:37px;font-weight:600;color:var(--accent);line-height:1}
 .stat .n.pos{color:var(--good-tx)} .stat .n.neg{color:var(--stall-tx)}
-.stat .l{font-size:10.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:10px;font-weight:600}
+.stat .l{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-top:11px;font-weight:600}
 /* Journey hero card (mockup look) — the outer #journeyCard frame is removed; the .jhero IS the card */
 #journeyCard{padding:0;background:transparent;border:none}
 #journeyCard > .sec-h{display:none}
 .jhero{border:1px solid var(--line);border-radius:18px;padding:18px 18px 20px}
 .jtrack{display:inline-flex;align-items:center;gap:7px;font-size:11.5px;font-weight:800;letter-spacing:.11em;text-transform:uppercase;color:var(--parchment);padding:6px 12px;border-radius:999px}
-.jphase{font-family:'Cinzel',serif;font-weight:600;font-size:25px;color:var(--headline);margin-top:13px;line-height:1.1}
-.jsub{color:var(--ink-soft);font-size:13px;margin-top:4px}
+.jphase{font-family:'Cinzel',serif;font-weight:600;font-size:29px;color:var(--headline);margin-top:14px;line-height:1.1}
+.jsub{color:var(--ink-soft);font-size:14px;margin-top:5px;line-height:1.35}
 .jbar{height:9px;border-radius:99px;background:rgba(0,0,0,.4);margin-top:15px;overflow:hidden;border:1px solid rgba(0,0,0,.5)}
 .jbar>i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--rust),var(--gold))}
 .jskill{display:flex;gap:11px;align-items:center;margin-top:15px;padding-top:14px;border-top:1px solid var(--line)}
@@ -268,9 +269,9 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .empty{color:var(--muted);font-size:12.5px;text-align:center;padding:16px 0;line-height:1.6}
 
 /* Biofeedback rows */
-.bf-row{display:grid;grid-template-columns:96px 1fr 26px;align-items:center;gap:10px;margin-bottom:9px}
-.bf-row .bl{font-size:12.5px;color:var(--ink-soft)}
-.bf-row .bv{font-size:13px;font-weight:700;color:var(--accent);text-align:right}
+.bf-row{display:grid;grid-template-columns:108px 1fr 30px;align-items:center;gap:10px;margin-bottom:11px}
+.bf-row .bl{font-size:13.5px;color:var(--ink-soft)}
+.bf-row .bv{font-size:15px;font-weight:700;color:var(--accent);text-align:right}
 .bf-spark{height:24px}
 
 /* Coach note */
@@ -422,9 +423,9 @@ ol.stds li::before{content:counter(std);position:absolute;left:0;top:0;width:21p
 .dp-skip{font-size:11.5px;color:var(--muted);margin-top:14px;text-align:center}
 .dp-fin{font-size:13.5px;color:var(--ink);line-height:1.6}
 .macro-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
-.macro{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 6px;text-align:center}
-.macro .mn{font-family:'Cinzel',serif;font-size:19px;font-weight:600;color:var(--accent);line-height:1}
-.macro .ml{font-size:9.5px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:5px;font-weight:600}
+.macro{background:var(--surface-2);border:1.5px solid var(--line);border-radius:12px;padding:12px 7px;text-align:center}
+.macro .mn{font-family:'Cinzel',serif;font-size:22px;font-weight:600;color:var(--accent);line-height:1}
+.macro .ml{font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:6px;font-weight:600}
 .tw-inputs{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .tw-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:4px}
 .tw-badge{font-size:10px;letter-spacing:.05em;text-transform:uppercase;font-weight:700;color:var(--accent);background:var(--surface-2);border:1px solid var(--line);border-radius:20px;padding:2px 9px;align-self:center}
@@ -3122,7 +3123,7 @@ function renderJourneyCard(){
     var st=journeyStage(); phase=(JOURNEY_STAGES[st]||{}).k||'Active'; sub=(JOURNEY_STAGES[st]||{}).d||'';
     pct=Math.min((st+1)/JOURNEY_STAGES.length*100,100);
   }
-  var trackLabel = track ? (track + (/track|diet/i.test(track)?'':' Track')) : '';
+  var trackLabel = track ? (track + (/phase|diet/i.test(track)?'':' Phase')) : '';
   var h='<div class="jhero" style="background:radial-gradient(120% 150% at 85% 0%,'+glow+',transparent 60%),linear-gradient(150deg,#2a2620,#231f19 60%,var(--surface))">';
   if(trackLabel) h+='<span class="jtrack" style="background:'+tcVar+'">&#9670; '+esc(trackLabel)+'</span>';
   h+='<div class="jphase">'+esc(phase)+'</div><div class="jsub">'+esc(sub)+'</div>';
