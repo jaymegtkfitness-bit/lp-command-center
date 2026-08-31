@@ -351,6 +351,34 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 #wizTitle{line-height:1.25}
 #wizard .chips{gap:9px}
 #wizard .chips .chip{padding:11px 15px;font-size:13.5px}
+/* ---- The Readiness Assessment: intro + The Read + booking ---- */
+.ra-intro{font-size:16px;line-height:1.55;color:var(--ink-soft);margin:0 0 14px}
+.ra-scale .chips{gap:7px}.ra-scale .chip{min-width:36px;text-align:center;padding:11px 0;flex:1}
+.ra-read{}
+.ra-read .ra-h1{font-family:'Cinzel',serif;font-size:26px;font-weight:600;color:var(--headline);margin:0 0 2px;line-height:1.15}
+.ra-read .ra-h2{font-size:15px;color:var(--ink-soft);margin:0 0 14px}
+.ra-nums{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:6px 0 12px}
+.ra-num{background:var(--surface-2);border:1.5px solid var(--line);border-radius:14px;padding:16px 12px;text-align:center}
+.ra-num .ra-nv{font-family:'Cinzel',serif;font-size:30px;font-weight:600;color:var(--accent);line-height:1}
+.ra-num .ra-nl{font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);margin-top:8px;font-weight:600}
+.ra-readline{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--headline);font-weight:600;margin:4px 0 14px}
+.ra-readline span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800;border:1px solid var(--accent);border-radius:999px;padding:3px 8px}
+.ra-micro{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 8px}
+.ra-scaleframe{color:var(--ink-soft);border-left:3px solid var(--accent);padding-left:11px;margin:10px 0 16px;font-style:italic}
+.ra-poss{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:16px;padding:16px 16px;margin:14px 0}
+.ra-poss p{margin:0 0 10px;font-size:14.5px;line-height:1.55;color:var(--ink)}
+.ra-poss p:last-child{margin-bottom:0}
+.ra-close{font-size:15px;line-height:1.5;color:var(--ink-soft);margin:0 0 10px}
+.ra-underbtn{font-size:12.5px;color:var(--muted);text-align:center;margin:8px 0 12px;line-height:1.4}
+.btn-big{font-size:16px;padding:16px 18px;font-weight:700}
+/* Home booking banner (the new-member #1 CTA) + onboarding-mode stripping */
+.book-banner{background:linear-gradient(160deg,rgba(193,173,114,.16),rgba(74,92,62,.14));border:1.5px solid var(--accent)}
+.book-banner .bb-eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:6px}
+.book-banner .bb-h{font-family:'Cinzel',serif;font-size:21px;font-weight:600;color:var(--headline);line-height:1.15;margin-bottom:6px}
+.book-banner .bb-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
+.book-banner .bb-note{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
+#home.onboarding #fdnCard,#home.onboarding #stdCard,#home.onboarding #ciCta,#home.onboarding #moCta,
+#home.onboarding #qtCta,#home.onboarding #coachCard,#home.onboarding #requestsCard{display:none!important}
 /* Onboarding checklist */
 .ob-prog{display:flex;align-items:center;gap:10px;margin-bottom:10px}
 .ob-bar{flex:1;height:6px;background:var(--line);border-radius:6px;overflow:hidden}
@@ -608,6 +636,14 @@ select.input{appearance:none}
     </div>
   </section>
 
+  <!-- ============ THE READINESS CONSULTATION — booking (3 soft reads) ============ -->
+  <section id="booking" class="hidden">
+    <div class="eyebrow">Book your Readiness Consultation</div>
+    <h1>Grab your time.</h1>
+    <p class="sub">Your numbers, your season, your best next step — straight from your coach. Booked inside 48 hours.</p>
+    <div class="card"><div id="bookingBody"></div></div>
+  </section>
+
   <!-- ============ THE DEEP READ (Layer 2 intake) ============ -->
   <section id="deep" class="hidden">
     <div class="eyebrow" id="deepEyebrow">The Deep Read</div>
@@ -647,6 +683,8 @@ select.input{appearance:none}
 
     <!-- ===== HOME TAB ===== -->
     <div class="ctab-panel" id="ctab-home">
+      <!-- The #1 CTA for a new member: book the Readiness Consultation (48h). Shown until booked. -->
+      <div class="card book-banner" id="bookBanner" style="display:none"></div>
       <!-- LITE (free tier) banner + upsell — hidden unless #home has class .lite -->
       <div id="liteBanner">You're on the free plan. <a id="liteBannerLink" href="#" target="_blank" rel="noopener">Unlock your full dashboard →</a></div>
       <div class="card" id="liteUpsell">
@@ -1146,12 +1184,12 @@ function editIdentity(){
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ CUR_SECTION=idOn; ["onboard","home","checkin","buildscore","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
+function show(idOn){ CUR_SECTION=idOn; ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
 /* ---- Top "‹ Back" on every drill-in screen (Home uses the bottom nav, so it's excluded). One shared
    button, moved to the top of whatever screen is showing. On the multi-step flows it steps back a step;
    everywhere else it exits to Home. Subtle by design — present, not in the way. */
 var CUR_SECTION="home";
-var NAV_BACK_SCREENS=["checkin","buildscore","monthly","quarterly","wizard","deep","cnssetup","geneticssetup","mealbuilder"];
+var NAV_BACK_SCREENS=["checkin","buildscore","booking","monthly","quarterly","wizard","deep","cnssetup","geneticssetup","mealbuilder"];
 function updateBackBtn(idOn){
   var btn=document.getElementById("navBack");
   if(!btn){ btn=document.createElement("button"); btn.id="navBack"; btn.type="button"; btn.className="nav-back";
@@ -1207,6 +1245,7 @@ function loadClientData(cb){
 /* Build the merged model from server rows (authoritative) + local (instant). */
 function buildModel(server){
   serverOk = !!(server && server.ok);
+  try{ M.booked = M.booked || (loadLS("lp_client_booked","")==="1"); }catch(e){}   // booked the Readiness Consultation → drop the onboarding banner
   // ---- check-ins ----
   var sc = (server&&server.checkins||[]).map(function(r){
     var e={ts:ts(r["Timestamp"])||Date.now(), weight:num(r["Weight"]), food:num(r["Food quality"]),
@@ -1380,7 +1419,23 @@ function renderHome(){
   gateProtocolCards();
   renderOnboarding();
   renderFoundations();
+  // ONBOARDING MODE — a new member (has their Read, not booked, not on the paid engine) sees ONE job:
+  // book the Readiness Consultation. Strip the ongoing-engine clutter so nothing competes with numbers → call.
+  var onboarding = !!(M.intake && M.intake.done && !M.booked && !hasCNS() && !(M.checkins && M.checkins.length));
+  var homeEl=g("home"); if(homeEl) homeEl.classList.toggle("onboarding", onboarding);
+  renderBookBanner(onboarding);
   g("syncNote").textContent = serverOk ? "Synced with your coach ✓" : (CONFIG.writeUrl? "Showing your entries from this device — will sync when back online." : "");
+}
+function renderBookBanner(onb){
+  var card=g("bookBanner"); if(!card) return;
+  var show = (typeof onb==="boolean") ? onb : !!(M.intake && M.intake.done && !M.booked && !hasCNS() && !(M.checkins && M.checkins.length));
+  if(!show){ card.style.display="none"; return; }
+  card.style.display="";
+  card.innerHTML='<div class="bb-eyebrow">Your next step</div>'
+    +'<div class="bb-h">Book your Readiness Consultation</div>'
+    +'<p class="bb-sub">Your numbers, your season, your best next step — straight from your coach. Booked inside 48 hours is where the momentum lives.</p>'
+    +'<button class="btn btn-primary btn-big" onclick="showBooking()">Book your Readiness Consultation</button>'
+    +'<p class="bb-note">This is where we make sure your very first move is the right one.</p>';
 }
 
 function drawTrend(log){
@@ -2737,7 +2792,7 @@ var W_EXTRA = ["Improve bloodwork","Reduce visceral fat","Mental health","Mental
 var W_INTEREST = ["Peptides","Genetic testing","A done-for-you build"];
 var W_FILTER = ["Vegetarian","Lactose-free","Gluten-free"];
 
-function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==='woman')?'Female':''), flags:[],extragoals:[],interests:[],filters:[]}; WIZ_I=0; renderWiz(); show("wizard"); }
+function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==='woman')?'Female':''), tried:[], statusflags:[]}; WIZ_I=0; RA_SAVED=false; renderWiz(); show("wizard"); }
 function storeLink(ios, android){ return /android/i.test(navigator.userAgent||'') ? (android||ios) : ios; }
 function skoolAppLink(){ return storeLink(CONFIG.skoolAppUrl, CONFIG.skoolAppUrlAndroid); }
 function everfitAppLink(){ return storeLink(CONFIG.everfitAppUrl, CONFIG.everfitAppUrlAndroid); }
@@ -3627,73 +3682,106 @@ function ageFromDob(s){
    Each screen = a STEP {q, hint, render, collect}. gOrder() builds the live
    sequence (pregnant only shows for Female). WIZ_I indexes gOrder(); the last
    entry is always "result" (wizResult). Reuses wizChips/wizOptions + wizCompute. */
+/* ============================ THE READINESS ASSESSMENT ============================
+   The intake, renamed + reorganized around the 3 M's (Metabolism · Mindset · Methods).
+   Questions are verbatim from Readiness-Assessment-Copy-Draft.md. It gathers the data for
+   the numbers (weight/height/goal/sex/intake/training) AND the reads that drive the POP
+   possibility routes + status flags. Reuses the one-question-per-screen render engine. */
+var RA_GOAL     = [["Lean","Lose fat and lean out"],["Strong","Build strength and muscle"],["Sustain","Feel good and hold it for life"]];
+var RA_DUR      = ["Under a year","1–3 years","3+ years","Most of my life"];
+var RA_ADAPTED  = ["Yes","No","Not sure"];
+var RA_TRAINDAYS= [["0","Not lifting right now"],["1–2","A couple days a week"],["3–4","Most weeks, a solid rhythm"],["5+","Nearly every day"]];
+var RA_RESTART  = ["Once or twice","A handful of times","More than I can count","I've lost count"];
+var RA_NEXTDAY  = ["I get right back on the next day","It turns into a bad week","It spirals for a while before I reset"];
+var RA_SCALE    = ["I weigh daily and it runs my mood","I avoid it completely","Somewhere in the middle"];
+var RA_TRIED    = ["Keto","Fasting","Low-carb","Macros","Weight Watchers","A coach","A challenge","Nothing with real structure"];
+var RA_TRACKED  = ["Yes, and I'm good at it","Yes, but I can't live like that","No, never"];
+var RA_STATUS   = ["Menopause or perimenopause","Thyroid","Medication or supplementation","Injuries","None of these"];
+function raNum(id,val,unit){ return '<div class="gnum-unit"><input class="input big-input" type="number" inputmode="decimal" id="'+id+'" value="'+(val||"")+'">'+(unit?'<span class="gunit">'+unit+'</span>':'')+'</div>'; }
+function raText(id,val){ return '<textarea class="input" id="'+id+'" rows="3" style="font-size:15px">'+esc(val||"")+'</textarea>'; }
 var STEP = {
-  sex:{ q:"What's your biological sex?", hint:"Used for your calorie math — nothing else.",
+  /* SCREEN 1 — the intro (set the friction) */
+  intro:{ q:"Before I can tell you what to do, I have to see where you actually are.", hint:"", intro:true,
+    render:function(){ return '<p class="ra-intro">Not where you think you are. Where you actually are.</p>'
+      +'<p class="ra-intro">Give me about five honest minutes.</p>'
+      +'<p class="ra-intro">Answer these the way it really is, not the way you wish it was.</p>'
+      +'<p class="ra-intro">The honest version is the one that gets you moving.</p>'; },
+    collect:function(){ return null; } },
+  /* Primary goal — asked early; sets the phase lens + the possibility route */
+  goal:{ q:"What are you really here for?", hint:"This sets the lens for everything else.",
+    render:function(){ return wizOptions("goal",RA_GOAL); },
+    collect:function(){ return WIZ.goal?null:"Pick the one that fits best."; } },
+  /* ---- M1 · METABOLISM ---- */
+  sex:{ q:"First, your engine. What's your biological sex?", hint:"Used for your calorie math, nothing else.", mlabel:"M1 · Metabolism",
     render:function(){ return wizChips("sex",["Male","Female"]); },
     collect:function(){ return WIZ.sex?null:"Pick one to continue."; } },
-  dob:{ q:"When were you born?", hint:"Sets your age for the math — and it's how you'll always get back into your dashboard.",
-    render:function(){ return '<input class="input big-input" type="date" id="w_dob" value="'+(WIZ.dob||"")+'">'; },
-    collect:function(){ WIZ.dob=g("w_dob").value; if(!WIZ.dob) return "Add your date of birth."; WIZ.age=ageFromDob(WIZ.dob); return WIZ.age?null:"That date of birth doesn't look right."; } },
+  weight:{ q:"What do you weigh today?", hint:"",
+    render:function(){ return raNum("w_cur",WIZ.weight,"lb"); },
+    collect:function(){ WIZ.weight=parseFloat(g("w_cur").value); return isNaN(WIZ.weight)?"Add your weight.":null; } },
   height:{ q:"How tall are you?", hint:"",
     render:function(){ return '<div class="gnum-row"><div class="gnum-unit"><input class="input big-input" type="number" inputmode="numeric" id="w_ft" placeholder="ft" value="'+(WIZ.ft||"")+'"><span class="gunit">ft</span></div>'
       +'<div class="gnum-unit"><input class="input big-input" type="number" inputmode="numeric" id="w_in" placeholder="in" value="'+(WIZ.inch||"")+'"><span class="gunit">in</span></div></div>'; },
     collect:function(){ WIZ.ft=+g("w_ft").value; WIZ.inch=+g("w_in").value||0; WIZ.height=WIZ.ft*12+WIZ.inch; return WIZ.ft?null:"Add your height."; } },
-  weight:{ q:"What do you weigh right now?", hint:"Your best guess is fine — we dial it in with your real data.",
-    render:function(){ return '<div class="gnum-unit"><input class="input big-input" type="number" inputmode="decimal" id="w_cur" value="'+(WIZ.weight||"")+'"><span class="gunit">lb</span></div>'; },
-    collect:function(){ WIZ.weight=parseFloat(g("w_cur").value); return isNaN(WIZ.weight)?"Add your current weight.":null; } },
-  goalweight:{ q:"Where do you want to be?", hint:"Your goal weight — a direction, not a deadline.",
-    render:function(){ return '<div class="gnum-unit"><input class="input big-input" type="number" inputmode="decimal" id="w_goal" value="'+(WIZ.goalweight||"")+'"><span class="gunit">lb</span></div>'; },
-    collect:function(){ WIZ.goalweight=parseFloat(g("w_goal").value); return isNaN(WIZ.goalweight)?"Add your goal weight.":null; } },
-  steps:{ q:"On a normal day, how much do you move?", hint:"Your daily steps set your starting calories.",
-    render:function(){ return wizOptions("steps",STEP_BANDS); },
-    collect:function(){ if(!WIZ.steps) return "Pick the closest one."; WIZ.activity=STEP_ACT[WIZ.steps]||"Lightly active"; return null; } },
-  trackingexp:{ q:"Have you tracked your food before?", hint:"No wrong answer — it just tells me where to start you.",
-    render:function(){ return wizOptions("trackingexp",TRACK_EXP); },
-    collect:function(){ return WIZ.trackingexp?null:"Pick the closest one."; } },
-  trainloc:{ q:"Where do you train?", hint:"",
-    render:function(){ return wizOptions("trainloc",TRAIN_LOC); },
-    collect:function(){ return WIZ.trainloc?null:"Pick one."; } },
-  traindays:{ q:"How many days a week do you strength train?", hint:"Lifting days — walking doesn't count here.",
-    render:function(){ return wizOptions("traindays",TRAIN_DAYS); },
+  goalweight:{ q:"What is the weight that would make you feel like you again?", hint:"A direction, not a deadline.",
+    render:function(){ return raNum("w_goal",WIZ.goalweight,"lb"); },
+    collect:function(){ WIZ.goalweight=parseFloat(g("w_goal").value); return isNaN(WIZ.goalweight)?"Add a number — best guess is fine.":null; } },
+  intakecal:{ q:"On a normal day, how much are you actually eating?", hint:"Your honest best guess. Most people have never really looked. (Leave blank if you truly have no idea.)",
+    render:function(){ return raNum("w_intake",WIZ.intakecal,"cal/day"); },
+    collect:function(){ var v=parseFloat(g("w_intake").value); WIZ.intakecal=isNaN(v)?null:v; return null; } },
+  intakedur:{ q:"How long have you been eating around that amount?", hint:"",
+    render:function(){ return wizChips("intakedur",RA_DUR); },
+    collect:function(){ return WIZ.intakedur?null:"Pick one."; } },
+  adapted:{ q:"Have you ever eaten less and less, and still watched the scale refuse to move?", hint:"",
+    render:function(){ return wizChips("adapted",RA_ADAPTED); },
+    collect:function(){ return WIZ.adapted?null:"Pick one."; } },
+  traindays:{ q:"Are you lifting weights right now? How many days a week?", hint:"Lifting days — walking doesn't count here.",
+    render:function(){ return wizOptions("traindays",RA_TRAINDAYS); },
     collect:function(){ return WIZ.traindays?null:"Pick one."; } },
-  diethistory:{ q:"How long have you been dieting or under-eating?", hint:"",
-    render:function(){ return wizChips("diethistory",W_DIET); },
-    collect:function(){ return WIZ.diethistory?null:"Pick one."; } },
-  fueling:{ q:"How are you fueling right now?", hint:"",
-    render:function(){ return wizChips("fueling",W_FUEL); },
-    collect:function(){ return WIZ.fueling?null:"Pick one."; } },
-  flags:{ q:"Any of these sound like you?", hint:"Check all that fit — or none, and just tap Next.",
-    render:function(){ return wizChips("flags",W_FLAGS,true); },
+  /* ---- M2 · MINDSET ---- */
+  restarts:{ q:"How many times have you started over in the last couple of years?", hint:"", mlabel:"M2 · Mindset",
+    render:function(){ return wizChips("restarts",RA_RESTART); },
+    collect:function(){ return WIZ.restarts?null:"Pick one."; } },
+  nextday:{ q:"When one day goes sideways, what happens to the next day?", hint:"",
+    render:function(){ return wizChips("nextday",RA_NEXTDAY); },
+    collect:function(){ return WIZ.nextday?null:"Pick one."; } },
+  scalerel:{ q:"Where are you with the scale right now?", hint:"",
+    render:function(){ return wizChips("scalerel",RA_SCALE); },
+    collect:function(){ return WIZ.scalerel?null:"Pick one."; } },
+  whynow:{ q:"Why does this matter to you right now, honestly?", hint:"A couple lines. It helps me shape the call.",
+    render:function(){ return raText("w_whynow",WIZ.whynow); },
+    collect:function(){ WIZ.whynow=g("w_whynow").value; return null; } },
+  readiness:{ q:"One to ten, how ready are you to change something for real?", hint:"",
+    render:function(){ return '<div class="ra-scale">'+wizChips("readiness",["1","2","3","4","5","6","7","8","9","10"])+'</div>'; },
+    collect:function(){ return WIZ.readiness?null:"Give it a number."; } },
+  /* ---- M3 · METHODS ---- */
+  tried:{ q:"What have you tried?", hint:"Check all that fit.", mlabel:"M3 · Methods",
+    render:function(){ return wizChips("tried",RA_TRIED,true); },
     collect:function(){ return null; } },
-  pregnant:{ q:"Are you pregnant or trying to conceive?", hint:"If so, we focus on nourishment — never a deficit.",
-    render:function(){ return wizChips("pregnant",["No","Yes"]); },
-    collect:function(){ return WIZ.pregnant?null:"Pick one."; } },
-  priorities:{ q:"Rank what matters most right now.", hint:"You'll learn what each one means in Foundations.",
-    render:function(){ var b=""; for(var i=0;i<3;i++){ b+='<div class="wiz-rank"><span class="rk">'+(i+1)+'</span><select class="input" id="w_pri'+i+'"><option value="">Choose…</option>'
-        +W_PRIOR.map(function(o){ return '<option value="'+o[0]+'"'+((WIZ.priorities&&WIZ.priorities[i]===o[0])?' selected':'')+'>'+esc(o[1])+'</option>'; }).join("")+'</select></div>'; } return b; },
-    collect:function(){ var p=[g("w_pri0").value,g("w_pri1").value,g("w_pri2").value]; if(p.indexOf("")>=0) return "Rank all three."; if(new Set(p).size!==3) return "Each spot needs a different one."; WIZ.priorities=p; return null; } },
-  extragoals:{ q:"Anything else you're working on?", hint:"Optional — tap any that fit.",
-    render:function(){ return wizChips("extragoals",W_EXTRA,true); },
+  tracked:{ q:"Have you ever weighed and tracked your food?", hint:"",
+    render:function(){ return wizChips("tracked",RA_TRACKED); },
+    collect:function(){ return WIZ.tracked?null:"Pick one."; } },
+  normalday:{ q:"Walk me through a normal day of eating.", hint:"A couple lines is plenty.",
+    render:function(){ return raText("w_normalday",WIZ.normalday); },
+    collect:function(){ WIZ.normalday=g("w_normalday").value; return null; } },
+  inway:{ q:"What is the thing that keeps getting in the way of staying consistent?", hint:"",
+    render:function(){ return raText("w_inway",WIZ.inway); },
+    collect:function(){ WIZ.inway=g("w_inway").value; return null; } },
+  status:{ q:"Anything I should know before I look at your numbers?", hint:"Menopause or perimenopause, thyroid, any medication or supplementation, injuries, anything.",
+    render:function(){ return wizChips("statusflags",RA_STATUS,true); },
     collect:function(){ return null; } },
-  interests:{ q:"Curious about any of these?", hint:"Optional — no commitment, just what interests you.",
-    render:function(){ return wizChips("interests",W_INTEREST,true); },
-    collect:function(){ return null; } },
-  filters:{ q:"Any dietary needs?", hint:"Optional — so your food lists actually fit you.",
-    render:function(){ return wizChips("filters",W_FILTER,true); },
-    collect:function(){ return null; } },
-  result:{ q:"Your starting direction", render:function(){ return wizResult(); } }
+  result:{ q:"Your Read", render:function(){ return readinessRead(); } }
 };
 function gOrder(){
-  var o=["sex","dob","height","weight","goalweight","steps","trackingexp","trainloc","traindays","diethistory","fueling","flags"];
-  if(WIZ.sex==="Female") o.push("pregnant");
-  o.push("priorities","extragoals","interests","filters","result");
-  return o;
+  return ["intro","goal","sex","weight","height","goalweight","intakecal","intakedur","adapted","traindays",
+    "restarts","nextday","scalerel","whynow","readiness","tried","tracked","normalday","inway","status","result"];
 }
 function renderWiz(){
   var order=gOrder(); if(WIZ_I>=order.length) WIZ_I=order.length-1;
   var id=order[WIZ_I], s=STEP[id], last=order.length-1, isResult=(id==="result");
   g("wizFill").style.width=(WIZ_I/last*100).toFixed(0)+"%";
-  g("wizEyebrow").textContent = isResult ? "Your plan" : ("Setup · step "+(WIZ_I+1)+" of "+last);
+  var mlabel="The Readiness Assessment";                                   // carry the current M across its sub-steps
+  for(var i=WIZ_I;i>=0;i--){ if(STEP[order[i]] && STEP[order[i]].mlabel){ mlabel=STEP[order[i]].mlabel; break; } }
+  g("wizEyebrow").textContent = isResult ? "Your Read" : ((id==="intro"||id==="goal") ? "The Readiness Assessment" : mlabel);
   g("wizTitle").textContent = s.q;
   var b="";
   if(!isResult && s.hint) b+='<p class="wiz-hint" style="margin:-2px 0 14px">'+s.hint+'</p>';
@@ -3701,7 +3789,7 @@ function renderWiz(){
   g("wizBody").innerHTML=b;
   g("wizBackBtn").style.visibility = WIZ_I===0?"hidden":"visible";
   g("wizNextBtn").style.display = isResult?"none":"block";
-  g("wizNextBtn").textContent = (order[WIZ_I+1]==="result")?"Build my plan →":"Next";
+  g("wizNextBtn").textContent = (id==="intro") ? "Begin →" : ((order[WIZ_I+1]==="result")?"See my Read →":"Next");
   g("wizStatus").textContent="";
 }
 function wizNext(){
@@ -3714,73 +3802,113 @@ function wizNext(){
 }
 function wizBack(){ if(WIZ_I>0){ WIZ_I--; renderWiz(); window.scrollTo(0,0); } }
 function wizCompute(){
-  var longDiet = ["1–3 years","3+ years","Most of my life"].indexOf(WIZ.diethistory)>=0;
-  var restricting = /little|restric/i.test(WIZ.fueling||"");
-  var flagsN=(WIZ.flags||[]).length;
-  var reverse = longDiet && (restricting || flagsN>=2);
-  var pregnant = WIZ.pregnant==="Yes";
-  var p1=(WIZ.priorities||["Lean"])[0];
-  WIZ.track = pregnant ? "Long" : (reverse ? "Reverse Diet" : p1);
-  WIZ.signal = reverse ? ((["3+ years","Most of my life"].indexOf(WIZ.diethistory)>=0 && restricting && flagsN>=2)?"strong":"moderate") : "clear";
-  WIZ.pregnantFlag=pregnant; WIZ.reverse=reverse;
+  var longDur=["3+ years","Most of my life"].indexOf(WIZ.intakedur)>=0;
+  var adapted=(WIZ.adapted==="Yes") && longDur;                 // strong metabolically-adapted signal → overrides the goal
+  WIZ.reverse=adapted;
+  WIZ.track = adapted ? "Reverse Diet" : (WIZ.goal || "Lean");
+  WIZ.signal = adapted ? "strong" : "clear";
+  WIZ.activity = WIZ.activity || "Active";                       // numbers = goal wt × phase multiplier; activity only shades the TDEE estimate we don't show
   WIZ.pfs = computePFS(WIZ, WIZ.track);
+  WIZ.routes = raRoutes();
 }
-/* computePFS() now lives in nutrition-engine.js (shared with the Command Center). */
-function wizResult(){
-  var t=WIZ.track, p=WIZ.pfs;
-  var pace;
-  if(t==="Reverse Diet") pace='You\'re likely eating well under the ~'+p.tdee+' calories your body could handle. <b>'+p.calories+' is our estimate of where you\'re at now</b> — after your first week of Foundations you\'ll know your real number and set it in your dashboard. From there we add a little each week to rebuild your metabolism, so fat loss finally sticks.';
-  else if(t==="Strong") pace='You\'re likely around ~'+p.tdee+' to hold your current weight. We start you at '+p.calories+', a touch above that, to fuel building.';
-  else if(t==="Long") pace='We hold you near your ~'+p.tdee+' estimated maintenance at '+p.calories+' — steady, with a longevity focus.';
-  else pace='You\'re likely eating around ~'+p.tdee+' to hold your current weight. We start you at '+p.calories+' — a sustainable deficit, not a crash.';
-  // filter-aware food notes
-  var f=WIZ.filters||[];
-  var protList = f.indexOf("Vegetarian")>=0 ? "eggs, Greek yogurt, cottage cheese, tofu/tempeh, lentils, protein powder" : "chicken breast, lean beef or turkey, eggs, Greek yogurt, white fish, shrimp, top sirloin";
-  if(f.indexOf("Lactose-free")>=0) protList=protList.replace(/Greek yogurt, |cottage cheese, /g,"");
-  var carbList = "potatoes, white rice, oats"+(f.indexOf("Gluten-free")>=0?"":", sourdough")+", sweet potato, fruit";
-  var fatList = "avocado, olive oil, nuts & nut butter"+(f.indexOf("Lactose-free")>=0?"":", cheese")+", egg yolks";
-  return readHTML(WIZ, {})
-    +'<div class="sec-h" style="margin-top:16px"><h2>Your Power Food System</h2></div>'
-    +'<p class="wiz-hint" style="margin-top:-4px">Your starting daily targets. This is an estimate off your numbers — Foundations dials it in with your real data.</p>'
-    +'<div class="macro-row"><div class="macro"><div class="mn">'+p.calories+'</div><div class="ml">Calories</div></div>'
-    +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
-    +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
-    +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
-    +'<p class="wiz-hint">'+pace+'</p><p class="wiz-hint">This is a starting <b>target and a guide</b>, not a hard rule — Foundations dials it in with your real data. Protein first, every meal.</p>'
-    +'<div class="sec-h" style="margin-top:16px"><h2>Foods to build from</h2></div>'
-    +'<div class="foodcol"><b>Proteins:</b> <span>'+esc(protList)+'</span></div>'
-    +'<div class="foodcol"><b>Smart carbs:</b> <span>'+esc(carbList)+'</span></div>'
-    +'<div class="foodcol"><b>Fats (keep moderate):</b> <span>'+esc(fatList)+'</span></div>'
-    +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — aim for a big pile at every meal (~'+produceTarget(p.calories,t)+'g produce/day)</span></div>'
-    +'<p class="wiz-hint" style="margin-top:6px">Build every plate: a palm of protein + a fist of a smart carb + a mountain of veg. Keep it that simple to start.</p>'
-    +'<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:14px"><div class="res-why" style="color:var(--ink)"><b>Your next step:</b> this is your starting point. Head into the <b>Foundations</b> course in Skool — that\'s where you collect the data and learn the system so we can refine this into exactly what your body needs.</div></div>'
-    +(hasCNS()?'':'<p class="wiz-hint" style="margin-top:10px">Want this <b>done for you</b> — real meal plans built around the foods you actually eat? Lock this in, then ask '+esc(CONFIG.coachName)+' about the <b>Complete Nutrition System</b> build on your dashboard.</p>')
-    // The Layer 1 → Layer 2 handoff. The number is honest but generic — this is where we say so.
-    +'<div class="card" style="background:var(--touch-soft);border-color:var(--touch);margin-top:16px">'
-      +'<div class="sec-h"><h2>That\'s your starting number.</h2></div>'
-      +'<div class="res-why" style="color:var(--ink);margin-top:0">It\'s built off your body and your goal — and it\'s honest, but it\'s generic. It doesn\'t know your schedule, your travel, who you cook for, or why the last few times didn\'t stick.<br><br>Give me about seven more minutes and I\'ll build the whole system: the plan, the order to do it in, and the one thing to fix first.</div>'
-    +'</div>'
-    +'<div class="actions"><button class="btn btn-primary" onclick="wizSubmit(true)" id="wizDone">Build my system →</button>'
-      +'<button class="btn btn-ghost" style="margin-top:10px" onclick="wizSubmit(false)">Just take me to my dashboard</button>'
-      +'<div class="status" id="wizSubStatus"></div></div>';
+/* POP routes (priority): a strong ADAPTED signal (D) wins over the goal; else the goal route (A/B/C);
+   layer the tracking route (E/F) as a second line. Cap at TWO. */
+function raRoutes(){
+  var r=[];
+  if(WIZ.reverse) r.push("D");
+  else r.push({Lean:"A",Strong:"B",Sustain:"C"}[WIZ.track] || "A");
+  if(r.length<2){
+    if(WIZ.tracked==="No, never") r.push("E");
+    else if(WIZ.tracked==="Yes, but I can't live like that") r.push("F");
+  }
+  return r.slice(0,2);
 }
-async function wizSubmit(goDeep){
-  var st=g("wizSubStatus"); g("wizDone").disabled=true; st.textContent="Saving your setup…"; st.style.color="var(--muted)";
-  var payload={type:"intake", email:ID.email, ts:new Date().toISOString(), sex:WIZ.sex, age:WIZ.age, dob:WIZ.dob||"", height:WIZ.height,
-    weight:WIZ.weight, goalweight:WIZ.goalweight, activity:WIZ.activity, steps:WIZ.steps||"", trackingexp:WIZ.trackingexp||"",
-    trainloc:WIZ.trainloc||"", traindays:WIZ.traindays||"", track:WIZ.track, signal:WIZ.signal,
-    pregnant:WIZ.pregnant||"", diethistory:WIZ.diethistory, fueling:WIZ.fueling, flags:WIZ.flags||[],
-    priorities:WIZ.priorities||[], extragoals:WIZ.extragoals||[], interests:WIZ.interests||[], filters:WIZ.filters||[]};
-  await postToSheet(payload);
-  if(WIZ.dob) postToSheet({type:"rosterset", field:"DOB", email:ID.email, value:WIZ.dob});   // land DOB on the Roster so the identity gate can verify this member
-  var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, weight:WIZ.weight, goalweight:WIZ.goalweight, sex:WIZ.sex, filters:WIZ.filters||[],
-    // carried locally so The Read works on this device before the first server round-trip
-    age:WIZ.age, height:WIZ.height, activity:WIZ.activity, steps:WIZ.steps||'', trackingexp:WIZ.trackingexp||'', trainloc:WIZ.trainloc||'', traindays:WIZ.traindays||'', pregnant:WIZ.pregnant||'', diethistory:WIZ.diethistory||'',
-    fueling:WIZ.fueling||'', flagsRaw:(WIZ.flags||[]).join(', '), priorities:WIZ.priorities||[],
-    extragoals:WIZ.extragoals||[], interests:WIZ.interests||[]};
-  saveLS(LS_INTAKE, rec);
-  M.intake = rec;
-  if(goDeep) showDeep(); else showHome();
+/* Possibility copy — verbatim from Readiness-Assessment-Copy-Draft.md ({coach} = coach name). */
+var RA_ROUTE = {
+  A:"You have started over more times than you can count. Every time, you ate less and pushed harder.\n\nAnd every time, it worked for a while, then stopped. Because eating less was never the missing piece.\n\nThere is a way to lose fat that does not run on willpower and does not fall apart the first hard week. That is what we build with you.",
+  B:"You want to get stronger. But every version of \"building\" you have seen meant getting softer and gaining fat you would just have to lose again.\n\nSo you have never really let yourself go after it.\n\nYou can build real strength and muscle without getting fat. There is a way to do it, and we can teach you.",
+  C:"You actually like where you are. And you are quietly terrified of losing it.\n\nEvery plan out there tells you how to get results. None of them tell you how to keep them without watching every bite and living in the gym.\n\nYou can hold this, without the obsession, on far less effort than it took to get here. We can teach you how.",
+  D:"You are eating less than you ever have, and the scale will not move.\n\nThat is not a willpower problem, and it is not in your head.\n\nThere is a real chance your metabolism has adapted down after years of eating less and doing more. There is also a way back out.\n\nThat is exactly what a call with {coach} is for. He looks at your situation, and he gives you your best next step.",
+  E:"You have never actually known how much you are eating.\n\nThat is not on you. Nobody ever taught you how to see it.\n\nIt is a skill, and it is simpler than you think. We can teach you the whole thing in a week.",
+  F:"You know how to track. You just cannot live tracking every bite for the rest of your life.\n\nSo you swing between all-in and off completely. Tracking became a cage.\n\nThere is a framework that uses the skill without living on it. You eat out, you travel, you have the wine, and you still move toward your goal. It is called the Macro Freedom Framework, and it is exactly what we would build with you."
+};
+/* SCREEN 3 — The Read. Numbers as THE ANSWER, then the possibility, then the curiosity gap → book. */
+function readinessRead(){
+  raSaveIntake();                                              // persist on first view (guarded)
+  var p=WIZ.pfs||{}, t=WIZ.track, gw=+WIZ.goalweight||0;
+  var pfloor=Math.round(gw*0.8);
+  var ptarget=p.protein||Math.round(gw*({Lean:1.0,Strong:0.9,Sustain:1.0}[t]||1.0));
+  var stepsT=/lean/i.test(t)?"12,000":"10,000";
+  var phaseName=({"Reverse Diet":"Reverse","Long":"Sustain"})[t]||t;
+  var readLabel = WIZ.reverse ? "Likely metabolically adapted" :
+    (WIZ.tracked==="No, never" ? "Tracking is the gap" :
+     (WIZ.tracked==="Yes, but I can't live like that" ? "You have the skill, not the freedom" : phaseName+" phase"));
+  var coach=esc(CONFIG.coachName||"Jayme");
+  var h='<div class="ra-read">';
+  h+='<p class="ra-h1">This is your Read.</p><p class="ra-h2">These are your numbers.</p>';
+  h+='<div class="ra-nums">'
+    +'<div class="ra-num"><div class="ra-nv">'+(p.calories||"—")+'</div><div class="ra-nl">Calorie target</div></div>'
+    +'<div class="ra-num"><div class="ra-nv">'+pfloor+'–'+ptarget+'g</div><div class="ra-nl">Protein · floor → target</div></div>'
+    +'<div class="ra-num"><div class="ra-nv">'+stepsT+'</div><div class="ra-nl">Daily steps</div></div>'
+    +'<div class="ra-num"><div class="ra-nv" style="font-size:22px">'+esc(phaseName)+'</div><div class="ra-nl">Your phase</div></div>'
+    +'</div>';
+  h+='<p class="ra-readline"><span>Your read</span> '+esc(readLabel)+'</p>';
+  h+='<p class="ra-micro">Your calorie target: this is your starting number. Whether it holds or moves is the first thing your coach reads with you.</p>';
+  h+='<p class="ra-micro">Your phase: this is your season. How you run it, and how long, is your call.</p>';
+  h+='<p class="ra-micro ra-scaleframe">The scale is a tool, not a verdict. You will learn to read it, not fear it.</p>';
+  (WIZ.routes||[]).forEach(function(rk){ var txt=RA_ROUTE[rk]; if(!txt) return; txt=txt.replace(/\{coach\}/g, coach);
+    h+='<div class="ra-poss">'+txt.split("\n\n").map(function(par){return '<p>'+esc(par)+'</p>';}).join("")+'</div>'; });
+  ["Here is the part nobody tells you, though.","A number on its own does not change anything.","What it means for your body, your season, and the very first move you make with it...","...that is where this turns real.","And that is not something you read off a screen by yourself.","You have had plans before. You have probably had six of them.","Information was never your problem.","You could not see the middle, and no one ever sat down and showed you how to look.","That is exactly what your Readiness Consultation is for.","Your numbers, your season, your best next step, straight from your coach.","Let's get you booked and moving inside 48 hours."]
+    .forEach(function(l){ h+='<p class="ra-close">'+esc(l)+'</p>'; });
+  h+='<div class="actions" style="margin-top:16px"><button class="btn btn-primary btn-big" onclick="showBooking()">Book your Readiness Consultation</button>'
+    +'<p class="ra-underbtn">This is where we make sure your very first move is the right one.</p>'
+    +'<button class="btn btn-ghost" onclick="showHome()">I\'ll book from my dashboard</button></div>';
+  h+='</div>';
+  return h;
+}
+/* Persist the Readiness Assessment: the numbers via type:intake (base columns), and the full set of
+   reads via type:intakedeep's JSON blob + flattened columns — no doorway redeploy needed. Guarded. */
+var RA_SAVED=false;
+function raSaveIntake(){
+  if(RA_SAVED || !ID || !ID.email) return; RA_SAVED=true;
+  var status=(WIZ.statusflags||[]).filter(function(x){return x!=="None of these";});
+  postToSheet({type:"intake", email:ID.email, ts:new Date().toISOString(), sex:WIZ.sex, dob:WIZ.dob||"",
+    height:WIZ.height, weight:WIZ.weight, goalweight:WIZ.goalweight, activity:WIZ.activity||"Active",
+    track:WIZ.track, signal:WIZ.signal, traindays:WIZ.traindays||"", trackingexp:WIZ.tracked||""});
+  var blob={goal:WIZ.goal,intakecal:WIZ.intakecal,intakedur:WIZ.intakedur,adapted:WIZ.adapted,traindays:WIZ.traindays,
+    restarts:WIZ.restarts,nextday:WIZ.nextday,scalerel:WIZ.scalerel,readiness:WIZ.readiness,tried:WIZ.tried||[],
+    tracked:WIZ.tracked,normalday:WIZ.normalday,statusflags:status,routes:WIZ.routes||[]};
+  postToSheet({type:"intakedeep", email:ID.email, ts:new Date().toISOString(), deep:JSON.stringify(blob), deepdone:"Yes",
+    constraint:(WIZ.reverse?"Likely metabolically adapted":(WIZ.tracked||"")), constraintkey:(WIZ.routes||[]).join(","),
+    whynow:WIZ.whynow||"", inway:WIZ.inway||"", readiness:WIZ.readiness||""});
+  var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, weight:WIZ.weight, goalweight:WIZ.goalweight,
+    sex:WIZ.sex, goal:WIZ.goal||"", routes:WIZ.routes||[], reverse:!!WIZ.reverse, tracked:WIZ.tracked||"",
+    statusRaw:status.join(', '), traindays:WIZ.traindays||"", readiness:WIZ.readiness||"", height:WIZ.height, activity:WIZ.activity||"Active"};
+  saveLS(LS_INTAKE, rec); M.intake=rec;
+}
+/* SCREEN 4 — the booking form (3 soft reads, no money gate; never blocks the booking). */
+var RA_BOOK={};
+function showBooking(){
+  var url=CONFIG.onboardCallUrl||CONFIG.bookCallUrl||"#";
+  var h='<p class="ra-h2" style="margin-top:0">Last thing before you grab your time.</p>'
+    +'<div class="field"><label>How do you want to tackle this from here?</label>'
+      +'<div class="chips vchips" id="bk_q1" data-val="">'
+      +'<button type="button" class="chip" data-v="self" onclick="pickChip(this)">I want the right information and I\'ll run with it myself</button>'
+      +'<button type="button" class="chip" data-v="coached" onclick="pickChip(this)">I\'m done doing this alone. I want a coach in my corner.</button></div></div>'
+    +'<div class="field"><label>Have you worked with a coach before?</label>'
+      +'<div class="chips" id="bk_q2" data-val="">'
+      +['Never','I have before','I\'m working with one now'].map(function(o){return '<button type="button" class="chip" data-v="'+esc(o)+'" onclick="pickChip(this)">'+esc(o)+'</button>';}).join("")+'</div></div>'
+    +'<div class="field"><label>What would make this call a win for you? <span class="hint">(optional)</span></label>'
+      +'<textarea class="input" id="bk_win" rows="2"></textarea></div>'
+    +'<div class="actions" style="margin-top:8px"><a class="btn btn-primary btn-big" href="'+esc(url)+'" target="_blank" rel="noopener" onclick="raBook()">Grab your time &#8594;</a>'
+      +'<p class="ra-underbtn">Booked inside 48 hours is where the momentum lives.</p></div>';
+  g("bookingBody").innerHTML=h; show("booking");
+}
+function raBook(){
+  var q1=g("bk_q1").dataset.val||"", q2=g("bk_q2").dataset.val||"", win=g("bk_win").value||"";
+  postToSheet({type:"booking", email:(ID&&ID.email)||"", ts:new Date().toISOString(), approach:q1, coachhist:q2, win:win});
+  M.booked=true; try{ saveLS("lp_client_booked","1"); }catch(e){}
+  setTimeout(showHome, 400);
 }
 
 /* ============================ WRITE DOORWAY ============================ */
