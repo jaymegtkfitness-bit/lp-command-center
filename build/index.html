@@ -1,0 +1,2866 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- CANONICAL cold-traffic CNS page, served at dashboard.legacyperformance.co/build/.
+     nutrition-plan.html is now only a redirect to here. Edit THIS file. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Build My Nutrition System | Legacy Performance</title>
+<meta name="description" content="Answer honestly for about five minutes. You get your Read: your calorie target, your protein floor, your phase, and your best next step.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+
+<style>
+/* ===================== DESIGN TOKENS ===================== */
+:root{
+  --charcoal:#1C1C1C; --olive:#4A5C3E; --parchment:#F2EDE4; --gold:#C1AD72;
+  --ink:#1C1C1C; --paper:#F2EDE4;
+  --olive-lt:#8FA97A; --line:rgba(28,28,28,.12); --muted:#5d5a54;
+  --card:#FFFDF9; --shadow:0 2px 14px rgba(28,28,28,.07);
+  --warm-red:#A6432F;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+h1,h2,h3,.disp{font-family:Cinzel,Georgia,serif;font-weight:600;line-height:1.2;letter-spacing:.01em}
+p{margin:0 0 1em}
+.wrap{max-width:760px;margin:0 auto;padding:0 20px}
+.narrow{max-width:640px}
+section{padding:56px 0}
+section.tight{padding:36px 0}
+.dark{background:var(--charcoal);color:var(--parchment)}
+.dark h1,.dark h2,.dark h3{color:var(--parchment)}
+.dark .muted{color:#b8b3aa}
+.muted{color:var(--muted);font-size:.92rem}
+.eyebrow{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;font-weight:700;
+  color:var(--olive);margin:0 0 12px}
+.dark .eyebrow{color:var(--gold)}
+.rule{height:2px;width:56px;background:var(--gold);border:0;margin:20px 0}
+
+/* ===================== HEADER ===================== */
+.topbar{background:var(--charcoal);height:env(safe-area-inset-top);width:100%}
+header.brand{background:var(--parchment);border-bottom:1px solid var(--line);
+  padding:14px 20px;text-align:center;position:sticky;top:0;z-index:40;
+  backdrop-filter:saturate(140%) blur(6px)}
+header.brand img{height:38px;width:auto;display:inline-block}
+header.brand .fallback{display:none;font-family:Cinzel,serif;font-weight:700;
+  letter-spacing:.16em;font-size:1.05rem}
+header.brand .fallback b{color:var(--charcoal)} header.brand .fallback i{color:var(--gold);font-style:normal}
+
+/* ===================== HERO ===================== */
+.hero{background:linear-gradient(180deg,#FFFDF9 0%,var(--parchment) 100%);
+  padding:52px 0 44px;text-align:center}
+.hero h1{font-size:clamp(1.85rem,5.4vw,2.7rem);margin:0 0 16px}
+.hero .sub{font-size:1.05rem;color:var(--muted);max-width:560px;margin:0 auto 26px}
+.stars{color:var(--gold);letter-spacing:.14em;font-size:1rem}
+.trustrow{display:flex;gap:10px;justify-content:center;flex-wrap:wrap;margin:22px 0 0}
+.trustrow .chip{background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:7px 14px;font-size:.78rem;font-weight:600;color:var(--muted)}
+
+/* ===================== BUTTONS ===================== */
+.btn{display:inline-block;background:var(--olive);color:#fff;border:0;cursor:pointer;
+  font-family:Montserrat,sans-serif;font-weight:700;font-size:1rem;letter-spacing:.02em;
+  padding:17px 34px;border-radius:10px;text-decoration:none;min-height:52px;
+  box-shadow:0 3px 12px rgba(74,92,62,.26);transition:transform .12s,box-shadow .12s;width:100%;max-width:400px}
+.btn:hover{transform:translateY(-1px);box-shadow:0 5px 18px rgba(74,92,62,.32)}
+.btn:disabled{background:#b5b1a8;box-shadow:none;cursor:not-allowed;transform:none}
+.btn.gold{background:var(--gold);color:var(--charcoal);box-shadow:0 3px 12px rgba(193,173,114,.34)}
+.btn.ghost{background:transparent;color:var(--olive);border:2px solid var(--olive);box-shadow:none}
+.dark .btn.ghost{color:var(--gold);border-color:var(--gold)}
+.btn-note{font-size:.82rem;color:var(--muted);margin-top:12px;line-height:1.5}
+.dark .btn-note{color:#b8b3aa}
+
+/* ===================== FORM / STEPS ===================== */
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;
+  padding:26px 22px;margin:0 0 20px;box-shadow:var(--shadow);scroll-margin-top:84px}
+.step .num{display:inline-block;font-family:Cinzel,serif;font-weight:700;font-size:.72rem;
+  letter-spacing:.14em;color:var(--gold);border:1px solid var(--gold);border-radius:6px;
+  padding:3px 9px;margin-bottom:12px}
+.step h3{font-size:1.24rem;margin:0 0 8px}
+.step .help{font-size:.88rem;color:var(--muted);margin:0 0 18px;line-height:1.55}
+
+.opts{display:grid;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--line);
+  background:#fff;border-radius:11px;padding:14px 15px;cursor:pointer;transition:.13s;min-height:52px}
+.opt:hover{border-color:var(--olive-lt)}
+.opt.on{border-color:var(--olive);background:#F4F7F1;box-shadow:inset 0 0 0 1px var(--olive)}
+.opt .dot{flex:0 0 20px;height:20px;border:2px solid #c3beb4;border-radius:50%;margin-top:2px;position:relative}
+.opt.on .dot{border-color:var(--olive)}
+.opt.on .dot:after{content:"";position:absolute;inset:3px;background:var(--olive);border-radius:50%}
+.opt .t{font-weight:600;font-size:.97rem;display:block}
+.opt .d{font-size:.83rem;color:var(--muted);display:block;margin-top:2px;line-height:1.45}
+.opts.row2{grid-template-columns:1fr 1fr}
+@media(max-width:520px){.opts.row2{grid-template-columns:1fr}}
+
+.pills{display:flex;flex-wrap:wrap;gap:8px}
+.pill{border:2px solid var(--line);background:#fff;border-radius:999px;padding:9px 15px;
+  font-size:.87rem;font-weight:600;cursor:pointer;transition:.12s;min-height:40px;
+  display:inline-flex;align-items:center;user-select:none}
+.pill:hover{border-color:var(--olive-lt)}
+.pill.on{border-color:var(--olive);background:var(--olive);color:#fff}
+.pill.on.gold{border-color:var(--gold);background:var(--gold);color:var(--charcoal)}
+.grouplbl{font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+  color:var(--muted);margin:20px 0 9px}
+.grouplbl:first-child{margin-top:0}
+/* Power Food System tier badge on each food pill. Tier 1 is what plans get built from. */
+.pill .tier{font-style:normal;font-size:.6rem;font-weight:700;margin-left:7px;line-height:1;
+  padding:3px 5px;border-radius:4px;background:var(--olive);color:#fff;opacity:.85}
+.pill .tier.t2{background:var(--gold);color:var(--charcoal)}
+.pill .tier.t3{background:#9a948a;color:#fff}
+.pill.on .tier{background:rgba(255,255,255,.28);color:#fff}
+/* ★ TOP — the member stars up to three favourites per category. Starred foods lead every
+   meal option and override the tier default, because starring is an explicit choice. */
+.pill .star{display:none;font-style:normal;margin-left:6px;font-size:.82rem;line-height:1;
+  color:rgba(255,255,255,.55);cursor:pointer}
+.pill.on .star{display:inline-block}
+.pill.on .star.lit{color:var(--gold)}
+.starnote{font-size:.8rem;color:var(--muted);margin:8px 0 0;line-height:1.5}
+
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+@media(max-width:520px){.fields{grid-template-columns:1fr}}
+.f label{display:block;font-size:.78rem;font-weight:700;letter-spacing:.06em;
+  text-transform:uppercase;color:var(--muted);margin:0 0 6px}
+.f input,.f select,.f textarea{width:100%;border:2px solid var(--line);border-radius:9px;
+  padding:13px 14px;font-family:Montserrat,sans-serif;font-size:1rem;background:#fff;
+  color:var(--ink);min-height:50px}
+.f textarea{min-height:88px;resize:vertical;line-height:1.5}
+.f input:focus,.f select:focus,.f textarea:focus{outline:0;border-color:var(--olive)}
+.f.full{grid-column:1/-1}
+
+.yn{display:flex;gap:8px}
+.yn button{flex:1;border:2px solid var(--line);background:#fff;border-radius:9px;padding:11px;
+  font-family:Montserrat,sans-serif;font-weight:700;font-size:.9rem;cursor:pointer;min-height:46px}
+.yn button.on{border-color:var(--olive);background:var(--olive);color:#fff}
+.yn button.on.warn{border-color:var(--warm-red);background:var(--warm-red);color:#fff}
+.medq{padding:15px 0;border-bottom:1px solid var(--line)}
+.medq:last-child{border-bottom:0}
+.medq .q{font-weight:600;font-size:.94rem;margin:0 0 4px}
+.medq .why{font-size:.82rem;color:var(--muted);margin:0 0 10px;line-height:1.45}
+.warn{display:none;margin-top:10px;background:#FBF0ED;border-left:3px solid var(--warm-red);
+  padding:11px 13px;border-radius:0 8px 8px 0;font-size:.85rem;line-height:1.5}
+.warn.show{display:block}
+/* .ok = "this changes your build", not "this stops your build". Only kidney stays red. */
+.warn.ok{background:#F4F7F1;border-left-color:var(--olive)}
+
+/* ===================== LIVE PANELS ===================== */
+.panel{background:var(--charcoal);color:var(--parchment);border-radius:14px;padding:24px 20px;margin:20px 0 0}
+.panel h4{font-family:Cinzel,serif;font-size:1.05rem;margin:0 0 4px;color:var(--parchment)}
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:18px 0 0}
+@media(max-width:560px){.tiles{grid-template-columns:1fr 1fr}}
+.tile{background:rgba(242,237,228,.07);border:1px solid rgba(193,173,114,.28);
+  border-radius:10px;padding:14px 10px;text-align:center}
+.tile .v{font-family:Cinzel,serif;font-size:1.6rem;font-weight:700;color:var(--gold);line-height:1.1}
+.tile .l{font-size:.63rem;letter-spacing:.14em;text-transform:uppercase;color:#b8b3aa;margin-top:5px}
+.tile.wide{grid-column:1/-1}
+.tile.wide .v{font-size:1.25rem;color:var(--parchment)}
+
+.note{background:#FFFDF9;border-left:3px solid var(--gold);padding:13px 15px;
+  border-radius:0 9px 9px 0;font-size:.87rem;line-height:1.55;margin:16px 0 0}
+/* Anything dark-on-the-inside needs the dark note treatment, even when it sits inside a light
+   section. Without this the note renders parchment text on a near-white background. */
+.dark .note,.panel .note,.step.dark .note{
+  background:rgba(242,237,228,.07);border-left-color:var(--gold);color:#e6e1d8}
+.panel .note strong,.step.dark .note strong,.dark .note strong{color:var(--gold)}
+/* .step sets a light card background and is declared after .dark, so the combined selector
+   is what actually makes a dark step dark. */
+.step.dark{background:var(--charcoal);color:var(--parchment);border-color:var(--charcoal)}
+.step.dark h3{color:var(--parchment)}
+.step.dark .help{color:#b8b3aa}
+.step.dark .num{color:var(--gold);border-color:var(--gold)}
+.note.show{display:block}
+.note.hide{display:none}
+
+/* ===================== EDUCATION BLOCKS ===================== */
+.lever{display:flex;gap:16px;padding:22px 0;border-bottom:1px solid var(--line)}
+.lever:last-child{border-bottom:0}
+.lever .n{flex:0 0 40px;height:40px;border-radius:50%;background:var(--olive);color:#fff;
+  display:flex;align-items:center;justify-content:center;font-family:Cinzel,serif;font-weight:700}
+.lever h3{font-size:1.06rem;margin:6px 0 6px}
+.lever p{font-size:.93rem;margin:0;color:var(--muted);line-height:1.6}
+.dark .lever{border-color:rgba(242,237,228,.14)}
+.dark .lever p{color:#b8b3aa}
+.dark .lever .n{background:var(--gold);color:var(--charcoal)}
+
+.quote{font-family:Cinzel,serif;font-size:1.22rem;line-height:1.5;color:var(--charcoal);
+  border-left:3px solid var(--gold);padding:4px 0 4px 18px;margin:26px 0}
+.dark .quote{color:var(--parchment)}
+
+.meal{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:18px;margin:0 0 12px}
+.meal .mh{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin:0 0 10px}
+.meal .mn{font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;font-weight:700;color:var(--gold)}
+.meal .mt{font-family:Cinzel,serif;font-size:1.02rem;font-weight:600}
+.meal ul{margin:0 0 12px;padding-left:19px;font-size:.92rem;line-height:1.75}
+.meal .mm{display:flex;gap:14px;flex-wrap:wrap;font-size:.72rem;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);border-top:1px solid var(--line);padding-top:10px}
+.meal .mm b{color:var(--olive);font-size:.86rem;letter-spacing:0}
+.slot{margin:0 0 26px}
+.slot-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;
+  border-bottom:2px solid var(--gold);padding:0 0 7px;margin:0 0 12px;flex-wrap:wrap}
+.slot-h .mn{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;font-weight:700;
+  color:var(--charcoal)}
+.slot-t{font-size:.76rem;color:var(--muted)}
+.slot .meal{margin:0 0 9px}
+.slot .meal .mh{margin:0 0 7px}
+
+/* ===================== RITUAL + REVEAL ===================== */
+.ritual{display:none;position:fixed;inset:0;background:rgba(28,28,28,.97);z-index:200;
+  align-items:center;justify-content:center;padding:24px}
+.ritual.open{display:flex}
+.ritual .box{max-width:420px;width:100%}
+.ritual h3{color:var(--parchment);font-size:1.3rem;margin:0 0 22px;text-align:center}
+.rrow{display:flex;gap:12px;align-items:center;padding:12px 0;color:#7d7970;
+  font-size:.92rem;transition:color .3s;border-bottom:1px solid rgba(242,237,228,.09)}
+.rrow .ic{flex:0 0 22px;height:22px;border-radius:50%;border:2px solid #4a4740;position:relative;transition:.3s}
+.rrow.active{color:var(--parchment)}
+.rrow.active .ic{border-color:var(--gold);border-top-color:transparent;animation:spin .7s linear infinite}
+.rrow.done{color:#b8b3aa}
+.rrow.done .ic{border-color:var(--olive-lt);background:var(--olive-lt)}
+.rrow.done .ic:after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+  border:solid var(--charcoal);border-width:0 2px 2px 0;transform:rotate(45deg)}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+#reveal{display:none}
+#reveal.open{display:block}
+.readhead{text-align:center;padding:8px 0 0}
+.readhead h2{font-size:clamp(1.6rem,5vw,2.3rem);margin:0 0 10px}
+.constraint{background:var(--charcoal);color:var(--parchment);border-radius:14px;
+  padding:26px 22px;margin:24px 0;border-top:3px solid var(--gold)}
+.constraint .lbl{font-size:.66rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.constraint h3{font-size:1.3rem;margin:9px 0 12px;color:var(--parchment)}
+.constraint p{font-size:.95rem;color:#d8d3ca;margin:0 0 .8em;line-height:1.68}
+.constraint p:last-child{margin:0}
+.flagrow{border-top:1px solid rgba(193,173,114,.22);padding:15px 0 0;margin:15px 0 0}
+.flagrow strong{display:block;color:var(--gold);font-size:.72rem;letter-spacing:.13em;
+  text-transform:uppercase;margin:0 0 7px}
+.flagrow span{display:block;font-size:.95rem;color:#d8d3ca;line-height:1.62}
+.flagrow em{display:block;font-style:normal;font-size:.86rem;color:#a8a299;margin-top:7px;line-height:1.55}
+
+.price-card{background:var(--card);border:2px solid var(--gold);border-radius:16px;
+  padding:30px 22px;text-align:center;box-shadow:0 6px 26px rgba(28,28,28,.11)}
+.price-anchor{font-size:.9rem;color:var(--muted);margin:0 0 6px}
+.price-anchor s{opacity:.75}
+.price-big{font-family:Cinzel,serif;font-size:3.1rem;font-weight:700;color:var(--olive);line-height:1}
+.price-sub{font-size:.83rem;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);
+  font-weight:700;margin:8px 0 20px}
+.incl{text-align:left;max-width:420px;margin:0 auto 24px;display:grid;gap:11px}
+.incl div{display:flex;gap:10px;font-size:.93rem;line-height:1.5}
+.incl .ck{flex:0 0 19px;height:19px;border-radius:50%;background:var(--olive);position:relative;margin-top:2px}
+.incl .ck:after{content:"";position:absolute;left:6.5px;top:3.5px;width:4px;height:8px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+.paylinks{display:grid;gap:11px;max-width:400px;margin:0 auto}
+.paylinks .btn{max-width:none}
+
+.faq details{border-bottom:1px solid var(--line);padding:16px 0}
+.faq summary{cursor:pointer;font-weight:600;font-size:1rem;list-style:none;
+  display:flex;justify-content:space-between;gap:14px;align-items:flex-start}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary:after{content:"+";font-family:Cinzel,serif;font-size:1.35rem;color:var(--gold);line-height:1}
+.faq details[open] summary:after{content:"\2013"}
+.faq details p{margin:12px 0 0;font-size:.93rem;color:var(--muted);line-height:1.66}
+
+.acks{display:grid;gap:12px}
+.ack{display:flex;gap:12px;align-items:flex-start;border:2px solid var(--line);background:#fff;
+  border-radius:10px;padding:14px;cursor:pointer;font-size:.87rem;line-height:1.55}
+.ack.checked{border-color:var(--olive);background:#F4F7F1}
+.ack .bx{flex:0 0 21px;height:21px;border:2px solid #c3beb4;border-radius:5px;margin-top:1px;position:relative}
+.ack.checked .bx{background:var(--olive);border-color:var(--olive)}
+.ack.checked .bx:after{content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+  border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg)}
+
+.progress{position:fixed;top:0;left:0;height:3px;background:var(--gold);width:0;z-index:60;transition:width .3s}
+footer{background:var(--charcoal);color:#96918a;font-size:.78rem;line-height:1.7;padding:34px 0}
+footer a{color:var(--gold)}
+/* The gate. Blur rather than hide, so she can see the shape of what is waiting. Clamped to
+   a preview height while locked, because the full region runs to several thousand pixels and
+   nobody should have to scroll past that much blur to reach the submit button. */
+.lockwrap{position:relative}
+.lockwrap.locked{max-height:520px;overflow:hidden}
+.lockwrap.locked > .lockbody{filter:blur(8px);opacity:.45;pointer-events:none;user-select:none}
+.lockwrap.locked::after{content:'';position:absolute;left:0;right:0;bottom:0;height:150px;z-index:1;
+  background:linear-gradient(to bottom,rgba(242,237,228,0),var(--paper));pointer-events:none}
+.lockwrap > .lockmsg{display:none}
+.lockwrap.locked > .lockmsg{display:flex;align-items:center;justify-content:center;
+  position:absolute;inset:0;padding:20px;z-index:2}
+.lockmsg .card{background:var(--card);border:1px solid var(--gold);
+  border-radius:14px;padding:24px 22px;max-width:420px;text-align:center;
+  box-shadow:0 8px 30px rgba(28,28,28,.18)}
+.lockmsg .card .eyebrow{margin:0 0 8px}
+/* Ghost button, for use on the dark panels. */
+.btn.ghost{background:transparent;border:1.5px solid var(--gold);color:var(--gold);
+  padding:11px 20px;font-size:.82rem;margin:16px 0 0}
+.btn.ghost:hover{background:var(--gold);color:var(--charcoal)}
+/* Trajectory bar. Shows composition of the change, not just the size of it. */
+.tbar{display:flex;height:36px;border-radius:9px;overflow:hidden;margin:16px 0 9px;
+  border:1px solid rgba(242,237,228,.18)}
+.tbar i{display:flex;align-items:center;justify-content:center;font-style:normal;
+  font-size:.72rem;font-weight:700;letter-spacing:.03em;transition:width .5s ease;
+  white-space:nowrap;overflow:hidden}
+.tbar .fat{background:var(--gold);color:var(--charcoal)}
+.tbar .lean{background:#6b6459;color:var(--parchment)}
+.tkey{display:flex;gap:18px;flex-wrap:wrap;font-size:.75rem;color:#b8b3aa;margin:0}
+.tkey span{display:flex;align-items:center;gap:7px}
+.tkey b{width:11px;height:11px;border-radius:3px;display:inline-block}
+/* Mirror blocks read the member's own answers back at them mid-form. */
+.mirror{display:flex;gap:9px;flex-wrap:wrap;margin:0 0 18px}
+.mirror .chip{background:#fff;border:1px solid var(--line);border-radius:999px;
+  padding:7px 14px;font-size:.78rem;font-weight:600;color:var(--ink)}
+.mirror .chip i{font-style:normal;color:var(--olive);font-weight:700;margin-right:6px}
+.legal{font-size:.76rem;color:#96918a;line-height:1.65}
+.center{text-align:center}
+.hidden{display:none !important}
+
+/* ═══ PROOF SECTION ═══ */
+.proof{background:var(--parchment);padding:64px 0 72px;border-top:1px solid rgba(28,28,28,.08)}
+.proof h2{font-family:var(--display);font-size:clamp(1.5rem,4.6vw,2.15rem);line-height:1.18;
+  margin:0 0 14px;color:var(--charcoal)}
+.proof-lede{max-width:640px;margin:0 0 30px;color:#54524d;font-size:1.02rem;line-height:1.66}
+.proof-grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(268px,1fr))}
+.pcard{background:#FFFDF9;border:1px solid rgba(28,28,28,.09);border-radius:14px;padding:22px 22px 24px}
+.ptag{display:inline-block;font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  font-weight:700;color:var(--olive);background:rgba(74,92,62,.09);padding:5px 10px;border-radius:20px}
+.pres{font-family:var(--display);font-size:1.16rem;line-height:1.32;color:var(--charcoal);margin:13px 0 9px}
+.pnote{font-size:.93rem;line-height:1.62;color:#5c5a55;margin:0}
+.proof-me{margin-top:26px;background:var(--charcoal);color:var(--parchment);border-radius:14px;
+  padding:24px 26px;border-left:4px solid var(--gold)}
+.proof-me p{margin:0;font-size:.98rem;line-height:1.68;color:#ddd8cf}
+.proof-me strong{color:var(--gold);display:block;margin-bottom:6px}
+@media(max-width:640px){.proof{padding:48px 0 54px}}
+
+/* ═══ BIO ═══ */
+.bio{background:#FFFDF9;padding:62px 0 68px;border-top:1px solid rgba(28,28,28,.08)}
+.bio h2{font-family:var(--display);font-size:clamp(1.45rem,4.4vw,2.05rem);line-height:1.2;
+  margin:0 0 18px;color:var(--charcoal)}
+.bio-grid{display:grid;gap:34px;grid-template-columns:1.55fr 1fr;align-items:start}
+.bio-main p{font-size:1.02rem;line-height:1.72;color:#4e4c47;margin:0 0 15px}
+.bio-main .quote{font-family:var(--display);font-size:clamp(1.2rem,3.4vw,1.55rem);line-height:1.3;
+  color:var(--charcoal);border-left:3px solid var(--gold);padding-left:16px;margin:22px 0}
+.bio-close{border-top:1px solid rgba(28,28,28,.1);padding-top:16px;margin-top:20px!important;
+  color:var(--charcoal)!important;font-weight:500}
+.bio-facts{background:var(--charcoal);border-radius:14px;padding:8px 22px 14px}
+.bf{padding:15px 0;border-bottom:1px solid rgba(242,237,228,.12)}
+.bf:last-child{border-bottom:none}
+.bfn{display:block;font-family:var(--display);font-size:1.35rem;color:var(--gold);line-height:1.1}
+.bfl{display:block;font-size:.84rem;color:#b8b3aa;margin-top:5px;line-height:1.45}
+@media(max-width:760px){.bio-grid{grid-template-columns:1fr;gap:26px}.bio{padding:46px 0 52px}}
+
+/* ═══ GOOD NEWS interstitial ═══ */
+.goodnews{background:linear-gradient(180deg,#F7F4EE 0%,#FFFDF9 100%);border-color:rgba(74,92,62,.22)}
+.gn-stats{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-top:20px}
+.gn{background:var(--charcoal);border-radius:12px;padding:16px 18px}
+.gnn{display:block;font-family:var(--display);font-size:1.5rem;color:var(--gold);line-height:1.05}
+.gnl{display:block;font-size:.82rem;color:#b8b3aa;margin-top:6px;line-height:1.45}
+
+/* ═══ coach note + restaurant swap in the sample deck ═══ */
+.coachnote{background:var(--charcoal);border-radius:12px;padding:18px 20px;margin:18px 0 0;
+  border-left:4px solid var(--gold)}
+.coachnote span{display:block;font-size:.66rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--gold);font-weight:700;margin-bottom:7px}
+.coachnote p{margin:0;color:#ddd8cf;font-size:.95rem;line-height:1.66}
+.swapbox{background:#F4F7F1;border:1px solid rgba(74,92,62,.24);border-radius:12px;
+  padding:18px 20px;margin-top:14px}
+.swap-eyebrow{display:block;font-size:.66rem;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--olive);font-weight:700;margin-bottom:8px}
+.swap-order{margin:0 0 6px;font-size:.97rem;line-height:1.6;color:var(--charcoal)}
+.swap-macros{margin:0 0 8px;font-size:.85rem;color:var(--olive);font-weight:600}
+.swap-note{margin:0;font-size:.87rem;line-height:1.55;color:#5c5a55}
+
+/* ═══ HERO: free-numbers lead, CTA with side copy ═══ */
+/* A marker highlight behind the word. A 180deg gradient was landing under the glyphs instead of
+   behind them, because Cinzel's line box runs well below its baseline. A flat background with
+   box-decoration-break sits behind the text reliably and survives a line wrap. */
+.hero .hl{background:rgba(193,173,114,.45);padding:.04em .16em;border-radius:3px;
+  -webkit-box-decoration-break:clone;box-decoration-break:clone}
+.cred{display:inline-flex;align-items:baseline;gap:10px;flex-wrap:wrap;margin:18px 0 0;
+  padding:9px 16px;border:1px solid rgba(28,28,28,.14);border-radius:40px;background:#FFFDF9}
+.cred-n{font-family:var(--display);font-size:1.05rem;color:var(--charcoal);line-height:1}
+.cred-d{font-size:.85rem;color:#63615c}
+.cta-row{display:grid;grid-template-columns:auto 1fr;gap:26px;align-items:center;margin:26px 0 0;
+  text-align:left}
+.cta-row .btn{margin:0;white-space:nowrap}
+.cta-side{margin:0;font-size:.93rem;line-height:1.62;color:#5c5a55;max-width:430px}
+.cta-side strong{color:var(--charcoal)}
+@media(max-width:720px){
+  .cta-row{grid-template-columns:1fr;gap:14px;text-align:center}
+  .cta-row .btn{width:100%}
+  .cta-side{max-width:none;text-align:left}
+}
+
+/* Four Questions: the budget-vs-diet comparison line under each question */
+.lever .vs{font-size:.86rem;color:var(--gold);letter-spacing:.01em;margin:4px 0 8px;opacity:.92}
+
+/* ═══ UPSELL inside the free numbers step ═══ */
+.upsell{margin-top:26px;border-top:1px solid rgba(193,173,114,.25);padding-top:24px}
+.up-eyebrow{font-size:.68rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);
+  font-weight:700;margin:0 0 8px}
+.upsell h4{font-family:var(--display);font-size:clamp(1.12rem,3.3vw,1.4rem);line-height:1.28;
+  color:var(--parchment);margin:0 0 12px}
+.up-lede{margin:0 0 4px;color:#d8d3ca;font-size:.98rem}
+.up-grid{display:grid;gap:12px;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));margin:18px 0 20px}
+.up-item{background:rgba(242,237,228,.05);border:1px solid rgba(242,237,228,.1);border-left:3px solid var(--gold);
+  border-radius:10px;padding:14px 16px}
+.up-item strong{display:block;color:var(--parchment);font-size:.95rem;line-height:1.35;margin-bottom:6px}
+.up-item span{display:block;color:#b8b3aa;font-size:.88rem;line-height:1.55}
+.up-close{margin:0 0 6px;color:#d8d3ca;font-size:.95rem}
+.up-close strong{color:var(--gold)}
+
+.up-list{list-style:none;margin:18px 0 20px;padding:0}
+.up-list li{position:relative;padding:11px 0 11px 22px;border-bottom:1px solid rgba(242,237,228,.09);
+  color:#b8b3aa;font-size:.93rem;line-height:1.55}
+.up-list li:last-child{border-bottom:none}
+.up-list li::before{content:"";position:absolute;left:0;top:19px;width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.up-list li strong{color:var(--parchment)}
+
+/* out-of-range field warning */
+input.bad{border-color:var(--warm-red,#b5543c)!important;box-shadow:0 0 0 3px rgba(181,84,60,.14)}
+.fieldwarn{display:block;margin-top:6px;font-size:.8rem;color:var(--warm-red,#b5543c);line-height:1.35}
+
+.opts.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+@media(max-width:640px){.opts.row3{grid-template-columns:1fr}}
+
+/* ═══ SPEED SLIDER ═══ */
+.speed{padding:6px 2px 2px}
+#speed-range{-webkit-appearance:none;appearance:none;width:100%;height:8px;border-radius:8px;outline:none;
+  background:linear-gradient(90deg,var(--olive) 0%,var(--olive) var(--fill,0%),rgba(28,28,28,.14) var(--fill,0%))}
+#speed-range::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;border-radius:50%;
+  background:var(--gold);border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:grab}
+#speed-range::-moz-range-thumb{width:26px;height:26px;border-radius:50%;background:var(--gold);
+  border:3px solid #fff;box-shadow:0 2px 8px rgba(0,0,0,.25);cursor:grab}
+.speed-ticks{display:flex;justify-content:space-between;margin-top:9px;font-size:.78rem;
+  letter-spacing:.06em;text-transform:uppercase;color:#7a766f;font-weight:600}
+.speed-read{margin:12px 0 0;font-size:.95rem;color:var(--charcoal);font-weight:500}
+
+#steps-group .grouplbl{margin-top:24px}
+</style>
+</head>
+<body>
+
+<div class="topbar"></div>
+<div class="progress" id="prog"></div>
+
+<header class="brand">
+  <img src="../logo.png" alt="Legacy Performance" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'">
+  <span class="fallback"><b>LEGACY</b> <i>PERFORMANCE</i></span>
+</header>
+
+<!-- ===================== HERO ===================== -->
+<section class="hero" id="top">
+  <div class="wrap">
+    <p class="eyebrow">Built by Jayme Olson</p>
+    <h1>Your calorie target, your protein floor, your macros &mdash; <span class="hl">free</span>.</h1>
+
+    <!-- Chalk runs a rating pill here (4.8, 250,000+ transformations). LP has neither number, and
+         inventing a star rating is a fabricated review signal. This says something true instead. -->
+    <div class="cred">
+      <span class="cred-n">6 years</span>
+      <span class="cred-d">of client results, made repeatable</span>
+    </div>
+
+    <p class="sub">
+      Answer a few honest questions about your body, your training and the food you actually eat.
+      You get your daily calorie target, your protein floor, your macros and the pace you can
+      really expect &mdash; calculated on screen as you go. No card, no payment. About five minutes.
+    </p>
+
+    <!-- Button left, the money explanation beside it rather than buried under it. Saying the price
+         out loud up here is the point: the ads sell the paid system, the free numbers are the draw,
+         and the thoroughness of the questions is what carries her through. -->
+    <div class="cta-row">
+      <a href="#q1" class="btn">Get my numbers &mdash; free <span aria-hidden="true">&rarr;</span></a>
+      <p class="cta-side">
+        <strong>No payment to see your numbers.</strong> If you want the full system &mdash; your
+        meal deck, restaurant orders, your phases mapped &mdash; that is optional, and it&rsquo;s $497.
+        I set it up with you, step by step, and it is backed by a 30-day guarantee.
+      </p>
+    </div>
+
+    <div class="trustrow">
+      <span class="chip">Built for the person who has done this before</span>
+      <span class="chip">Every plan built by hand</span>
+      <span class="chip">30-day rebuild or refund</span>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== A NOTE FROM JAYME ===================== -->
+<section class="dark" id="note-section">
+  <div class="wrap narrow">
+    <p class="eyebrow">A note before you start</p>
+    <p>You have probably done this before.</p>
+    <p>More than once.</p>
+    <p>You ate less.</p>
+    <p>You moved more.</p>
+    <p>You white-knuckled it for a few weeks, it worked for a while, and then it stopped.</p>
+    <p>And somewhere in there you started believing the problem was you.</p>
+    <p>It was not you.</p>
+    <p>You run a household of five, a payroll, and the Sunday volunteer schedule.</p>
+    <p>None of that runs on willpower.</p>
+    <p>And breakfast is still the thing that beats you.</p>
+    <p>You do not have a discipline problem.</p>
+    <p class="quote">You have an awareness problem. Nobody ever taught you how to see the middle.</p>
+    <p>The middle is the food that never gets counted.</p>
+    <p>The oil in the pan.</p>
+    <p>The bites off your kid's plate.</p>
+    <p>The handful on the way past the counter.</p>
+    <p>It is also the other direction...</p>
+    <p>...the days you eat far less than you think and wonder why you have no energy by three in the afternoon.</p>
+    <p>You cannot fix what you cannot see.</p>
+    <p>And nobody ever handed you a way to look.</p>
+    <p>You run systems for everything else in your life.</p>
+    <p>Nobody ever built you one for your body.</p>
+    <p>That is what the questions below start.</p>
+    <p>They give me your numbers.</p>
+    <p>And they show you, honestly, where you actually are right now.</p>
+    <p>Answer them the way it really is, not the way you wish it was.</p>
+    <p>The honest version is the one that gets you moving.</p>
+    <p style="margin-top:26px"><strong style="color:var(--gold)">Jayme</strong><br>
+    <span class="muted">Functional Performance Coach</span></p>
+  </div>
+</section>
+
+<!-- ═══ BIO. Chalk leads with "BUILT BY COACH RYAN FISCHER" and a credential wall. Jayme's
+     credential is different and stronger for this audience: he had the performance résumé AND
+     still lost the food fight. That is what makes the awareness-problem thesis credible instead
+     of preachy, and it kills the "you're just naturally disciplined" objection before she thinks
+     it. Facts from brand_engine.md §5 + §7. StoryBrand: establish the guide, then hand the story
+     back to her — the section ends on her, not him. ═══ -->
+<section class="bio">
+  <div class="wrap">
+    <p class="eyebrow">Who is building this</p>
+    <div class="bio-grid">
+      <div class="bio-main">
+        <h2>I did not learn this from a textbook.</h2>
+        <p>I started lifting at sixteen in a friend's garage and never really stopped. I spent about
+          <strong>ten years coaching and competing in CrossFit</strong>, with bodybuilding and
+          powerlifting either side of it. I competed at <strong>185 pounds</strong> and I was
+          genuinely high-performing. I could out-train almost anyone in the room.</p>
+        <p class="quote">And I still ended up at 242 pounds.</p>
+        <p>Because none of it touched the actual problem. I was raiding the pantry at midnight. I had
+          tried keto, carnivore, Whole30, fasting, carb backloading, vegan, and every supplement
+          with a label. I swung between bingeing and eating so "clean" that food became a source of
+          anxiety on its own. Fitness was never my issue. <strong>Awareness was.</strong></p>
+        <p>I am 188 now, below my wedding weight from nine years ago, and I have held it for years
+          without a crash. Not because I found more discipline. Because I finally built a system that
+          survives a real week instead of a motivated one.</p>
+        <p>I founded Legacy Performance in 2020 by reverse-engineering what my most successful clients
+          actually did, then made it repeatable. That is the thing being built for you below.</p>
+        <p class="bio-close">So no, I am not coaching you from above this. I am handing you the map I
+          needed twenty years ago and did not have.</p>
+      </div>
+      <aside class="bio-facts">
+        <div class="bf"><span class="bfn">10 yrs</span><span class="bfl">Coaching and competing in CrossFit</span></div>
+        <div class="bf"><span class="bfn">185 lb</span><span class="bfl">Competition weight, high performance</span></div>
+        <div class="bf"><span class="bfn">242 → 188</span><span class="bfl">My own, held for years</span></div>
+        <div class="bf"><span class="bfn">2020</span><span class="bfl">Founded Legacy Performance</span></div>
+        <div class="bf"><span class="bfn">2-4x</span><span class="bfl">How often I train now, on purpose</span></div>
+      </aside>
+    </div>
+  </div>
+</section>
+
+<!-- ===================== THE INTAKE ===================== -->
+<!-- ═══ PROOF. Ryan runs a photo carousel of results before the intake; this is the same device
+     built from Jayme's real proof bank. Result cards, NOT quotes: brand_engine §7 records the
+     numbers but explicitly notes no verbatim quotes exist yet, so nothing here is invented.
+     Publication rules honoured: ages not names, "supplementation" never a peptide word, no
+     causal claim, capability framing not promises. ═══ -->
+<section class="proof">
+  <div class="wrap">
+    <p class="eyebrow">Real people. Real numbers.</p>
+    <h2>Six years of this, and the pattern never changes.</h2>
+    <p class="proof-lede">Almost every one of them came in eating too little and doing too much cardio.
+      Every one of them ate <em>more</em> and trained <em>less but smarter</em>. These are their
+      numbers, not a promise about yours.</p>
+    <div class="proof-grid">
+      <div class="pcard">
+        <span class="ptag">In her 50s</span>
+        <p class="pres">140 → 122 lbs, and a pro card.</p>
+        <p class="pnote">Training cut to three days a week for recovery. Calories raised to about
+          2,000 a day by show day. Walking the dog was the only cardio. She is 54 and still eats
+          waffles with her husband every Saturday.</p>
+      </div>
+      <div class="pcard">
+        <span class="ptag">In her 40s</span>
+        <p class="pres">313 → 296 lbs in 12 weeks.</p>
+        <p class="pnote">Nothing about her supplementation changed. Everything around it did.
+          She is a mother first and a director second, and that order never moved. Her fat loss
+          lived in the margins of both.</p>
+      </div>
+      <div class="pcard">
+        <span class="ptag">In her 60s</span>
+        <p class="pres">About 25 lbs across a year.</p>
+        <p class="pnote">The only story here where the move that finally worked was doing
+          <em>less</em>. When her body started fighting back they took a break, adjusted her
+          eating schedule, and pulled training back rather than pushing harder.</p>
+      </div>
+      <div class="pcard">
+        <span class="ptag">Reverse diet</span>
+        <p class="pres">1,400 → about 2,500 calories a day.</p>
+        <p class="pnote">She came in eating like a bird, fasting, and had lost her cycle. Calories
+          went up on purpose over months. Her cycle came back and she can track food again without
+          sorting it into clean and dirty.</p>
+      </div>
+      <div class="pcard">
+        <span class="ptag">Food freedom</span>
+        <p class="pres">About 15 lbs in six months.</p>
+        <p class="pnote">Ate 1,800 to 2,000 calories, trained three to five times a week, and kept
+          the wine and the dessert. The bigger win was walking away with almost every food
+          restriction gone.</p>
+      </div>
+      <div class="pcard">
+        <span class="ptag">Recomposition</span>
+        <p class="pres">165 → 162 lbs, which badly undersells it.</p>
+        <p class="pnote">Calories going up, muscle going on, body fat coming down at the same time.
+          The real wins she reported were less inflammation, less joint pain, and harder training
+          than she had managed in a long time.</p>
+      </div>
+    </div>
+    <div class="proof-me">
+      <p><strong>And mine, because you should know I have actually done this.</strong>
+        242 lbs down to 188, below my wedding weight, held for years. I came out of binge eating
+        and orthorexia to get here. I am not coaching you from a place I have never stood.</p>
+    </div>
+  </div>
+</section>
+
+<section id="intake">
+<div class="wrap">
+<form id="intake-form" autocomplete="on" novalidate>
+
+  <!-- 01 GOAL -->
+  <div class="step" id="q1">
+    <span class="num">01</span>
+    <h3>What are you really here for?</h3>
+    <p class="help">This sets your phase. Everything after it is built around this answer.</p>
+    <div class="opts" data-single="goal">
+      <label class="opt on" data-v="lean"><span class="dot"></span><span>
+        <span class="t">Lose fat and lean out</span>
+        <span class="d">You want the weight down and you want to keep the muscle you have.</span></span></label>
+      <label class="opt" data-v="strong"><span class="dot"></span><span>
+        <span class="t">Build strength and muscle</span>
+        <span class="d">You want to get stronger without getting softer on the way there.</span></span></label>
+      <label class="opt" data-v="sustain"><span class="dot"></span><span>
+        <span class="t">Feel good and hold it for life</span>
+        <span class="d">You like where you are. You want to keep it without living in the gym.</span></span></label>
+      <label class="opt" data-v="reverse"><span class="dot"></span><span>
+        <span class="t">I have stalled eating very little</span>
+        <span class="d">You are eating less than you ever have and the weight stopped moving anyway.</span></span></label>
+    </div>
+  </div>
+
+  <!-- 02 SEX -->
+  <div class="step">
+    <span class="num">02</span>
+    <h3>Are you a man or a woman?</h3>
+    <p class="help">Used for the calorie and fat-floor math only. Baseline metabolic rates differ.</p>
+    <div class="opts row2" data-single="sex">
+      <label class="opt" data-v="female"><span class="dot"></span><span><span class="t">Woman</span></span></label>
+      <label class="opt" data-v="male"><span class="dot"></span><span><span class="t">Man</span></span></label>
+    </div>
+  </div>
+
+  <!-- 03 BASICS -->
+  <div class="step">
+    <span class="num">03</span>
+    <h3>The basics.</h3>
+    <p class="help">So the numbers are yours and not an average.</p>
+    <div class="fields">
+      <div class="f"><label for="age">Age</label><input type="number" id="age" inputmode="numeric" min="16" max="90" placeholder="42"></div>
+      <div class="f"><label for="height">Height</label><select id="height"><option value="">Select</option></select></div>
+    </div>
+  </div>
+
+  <!-- 04 WEIGHT -->
+  <div class="step">
+    <span class="num">04</span>
+    <h3>Where you are, and where you want to be.</h3>
+    <p class="help">Your goal weight anchors your protein floor. If you are not sure of the number, give me your honest best guess and we will refine it.</p>
+    <div class="fields">
+      <div class="f"><label for="cw">Current weight (lbs)</label><input type="number" id="cw" inputmode="decimal" min="70" max="600" placeholder="186"></div>
+      <div class="f"><label for="gw">Goal weight (lbs)</label><input type="number" id="gw" inputmode="decimal" min="70" max="600" placeholder="155"></div>
+    </div>
+    <div class="note" id="scale-note">
+      Before you write that number down: the scale is a tool, not a verdict. You will learn to read the
+      trend across weeks, not react to one morning. That is a skill, and it is part of what gets built here.
+    </div>
+  </div>
+
+  <!-- 05 THE TWO-BUCKET DIAGNOSTIC -->
+  <div class="step">
+    <span class="num">05</span>
+    <h3>Now the question almost nobody asks you.</h3>
+    <p class="help">This one changes your entire plan. Take a second with it.</p>
+
+    <p class="grouplbl">Have you ever eaten less and less, and still watched the scale refuse to move?</p>
+    <div class="opts" data-single="stall">
+      <label class="opt" data-v="yes"><span class="dot"></span><span>
+        <span class="t">Yes. That is exactly what happens.</span>
+        <span class="d">Cut the food, hold the line, and the scale sits there anyway.</span></span></label>
+      <label class="opt" data-v="no"><span class="dot"></span><span>
+        <span class="t">No. When I actually stick to it, it moves.</span>
+        <span class="d">Staying consistent is the hard part, not the results.</span></span></label>
+      <label class="opt" data-v="unsure"><span class="dot"></span><span>
+        <span class="t">I honestly do not know.</span>
+        <span class="d">I have never tracked long enough to say either way.</span></span></label>
+    </div>
+
+    <p class="grouplbl">How long have you been eating around your current amount?</p>
+    <div class="opts row2" data-single="dur">
+      <label class="opt" data-v="short"><span class="dot"></span><span><span class="t">Under 6 months</span></span></label>
+      <label class="opt" data-v="mid"><span class="dot"></span><span><span class="t">6 to 18 months</span></span></label>
+      <label class="opt" data-v="long"><span class="dot"></span><span><span class="t">A couple of years</span></span></label>
+      <label class="opt" data-v="forever"><span class="dot"></span><span><span class="t">Most of my adult life</span></span></label>
+    </div>
+
+    <p class="grouplbl">Have you ever weighed and tracked your food?</p>
+    <div class="opts" data-single="track">
+      <label class="opt" data-v="never"><span class="dot"></span><span>
+        <span class="t">Never. I would not know where to start.</span></span></label>
+      <label class="opt" data-v="cage"><span class="dot"></span><span>
+        <span class="t">Yes, and I cannot live like that</span>
+        <span class="d">You know how. It just turned into a cage.</span></span></label>
+      <label class="opt" data-v="current"><span class="dot"></span><span>
+        <span class="t">Yes, I track now and I am fairly accurate</span></span></label>
+    </div>
+
+    <div class="f full" style="margin-top:18px">
+      <label for="avgcal">On a normal day, roughly how many calories are you eating? (optional)</label>
+      <input type="number" id="avgcal" inputmode="numeric" min="500" max="6000" placeholder="Your honest best guess">
+    </div>
+    <p class="muted" style="margin-top:8px">Most people have never really looked. A guess is fine here. It is a starting point, not a grade.</p>
+  </div>
+
+  <!-- 06 ACTIVITY -->
+  <div class="step">
+    <span class="num">06</span>
+    <h3>How much do you move on a normal day?</h3>
+    <p class="help">Think about a typical weekday. Not your best day. Not your worst.</p>
+    <div class="opts" data-single="activity">
+      <label class="opt" data-v="Sedentary"><span class="dot"></span><span>
+        <span class="t">Mostly sitting</span><span class="d">Desk work, drive everywhere, quiet evenings.</span></span></label>
+      <label class="opt on" data-v="Lightly active"><span class="dot"></span><span>
+        <span class="t">On my feet some</span><span class="d">Some walking, errands, a bit of movement built in.</span></span></label>
+      <label class="opt" data-v="Active"><span class="dot"></span><span>
+        <span class="t">On my feet a lot</span><span class="d">Active job, kids, walking most of the day.</span></span></label>
+      <label class="opt" data-v="Very active"><span class="dot"></span><span>
+        <span class="t">Very active</span><span class="d">Physical work, or training hard most days.</span></span></label>
+    </div>
+  </div>
+
+  <!-- 07 TRAINING -->
+  <div class="step">
+    <span class="num">07</span>
+    <h3>Are you lifting right now?</h3>
+    <p class="help">Be straight with me. Overstating this only gives you the wrong numbers.</p>
+    <div class="opts" data-single="training">
+      <label class="opt" data-v="none"><span class="dot"></span><span>
+        <span class="t">Not yet</span><span class="d">Your plan will be built to support a 3-day start.</span></span></label>
+      <label class="opt" data-v="light"><span class="dot"></span><span>
+        <span class="t">1 to 2 days a week</span><span class="d">On and off. Mostly inconsistent.</span></span></label>
+      <label class="opt on" data-v="consistent"><span class="dot"></span><span>
+        <span class="t">3 to 4 days a week</span><span class="d">Dialed in and showing up.</span></span></label>
+      <label class="opt" data-v="serious"><span class="dot"></span><span>
+        <span class="t">5 or more days a week</span><span class="d">Training is already a part of your life.</span></span></label>
+      <label class="opt" data-v="cardio"><span class="dot"></span><span>
+        <span class="t">Mostly cardio or classes</span><span class="d">Running, cycling, spin, group fitness.</span></span></label>
+    </div>
+  </div>
+
+  <!-- THE READ SO FAR. Everything above this line is an input. This is the first thing the
+       page gives back. Body fat is ESTIMATED (Deurenberg from BMI, age and sex), never asked,
+       because most women in this audience do not know the number and a required field they
+       cannot answer is where forms get abandoned. -->
+  <!-- FREE TEASER. Calories and protein, ungated, no email. Everything heavier than this
+       sits behind the contact block further down. -->
+  <div class="step dark" id="teaser-step">
+    <span class="num">YOUR NUMBERS, FREE</span>
+    <h3>Here are your numbers.</h3>
+    <p class="help">Here is your calorie target and your protein floor. No email, no card, nothing
+      asked of you. They are yours whether you go any further or not.</p>
+    <p class="note hidden" id="teaser-empty">These appear once your basics are in above.</p>
+    <div id="teaser-data" class="hidden">
+      <div class="tiles">
+        <div class="tile"><div class="v" id="tz-cal">-</div><div class="l">Calories a day</div></div>
+        <div class="tile"><div class="v" id="tz-pro">-</div><div class="l">Protein floor</div></div>
+      </div>
+      <div class="note" id="teaser-note"></div>
+    </div>
+
+    <!-- WHAT BUYING ADDS. Sits right under the free numbers because this is the moment she has
+         something in hand and is deciding whether it is enough. Every line maps to something the
+         build actually delivers: the meal deck + rebuild, the Power Food System tiers, REST_SWAPS,
+         the no-new-low titration rule, Macro Freedom's Sunday forecast, status-flag aware builds,
+         the Season Cycle, and the personal setup. Written for Rachel: Tuesday, the kids, the
+         stalled scale, the wine. No feature is claimed here that the page does not deliver. -->
+    <div class="upsell">
+      <p class="up-eyebrow">After your free numbers</p>
+      <h4>The numbers are free. The plan is the work.</h4>
+      <p class="up-lede">Your targets tell you where to land.</p>
+      <p class="up-lede">They do not tell you what to eat on the Tuesday you get home at six with nothing planned, or what to order when the whole team is headed to Chick-fil-A after the game.</p>
+      <p class="up-lede">That is what I set up with you, step by step, if you want it.</p>
+      <p class="up-lede">A plan that is yours alone, and one you can rebuild any time your life changes.</p>
+      <ul class="up-list">
+        <li><strong>A week of exact meals.</strong> Three options for every meal, portioned to your numbers, plus snacks and protein boosters. Rebuild it whenever you want.</li>
+        <li><strong>A restaurant playbook.</strong> The specific order to place at the places you actually go.</li>
+        <li><strong>A swap guide.</strong> Trade almost any food for another and still land on your numbers.</li>
+        <li><strong>A plateau rule.</strong> What to change when the scale stops setting new lows: hold, adjust your portions, or step into the next phase.</li>
+        <li><strong>Real life, built in.</strong> A Sunday forecast with the dinner out, the glass of wine and the dessert already in it.</li>
+        <li><strong>Built around your body right now.</strong> Perimenopause, menopause, a thyroid condition, your allergies and how you eat.</li>
+      </ul>
+      <p class="up-close"><strong>$497 once. No subscription. Yours for life, and backed by a 30-day guarantee.</strong></p>
+      <p class="up-close">Keep answering. Your plan gets built as you go.</p>
+    </div>
+  </div>
+
+  <!-- TRAJECTORY. Not a question, a read. Deliberately has no "aggressive" setting:
+       the lever it gives you is composition, not speed. Hidden entirely when the ED
+       status flag is set, because a projected scale curve is the wrong thing to show. -->
+  <div class="step" id="traj-step">
+    <span class="num">SEE WHAT'S POSSIBLE</span>
+    <h3>See what's possible.</h3>
+    <p class="help">A live projection of what your plan can do on its own, and what it does once you
+      add lifting and a little more walking. Pick how far out you want to look.</p>
+
+    <p class="note" id="traj-empty">Put your weight in the question above and this fills itself in.</p>
+
+    <div id="traj-data" class="hidden">
+      <p class="grouplbl">Time frame</p>
+      <div class="opts row3" data-single="horizon">
+        <label class="opt" data-v="4"><span class="dot"></span><span>
+          <span class="t">1 month</span><span class="d">About 4 weeks</span></span></label>
+        <label class="opt" data-v="8"><span class="dot"></span><span>
+          <span class="t">2 months</span><span class="d">About 8 weeks</span></span></label>
+        <label class="opt on" data-v="12"><span class="dot"></span><span>
+          <span class="t">3 months</span><span class="d">About 12 weeks</span></span></label>
+      </div>
+
+      <p class="grouplbl">Add training?</p>
+      <div class="opts row2" data-single="protect">
+        <label class="opt" data-v="no"><span class="dot"></span><span>
+          <span class="t">Nutrition only</span><span class="d">Just the plan</span></span></label>
+        <label class="opt on" data-v="yes"><span class="dot"></span><span>
+          <span class="t">Nutrition + lifting</span><span class="d">Three days a week, protein floor hit</span></span></label>
+      </div>
+
+      <div id="steps-group">
+        <p class="grouplbl">How fast? Drag the slider to your steps a day</p>
+        <p class="muted" style="margin:-4px 0 12px">Speed here comes from walking, not from eating less.
+          The dog, the phone call, the long way to the car.</p>
+        <div class="speed">
+          <input type="range" id="speed-range" min="0" max="4" step="1" value="1"
+                 aria-label="Steps per day">
+          <div class="speed-ticks"><span>5,000</span><span>7,500</span><span>10,000</span><span>12,000</span><span>15,000</span></div>
+          <p class="speed-read" id="speed-read">About what you walk now. Your plan's natural pace.</p>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h4 id="tj-head">Where this lands</h4>
+        <p class="muted" id="tj-sub" style="color:#b8b3aa;margin:6px 0 0"></p>
+        <div class="tiles">
+          <div class="tile"><div class="v" id="tj-total">-</div><div class="l" id="tj-total-l">Off the scale</div></div>
+          <div class="tile"><div class="v" id="tj-rate">-</div><div class="l">Per week</div></div>
+          <div class="tile"><div class="v" id="tj-end">-</div><div class="l">Where you land</div></div>
+        </div>
+        <div class="tbar hidden" id="tj-bar"><i class="fat" id="tj-fat"></i><i class="lean" id="tj-lean"></i></div>
+        <p class="tkey hidden" id="tj-key"><span><b style="background:var(--gold)"></b><span id="tj-k1">Fat</span></span><span><b style="background:#6b6459"></b><span id="tj-k2">Muscle and everything else</span></span></p>
+        <div class="note" id="tj-note"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 08 OBSTACLE (POP) -->
+  <div class="step">
+    <span class="num">08</span>
+    <h3>What actually gets in the way?</h3>
+    <p class="help" id="obst-help">Pick the one that is most true for you. Naming it is half of solving it.</p>
+    <div class="opts" data-single="obstacle" id="obst-opts"></div>
+  </div>
+
+  <!-- 09 WHY NOW -->
+  <div class="step">
+    <span class="num">09</span>
+    <h3>Why now?</h3>
+    <p class="help">There is usually a reason underneath the decision. It shapes how I build your first phase.</p>
+    <div class="opts" data-single="why">
+      <label class="opt" data-v="event"><span class="dot"></span><span>
+        <span class="t">Something on the calendar</span><span class="d">A wedding, a trip, a reunion, a date you can see.</span></span></label>
+      <label class="opt" data-v="health"><span class="dot"></span><span>
+        <span class="t">A health wake-up call</span><span class="d">Bloodwork, a doctor's visit, a moment that landed hard.</span></span></label>
+      <label class="opt" data-v="done"><span class="dot"></span><span>
+        <span class="t">I am done starting over</span><span class="d">Tired of the cycle. Done with half measures.</span></span></label>
+      <label class="opt" data-v="people"><span class="dot"></span><span>
+        <span class="t">For the people who need me</span><span class="d">Be around longer. Show up with something left at the end of the day.</span></span></label>
+      <label class="opt" data-v="self"><span class="dot"></span><span>
+        <span class="t">I want to feel like myself again</span><span class="d">Not chasing a number. Chasing how it feels to be you.</span></span></label>
+      <label class="opt" data-v="ready"><span class="dot"></span><span>
+        <span class="t">No specific reason. I am just ready.</span><span class="d">The reason is now. That is enough.</span></span></label>
+    </div>
+    <div class="f full" style="margin-top:16px">
+      <label for="whytext">Anything you want me to know about your why? (optional)</label>
+      <textarea id="whytext" placeholder="Say as much or as little as you want."></textarea>
+    </div>
+  </div>
+
+  <!-- ===================== EDUCATION: THREE LEVERS ===================== -->
+  <div class="step dark">
+    <span class="num">WHY THIS WORKS</span>
+    <h3 style="font-size:1.34rem">Three things decide whether you arrive lean or just arrive smaller.</h3>
+    <p class="help">Most people who lose weight on food alone give up a meaningful share of that loss as muscle. These three levers are what change that.</p>
+    <div class="lever">
+      <span class="n">1</span>
+      <div><h3 style="color:var(--parchment)">Hit your protein floor.</h3>
+      <p>Protein is the loudest signal your body has for deciding what to keep when calories come down. Your floor is set from your goal weight and your phase, and it holds every single day. Not an average across the week. A floor.</p></div>
+    </div>
+    <div class="lever">
+      <span class="n">2</span>
+      <div><h3 style="color:var(--parchment)">Stop under-eating.</h3>
+      <p>This is the one that surprises people. If you have been cutting for years, the answer may be to eat more on purpose before you ever cut again. Going lower is not always the way forward, and for some people it is the reason the scale stopped listening.</p></div>
+    </div>
+    <div class="lever">
+      <span class="n">3</span>
+      <div><h3 style="color:var(--parchment)">Lift, three days a week.</h3>
+      <p>The single biggest lever outside the kitchen. Resistance training is how you tell your body the muscle is still needed. Muscle is the tissue that decides how you look, how you feel at 7pm, and how much you can carry into your sixties.</p></div>
+    </div>
+    <div class="note">
+      <strong>Why this matters past the mirror.</strong> Muscle mass is the asset that carries you through the
+      decades after 30. Losing weight without protecting it leaves you lighter and weaker, with less of the
+      tissue that drives how you look, feel, and function. Protecting it is not a bonus. It is the point.
+    </div>
+  </div>
+
+  <!-- ═══ Chalk drops a reassurance block right after "why now", before the heavy medical
+       questions. Same device, different proof: their 250,000 number does not exist here, so this
+       runs on the §7 common thread, which is stronger anyway because it is specific. No rate
+       claim in here on purpose — the trajectory above already gives her the honest pace and a
+       second number would contradict it. ═══ -->
+  <div class="step goodnews">
+    <span class="num">ONE MORE THING</span>
+    <h3>You are not the exception. You are the pattern.</h3>
+    <p class="help">Every woman I have ever worked with arrived doing the same three things: eating
+      too little, doing too much cardio, and blaming herself for the result. Not one of them needed
+      more willpower. They needed to eat <strong>more</strong>, train <strong>less but smarter</strong>,
+      and finally see the middle. That is the whole job, and it is not a personality trait. It is a
+      skill, and it can be taught.</p>
+    <div class="gn-stats">
+      <div class="gn"><span class="gnn">6 yrs</span><span class="gnl">Legacy Performance, built from what actually worked</span></div>
+      <div class="gn"><span class="gnn">3</span><span class="gnl">Phases in a fat loss run. You never need a fourth.</span></div>
+      <div class="gn"><span class="gnn">30 days</span><span class="gnl">Rebuild it free or refund you, no argument</span></div>
+    </div>
+  </div>
+
+  <!-- MIRROR 1. Placed immediately before the medical block, which is the heaviest and
+       most abandoned section of the form. Reads their own answers back to buy momentum. -->
+  <div class="step" id="mirror1">
+    <span class="num">WHERE YOU ARE SO FAR</span>
+    <h3>Here is what I already know about you.</h3>
+    <p class="help">All of this is your own answers, read back. The next section is the heavy one,
+      so it is worth seeing that this is already taking shape.</p>
+    <div class="mirror" id="m1-chips"></div>
+    <div class="note" id="m1-note"></div>
+  </div>
+
+  <!-- 10 MEDICAL -->
+  <div class="step">
+    <span class="num">10</span>
+    <h3>What is going on in your body right now.</h3>
+    <p class="help">Answer these honestly. Almost none of them stop me from building your plan. What they do is <strong>change how it gets built</strong>, and the wrong plan for your situation is the thing I am actually trying to avoid.</p>
+
+    <div class="medq"><p class="q">Are you pregnant, breastfeeding, or trying to conceive?</p>
+      <p class="why">This season needs fuel, not a deficit.</p>
+      <div class="yn" data-med="preg"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-preg">Then your plan will never be a deficit. It gets built at or above maintenance, protein-forward, with the produce and fiber targets that matter most right now. Take it to your OB or midwife before you start, and follow what they tell you over what I tell you.</div></div>
+
+    <div class="medq"><p class="q">Do you have diabetes, Type 1 or Type 2?</p>
+      <p class="why">Carbohydrate amount and timing matter more for you than for most people.</p>
+      <div class="yn" data-med="dia"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-dia">Your plan gets built carbohydrate-aware: carbs spread evenly across meals instead of stacked into one, and built from the slowest-digesting Tier 1 sources. One thing you must do: eating differently can change what your medication needs to be. Tell your prescriber before you start.</div></div>
+
+    <div class="medq"><p class="q">Do you have kidney disease or reduced kidney function?</p>
+      <p class="why">This system runs on a high protein floor, and that is the one thing reduced kidney function cannot safely absorb.</p>
+      <div class="yn" data-med="kid"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn" id="w-kid">This is the one I will not work around. Protein is the engine of everything here, and setting it by your body weight instead of your kidney function is genuinely unsafe. You need a renal dietitian, not me. I will not charge you.</div></div>
+
+    <div class="medq"><p class="q">Do you have a diagnosed heart condition?</p>
+      <p class="why">Heart disease, heart failure, an arrhythmia, a past heart attack, stents, or a pacemaker. Blood pressure alone is the next question.</p>
+      <div class="yn" data-med="heart"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-heart">Your plan gets built sodium-aware and leaning on Tier 1 fats, which are the unsaturated ones. Clear it with your cardiologist before you start, especially anything that changes how you train.</div></div>
+
+    <div class="medq"><p class="q">Do you have high blood pressure, or take blood-pressure medication?</p>
+      <p class="why">Common and very workable.</p>
+      <div class="yn" data-med="bp"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-bp">Noted. Sodium-aware build, and a heads-up that blood pressure often moves as body weight moves, so keep your prescriber in the loop.</div></div>
+
+    <div class="medq"><p class="q">Do you have a thyroid condition?</p>
+      <p class="why">Not a stop at all. It changes how I read your numbers and how fast we move.</p>
+      <div class="yn" data-med="thy"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-thy">Good that you told me. Expect a slower, steadier build with a higher protein floor, and expect the scale to be noisier week to week. That noise is not failure.</div></div>
+
+    <div class="medq"><p class="q">Are you in perimenopause or menopause?</p>
+      <p class="why">One of the most commonly missed pieces in this entire conversation, and it changes the plan more than almost anything else on this page.</p>
+      <div class="yn" data-med="meno"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-meno">Then your plan gets built for this season specifically. Protein floor goes up, not down. Calcium-rich foods get made visible instead of assumed. Fibre gets spread across the day rather than dumped in one meal. And the scale gets read across weeks, because week to week it is going to be noisy and that noise is not failure.</div></div>
+
+    <div class="medq"><p class="q">Are you on a GLP-1 medication?</p>
+      <p class="why">Semaglutide, tirzepatide, or any of the others. No judgment in either direction. It is a tool, and it changes what your plan has to do.</p>
+      <div class="opts" data-single="glp1" style="margin:4px 0 0">
+        <label class="opt on" data-v="no"><span class="dot"></span><span><span class="t">No</span></span></label>
+        <label class="opt" data-v="on"><span class="dot"></span><span>
+          <span class="t">Yes, I am on one now</span>
+          <span class="d">Your plan gets built protein-first and lower-volume, because appetite is the constraint.</span></span></label>
+        <label class="opt" data-v="off"><span class="dot"></span><span>
+          <span class="t">I came off one in the last year</span>
+          <span class="d">This is the part almost nobody gets taught. Say more below.</span></span></label>
+        <label class="opt" data-v="considering"><span class="dot"></span><span>
+          <span class="t">I am considering one</span></span></label>
+      </div>
+      <div class="warn ok" id="w-glp1" style="margin-top:12px"></div>
+      <div class="f full" id="glp1-when-wrap" style="display:none;margin-top:14px">
+        <label for="glp1when">How long, and roughly where are you in it?</label>
+        <input type="text" id="glp1when" placeholder="e.g. eight months on, or came off three months ago">
+      </div></div>
+
+    <div class="medq"><p class="q">Have you had an eating disorder in the past five years?</p>
+      <p class="why">You can absolutely have a plan. The question is what it is allowed to show you.</p>
+      <div class="yn" data-med="ed"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-ed">Then I build it differently on purpose. <strong>No numbers at all. No calories, no macros, no protein target, no deficit, no scale.</strong> You get portions on a plate and a structure to follow, and none of the numbers that turn food into a scoreboard. Please keep whoever supported your recovery in the loop.</div></div>
+
+    <div class="medq"><p class="q">Are you currently being treated for cancer, or have you been in the past 12 months?</p>
+      <p class="why">Treatment and recovery change what your body needs from food.</p>
+      <div class="yn" data-med="onc"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
+      <div class="warn ok" id="w-onc">Your plan gets built at or above maintenance and protein-forward, never as a deficit, because holding muscle through treatment matters more than any number on a scale. Run it past your oncology team, and if they have given you nutrition instructions, theirs win over mine every time.</div></div>
+
+    <div class="f full" style="margin-top:16px">
+      <label for="meds">Medications, conditions, supplementation, or recent surgeries I should know about? (optional)</label>
+      <textarea id="meds" placeholder="Anything that affects how you eat or how your body responds."></textarea>
+    </div>
+  </div>
+
+  <!-- 11 ALLERGIES + STYLE -->
+  <div class="step">
+    <span class="num">11</span>
+    <h3>Allergies and how you eat.</h3>
+    <p class="help">Check anything that applies. If an allergy is severe, describe it at the bottom so it never appears anywhere in your plan.</p>
+    <p class="grouplbl">Allergies and intolerances</p>
+    <p class="muted" style="margin:-4px 0 10px">Anything you check here is removed from your food lists entirely. It cannot come back in by accident.</p>
+    <div class="pills" data-multi="allergies">
+      <span class="pill" data-a="peanut">Peanuts</span><span class="pill" data-a="nut">Tree nuts</span>
+      <span class="pill" data-a="dairy">Dairy or lactose</span><span class="pill" data-a="egg">Eggs</span>
+      <span class="pill" data-a="shellfish">Shellfish</span><span class="pill" data-a="mollusk">Mollusks</span>
+      <span class="pill" data-a="fish">Fish</span><span class="pill" data-a="soy">Soy</span>
+      <span class="pill" data-a="gluten">Wheat or gluten</span><span class="pill" data-a="sesame">Sesame</span>
+      <span class="pill" data-a="corn">Corn</span><span class="pill" data-a="nightshade">Nightshades</span>
+      <span class="pill" data-a="allium">Onion or garlic</span><span class="pill" data-a="coconut">Coconut</span>
+      <span class="pill" data-a="sulfite">Sulfites</span><span class="pill" data-a="mustard">Mustard</span>
+      <span class="pill" data-a="celery">Celery</span><span class="pill" data-a="lupin">Lupin</span>
+      <span class="pill" data-a="histamine">Histamine</span>
+    </div>
+    <p class="grouplbl">Eating style (only if one actually applies)</p>
+    <p class="muted" style="margin:-4px 0 10px">Skip this if you eat everything. That is the default and most people are here. Pick one main style. Anything else you check sits on top of it.</p>
+    <div class="pills" data-multi="diet">
+      <span class="pill" data-style="vegetarian">Vegetarian</span>
+      <span class="pill" data-style="vegan">Vegan</span>
+      <span class="pill" data-style="pescatarian">Pescatarian</span>
+      <span class="pill" data-style="no red meat">No red meat</span>
+      <span class="pill" data-style="no pork">No pork</span>
+      <span class="pill">Kosher</span><span class="pill">Halal</span>
+      <span class="pill">Gluten free</span><span class="pill">Dairy free</span>
+      <span class="pill">Low FODMAP</span><span class="pill">Low sodium</span>
+      <span class="pill">Mediterranean</span><span class="pill">Whole food, minimal processed</span>
+    </div>
+    <div class="note" id="style-note" style="display:none"></div>
+    <div class="f full" style="margin-top:18px">
+      <label for="never">Severe allergies, or foods to never include</label>
+      <textarea id="never" placeholder="Be specific. This one matters."></textarea>
+    </div>
+  </div>
+
+  <!-- 12 FOODS (feeds the meal plan generator) -->
+  <div class="step">
+    <span class="num">12</span>
+    <h3>The food you actually eat.</h3>
+    <p class="help">This is the part that makes your plan yours. Pick everything you genuinely like and would cook. Your meal plan gets built from these, not from a list somebody else wrote.</p>
+    <div class="note" style="margin:0 0 20px">
+      <strong>See the little numbers?</strong> That is the Power Food System tier.
+      <strong>Tier 1</strong> is the leanest and most filling version of a food, so you get a bigger
+      portion for the same calories. Tier 2 costs you some of that portion. Tier 3 costs more.
+      Your plan gets built on Tier 1 wherever your picks allow it. Then you learn how to
+      reach for Tier 2 and Tier 3 on the days you want to, and adjust your portions so it still fits.
+      Nothing is off limits. It just has a price, and you get to see it.
+    </div>
+    <p class="grouplbl">Proteins</p>
+    <div class="pills" data-multi="proteins" id="pl-protein"></div>
+    <p class="starnote"></p>
+    <p class="grouplbl">Carbs</p>
+    <div class="pills" data-multi="carbs" id="pl-carb"></div>
+    <p class="starnote"></p>
+    <p class="grouplbl">Fats</p>
+    <div class="pills" data-multi="fats" id="pl-fat"></div>
+    <p class="starnote"></p>
+    <p class="grouplbl">Vegetables</p>
+    <div class="pills" data-multi="veg" id="pl-veg"></div>
+    <p class="starnote"></p>
+    <div class="f full" style="margin-top:18px">
+      <label for="hate">Foods you hate or will not eat</label>
+      <textarea id="hate" placeholder="Just as useful as what you like."></textarea>
+    </div>
+  </div>
+
+  <!-- 13 LIFE -->
+  <div class="step">
+    <span class="num">13</span>
+    <h3>How your days actually run.</h3>
+    <p class="help">A plan that does not fit your week is not a plan. It is a wish.</p>
+
+    <p class="grouplbl">What do you actually like to eat?</p>
+    <p class="muted" style="margin:-4px 0 10px">Not a filter, a flavour steer. It shapes how your foods get put together.</p>
+    <div class="pills" data-multi="cuisines">
+      <span class="pill">American</span><span class="pill">Mexican</span><span class="pill">Italian</span>
+      <span class="pill">Mediterranean</span><span class="pill">Asian or stir-fry</span><span class="pill">Indian</span>
+      <span class="pill">Japanese</span><span class="pill">Thai</span><span class="pill">BBQ or grilled</span>
+      <span class="pill">Breakfast any time</span><span class="pill">Comfort food</span><span class="pill">Simple and plain</span>
+    </div>
+
+    <p class="grouplbl">How much time do you have to cook?</p>
+    <div class="opts" data-single="cooking">
+      <label class="opt" data-v="quick"><span class="dot"></span><span>
+        <span class="t">Under 15 minutes</span><span class="d">Fast meals, prep ahead, minimal steps.</span></span></label>
+      <label class="opt on" data-v="normal"><span class="dot"></span><span>
+        <span class="t">15 to 30 minutes</span><span class="d">Real cooking, simple recipes.</span></span></label>
+      <label class="opt" data-v="love"><span class="dot"></span><span>
+        <span class="t">I like to cook</span><span class="d">Send me real recipes and I will make them.</span></span></label>
+    </div>
+
+    <p class="grouplbl">How many times a day do you want to eat?</p>
+    <p class="muted" style="margin:-4px 0 10px">This is a preference, not a rule. Meal frequency does not change fat loss. It changes whether you can actually stick to the plan, which is the part that matters. Your shake is a standard 30g scoop and it gets reserved out of your day first.</p>
+    <div class="opts" data-single="frequency">
+      <label class="opt" data-v="2 + shake"><span class="dot"></span><span>
+        <span class="t">2 meals and a protein shake</span>
+        <span class="d">The minimum. Bigger, more satisfying meals. Good if you are not a morning eater.</span></span></label>
+      <label class="opt on" data-v="3"><span class="dot"></span><span>
+        <span class="t">3 meals</span><span class="d">Breakfast, lunch, dinner. The default.</span></span></label>
+      <label class="opt" data-v="3 + shake"><span class="dot"></span><span>
+        <span class="t">3 meals and a protein shake</span>
+        <span class="d">Three meals plus a shake to close the protein gap.</span></span></label>
+      <label class="opt" data-v="4"><span class="dot"></span><span>
+        <span class="t">4 meals</span><span class="d">The upper end. Smaller, more frequent, if you prefer eating often.</span></span></label>
+    </div>
+
+    <p class="grouplbl">Anything about your eating window?</p>
+    <div class="opts row2" data-single="schedule">
+      <label class="opt on" data-v="normal"><span class="dot"></span><span><span class="t">Nothing unusual</span></span></label>
+      <label class="opt" data-v="if"><span class="dot"></span><span><span class="t">I skip breakfast most days</span></span></label>
+      <label class="opt" data-v="late"><span class="dot"></span><span><span class="t">Late shift or late eater</span></span></label>
+      <label class="opt" data-v="early"><span class="dot"></span><span><span class="t">I eat early and stop early</span></span></label>
+    </div>
+
+    <p class="grouplbl">How often do you eat out or grab something?</p>
+    <div class="opts row2" data-single="eatout">
+      <label class="opt" data-v="rare"><span class="dot"></span><span><span class="t">Rarely</span></span></label>
+      <label class="opt on" data-v="weekly"><span class="dot"></span><span><span class="t">A couple times a week</span></span></label>
+      <label class="opt" data-v="often"><span class="dot"></span><span><span class="t">Most days</span></span></label>
+      <label class="opt" data-v="travel"><span class="dot"></span><span><span class="t">I travel a lot</span></span></label>
+    </div>
+
+    
+
+    <p class="grouplbl">Coffee and alcohol</p>
+    <p class="muted" style="margin:-4px 0 10px">Pick everything that applies. Not a judgement, just
+      arithmetic. These are the calories people most often forget they are drinking, and leaving them
+      out is the fastest way to end up with a plan that quietly does not work.</p>
+    <div class="pills" data-multi="drinks">
+      <span class="pill">Black coffee daily</span>
+      <span class="pill">Coffee with cream and sugar</span>
+      <span class="pill">A specialty coffee most days</span>
+      <span class="pill">Energy drinks</span>
+      <span class="pill">Diet soda</span>
+      <span class="pill">Alcohol 1-2x a week</span>
+      <span class="pill">Alcohol 3-5x a week</span>
+      <span class="pill">A drink most nights</span>
+      <span class="pill">None of these</span>
+    </div>
+
+    <p class="grouplbl">Coffee and alcohol</p>
+    <p class="muted" style="margin:-4px 0 10px">Not a judgment. These are the calories that most often live in the middle, unseen.</p>
+    <div class="pills" data-multi="drinks">
+      <span class="pill">Black coffee</span><span class="pill">Coffee with cream and sugar</span>
+      <span class="pill">Daily specialty coffee</span><span class="pill">Energy drinks</span>
+      <span class="pill">Alcohol 1 to 2 times a week</span><span class="pill">Alcohol 3 to 5 times a week</span>
+      <span class="pill">Most days</span><span class="pill">None of these</span>
+    </div>
+  </div>
+
+  <!-- MIRROR 2. Counts what they have actually given, right before the numbers land. -->
+  <div class="step" id="mirror2">
+    <span class="num">ALMOST THERE</span>
+    <h3>Your build is nearly assembled.</h3>
+    <p class="help" id="m2-sub">Two steps left, then your numbers.</p>
+    <div class="mirror" id="m2-chips"></div>
+    <div class="note">
+      <strong>Nothing below this line is generic.</strong> Your numbers get built from your body and
+      your phase. Your meals get built from the food you just picked, not from a list somebody else
+      wrote. That is the whole difference between a plan you follow for three weeks and a plan you
+      can still run in March.
+    </div>
+  </div>
+
+  <!-- 15 CONTACT -->
+  <div class="step">
+    <span class="num">14</span>
+    <h3>Where do you actually eat when you are not cooking?</h3>
+    <p class="help">Your plan comes with the specific order at the places you already go, macros
+      attached. Not "make better choices" — the actual order. Skip this if you cook nearly
+      everything at home.</p>
+    <div class="pills" data-multi="restaurants">
+      <span class="pill">Chipotle</span><span class="pill">Chick-fil-A</span><span class="pill">Cava</span><span class="pill">Sweetgreen</span><span class="pill">Panera</span><span class="pill">Subway</span><span class="pill">Jersey Mike&#39;s</span><span class="pill">Starbucks</span><span class="pill">Dunkin&#39;</span><span class="pill">Tropical Smoothie</span><span class="pill">Whole Foods hot bar</span><span class="pill">McDonald&#39;s</span><span class="pill">Wendy&#39;s</span><span class="pill">Burger King</span><span class="pill">Taco Bell</span><span class="pill">In-N-Out</span><span class="pill">Shake Shack</span><span class="pill">Five Guys</span><span class="pill">Culver&#39;s</span><span class="pill">Whataburger</span><span class="pill">Sonic</span><span class="pill">Raising Cane&#39;s</span><span class="pill">El Pollo Loco</span><span class="pill">Panda Express</span><span class="pill">Domino&#39;s</span><span class="pill">Pizza Hut</span><span class="pill">IHOP</span><span class="pill">Denny&#39;s</span><span class="pill">Waffle House</span><span class="pill">Cracker Barrel</span><span class="pill">Olive Garden</span><span class="pill">Texas Roadhouse</span><span class="pill">Outback</span><span class="pill">Applebee&#39;s</span><span class="pill">Chili&#39;s</span><span class="pill">P.F. Chang&#39;s</span><span class="pill">Buffalo Wild Wings</span><span class="pill">Jimmy John&#39;s</span><span class="pill">Firehouse Subs</span><span class="pill">Arby&#39;s</span><span class="pill">KFC</span><span class="pill">Popeyes</span><span class="pill">Zaxby&#39;s</span><span class="pill">Jack in the Box</span><span class="pill">Del Taco</span><span class="pill">Qdoba</span><span class="pill">Moe&#39;s</span><span class="pill">Costco food court</span><span class="pill">Local burger place</span><span class="pill">Local Mexican</span><span class="pill">Local sushi</span><span class="pill">Local Italian</span><span class="pill">Local steakhouse</span><span class="pill">Local pizza</span><span class="pill">Local diner</span><span class="pill">The gas station, honestly</span>
+    </div>
+    <label class="fl" for="rest-other">Anywhere else you go regularly</label>
+    <input type="text" id="rest-other" placeholder="A local spot, the work cafeteria, wherever">
+    <div class="note">
+      <strong>Why I ask.</strong> Most plans fall apart the first time real life shows up. If I know
+      where you actually eat, eating out stops being the thing that wrecks the week and becomes
+      another meal that fits.
+    </div>
+  </div>
+
+  <div class="step">
+    <span class="num">15</span>
+    <h3>Where should I send your build?</h3>
+    <p class="help">Your calorie target and protein floor are already above, free and yours to keep. This opens the rest of it: your phase, your projection, your full macros and a week of meals built from the food you picked. Still no card, still no payment. I ask because every one of these gets finished by hand and I need to know where to send yours.</p>
+    <div class="fields">
+      <div class="f"><label for="fname">First name</label><input type="text" id="fname" autocomplete="given-name" placeholder="Rachel"></div>
+      <div class="f"><label for="lname">Last name</label><input type="text" id="lname" autocomplete="family-name" placeholder="Stevens"></div>
+      <div class="f full"><label for="email">Email address</label><input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@email.com"></div>
+      <div class="f full"><label for="phone">Phone (optional)</label><input type="tel" id="phone" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555"></div>
+      <div class="f full"><label for="work">What do you do? (optional)</label>
+        <input type="text" id="work" placeholder="It tells me what your day actually looks like."></div>
+      <div class="f full"><label for="extra">Anything else I should know? (optional)</label>
+        <textarea id="extra" placeholder="Travel, shift work, a season that makes this hard. Whatever matters."></textarea></div>
+    </div>
+  </div>
+
+  <!-- THE GATE. Calories and protein are free and sit further up the page, ungated.
+       Everything in here is the system rather than the numbers, and it opens on a name and
+       a valid email. Nothing is charged and nothing is hidden that was promised as free. -->
+  <div class="lockwrap locked" id="lockwrap">
+  <div class="lockbody">
+
+  <!-- 14 LIVE TARGETS -->
+  <div class="step" id="live-step">
+    <span class="num">YOUR FULL READ</span>
+    <h3>Your numbers, calculating live.</h3>
+    <p class="help">These update as you fill in the questions above. This is what your plan gets built around.</p>
+    <div class="panel">
+      <h4 id="live-phase-name">Your starting targets</h4>
+      <p class="muted" id="live-empty" style="color:#b8b3aa;margin:6px 0 0">
+        Fill in your age, height, and weight above and your numbers appear here.</p>
+      <div id="live-data" class="hidden">
+        <p class="muted" id="live-phase-line" style="color:#b8b3aa;margin:6px 0 0"></p>
+        <div class="tiles">
+          <div class="tile"><div class="v" id="t-cal">-</div><div class="l">Calories</div></div>
+          <div class="tile"><div class="v" id="t-pro">-</div><div class="l">Protein</div></div>
+          <div class="tile"><div class="v" id="t-carb">-</div><div class="l">Carbs</div></div>
+          <div class="tile"><div class="v" id="t-fat">-</div><div class="l">Fat</div></div>
+          <div class="tile wide"><div class="v" id="t-prod">-</div><div class="l">Fruit and vegetables per day</div></div>
+        </div>
+        <div class="note" id="live-note"></div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- SAMPLE DAY (generated from THEIR foods) -->
+  <div class="step" id="sample-step">
+    <span class="num">YOUR PLAN, PREVIEWED</span>
+    <h3>Seven days. Three options per meal. Built from the food you just picked.</h3>
+    <p class="help" id="sample-help">Pick your foods in question 12 and a real day appears here, portioned to your numbers.</p>
+    <div id="sample-out"></div>
+    <div class="note hidden" id="sample-note">
+      <strong>Every option inside a meal hits the same numbers.</strong> That is the point. Pick
+      whichever one you feel like on the day and you cannot get it wrong, because you never have to
+      do the maths. Seven days out of three choices per meal, plus snacks and protein boosters for
+      the days you come up short. The full build adds your restaurant orders with macros, a
+      grocery list, and the button that rebuilds the whole deck whenever you want a new one.
+    </div>
+  </div>
+
+  </div>
+  <div class="lockmsg"><div class="card">
+    <p class="eyebrow">Free, but not anonymous</p>
+    <h4 style="font-family:Cinzel,Georgia,serif;font-size:1.1rem;margin:0 0 10px">Your full read is built and waiting.</h4>
+    <p class="muted" style="margin:0">Put your name and email in the question above and this opens.
+    No card and no payment, now or on the next screen.</p>
+  </div></div>
+  </div>
+
+  <!-- 16 ACKNOWLEDGMENTS -->
+  <div class="step">
+    <span class="num">16</span>
+    <h3>Before you see your numbers.</h3>
+    <p class="help">Check each one. This is the part that keeps both of us honest.</p>
+    <div class="acks">
+      <label class="ack"><span class="bx"></span><span>I understand this is educational coaching guidance, not medical advice, and not a substitute for my physician's recommendations or medical nutrition therapy.</span></label>
+      <label class="ack"><span class="bx"></span><span>I understand this plan is built by Jayme Olson, a coach, based on coaching experience at Legacy Performance. It is not written, reviewed, or endorsed by a physician or registered dietitian.</span></label>
+      <label class="ack"><span class="bx"></span><span>I have answered the medical, allergy, and medication questions accurately. I understand a plan cannot account for something I did not disclose.</span></label>
+      <label class="ack"><span class="bx"></span><span>I take responsibility for any dietary changes I make. I will consult my physician first if I have a medical condition, am pregnant or breastfeeding, take medication, or have a history of disordered eating. I understand individual results vary and nothing here is a guarantee.</span></label>
+    </div>
+    <div class="f full" style="margin-top:18px">
+      <label for="sig">Type your full name to sign</label>
+      <input type="text" id="sig" placeholder="Your full name">
+    </div>
+  </div>
+
+  <div class="center" style="padding:8px 0 0">
+    <button type="submit" class="btn" id="submit-btn" disabled>Build my nutrition system</button>
+    <p class="btn-note" id="submit-note">Answer the questions above and check the four boxes to continue.</p>
+  </div>
+
+</form>
+</div>
+</section>
+
+<!-- ===================== CALCULATING RITUAL ===================== -->
+<div class="ritual" id="ritual">
+  <div class="box">
+    <h3>Building your plan.</h3>
+    <div class="rrow"><span class="ic"></span><span>Calculating your maintenance</span></div>
+    <div class="rrow"><span class="ic"></span><span>Setting your protein floor</span></div>
+    <div class="rrow"><span class="ic"></span><span>Checking for metabolic adaptation</span></div>
+    <div class="rrow"><span class="ic"></span><span>Assigning your phase</span></div>
+    <div class="rrow"><span class="ic"></span><span>Naming your constraint</span></div>
+  </div>
+</div>
+
+<!-- ===================== THE READ (REVEAL) ===================== -->
+<div id="reveal">
+
+<section class="tight">
+  <div class="wrap narrow readhead">
+    <p class="eyebrow">Your nutrition system</p>
+    <h2 id="rv-hello">Here is where you actually are.</h2>
+    <p class="muted">These are your numbers. Your calorie target, your protein floor, and your phase.</p>
+  </div>
+</section>
+
+<section class="tight" style="padding-top:0">
+  <div class="wrap narrow">
+    <div class="panel">
+      <h4 id="rv-phase">Your phase</h4>
+      <p class="muted" style="color:#b8b3aa;margin:6px 0 0" id="rv-phase-line"></p>
+      <div class="tiles">
+        <div class="tile"><div class="v" id="rv-cal">-</div><div class="l">Calories</div></div>
+        <div class="tile"><div class="v" id="rv-pro">-</div><div class="l">Protein</div></div>
+        <div class="tile"><div class="v" id="rv-carb">-</div><div class="l">Carbs</div></div>
+        <div class="tile"><div class="v" id="rv-fat">-</div><div class="l">Fat</div></div>
+        <div class="tile wide"><div class="v" id="rv-maint">-</div><div class="l">Estimated maintenance</div></div>
+      </div>
+      <div class="note" id="rv-note"></div>
+    </div>
+
+    <div class="constraint" id="rv-constraint">
+      <span class="lbl">Your constraint</span>
+      <h3 id="rv-con-title"></h3>
+      <div id="rv-con-body"></div>
+    </div>
+
+    <div class="constraint hidden" id="rv-condition" style="border-top-color:var(--gold)"></div>
+    <div class="constraint hidden" id="rv-flags" style="border-top-color:var(--olive-lt)"></div>
+
+    <p>Here is the part nobody tells you though.</p>
+    <p>A number on its own does not change anything.</p>
+    <p>What it means for your body, your season, and the very first move you make with it. That is where this turns real.</p>
+    <p>You have had plans before. You have probably had six of them. Information was never your problem.</p>
+    <p>You could not see the middle, and nobody ever sat down and showed you how to look.</p>
+  </div>
+</section>
+
+<!-- WHAT SHE IS ACTUALLY GETTING. Rebuilt 2026-09-13 on the Systems Belief (brand_engine §3 Ally 12,
+     Unpopular Opinion 8, §6.5 The Four Questions). Recognition and the budget comparison come first;
+     the word "system" arrives as the relief, never the headline (§4 guardrail 1). The Four Questions
+     are the proof mechanism: the brand SHOWS it is a system instead of asserting it, and every
+     answer maps to something already built. Guardrail 5 closes it: a system she runs, not ours. -->
+<section class="dark tight">
+  <div class="wrap narrow">
+    <p class="eyebrow">What you are actually getting</p>
+    <h2 style="font-size:clamp(1.45rem,4.4vw,2rem);margin:0 0 20px">You came here for a custom meal plan. I am going to give you something better.</h2>
+    <p class="quote">A meal plan only gets you to one goal. What we are building gets you to any goal.</p>
+    <p>Lose fifty pounds.</p>
+    <p>Build five pounds of muscle.</p>
+    <p>Improve your blood work.</p>
+    <p>Live longer, and still be strong at seventy.</p>
+    <p>Those are four different plans at four different numbers.</p>
+    <p>A meal plan is one answer, on one day, at one calorie number.</p>
+    <p>It is right until your body changes...</p>
+    <p>...and then it is a PDF you feel guilty about.</p>
+    <p class="quote">A diet is not a system. It is a to-do list with an end date.</p>
+    <p>That is why you can finish six of them and still have nothing you can run today.</p>
+    <p>Think about how you run your money.</p>
+    <p>Your budget answers four questions.</p>
+    <p>A diet answers one.</p>
+
+    <div class="lever"><span class="n">1</span><div>
+      <h3 style="color:var(--parchment)">What do I measure?</h3>
+      <p class="vs">Your budget: every dollar in and out. &nbsp;A diet: &ldquo;eat clean.&rdquo;</p>
+      <p>Your calories, your protein floor and your macros, plus a week of meals built from food you already like. Three options for every meal, so the plan bends to your day instead of the other way around.</p></div></div>
+    <div class="lever"><span class="n">2</span><div>
+      <h3 style="color:var(--parchment)">How often do I look at it?</h3>
+      <p class="vs">Your budget: once a week. &nbsp;A diet: whenever you work up the nerve to step on the scale.</p>
+      <p>One read on your trend every week, and a Sunday forecast for the week ahead with the dinner out and the glass of wine already in it. A forecast, not a daily verdict.</p></div></div>
+    <div class="lever"><span class="n">3</span><div>
+      <h3 style="color:var(--parchment)">What do I do when it is off?</h3>
+      <p class="vs">Your budget: move a line item. &nbsp;A diet: try harder.</p>
+      <p>A rule instead of a feeling: hold, adjust your portions, or move to the next phase. Lean Phase 1, 2 and 3 are mapped ahead of you, so a stall is a decision, not a crisis.</p></div></div>
+    <div class="lever"><span class="n">4</span><div>
+      <h3 style="color:var(--parchment)">What happens when I hit the goal?</h3>
+      <p class="vs">Your budget: it keeps running. &nbsp;A diet: nothing. It just ends.</p>
+      <p>Nothing ends. You move into maintenance, which is where it keeps running, not where it stops. Rebuild your meal plan any time anything changes. The button says <strong>build new meal plan</strong>, and it is yours for life.</p></div></div>
+
+    <p style="margin-top:26px">Four questions.</p>
+    <p>Every answer is one you run yourself.</p>
+    <p>You do not need me standing over it, and I do not want you to.</p>
+    <p>That is the difference between a plan somebody hands you and a system that is yours.</p>
+
+    <div class="note" style="margin-top:26px">
+      <strong>Where this sits.</strong> The free <strong>Power Food System</strong> teaches you the food
+      tiers and how to adjust your own portions. The <strong>Complete Nutrition System</strong> is what
+      keeps it right: you rebuild your plan yourself every time your body or your phase changes. That
+      second part is what you are buying.
+    </div>
+  </div>
+</section>
+
+<!-- PRICE -->
+<section id="price">
+  <div class="wrap narrow">
+    <div class="price-card">
+      <p class="price-anchor">The average person spends around <s>$1,100</s> on a program in this category.</p>
+      <div class="price-big" id="pc-price">$497</div>
+      <p class="price-sub">One time &middot; No subscription &middot; Yours for life</p>
+      <div class="incl">
+        <div><span class="ck"></span><span><strong>A new meal plan whenever you need one</strong>, not one plan. Rebuild it any time, forever.</span></div>
+        <div><span class="ck"></span><span>Your first week built from your foods: 3 options for every meal, plus snacks and protein boosters, reviewed by Jayme</span></div>
+        <div><span class="ck"></span><span>Your full phase roadmap: Phase 1, 2 and 3 mapped ahead</span></div>
+        <div><span class="ck"></span><span>Portions and calories that adjust as your progress does</span></div>
+        <div><span class="ck"></span><span>Weekly read on your trend: hold, stay, or move up a phase</span></div>
+        <div><span class="ck"></span><span>Your restaurant orders, with the macros</span></div>
+        <div><span class="ck"></span><span>The Macro Freedom Framework</span></div>
+        <div><span class="ck"></span><span>The Power Food System tiers, so you can swap anything and still fit</span></div>
+        <div><span class="ck"></span><span><strong>I set it up with you, step by step</strong>, around your actual week. Not a PDF and good luck.</span></div>
+        <div><span class="ck"></span><span><strong>30-day money-back guarantee.</strong> If it is not right, I rebuild it or refund you.</span></div>
+      </div>
+      <div class="paylinks">
+        <a href="#" class="btn js-pif" id="pay-pif">Build my system &middot; $497</a>
+        <a href="#" class="btn ghost js-plan2" id="pay-plan">Or 2 payments of $275</a>
+      </div>
+      <p class="btn-note" id="cap-note"></p>
+      <p class="btn-note"><strong>30 days.</strong> If it is not right for you, I will rebuild it or refund you. No argument.</p>
+    </div>
+
+    <div class="center" style="margin-top:34px">
+      <p class="muted">Not ready to buy, but you want to talk it through first?</p>
+      <a href="#" class="btn ghost" id="consult-btn-1" style="max-width:340px">Book a Readiness Consultation</a>
+      <p class="btn-note">Free. Your numbers, your season, your best next step.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="faq tight">
+  <div class="wrap narrow">
+    <p class="eyebrow">Common questions</p>
+    <h2 style="font-size:1.5rem;margin:0 0 8px">Everything people ask me first.</h2>
+    <details><summary>Who actually builds this?</summary>
+      <p>Your plan is built from your answers using the same numbers I use with my one-on-one clients. Then I read it, adjust it, and finish it before it reaches you. The arithmetic runs itself, the same way your budget adds up the column for you. The judgment does not.</p></details>
+    <details><summary>I have tried plans before and they never stick. What is different?</summary>
+      <p>Every plan you have tried started with what to eat. This one starts with what is actually stopping you, which is usually not the food. If your constraint is that you cannot see your intake, a meal plan does not solve that. If your constraint is that your body has adapted down after years of cutting, a smaller deficit makes it worse. Naming the constraint first is the difference.</p></details>
+    <details><summary>What if I have never tracked or never lifted?</summary>
+      <p>Then you are in a good place to start, because nothing has to be undone first. You learn the skill as you go. Nobody is expected to arrive already knowing how.</p></details>
+    <details><summary>How long until I get it?</summary>
+      <p>Your plan is generated immediately. I review and finish it, and it lands with you within one business day. You get access to your dashboard right away.</p></details>
+    <details><summary>What if my body or my season changes?</summary>
+      <p>That is what the weekly auto-adjust is for. Your numbers are not carved in stone. Every week you get a read on your trend and your consistency, and one clear move. That is why it is a system and not a plan.</p></details>
+    <details><summary>Do I have to weigh myself every day?</summary>
+      <p>No. Three times a week on the same days is the standard, and you read the trend across weeks, not one morning. The scale is a tool, not a verdict. If you would rather not weigh at all, we use waist, neck, and thigh measurements monthly instead, and I will tell you honestly what data you give up by doing it that way.</p></details>
+    <details><summary>Is this medical or nutrition advice?</summary>
+      <p>No. This is educational coaching guidance based on my experience as a coach. It is not medical nutrition therapy, and it is not written or reviewed by a physician or registered dietitian. Talk to your physician before changing your diet, especially if you have a medical condition or take medication.</p></details>
+    <details><summary>What is the guarantee?</summary>
+      <p>Thirty days. If it is not right for you, tell me and I will rebuild it, or refund you. You do not have to justify it.</p></details>
+  </div>
+</section>
+
+<section class="dark tight">
+  <div class="wrap narrow center">
+    <h2 style="font-size:clamp(1.4rem,4.4vw,1.9rem);margin:0 0 14px">You already have the numbers.</h2>
+    <p class="muted" style="margin-bottom:22px">What you are buying is the part that turns them into something you can actually run.</p>
+    <a href="#" class="btn js-pif" style="max-width:340px">Build my system &middot; $497</a>
+    <p class="btn-note"><a href="#" id="consult-btn-2" style="color:var(--gold)">Or book a free Readiness Consultation first</a></p>
+  </div>
+</section>
+
+</div><!-- /reveal -->
+
+<footer>
+  <div class="wrap narrow">
+    <p class="legal"><strong style="color:#b8b3aa">Disclaimer.</strong> This nutrition guidance is educational content
+    developed by Jayme Olson based on coaching experience at Legacy Performance. It is not medical nutrition therapy
+    and is not written, reviewed, or endorsed by any licensed physician or registered dietitian. Always consult your
+    physician before changing your diet. Individual results vary and no specific outcome is guaranteed.</p>
+    <p class="legal" style="margin-top:14px">Questions? <a href="mailto:jayme.gtkfitness@gmail.com">jayme.gtkfitness@gmail.com</a><br>
+    &copy; Legacy Performance. Educational use only. Not a prescription.</p>
+  </div>
+</footer>
+
+<!-- shared math: ONE source of truth with the dashboards -->
+<!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
+<script src="../nutrition-engine.js?v=12"></script>
+<script>
+/* =================== CONFIG — EDIT THIS BLOCK =================== */
+const CONFIG = {
+  /* Apps Script doorway. "" -> the page still works, saves on-device only. */
+  writeUrl:   "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
+
+  /* FastPayDirect checkout links (live). */
+  pifUrl:     "https://link.fastpaydirect.com/payment-link/6a70cebea655fa0b802a7a30",   // $497 pay in full
+  plan2xUrl:  "https://link.fastpaydirect.com/payment-link/6a70cf90a655fa0b802a7a35",   // 2 x $275
+
+  /* Readiness Consultation booking link (GHL calendar). "" -> button hidden. */
+  consultUrl: "",
+
+  /* Displayed price. Change here and the page follows. */
+  priceFull:  "$497",
+
+  /* ═══ CAPACITY (monthly). KEEP THIS TRUE. ═══
+     The cap is real: every buyer gets walked through the install personally, so the ceiling is
+     how many of those Jayme can run in a month, not how many the engine can generate.
+       monthlyCap  = that number.
+       buildsTaken = how many are actually sold THIS calendar month. Update it Monday in the
+                     Command Center, in the rhythm that already exists.
+     At buildsTaken 0 the page states the cap without a countdown, which is true on day one.
+     The moment it is above 0 the countdown appears and has to keep being true, because a repeat
+     visitor who sees the same number twice stops believing every other number on the page. */
+  monthlyCap:  25,
+  buildsTaken: 0,
+
+  /* Meta pixel id for paid traffic. "" -> no pixel loads. */
+  metaPixelId: ""
+};
+/* =============== END CONFIG (stop editing here) =============== */
+
+
+/* ===================== STATE ===================== */
+const S = {
+  goal:'lean', sex:'', activity:'Lightly active', training:'consistent',
+  stall:'', dur:'', track:'', obstacle:'', why:'',
+  cooking:'normal', frequency:'3', schedule:'normal', eatout:'weekly', glp1:'no',
+  horizon:'12', protect:'yes',
+  med:{}, multi:{}, starred:{proteins:[],carbs:[],fats:[],veg:[]}
+};
+const MAX_STARS = 3;
+let CALC = null;    // last computed targets
+let PLAN = null;    // last computed phase decision
+
+/* ===================== HELPERS ===================== */
+const $  = id => document.getElementById(id);
+const qs = (s,r) => (r||document).querySelector(s);
+const qsa = (s,r) => Array.from((r||document).querySelectorAll(s));
+const val = id => (($(id)||{}).value || '').trim();
+const num = id => { const v = parseFloat(val(id)); return isFinite(v) ? v : null; };
+/* Live typing never honours the inputs' min/max attributes (those only fire on form submit), so
+   without this a fat-fingered goal of 1500 lbs rendered 19,500 calories and 1,500g of protein on
+   a page whose entire pitch is numbers you can trust. Out-of-range values read as empty, and the
+   field says what looks wrong instead of the page confidently showing nonsense. */
+const LIMITS = { age:[16,90,'an age between 16 and 90'],
+                 cw:[70,600,'your weight in pounds'],
+                 gw:[70,600,'a goal weight in pounds'] };
+function inRange(id){
+  const v = num(id), L = LIMITS[id];
+  return (v == null || !L) ? v : (v >= L[0] && v <= L[1] ? v : null);
+}
+function flagField(id){
+  const el = $(id); if (!el) return false;
+  const v = num(id), L = LIMITS[id];
+  const bad = v != null && L && (v < L[0] || v > L[1]);
+  el.classList.toggle('bad', bad);
+  let w = el.parentElement.querySelector('.fieldwarn');
+  if (bad && !w){ w = document.createElement('span'); w.className = 'fieldwarn'; el.parentElement.appendChild(w); }
+  if (w){ w.textContent = bad ? 'That looks off. Double-check ' + L[2] + '.' : ''; w.hidden = !bad; }
+  return bad;
+}
+const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c =>
+  ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ===================== BUILD HEIGHT SELECT ===================== */
+(function(){
+  const sel = $('height');
+  for (let inches = 56; inches <= 82; inches++){
+    const o = document.createElement('option');
+    o.value = inches;
+    o.textContent = Math.floor(inches/12) + "'" + (inches%12) + '"';
+    sel.appendChild(o);
+  }
+})();
+
+/* ===================== EATING STYLE + ALLERGENS ===================== */
+/* The main style is the FIRST structural one they picked. Kosher/halal/low-sodium and the rest
+   are preferences that ride along in the notes rather than filtering the food list. */
+const STRUCTURAL = ['vegan','vegetarian','pescatarian','no red meat','no pork'];
+function activeStyle(){
+  const box = qs('[data-multi="diet"]');
+  const on = qsa('.pill.on', box).map(p => p.dataset.style).filter(Boolean);
+  for (const s of STRUCTURAL){ if (on.includes(s)) return s; }
+  return '';
+}
+function activeAllergens(){
+  const box = qs('[data-multi="allergies"]');
+  const list = qsa('.pill.on', box).map(p => p.dataset.a).filter(Boolean);
+  /* Eating-style picks that behave like an allergen for filtering purposes. */
+  const diet = qsa('.pill.on', qs('[data-multi="diet"]')).map(p => p.textContent.trim());
+  if (diet.includes('Gluten free')) list.push('gluten');
+  if (diet.includes('Dairy free'))  list.push('dairy');
+  return [...new Set(list)];
+}
+
+const STYLE_COPY = {
+  vegetarian:  'Vegetarian leans hard on dairy and eggs, because that is where your complete protein has to come from. Expect Greek yogurt, cottage cheese, egg whites and whey doing most of the work.',
+  vegan:       'Vegan means the protein has to come from tofu, tempeh, seitan, edamame and plant protein powder. There is no way around leaning on those. Your list below is built from exactly that.',
+  pescatarian: 'Pescatarian leans on fish and eggs. White fish, tuna, salmon and eggs will carry most of your protein floor.',
+  'no red meat':'Beef and other red meat are out. Poultry, fish, eggs and dairy carry the load instead.',
+  'no pork':   'Pork is out. Everything else stays available.'
+};
+
+/* ===================== BUILD FOOD PILLS (filtered + tiered) ===================== */
+function renderFoodPills(){
+  const style = activeStyle(), allerg = activeAllergens();
+  const kept = {};
+  ['proteins','carbs','fats','veg'].forEach(k => kept[k] = S.multi[k] || []);
+
+  const build = (elId, key, cat) => {
+    const el = $(elId); if (!el) return;
+    if (cat === 'veg'){
+      el.innerHTML = FOOD_DB.veg.map(n =>
+        `<span class="pill${kept.veg.includes(n)?' on':''}">${esc(n)}</span>`).join('');
+      return;
+    }
+    const list = (typeof safeFoods === 'function')
+      ? safeFoods(cat, style, allerg)
+      : (FOOD_DB[cat] || []);
+    /* Tier 1 first, so the leanest options are what they see and reach for. */
+    const sorted = list.slice().sort((a,b) => (a.t||1)-(b.t||1));
+    const stars = S.starred[key] || [];
+    el.innerHTML = sorted.map(f =>
+      `<span class="pill${kept[key].includes(f.n)?' on':''}" title="Tier ${f.t||1}">${esc(f.n)}`
+      + `<i class="tier t${f.t||1}">${f.t||1}</i>`
+      + `<i class="star${stars.includes(f.n)?' lit':''}" data-star="${esc(f.n)}">&#9733;</i></span>`).join('');
+  };
+  build('pl-protein','proteins','protein');
+  build('pl-carb','carbs','carb');
+  build('pl-fat','fats','fat');
+  build('pl-veg','veg','veg');
+
+  /* Selections that no longer exist after filtering must be dropped from state too. */
+  ['proteins','carbs','fats','veg'].forEach(k => {
+    const box = qs(`[data-multi="${k}"]`);
+    S.multi[k] = qsa('.pill.on', box).map(p => p.firstChild.textContent.trim());
+  });
+
+  const note = $('style-note');
+  let msg = (style && STYLE_COPY[style]) ? STYLE_COPY[style] : '';
+
+  /* A protein floor is the engine of this whole system. If the filters leave almost nothing to
+     build it from, say so here rather than quietly shipping a plan with one food in it. */
+  const pool = (typeof safeFoods === 'function') ? safeFoods('protein', style, allerg).length : 99;
+  if (pool <= 3){
+    msg += (msg ? ' ' : '') +
+      'Heads up: between your eating style and your allergies there are only ' + pool +
+      ' protein sources left that I can safely build from. That is thin. Your plan will be repetitive, ' +
+      'and hitting your protein floor is going to take some supplementing. Flag it in the box at the ' +
+      'bottom and I will work the problem with you directly.';
+  }
+  if (msg){ note.textContent = msg; note.style.display = 'block'; }
+  else note.style.display = 'none';
+}
+
+/* ===================== OBSTACLE OPTIONS (adaptive to goal) ===================== */
+const OBSTACLES = {
+  lean: [
+    ['restart',  'I start strong and lose it by week three',   'It is never the starting. It is the staying.'],
+    ['stalled',  'I do everything right and nothing happens',  'The effort goes in. The scale does not respond.'],
+    ['busy',     'My week falls apart and takes the plan with it', 'A sick kid, a late meeting, and it is gone.'],
+    ['unknown',  'I genuinely do not know what I should be eating', 'Too much conflicting advice, no clear answer.']
+  ],
+  strong: [
+    ['softer',   'I am afraid of getting softer instead of stronger', 'Every version of building you have seen meant gaining fat.'],
+    ['howmuch',  'I do not know how to eat to actually build',  'Lifting is the easy part. The food is the mystery.'],
+    ['busy',     'I lose everything the moment life gets busy', 'The progress does not survive a hard month.'],
+    ['plateau',  'I have been stuck at the same strength for a long time', 'The training happens. The numbers do not move.']
+  ],
+  sustain: [
+    ['slipping', 'I can feel it slowly slipping away',          'Nothing dramatic. Just a slow drift back.'],
+    ['obsess',   'Holding it takes more effort than I want to give', 'You are tired of watching every bite.'],
+    ['busy',     'Life keeps knocking it off the rails',        'You maintain fine until the season gets hard.'],
+    ['nextstep', 'I do not know what comes after losing it',    'Nobody teaches the part after the goal weight.']
+  ]
+};
+function renderObstacles(){
+  const list = OBSTACLES[S.goal] || OBSTACLES.lean;
+  const box = $('obst-opts');
+  box.innerHTML = list.map(([v,t,d]) =>
+    `<label class="opt" data-v="${v}"><span class="dot"></span><span>
+      <span class="t">${esc(t)}</span><span class="d">${esc(d)}</span></span></label>`).join('');
+  S.obstacle = '';
+  wireSingle(box, 'obstacle');
+}
+
+/* ===================== INPUT WIRING ===================== */
+function wireSingle(box, key){
+  qsa('.opt', box).forEach(el => {
+    el.addEventListener('click', () => {
+      qsa('.opt', box).forEach(o => o.classList.remove('on'));
+      el.classList.add('on');
+      S[key] = el.dataset.v;
+      if (key === 'goal') renderObstacles();
+
+/* ===================== GLP-1 ===================== */
+const GLP1_COPY = {
+  on:  'Then the plan gets built around appetite, not willpower. Protein first and highest priority, '
+     + 'smaller volume per meal, and easier-to-tolerate foods, because the risk on a GLP-1 is not '
+     + 'overeating. It is under-eating protein and losing muscle alongside the fat. That is the thing '
+     + 'your plan has to prevent.',
+  off: 'This is the part almost nobody gets taught, and it is where most of the weight comes back. '
+     + 'The appetite comes back before the habits do. Your plan gets built for that specifically: a '
+     + 'protein floor you can hold without the medication doing it for you, and a structure for the '
+     + 'weeks when the food noise returns.',
+  considering: 'Good. That is a conversation for you and a prescriber, not a form. What I can tell you '
+     + 'is that the plan is the same either way. Whether appetite is being managed for you or not, '
+     + 'protein and training are what decide whether you keep your muscle.'
+};
+(function(){
+  const box = qs('[data-single="glp1"]'); if (!box) return;
+  const warn = $('w-glp1'), wrap = $('glp1-when-wrap');
+  box.addEventListener('click', () => {
+    setTimeout(() => {
+      const v = S.glp1;
+      const copy = GLP1_COPY[v];
+      warn.innerHTML = copy || '';
+      warn.classList.toggle('show', !!copy);
+      wrap.style.display = (v === 'on' || v === 'off') ? 'block' : 'none';
+    }, 0);
+  });
+})();
+      recalc();
+    });
+  });
+}
+qsa('[data-single]').forEach(box => {
+  const key = box.dataset.single;
+  if (key === 'obstacle') return;                 // rendered dynamically
+  const pre = qs('.opt.on', box);
+  if (pre) S[key] = pre.dataset.v;
+  wireSingle(box, key);
+});
+
+/* Food pills carry a tier badge, so read the label from the first text node, not textContent. */
+const pillLabel = p => (p.firstChild ? p.firstChild.textContent : p.textContent).trim();
+qsa('[data-multi]').forEach(box => {
+  const key = box.dataset.multi;
+  S.multi[key] = [];
+  box.addEventListener('click', e => {
+    /* A click on the star toggles the favourite, never the food selection. */
+    if (e.target.classList && e.target.classList.contains('star')){
+      e.stopPropagation();
+      const name = e.target.dataset.star;
+      const list = S.starred[key] = S.starred[key] || [];
+      const at = list.indexOf(name);
+      if (at >= 0) list.splice(at, 1);
+      else if (list.length < MAX_STARS) list.push(name);
+      else { flashStarLimit(box); return; }
+      e.target.classList.toggle('lit');
+      recalc(); return;
+    }
+    const p = e.target.closest('.pill'); if (!p) return;
+    p.classList.toggle('on');
+    S.multi[key] = qsa('.pill.on', box).map(pillLabel);
+    if (S.starred[key]) S.starred[key] = S.starred[key].filter(n => S.multi[key].includes(n));
+    /* Allergies and eating style change WHICH foods may be offered, so rebuild those lists. */
+    if (key === 'allergies' || key === 'diet') renderFoodPills();
+    recalc();
+  });
+});
+
+qsa('.yn').forEach(box => {
+  const key = box.dataset.med;
+  box.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    qsa('button', box).forEach(x => x.classList.remove('on','warn'));
+    b.classList.add('on');
+    if (b.dataset.v === 'yes') b.classList.add('warn');
+    S.med[key] = b.dataset.v;
+    const w = $('w-' + key); if (w) w.classList.toggle('show', b.dataset.v === 'yes');
+    recalc();
+  });
+});
+
+qsa('.ack').forEach(a => a.addEventListener('click', () => {
+  a.classList.toggle('checked'); updateSubmit();
+}));
+
+['age','height','cw','gw','avgcal','fname','lname','email','sig']
+  .forEach(id => { const el = $(id); if (el) el.addEventListener('input', recalc); });
+$('height').addEventListener('change', recalc);
+
+renderObstacles();
+
+/* ===================== GLP-1 ===================== */
+const GLP1_COPY = {
+  on:  'Then the plan gets built around appetite, not willpower. Protein first and highest priority, '
+     + 'smaller volume per meal, and easier-to-tolerate foods, because the risk on a GLP-1 is not '
+     + 'overeating. It is under-eating protein and losing muscle alongside the fat. That is the thing '
+     + 'your plan has to prevent.',
+  off: 'This is the part almost nobody gets taught, and it is where most of the weight comes back. '
+     + 'The appetite comes back before the habits do. Your plan gets built for that specifically: a '
+     + 'protein floor you can hold without the medication doing it for you, and a structure for the '
+     + 'weeks when the food noise returns.',
+  considering: 'Good. That is a conversation for you and a prescriber, not a form. What I can tell you '
+     + 'is that the plan is the same either way. Whether appetite is being managed for you or not, '
+     + 'protein and training are what decide whether you keep your muscle.'
+};
+(function(){
+  const box = qs('[data-single="glp1"]'); if (!box) return;
+  const warn = $('w-glp1'), wrap = $('glp1-when-wrap');
+  box.addEventListener('click', () => {
+    setTimeout(() => {
+      const v = S.glp1;
+      const copy = GLP1_COPY[v];
+      warn.innerHTML = copy || '';
+      warn.classList.toggle('show', !!copy);
+      wrap.style.display = (v === 'on' || v === 'off') ? 'block' : 'none';
+    }, 0);
+  });
+})();
+
+/* ===================== PHASE DECISION (the two-bucket diagnostic) ===================== */
+/* Bucket A = genuinely adapted -> Reverse Diet. Bucket B = under-reporting -> teach tracking.
+   These are OPPOSITE interventions, which is exactly why this question exists.
+   NOTE: the page never states adaptation as fact. It states likelihood and routes to the call.
+
+   TWO signals, and either one is enough:
+   1. Self-report: "I ate less and less and the scale would not move," held for a long time.
+   2. ARITHMETIC: their reported intake divided by their goal weight is at or below 10.
+      That is the coefficient scale. At or under x10 you do not cut, you climb. */
+function decidePhase(){
+  const gw = num('gw') || num('cw');
+  const reported = num('avgcal');
+  const coefficient = (typeof coefficientOf === 'function') ? coefficientOf(reported, gw) : null;
+  const mathSignal  = (typeof needsReverse === 'function') && needsReverse(reported, gw);
+  const selfReport  = (S.stall === 'yes') && (S.dur === 'long' || S.dur === 'forever');
+
+  if (S.goal === 'lean' && (mathSignal || selfReport))
+    return { phase:'Reverse Diet', num:1, route:'adapted', coefficient, mathSignal };
+  /* Picked outright. She already knows she is under-eating, so she does not have to be
+     talked into it by the math. */
+  if (S.goal === 'reverse') return { phase:'Reverse Diet', num:1, route:'adapted', coefficient, mathSignal, selfPicked:true };
+  if (S.goal === 'strong')  return { phase:'Strong',  num:1, route:'build', coefficient };
+  if (S.goal === 'sustain') return { phase:'Sustain', num:1, route:'hold',  coefficient };
+  return { phase:'Lean', num:1, route:'cut', coefficient };
+}
+
+/* ===================== STATUS FLAGS =====================
+   ONE engine. A member's situation does not get its own module, it DIRECTS this engine's
+   output. Each flag can force the phase, raise a floor, or suppress what gets displayed. */
+function statusFlags(){
+  const m = S.med, f = [];
+  const noDeficit = [];
+  if (m.preg === 'yes'){ noDeficit.push('preg'); f.push({k:'preg',
+    label:'Pregnant, breastfeeding, or trying to conceive',
+    build:'Built at or above maintenance, never as a deficit. Protein-forward, with produce, fiber and hydration pushed up.',
+    ask:'Take it to your OB or midwife before you start. What they say wins over what I say.'}); }
+  if (m.onc === 'yes'){ noDeficit.push('onc'); f.push({k:'onc',
+    label:'Cancer treatment in the past 12 months',
+    build:'Built at or above maintenance, never as a deficit, protein-forward. Holding muscle through treatment matters more than any number on a scale.',
+    ask:'Run it past your oncology team. If they have given you nutrition instructions, follow theirs.'}); }
+  if (m.ed === 'yes'){ noDeficit.push('ed'); f.push({k:'ed',
+    label:'Eating disorder history in the past five years',
+    build:'Built without any numbers at all. No calories, no macros, no protein target, no deficit, no scale. You get portions on a plate and a structure to follow.',
+    ask:'Please keep whoever supported your recovery in the loop.'}); }
+  if (m.dia === 'yes') f.push({k:'dia', label:'Diabetes',
+    build:'Carbohydrates spread evenly across meals instead of stacked into one, built from the slowest-digesting Tier 1 sources.',
+    ask:'Eating differently can change what your medication needs to be. Tell your prescriber before you start.'});
+  if (m.heart === 'yes') f.push({k:'heart', label:'Diagnosed heart condition',
+    build:'Sodium-aware, leaning on Tier 1 unsaturated fats.',
+    ask:'Clear it with your cardiologist, especially anything that changes how you train.'});
+  if (m.bp === 'yes') f.push({k:'bp', label:'High blood pressure',
+    build:'Sodium-aware build.',
+    ask:'Blood pressure often moves as body weight moves. Keep your prescriber in the loop.'});
+  if (m.thy === 'yes') f.push({k:'thy', label:'Thyroid condition',
+    build:'A slower, steadier build with a higher protein floor, and a scale read across weeks rather than days.',
+    ask:'If you have not had thyroid labs recently, that is worth asking your physician for.'});
+  if (m.meno === 'yes') f.push({k:'meno', label:'Perimenopause or menopause',
+    build:'Protein floor raised, not lowered. Calcium-rich foods made visible instead of assumed. Fibre spread across the day. The scale read across weeks, because it is going to be noisy.',
+    ask:'Worth a conversation with your physician about labs and about whether hormone therapy belongs in your picture. That is their call, not mine.'});
+  if (S.glp1 === 'on') f.push({k:'glp1', label:'Currently on a GLP-1',
+    build:'Protein first and highest priority, smaller volume per meal, easier-to-tolerate foods. The risk here is under-eating protein and losing muscle with the fat, so the plan is built to prevent exactly that.',
+    ask:'Doses belong to your prescriber. Food belongs to us. Keep them in the loop on any change.'});
+  if (S.glp1 === 'off') f.push({k:'glp1off', label:'Came off a GLP-1 in the last year',
+    build:'Built for the return of appetite: a protein floor you can hold without the medication holding it for you, and a structure for the weeks when the food noise comes back.',
+    ask:'If you are considering going back on, that is a prescriber conversation. The plan works either way.'});
+  return { list:f, noDeficit:noDeficit.length > 0, suppressNumbers:(m.ed === 'yes'),
+           glp1:S.glp1, menopause:(m.meno === 'yes') };
+}
+
+/* Only ONE condition stops the build: reduced kidney function, because this whole system runs
+   on a protein floor set by body weight, and that is the one thing it cannot safely absorb. */
+function hardStop(){ return S.med.kid === 'yes'; }
+
+/* ===================== PHASE NAMING + NOTES (shared by the live panel and the Read) ===== */
+const PHASE_LINES = {
+  'Lean':        'The fat-loss phase. Below maintenance, protein held high, muscle protected on the way down.',
+  'Strong':      'The building phase. Enough fuel to add strength without adding fat you would only have to lose again.',
+  'Sustain':     'The maintenance and longevity phase. Hold what you built, on far less effort than it took to get here.',
+  'Reverse Diet':'The way back out. Calories climb deliberately from where you actually are, protein first, before any deficit is ever considered.'
+};
+/* Phases are numbered and capped at three: Lean 1, Lean 2, Lean 3. You never need a fourth. */
+function phaseTitle(dec){
+  return (dec.phase === 'Reverse Diet') ? 'Reverse Diet' : dec.phase + ' Phase ' + (dec.num || 1);
+}
+function phaseLine(dec){
+  let s = PHASE_LINES[dec.phase] || '';
+  if (dec.forced) s += ' Your health answers moved you here: this build is never a deficit.';
+  return s;
+}
+function targetNote(t, dec, F){
+  if (F && F.suppressNumbers){
+    return '<strong>Your numbers are deliberately not shown.</strong> No calories, no protein target, '
+         + 'no macros. You told me you have an eating disorder history, so your plan is built as '
+         + 'portions on a plate instead of numbers to hit or miss. The structure is all there, and it '
+         + 'is the same structure everyone else gets. The scoreboard is not.';
+  }
+  if (dec.phase === 'Reverse Diet'){
+    let s = '<strong>Read this part carefully.</strong> Your answers point toward a metabolism that may '
+          + 'have adapted down. That is a likelihood, not a diagnosis, and it is not something a form can '
+          + 'confirm. ';
+    if (dec.mathSignal && dec.coefficient){
+      s += 'The arithmetic says the same thing: you are eating about <strong>'
+        + dec.coefficient + ' calories per pound</strong> of your goal weight. At ten or below, the answer '
+        + 'is not a smaller deficit. There is no deficit left to take. ';
+    }
+    s += 'This number is also built on what you told me you are eating. Week one we measure it honestly, '
+      + 'because the reverse has to anchor on what is real, not what is remembered.';
+    return s;
+  }
+  if (dec.forced){
+    return 'Your target is set at maintenance on purpose, not below it. Based on what you told me about '
+         + 'your health, a deficit is the wrong tool right now. Your estimated maintenance is around '
+         + '<strong>' + t.tdee.toLocaleString() + '</strong> calories.';
+  }
+  if (t.delta < 0){
+    return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories. '
+         + 'Your target sits about ' + Math.abs(t.delta).toLocaleString() + ' below it. That gap is the work, '
+         + 'and it is deliberately not larger than that.';
+  }
+  return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories. '
+       + 'Your target sits at or above it on purpose. This phase is not about eating less.';
+}
+
+/* ===================== CALCULATION ===================== */
+function recalc(){
+  const anyBad = ['age','cw','gw'].map(flagField).some(Boolean);
+  const cw = inRange('cw'), gw = inRange('gw'), age = inRange('age'), h = num('height');
+  const dec = decidePhase(); PLAN = dec;
+
+  const ready = !anyBad && cw && age && h && S.sex;
+  $('live-empty').classList.toggle('hidden', !!ready);
+  $('live-data').classList.toggle('hidden', !ready);
+
+  if (!ready){ CALC = null; renderTeaser(); updateLock(); renderTrajectory(); renderMirrors(); renderSample(); updateSubmit(); updateProgress(); return; }
+
+  const w = { weight:cw, goalweight:gw, height:h, age:age, sex:S.sex, activity:S.activity };
+
+  /* STATUS FLAGS can override the phase before any math runs. Pregnancy, active oncology and
+     ED history all force "no deficit", which means Sustain, never Lean. */
+  const FLAGS = statusFlags();
+  if (FLAGS.noDeficit && (dec.phase === 'Lean')) { dec.phase = 'Sustain'; dec.forced = true; }
+  PLAN = dec;
+
+  let t = (typeof computePFS === 'function') ? computePFS(w, dec.phase, dec.num) : null;
+  if (!t){ CALC = null; updateSubmit(); return; }
+
+  /* Reverse Diet anchors on what they are ACTUALLY eating, not the generic formula. */
+  const avg = num('avgcal');
+  if (dec.phase === 'Reverse Diet' && typeof reverseStart === 'function'){
+    const start = reverseStart(avg, gw || cw);
+    const proteinAnchor = Math.round((gw || cw) * 1.0);
+    t = macrosFrom(start, proteinAnchor, S.sex);
+    t.tdee = computeTDEE(w); t.delta = t.calories - t.tdee;
+    t.phase = 'Reverse Diet'; t.phaseNum = 1;
+  }
+
+  /* Safety floor. Never publish a target below it. */
+  const floor = /^m/i.test(S.sex) ? 1500 : 1200;
+  if (t.calories < floor) t = macrosFrom(floor, t.protein, S.sex), t.tdee = computeTDEE(w), t.delta = t.calories - t.tdee;
+
+  t.produce = (typeof produceTarget === 'function') ? produceTarget(t.calories, dec.phase) : 0;
+  CALC = t;
+
+  t.flags = FLAGS;
+  /* Condition profile composes the flags. A member can be on a GLP-1 AND in menopause; those
+     two pull opposite ways on volume, and this is where that gets resolved. */
+  t.condition = (typeof conditionProfile === 'function')
+    ? conditionProfile({glp1:S.glp1, menopause:(S.med.meno === 'yes')}) : null;
+  $('live-phase-name').textContent = 'Phase: ' + phaseTitle(dec);
+  $('live-phase-line').textContent = phaseLine(dec);
+
+  /* ED history: portions and a protein floor, never a calorie scoreboard. */
+  if (FLAGS.suppressNumbers){
+    $('t-cal').textContent  = '—';
+    $('t-carb').textContent = '—';
+    $('t-fat').textContent  = '—';
+    $('t-pro').textContent  = '—';
+  } else {
+    $('t-cal').textContent  = t.calories.toLocaleString();
+    $('t-carb').textContent = t.carbs + 'g';
+    $('t-fat').textContent  = t.fat + 'g';
+    $('t-pro').textContent  = t.protein + 'g';
+  }
+  $('t-prod').textContent = t.produce + 'g';
+  $('live-note').innerHTML = targetNote(t, dec, FLAGS);
+  renderTeaser();
+  updateLock();
+  renderTrajectory();
+  renderMirrors();
+  renderSample();
+  updateSubmit();
+  updateProgress();
+}
+
+
+
+
+(function(){
+  const box = qs('[data-single="protect"]');
+  /* Capture phase on purpose. The generic single-select handler bubbles and calls recalc(),
+     and renderTrajectory() re-seeds this toggle from the training answer unless it has been
+     touched. The flag has to be set before that runs, not after. */
+  if (box) box.addEventListener('click', () => { S.protectTouched = true; }, true);
+})();
+
+(function(){
+  const btn = $('rec-apply'); if (!btn) return;
+  btn.addEventListener('click', () => {
+    const g = btn.dataset.goal; if (!g) return;
+    const opt = qs('[data-single="goal"] .opt[data-v="' + g + '"]');
+    if (opt) opt.click();
+    $('rec-step').scrollIntoView({block:'start'});
+  });
+})();
+
+/* ===================== THE FREE TEASER =====================
+   Calories and protein only, ungated. Everything heavier sits behind the contact block. */
+/* The gate opens on a name and a plausible email. Deliberately not a hard validator: the
+   point is to stop anonymous scraping of the build, not to argue with anyone's address. */
+function updateLock(){
+  const w = $('lockwrap'); if (!w) return;
+  const named = val('fname').length > 1;
+  const mailed = /^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(val('email'));
+  w.classList.toggle('locked', !(named && mailed));
+}
+
+function renderTeaser(){
+  const step = $('teaser-step'); if (!step) return;
+  const F = statusFlags();
+  const ok = !!CALC;
+  $('teaser-empty').classList.toggle('hidden', ok);
+  $('teaser-data').classList.toggle('hidden', !ok);
+  if (!ok) return;
+
+  if (F.suppressNumbers){
+    $('tz-cal').textContent = '\u2014';
+    $('tz-pro').textContent = '\u2014';
+    $('teaser-note').innerHTML = '<strong>You are not getting a calorie number from me, and that is '
+      + 'deliberate.</strong> You told me there is an eating disorder in your history. Your plan gets '
+      + 'built as portions on a plate with a structure to follow, and no scoreboard anywhere on it. '
+      + 'That is a better plan, not a lesser one.';
+    return;
+  }
+  $('tz-cal').textContent = CALC.calories.toLocaleString();
+  $('tz-pro').textContent = CALC.protein + 'g';
+  $('teaser-note').innerHTML = '<strong>That is your ' + esc(phaseTitle(PLAN)) + ' calorie target, and '
+    + 'the protein number is a floor rather than a ceiling.</strong> Protein is the single biggest thing '
+    + 'deciding whether the weight that moves is fat or the muscle you spent years building. Those two '
+    + 'numbers are free and they are yours either way.';
+}
+
+/* ===================== THE TRAJECTORY =====================
+   Deliberately has no "how aggressive" control. The only lever offered is composition,
+   because that is the honest one and it is the one that separates this from every other
+   calculator. Hidden outright when suppressNumbers is set: a projected scale curve is the
+   last thing someone with an ED history should be handed. */
+const TJ = {
+  /* Lean band is derived from the goal standard, not invented: 0.35% to 0.48% of bodyweight
+     per week lands at 9% to 12.5% over 26 weeks, which brackets the 10-12%-in-6-months rate
+     the guarantee is written against. Do not raise the top of this band. */
+  lean:    { loRate:0.0035, hiRate:0.0048, dir:-1, totalLabel:'Off the scale',
+             k1:'Fat', k2:'Muscle and everything else' },
+  strong:  { loRate:0.0012, hiRate:0.0025, dir:1, totalLabel:'Onto the scale',
+             k1:'Muscle', k2:'Fat and everything else' }
+};
+function renderTrajectory(){
+  const step = $('traj-step'); if (!step) return;
+  const F = (typeof statusFlags === 'function') ? statusFlags() : {};
+  if (F.suppressNumbers){ step.classList.add('hidden'); return; }
+  step.classList.remove('hidden');
+
+  const cw = inRange('cw'), gw = inRange('gw');
+  const ready = !!(cw && cw > 0) && !(num('gw') != null && gw == null);
+  $('traj-empty').classList.toggle('hidden', ready);
+  $('traj-data').classList.toggle('hidden', !ready);
+  if (!ready) return;
+
+  const wks = parseInt(S.horizon || '12', 10) || 12;
+  /* Training toggle is seeded from what she told me in the training question, then hers to flip.
+     It is a demonstration, not a second question. */
+  if (!S.protectTouched){
+    const lifts = (S.training === 'consistent' || S.training === 'serious') ? 'yes' : 'no';
+    if (S.protect !== lifts){
+      S.protect = lifts;
+      qsa('[data-single="protect"] .opt').forEach(o => o.classList.toggle('on', o.dataset.v === lifts));
+    }
+  }
+  const prot  = (S.protect || 'yes') === 'yes';
+  const rng = document.getElementById('speed-range');
+  if (rng && !S.speedTouched) rng.value = String(Math.max(0, STEP_NOTCH.indexOf(stepBase())));
+  if (rng) paintSpeed();
+  const stepsTotal = rng ? STEP_NOTCH[parseInt(rng.value, 10) || 0] : stepBase();
+  const steps = stepsTotal - stepBase();   /* difference from where she walks now; can be negative */
+  let phase = (PLAN && PLAN.phase) || 'Lean';
+  if (F.noDeficit && phase === 'Lean') phase = 'Sustain';
+
+  /* Steps only make sense as a fat-loss lever. Hide the choice where it would be a false promise. */
+  $('steps-group').classList.toggle('hidden', phase !== 'Lean');
+
+  const bar = $('tj-bar'), key = $('tj-key');
+  const showBar = on => { bar.classList.toggle('hidden', !on); key.classList.toggle('hidden', !on); };
+  const lb = n => Math.round(n).toLocaleString() + ' lb';
+  const months = wks === 4 ? '1 month' : wks === 8 ? '2 months' : '3 months';
+  $('tj-sub').textContent = phaseTitle(PLAN) + ' · ' + months;
+
+  if (phase === 'Sustain'){
+    showBar(false);
+    $('tj-head').textContent = 'Where this lands';
+    $('tj-total-l').textContent = 'Off the scale';
+    $('tj-total').textContent = 'Flat';
+    $('tj-rate').textContent  = '0 lb';
+    $('tj-end').textContent   = lb(cw);
+    $('tj-note').innerHTML = '<strong>Flat is the goal, and flat is harder than it sounds.</strong> '
+      + 'Sustain is the hinge of this whole system, not the end of it. It is where the engine gets '
+      + 'rebuilt so that the next phase has somewhere to go.'
+      + (F.noDeficit ? ' Your answers in the health section are why this is not a deficit. That is deliberate.' : '');
+    return;
+  }
+  if (phase === 'Reverse Diet'){
+    showBar(false);
+    $('tj-head').textContent = 'Where this lands';
+    $('tj-total-l').textContent = 'On the scale';
+    $('tj-total').textContent = '0 to 3 lb';
+    $('tj-rate').textContent  = 'Calories up';
+    $('tj-end').textContent   = lb(cw) + ' ish';
+    $('tj-note').innerHTML = '<strong>Your calories go up and the scale mostly does not.</strong> '
+      + 'That is what happens when a metabolism that adapted down gets fed again. You did not stop '
+      + 'losing because you got lazy. You ate less and did more until your body adapted, and nobody '
+      + 'taught you the way back out. This is the way back out.';
+    return;
+  }
+
+  let loTot, hiTot, capped = false, atStandard = false, stepKcal = 0;
+  const cfg = (phase === 'Strong') ? TJ.strong : TJ.lean;
+
+  if (phase === 'Strong'){
+    loTot = cw * cfg.loRate * wks; hiTot = cw * cfg.hiRate * wks;
+  } else {
+    /* The Lean band stays pinned to the 10-12%-in-6-months standard. Training and steps decide
+       WHERE in that honest band she lands; they never quote a pace above it.
+         base      = bottom of the band
+         + lifting = a small lift (adherence, a little more expenditure)
+         + steps   = ~0.25 kcal per lb of bodyweight per 1,000 steps, converted to % a week
+       The top of the band is the ceiling on what this page will quote. */
+    /* The PLAN pace (nutrition + lifting) stays inside the band pinned to the 10-12%-in-6-months
+       standard. That is the number the guarantee is written against, and it does not move.
+       Steps are real extra energy out, so they go ON TOP of the plan pace rather than being
+       squeezed inside it. Squeezing them in made +4,000 steps land exactly where +2,000 did.
+       The only ceiling on the total is 1% of bodyweight a week, the usual line past which
+       muscle starts going with the fat. */
+    stepKcal = Math.round(0.25 * cw * (steps / 1000));
+    const stepRate = (stepKcal * 7 / 3500) / cw;
+    const planRate = Math.min(cfg.loRate + (prot ? 0.0003 : 0), cfg.hiRate);
+    let rate = planRate + stepRate;
+    if (rate >= 0.010){ rate = 0.010; atStandard = true; }
+    rate = Math.max(rate, cfg.loRate * 0.6);   /* walking less slows it down, it never reverses it */
+    hiTot = cw * rate * wks;
+    loTot = cw * Math.max(rate * 0.8, rate - 0.0008) * wks;
+    var planTot = cw * planRate * wks;
+    if (gw && gw < cw){
+      const room = cw - gw;
+      if (hiTot > room){ hiTot = room; capped = true; }
+      if (loTot > room) loTot = room;
+    }
+  }
+
+  const share = (phase === 'Strong') ? (prot ? 0.60 : 0.30) : (prot ? 0.92 : 0.74);
+  const pa = Math.round(share * 100), pb = 100 - pa;
+  showBar(true);
+  $('tj-k1').textContent = cfg.k1 + ' · ' + pa + '%';
+  $('tj-k2').textContent = cfg.k2 + ' · ' + pb + '%';
+  $('tj-fat').style.width  = pa + '%';
+  $('tj-lean').style.width = pb + '%';
+  $('tj-fat').textContent  = pa >= 16 ? pa + '%' : '';
+  $('tj-lean').textContent = pb >= 16 ? pb + '%' : '';
+
+  $('tj-head').textContent    = 'Where this lands';
+  $('tj-total-l').textContent = cfg.totalLabel;
+  const r1 = n => Math.round(n * 10) / 10;
+  /* A range that rounds to the same number reads as broken ("2 to 2 lb"), so collapse it. */
+  const span = (a, b, f) => { const x = f(a), y = f(b); return x === y ? String(x) : x + ' to ' + y; };
+  const whole = n => Math.round(n);
+  $('tj-total').textContent = span(loTot, hiTot, whole) + ' lb';
+  $('tj-rate').textContent  = span(loTot / wks, hiTot / wks, r1) + ' lb';
+  $('tj-end').textContent   = (cfg.dir === -1
+    ? span(cw - hiTot, cw - loTot, whole)
+    : span(cw + loTot, cw + hiTot, whole)).replace(/(\d)(\d{3})\b/g, '$1,$2') + ' lb';
+
+  let note;
+  if (phase === 'Strong'){
+    note = prot
+      ? '<strong>Building is slower than losing, and that is not a flaw in the plan.</strong> Weight that '
+        + 'goes on fast is mostly not muscle. Lifting and protein decide the split, and the split is the point.'
+      : '<strong>Switch to Nutrition + lifting and watch the bar.</strong> Without lifting, most of what you '
+        + 'add here is not muscle. You would do the hard part of a building phase and get the wrong half of it.';
+  } else {
+    note = prot
+      ? '<strong>Look at the bar, not just the number.</strong> Lifting and your protein floor barely move the '
+        + 'scale. They decide whether what comes off is fat or the muscle you spent years building.'
+      : '<strong>Now switch to Nutrition + lifting and watch the bar.</strong> The scale barely changes. What '
+        + 'changes is that roughly a quarter of what you lose on nutrition alone is muscle, which is how people '
+        + 'arrive lighter and softer instead of lean.';
+    if (steps < 0){
+      note += '<br><br><strong>Walking ' + Math.abs(steps).toLocaleString() + ' fewer steps than you do now '
+        + 'costs about ' + Math.abs(stepKcal) + ' calories a day.</strong> Same food, slower result. That is why '
+        + 'the busy weeks feel like they stall.';
+    }
+    if (steps > 0){
+      note += '<br><br><strong>+' + steps.toLocaleString() + ' steps a day is about ' + stepKcal
+        + ' extra calories burned, every day, without eating a bite less.</strong> Your plan on its own gets '
+        + 'you about ' + Math.round(planTot) + ' lb in this window. The walking is yours on top of it, and it '
+        + 'is why walking beats another cut.';
+    }
+    if (atStandard){
+      note += ' This is also as fast as I will ever show you. Past about 1% of your bodyweight a week, '
+        + 'muscle starts leaving with the fat.';
+    }
+    if (!prot && steps === 0){
+      note += '<br><br>Try adding lifting and a few thousand steps above. Same food. Very different result.';
+    }
+  }
+  if (capped) note += '<br><br><strong>At this pace you reach your goal weight inside this window.</strong> '
+    + 'Which is where the real question starts: what you do next so it stays off.';
+  $('tj-note').innerHTML = note;
+}
+
+/* The speed slider: five notches of TOTAL daily steps, evenly spaced for thumbs.
+   Its starting position is where she walks now, estimated from her activity answer, and it follows
+   that answer until she drags it herself. The projection only counts the DIFFERENCE from where she
+   is now, so a woman already at 10,000 steps does not get credit for walking she already does. */
+const STEP_NOTCH = [5000, 7500, 10000, 12000, 15000];
+const STEP_BASE  = { 'Sedentary':5000, 'Lightly active':7500, 'Active':10000, 'Very active':12000 };
+function stepBase(){ return STEP_BASE[S.activity] || 7500; }
+function paintSpeed(){
+  const r = document.getElementById('speed-range'); if (!r) return;
+  const i = parseInt(r.value, 10) || 0, total = STEP_NOTCH[i], diff = total - stepBase();
+  r.style.setProperty('--fill', (i / 4 * 100) + '%');
+  const read = document.getElementById('speed-read');
+  if (diff === 0)      read.textContent = total.toLocaleString() + ' steps a day \u00b7 about what you walk now. Your plan\u2019s natural pace.';
+  else if (diff > 0)   read.textContent = total.toLocaleString() + ' steps a day \u00b7 about ' + diff.toLocaleString() + ' more than now, roughly ' + Math.round(diff / 100) + ' extra minutes of walking';
+  else                 read.textContent = total.toLocaleString() + ' steps a day \u00b7 about ' + Math.abs(diff).toLocaleString() + ' fewer than you walk now';
+}
+(function(){
+  const r = document.getElementById('speed-range'); if (!r) return;
+  const move = () => { S.speedTouched = true; paintSpeed(); renderTrajectory(); };
+  r.addEventListener('input', move);
+  r.addEventListener('change', move);
+})();
+
+/* ===================== THE MIRRORS =====================
+   Two blocks that read the member's own answers back at them, placed at the two points
+   where a sixteen-question form loses people: right before the medical section, and right
+   before the numbers land. */
+const WHY_LABEL = {
+  event:'Something on the calendar', health:'A health wake-up call',
+  done:'Done starting over',         people:'For the people who need me',
+  self:'To feel like myself again',  ready:'Just ready'
+};
+const TRAIN_LABEL = {
+  none:'Not lifting yet', light:'1 to 2 days a week', consistent:'3 to 4 days a week',
+  serious:'5 or more days a week', cardio:'Mostly cardio or classes'
+};
+const COOK_LABEL = { quick:'Under 15 minutes', normal:'15 to 30 minutes', love:'Likes to cook' };
+const chip = (l,v) => '<span class="chip"><i>' + esc(l) + '</i>' + esc(v) + '</span>';
+
+function renderMirrors(){
+  const m1 = $('m1-chips');
+  if (m1){
+    const out = [];
+    if (PLAN) out.push(chip('Phase', phaseTitle(PLAN)));
+    if (S.training) out.push(chip('Training', TRAIN_LABEL[S.training] || S.training));
+    if (S.activity) out.push(chip('Moves', S.activity));
+    if (S.why) out.push(chip('Why now', WHY_LABEL[S.why] || S.why));
+    m1.innerHTML = out.join('');
+
+    const reverse = PLAN && PLAN.phase === 'Reverse Diet';
+    $('m1-note').innerHTML = reverse
+      ? '<strong>Your answers are already pointing somewhere specific.</strong> You did not stop '
+        + 'losing because you got lazy. You ate less and did more until your body adapted down, and '
+        + 'nobody ever taught you the way back out. That is a fixable problem, it has a name, and it '
+        + 'has a phase built for it. Keep going and I will show you the number.'
+      : '<strong>One thing before the health questions.</strong> If somewhere in the back of your head '
+        + 'you are thinking <em>I cannot eat more, I will gain weight</em>, there are only two reasons '
+        + 'that feels true. Either you dieted hard and honestly for years and your metabolism actually '
+        + 'adapted down, or you are eating three to five hundred calories a day you are not counting. '
+        + 'The sauces. The wine. The bites. Almost everyone is one or the other. You do not have to '
+        + 'know which one you are. I have a track for both, and your answers above are already sorting it.';
+  }
+
+  const m2 = $('m2-chips');
+  if (m2){
+    const M = S.multi || {};
+    const foods = ['proteins','carbs','fats','veg'].reduce((n,k) => n + ((M[k]||[]).length), 0);
+    const stars = ['proteins','carbs','fats'].reduce((n,k) => n + ((S.starred[k]||[]).length), 0);
+    const rest  = (M.restaurants || []).length;
+    const out = [];
+    out.push(chip('Foods you picked', foods));
+    if (stars) out.push(chip('Favourites starred', stars));
+    if (rest)  out.push(chip('Places you go', rest));
+    out.push(chip('Meals a day', S.frequency));
+    out.push(chip('Cook time', COOK_LABEL[S.cooking] || S.cooking));
+    m2.innerHTML = out.join('');
+
+    $('m2-sub').textContent = foods
+      ? foods + ' foods you actually eat, ' + (rest ? rest + ' places you actually go, ' : '')
+        + S.frequency + ' meals a day. Two steps left, then your numbers.'
+      : 'Head back up to question 12 and pick the food you actually eat. That is what your meals get built from.';
+  }
+}
+
+function flashStarLimit(box){
+  const n = box.parentElement.querySelector('.starnote');
+  if (!n) return;
+  n.style.color = 'var(--warm-red)';
+  n.textContent = 'Three stars per list. Unstar one to star another.';
+  setTimeout(() => { n.style.color = ''; n.textContent = STAR_HELP; }, 2200);
+}
+const STAR_HELP = 'Tap a food to add it. Tap its \u2605 to make it a favourite. Star up to three per list and your plan gets built from those first, even over a leaner option.';
+
+/* ===================== THE OPTIONS DECK (generated from THEIR foods) ===================== */
+/* ═══ Chalk closes their sample day with a restaurant swap at a chain the member chose. Same
+   device here, but only for chains where a real high-protein order exists and can be stated
+   accurately. Macros are approximate and labelled as such. Anything she picked that is not in
+   this table falls through to the ordering RULE instead of a made-up menu item. ═══ */
+var REST_SWAPS = {
+  "Dunkin&#39;":      {order:"Two turkey sausage wake-up wraps plus a black coffee or an unsweetened iced.", cal:"~440", pro:"~26g"},
+  "Cava":          {order:"Greens and grains bowl, double chicken, hummus, all the veg. Skip the pita.", cal:"~620", pro:"~52g"},
+  "Sweetgreen":    {order:"Any bowl with double chicken, half the grain, extra veg, dressing on the side.", cal:"~590", pro:"~48g"},
+  "Tropical Smoothie":{order:"Chicken caesar wrap, or a lower-sugar smoothie with a scoop of protein added.", cal:"~450", pro:"~35g"},
+  "Whole Foods hot bar":{order:"Grilled chicken or salmon by weight, roasted veg, one small scoop of a starch.", cal:"~560", pro:"~46g"},
+  "Burger King":   {order:"Two flame-grilled hamburgers, no mayo. Skip the fries or share them.", cal:"~540", pro:"~30g"},
+  "In-N-Out":      {order:"Double-Double protein style, no spread. Mustard instead if you want it.", cal:"~520", pro:"~37g"},
+  "Shake Shack":   {order:"Hamburger with an extra patty, no sauce. Split the fries or skip them.", cal:"~560", pro:"~38g"},
+  "Sonic":         {order:"Grilled chicken sandwich, no mayo, with a side salad instead of tots.", cal:"~450", pro:"~35g"},
+  "El Pollo Loco": {order:"Double chicken bowl, no rice, extra veg and pico.", cal:"~550", pro:"~55g"},
+  "Domino's":      {order:"Thin crust with chicken and vegetables, two or three slices, salad first.", cal:"~600", pro:"~35g"},
+  "Pizza Hut":     {order:"Thin crust with chicken and veg, two or three slices. Eat the salad first.", cal:"~600", pro:"~34g"},
+  "IHOP":          {order:"Egg white omelette with veg and a side of fruit, or two eggs with turkey bacon.", cal:"~500", pro:"~40g"},
+  "Denny's":       {order:"Fit Slam or an egg white scramble with turkey bacon and fruit.", cal:"~480", pro:"~38g"},
+  "Waffle House":  {order:"Eggs however you like with grilled chicken and sliced tomatoes. Split the waffle.", cal:"~520", pro:"~42g"},
+  "Outback":       {order:"6oz sirloin with steamed broccoli and a plain sweet potato. No bread.", cal:"~580", pro:"~48g"},
+  "Applebee's":    {order:"Grilled chicken or the sirloin off the lighter menu, double the veg side.", cal:"~550", pro:"~46g"},
+  "Chili's":       {order:"Margarita grilled chicken, no rice, extra veg. Or the 6oz sirloin.", cal:"~570", pro:"~50g"},
+  "P.F. Chang's":  {order:"Chicken lettuce wraps plus steamed ginger chicken and broccoli, sauce on the side.", cal:"~620", pro:"~50g"},
+  "Jimmy John's":  {order:"Any sub unwich style with double meat, all the veg.", cal:"~470", pro:"~46g"},
+  "Firehouse Subs":{order:"Medium turkey or roast beef, no mayo, all the veg. Salad instead of chips.", cal:"~520", pro:"~44g"},
+  "Arby's":        {order:"Two roast turkey sandwiches, no mayo. Or the roast beef classic, doubled.", cal:"~580", pro:"~44g"},
+  "KFC":           {order:"Grilled chicken, two or three pieces, with green beans and coleslaw.", cal:"~520", pro:"~52g"},
+  "Popeyes":       {order:"Blackened tenders with green beans. Skip the biscuit, that is where it goes.", cal:"~480", pro:"~44g"},
+  "Zaxby's":       {order:"Grilled chicken sandwich or the grilled house salad, dressing on the side.", cal:"~500", pro:"~42g"},
+  "Jack in the Box":{order:"Two regular hamburgers, no mayo, or the grilled chicken sandwich.", cal:"~540", pro:"~34g"},
+  "Del Taco":      {order:"Two chicken soft tacos plus a side of beans. Fresco style where you can.", cal:"~520", pro:"~38g"},
+  "Qdoba":         {order:"Double chicken bowl, half rice, black beans, fajita veg, salsa, no queso.", cal:"~680", pro:"~62g"},
+  "Moe's":         {order:"Double chicken bowl, half rice, black beans, all the salsa and veg.", cal:"~660", pro:"~60g"},
+  "Local burger place":{order:"Single patty, no mayo, extra veg. Share the fries or skip them.", cal:"~550", pro:"~32g"},
+  "Local Italian": {order:"Grilled chicken or fish with vegetables, sauce on the side. Skip the bread basket.", cal:"~600", pro:"~48g"},
+  "Local steakhouse":{order:"6 to 8oz sirloin or filet, steamed veg, plain potato. No bread basket.", cal:"~620", pro:"~50g"},
+  "Local pizza":   {order:"Thin crust with chicken and veg, two or three slices. Salad first, always.", cal:"~600", pro:"~32g"},
+  "Local diner":   {order:"Eggs, grilled chicken or turkey, and fruit or tomatoes instead of the hash browns.", cal:"~520", pro:"~44g"},
+  "The gas station, honestly":{order:"Beef jerky, a protein shake, string cheese, a banana. Not a meal, but it holds the line.", cal:"~400", pro:"~38g"},
+  "Chipotle":      {order:"Double chicken bowl, half rice, black beans, fajita veggies, mild salsa, lettuce.", cal:"~700", pro:"~65g"},
+  "Chick-fil-A":   {order:"Grilled chicken sandwich plus an 8-count grilled nugget, no sauce or a light one.", cal:"~570", pro:"~55g"},
+  "Panera":        {order:"Double chicken on a Green Goddess or Caesar salad, dressing on the side.", cal:"~530", pro:"~50g"},
+  "Subway":        {order:"Footlong oven-roasted turkey on wheat, double meat, all the veg, mustard or vinegar.", cal:"~640", pro:"~52g"},
+  "Jersey Mike's": {order:"Turkey sub in a tub with double meat, plus a side of the veg.", cal:"~480", pro:"~50g"},
+  "Starbucks":     {order:"Egg white and pepper bites plus a black coffee or an Americano.", cal:"~250", pro:"~20g"},
+  "Wendy's":       {order:"Grilled chicken sandwich plus a small chili.", cal:"~590", pro:"~52g"},
+  "McDonald's":    {order:"Two McDoubles, no mayo, throw one bun. Not elegant, but it works.", cal:"~600", pro:"~44g"},
+  "Taco Bell":     {order:"Two chicken Power Menu bowls, no rice, extra chicken, fresco where you can.", cal:"~640", pro:"~52g"},
+  "Panda Express": {order:"Double string bean chicken over super greens, skip the rice and the noodles.", cal:"~420", pro:"~42g"},
+  "Culver's":      {order:"Grilled chicken sandwich, no mayo, with a side salad instead of fries.", cal:"~500", pro:"~45g"},
+  "Raising Cane's":{order:"Three-finger combo, skip the Texas toast and half the sauce.", cal:"~680", pro:"~40g"},
+  "Five Guys":     {order:"Little hamburger, no mayo, all the free veg. Skip the fries or split them.", cal:"~540", pro:"~30g"},
+  "Whataburger":   {order:"Grilled chicken sandwich, no mayo, add extra lettuce and tomato.", cal:"~520", pro:"~40g"},
+  "Texas Roadhouse":{order:"6oz sirloin with steamed veg and a plain sweet potato. No bread basket.", cal:"~600", pro:"~48g"},
+  "Olive Garden":  {order:"Herb-grilled salmon with broccoli. Soup instead of breadsticks if you want a starter.", cal:"~560", pro:"~46g"},
+  "Cracker Barrel":{order:"Grilled chicken tenderloins with green beans and a side of turnip greens.", cal:"~490", pro:"~48g"},
+  "Buffalo Wild Wings":{order:"Naked tenders, grilled, with a side salad and buffalo sauce on the side.", cal:"~520", pro:"~55g"},
+  "Costco food court":{order:"Chicken bake, split in half, with the salad. Or just the salad plus a protein from home.", cal:"~570", pro:"~40g"},
+  "Local Mexican": {order:"Fajitas, chicken or steak, corn tortillas, no rice. Ask for extra grilled veg.", cal:"~650", pro:"~55g"},
+  "Local sushi":   {order:"Sashimi plus one roll and edamame, rather than three rolls.", cal:"~520", pro:"~45g"}
+};
+function swapFor(list){
+  for (var i=0;i<(list||[]).length;i++){ if (REST_SWAPS[list[i]]) return {name:list[i], s:REST_SWAPS[list[i]]}; }
+  return null;
+}
+
+function renderSample(){
+  const out = $('sample-out'), help = $('sample-help'), note = $('sample-note');
+  const picked = S.multi.proteins || [], pc = S.multi.carbs || [],
+        pf = S.multi.fats || [],      pv = S.multi.veg || [];
+  const enough = CALC && picked.length && pc.length && pf.length;
+  if (!enough){
+    out.innerHTML = ''; note.classList.add('hidden');
+    help.textContent = CALC
+      ? 'Pick at least one protein, one carb and one fat above and your deck appears here.'
+      : 'Fill in your basics and pick your foods above and your deck appears here.';
+    return;
+  }
+  help.textContent = 'Portioned to your numbers. Swap freely inside any meal.';
+  note.classList.remove('hidden');
+
+  let plan;
+  try {
+    plan = generateMealOptions({pfs:CALC},
+      {protein:picked, carb:pc, fat:pf, veg:pv,
+       style:activeStyle(), allergies:activeAllergens(),
+       frequency:S.frequency, shakeGrams:30,
+       optionsPerSlot:(CALC.condition && CALC.condition.optionsPerSlot) || 3,
+       starred:{protein:S.starred.proteins, carb:S.starred.carbs, fat:S.starred.fats}},
+      val('fname'));
+  } catch(e){ out.innerHTML = ''; return; }
+
+  const quiet = CALC.flags && CALC.flags.suppressNumbers;
+  const macros = m => quiet
+    ? `<span>portions, not numbers</span>`
+    : `<span><b>${m.cal}</b> cal</span><span><b>${m.protein}g</b> protein</span>
+       <span><b>${m.carbs}g</b> carbs</span><span><b>${m.fat}g</b> fat</span>`;
+
+  /* One coaching line, chosen from her own answers. Chalk puts a "FROM COACH RYAN" note on a
+     meal; this earns its place by explaining the thing she is most likely to get wrong. */
+  const coachNote = (() => {
+    if (quiet) return '';
+    const f = CALC.flags || {};
+    if (f.noDeficit)      return 'Your plan is set at maintenance on purpose. If a day comes in a little over, that is fine. Under is the one to avoid.';
+    if (S.frequency === '2 + shake') return 'Two meals means each one is genuinely big. If that feels like a lot of food at once, that is the point, and it is why the shake sits between them.';
+    if ((S.multi.drinks||[]).some(d => /Alcohol|drink most nights/i.test(d)))
+      return 'You told me alcohol is in your week, so it is in the plan rather than pretended away. It comes out of the energy budget, never the protein. Protein is the one thing that holds every day.';
+    if (S.track === 'never') return 'You have never tracked before, so start with protein only. Hit that number for a week and ignore everything else. The rest gets easy once protein stops being a guess.';
+    return 'Anchor every meal with the protein first, then build the rest of the plate around it. Do that and the numbers mostly take care of themselves.';
+  })();
+
+  const swap = swapFor(S.multi.restaurants);
+  const swapHtml = swap ? `
+    <div class="swapbox">
+      <span class="swap-eyebrow">Eating out this week?</span>
+      <p class="swap-order"><strong>${esc(swap.name)}:</strong> ${esc(swap.s.order)}</p>
+      <p class="swap-macros">${esc(swap.s.cal)} cal &middot; ${esc(swap.s.pro)} protein &middot; approximate, and close enough</p>
+      <p class="swap-note">Your full system includes an order like this for every place you picked, with the macros attached, so eating out stops being the thing that ruins the week.</p>
+    </div>` : ((S.multi.restaurants||[]).length ? `
+    <div class="swapbox">
+      <span class="swap-eyebrow">Eating out this week?</span>
+      <p class="swap-order">The rule that works almost anywhere: <strong>pick the leanest protein on the menu, double it, and swap the starch for vegetables.</strong></p>
+      <p class="swap-note">Your full system turns that rule into the actual order at each place you picked, with the macros attached.</p>
+    </div>` : '');
+
+  const slotsHtml = plan.slots.map(sl => `
+    <div class="slot">
+      <div class="slot-h">
+        <span class="mn">${esc(sl.name)}</span>
+        ${quiet ? '' : `<span class="slot-t">every option \u2248 ${sl.target.protein||0}g protein</span>`}
+      </div>
+      ${sl.options.map((o,i) => `
+        <div class="meal">
+          <div class="mh"><span class="mn">Option ${i+1}</span></div>
+          <ul>${o.items.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>
+          <div class="mm">${macros(o)}</div>
+        </div>`).join('')}
+    </div>`).join('');
+
+  const compHtml = plan.companions.length ? `
+    <div class="slot">
+      <div class="slot-h">
+        <span class="mn">Snacks &amp; protein boosters</span>
+        <span class="slot-t">for the days you come up short</span>
+      </div>
+      ${plan.companions.map(c => `
+        <div class="meal">
+          <div class="mh"><span class="mn">${esc(c.name)}</span></div>
+          <ul>${c.items.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>
+          <div class="mm">${macros(c)}</div>
+        </div>`).join('')}
+    </div>` : '';
+
+  /* Be honest about anything we had to add. A member who picked three dinner foods still needs
+     a breakfast, and she should be told where it came from rather than finding turkey in it. */
+  const addedNote = (plan.added && plan.added.length)
+    ? `<p class="muted" style="margin-top:10px"><strong>A note on a few of these.</strong> Some of
+       your picks only really work at one time of day, so to give you a proper choice at every meal
+       I filled the gaps with: ${plan.added.slice(0,6).map(esc).join(', ')}. Your own foods always
+       come first, and starred ones come before everything. Add more foods above and these drop away.</p>`
+    : '';
+  const thin = plan.slots.filter(sl => sl.thin).map(sl => sl.name);
+  const thinNote = thin.length
+    ? `<p class="muted" style="margin-top:6px">Your list is a little tight for ${esc(thin.join(' and '))},
+       so you have fewer than three choices there. Pick a couple more foods and the deck fills out.</p>`
+    : '';
+
+  out.innerHTML = slotsHtml
+    + (coachNote ? '<div class="coachnote"><span>From Jayme</span><p>'+esc(coachNote)+'</p></div>' : '')
+    + swapHtml + compHtml +
+    `<p class="muted" style="margin-top:10px">Plus roughly ${CALC.produce}g of fruit and vegetables
+     across the day, eaten freely and not counted. Options are built from the leanest
+     <strong>Tier 1</strong> version of your food unless you starred something else.
+     Starred favourites always win.</p>` + addedNote + thinNote;
+}
+
+/* ===================== PROGRESS + SUBMIT GATE ===================== */
+function updateProgress(){
+  const checks = [
+    S.goal, S.sex, num('age'), num('height'), num('cw'),
+    S.stall, S.dur, S.track, S.activity, S.training, S.obstacle, S.why,
+    Object.keys(S.med).length >= 9 ? 1 : 0,
+    (S.multi.proteins||[]).length, S.cooking, S.frequency,
+    val('email'), val('fname'),
+    qsa('.ack.checked').length === 4 ? 1 : 0
+  ];
+  const done = checks.filter(Boolean).length;
+  $('prog').style.width = Math.round(done / checks.length * 100) + '%';
+}
+
+function updateSubmit(){
+  const btn = $('submit-btn'), note = $('submit-note');
+  const acks = qsa('.ack.checked').length === 4;
+  const email = /\S+@\S+\.\S+/.test(val('email'));
+  const core = S.goal && S.sex && num('age') && num('height') && num('cw') &&
+               S.stall && S.dur && S.track && S.obstacle && S.why && S.frequency &&
+               Object.keys(S.med).length >= 9 && val('fname') && val('sig');
+  const ok = !!(acks && email && core);
+  btn.disabled = !ok;
+  if (ok){
+    note.textContent = 'Free. No card. Your build appears on the next screen.';
+  } else if (!core){
+    note.textContent = 'Answer the questions above, including the safety check, to continue.';
+  } else if (!email){
+    note.textContent = 'Add a valid email so I can send your Read.';
+  } else {
+    note.textContent = 'Check the four acknowledgments to continue.';
+  }
+  updateProgress();
+}
+
+/* ===================== THE CONSTRAINT (naming the real problem) ===================== */
+function buildConstraint(){
+  const P = PLAN || decidePhase();
+
+  /* Priority order: adaptation signal beats everything, then tracking, then the goal route. */
+  if (P.route === 'adapted') return {
+    title: 'Your metabolism may have adapted down.',
+    body: [
+      'You are eating less than you ever have, and the scale will not move.',
+      'That is not a willpower problem, and it is not in your head. After enough years of eating less and doing more, the body adapts. It gets efficient. And the lever you have always pulled stops working.',
+      'Here is the part that sounds backwards: the way out is usually up. You have to find an honest maintenance before any deficit is worth attempting, and that means eating more on purpose for a while.',
+      'One caution, and I mean it. A form cannot confirm this. It can only say your answers point that way. There are two very different reasons the scale stops moving, they need opposite interventions, and getting it backwards makes things worse. Week one of tracking sorts which one you are. I have a track for both.'
+    ]};
+
+  if (S.track === 'never') return {
+    title: 'You have never actually seen what you eat.',
+    body: [
+      'You have a number in your head for what you eat in a day. It has never been measured.',
+      'That is not on you. Nobody ever taught you how to look, and the gap between what people believe they eat and what they actually eat is usually a few hundred calories a day. That gap is the whole reason plans stop working.',
+      'It is a skill, not a personality trait. It takes about a week to learn and you do not have to do it forever.',
+      'Everything else waits on this. You cannot adjust a number you have never measured.'
+    ]};
+
+  if (S.track === 'cage') return {
+    title: 'Tracking became a cage, so you stopped.',
+    body: [
+      'You know how to track. That is not the issue.',
+      'The issue is that living inside it every day is not a life, so you swing between all in and completely off. And the off weeks undo the on weeks.',
+      'You do not need more discipline. You need structure that survives a real week. Free meals built in on purpose. A Sunday forecast instead of a daily verdict. Eating out, travelling, having the wine, without the whole thing collapsing.',
+      'That framework exists, it is built into your system, and it is the piece almost nobody hands you.'
+    ]};
+
+  if (S.obstacle === 'busy') return {
+    title: 'Your plan cannot survive your actual week.',
+    body: [
+      'You do not have a knowledge problem. You have a plan that only works on good weeks.',
+      'And good weeks are not most weeks. A kid gets sick, a meeting runs late, dinner becomes whatever is in the car, and the whole structure goes down with it.',
+      'The fix is to build the plan for your worst week instead of your best one. A protein number you can hit on the hardest day. A framework with the chaos already priced in.',
+      'A plan that only works when life cooperates was never really a plan.'
+    ]};
+
+  if (P.route === 'build') return {
+    title: 'You have never let yourself actually build.',
+    body: [
+      'You want to get stronger. But every version of building you have ever seen meant getting softer and gaining fat you would only have to lose again.',
+      'So you have hedged. Never quite enough food to build, never quite a deficit either. Stuck in the middle where nothing happens in either direction.',
+      'You can build real strength without getting fat. It takes a deliberate phase, enough fuel, a protein floor that holds, and a phase you actually commit to instead of abandoning at the first uncomfortable week.',
+      'That is what your roadmap lays out.'
+    ]};
+
+  if (P.route === 'hold') return {
+    title: 'Nobody ever taught you the part after the goal.',
+    body: [
+      'You like where you are. And you are quietly worried about losing it.',
+      'Every program out there tells you how to get results. Almost none of them teach you how to keep them without watching every bite and living in the gym.',
+      'Maintenance is a skill with its own rules, and it takes far less effort than the phase that got you here. It is just never taught, because nobody sells the part after the transformation photo.',
+      'That is the phase your system is built around.'
+    ]};
+
+  return {
+    title: 'You keep starting over because nothing was ever built to last.',
+    body: [
+      'You have started more times than you can count. Every time you ate less and pushed harder, and every time it worked for a while and then stopped.',
+      'Eating less was never the missing piece. Awareness was.',
+      'There is a way to lose fat that does not run on willpower and does not fall apart the first hard week. It starts with seeing your actual intake, sets a protein floor you can hold on your worst day, and moves in phases with a defined end instead of running until you break.',
+      'That is what gets built for you.'
+    ]};
+}
+
+/* ===================== PAYLOAD + DOORWAY ===================== */
+function payload(status){
+  const t = CALC || {};
+  const P = PLAN || decidePhase();
+  const F = (t.flags) || statusFlags();
+  const M = S.multi;
+  const medYes = Object.keys(S.med).filter(k => S.med[k] === 'yes').join(', ');
+  return {
+    type:'cnsintake', status:status, ts:new Date().toISOString(),
+    email: val('email').toLowerCase(),
+    name: (val('fname') + ' ' + val('lname')).trim(),
+    phone: val('phone'),
+    /* engine inputs */
+    sex:S.sex, age:num('age'), height:num('height'), weight:num('cw'), goalweight:num('gw'),
+    activity:S.activity, training:S.training, goal:S.goal,
+    /* the diagnostic */
+    phase:P.phase, phaseNum:P.num || 1, phaseLabel:phaseTitle(P), route:P.route,
+    stall:S.stall, duration:S.dur, tracking:S.track,
+    reportedCalories:num('avgcal'), coefficient:P.coefficient,
+    reverseByMath:!!P.mathSignal, phaseForcedByHealth:!!P.forced,
+    obstacle:S.obstacle, why:S.why, whyNote:val('whytext'), work:val('work'),
+    /* trajectory read they were shown before committing */
+    horizon:S.horizon, liftingAndProtein:S.protect,
+    /* computed targets */
+    calories:t.calories, protein:t.protein, carbs:t.carbs, fat:t.fat,
+    tdee:t.tdee, produce:t.produce, multiplier:t.multiplier,
+    /* status flags: how the build must differ */
+    statusFlags:(F.list||[]).map(x => x.k).join(', '),
+    noDeficit:!!F.noDeficit, suppressNumbers:!!F.suppressNumbers,
+    eatingStyle:activeStyle(), allergenKeys:activeAllergens().join(', '),
+    /* meal-plan build inputs */
+    starredProteins:(S.starred.proteins||[]).join(', '), starredCarbs:(S.starred.carbs||[]).join(', '),
+    starredFats:(S.starred.fats||[]).join(', '),
+    proteins:(M.proteins||[]).join(', '), carbsList:(M.carbs||[]).join(', '),
+    fats:(M.fats||[]).join(', '),        veg:(M.veg||[]).join(', '),
+    meals:S.frequency, frequency:S.frequency, shakeGrams:30,
+    schedule:S.schedule, cooking:S.cooking, prep:S.cooking,
+    eatout:S.eatout, restaurants:(M.restaurants||[]).join(', '), drinks:(M.drinks||[]).join(', '),
+    allergies:[(M.allergies||[]).join(', '), (M.diet||[]).join(', '), val('never'), val('hate')]
+      .filter(Boolean).join(' | '),
+    medicalFlags:medYes, medicalNote:val('meds'),
+    glp1:S.glp1, glp1Detail:val('glp1when'), menopause:(S.med.meno === 'yes'),
+    cuisines:(M.cuisines||[]).join(', '),
+    notes:val('extra'), signature:val('sig'),
+    source:'nutrition-plan', ref:location.search || ''
+  };
+}
+
+async function postDoorway(p){
+  try { localStorage.setItem('lp_cns_' + p.status + '_' + Date.now(), JSON.stringify(p)); } catch(e){}
+  if (!CONFIG.writeUrl) return;
+  try {
+    await fetch(CONFIG.writeUrl, {
+      method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'},
+      body: JSON.stringify(p)
+    });
+  } catch(e){ /* localStorage backup already holds it */ }
+}
+
+/* ===================== RITUAL ===================== */
+async function runRitual(){
+  const r = $('ritual'); if (!r) return;
+  qsa('.rrow', r).forEach(x => x.classList.remove('active','done'));
+  r.classList.add('open');
+  const sleep = ms => new Promise(res => setTimeout(res, ms));
+  const rows = qsa('.rrow', r);
+  for (let i = 0; i < rows.length; i++){
+    rows[i].classList.add('active');
+    await sleep(780);
+    rows[i].classList.remove('active'); rows[i].classList.add('done');
+    await sleep(110);
+  }
+  await sleep(320);
+  r.classList.remove('open');
+}
+
+/* ===================== SUBMIT -> REVEAL ===================== */
+$('intake-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  if ($('submit-btn').disabled) return;
+
+  const p = payload(hardStop() ? 'lead_referred_out' : 'lead');
+  postDoorway(p);
+  await runRitual();
+  showReveal();
+});
+
+function showReveal(){
+  const t = CALC || {}, P = PLAN || decidePhase();
+  const F = t.flags || statusFlags();
+  const quiet = F.suppressNumbers;
+
+  $('rv-hello').textContent = val('fname')
+    ? esc(val('fname')) + ', here is where you actually are.'
+    : 'Here is where you actually are.';
+  $('rv-phase').textContent = 'Phase: ' + phaseTitle(P);
+  $('rv-phase-line').textContent = phaseLine(P);
+  $('rv-cal').textContent  = quiet ? '—' : (t.calories||0).toLocaleString();
+  $('rv-pro').textContent  = quiet ? '—' : (t.protein||0) + 'g';
+  $('rv-carb').textContent = quiet ? '—' : (t.carbs||0) + 'g';
+  $('rv-fat').textContent  = quiet ? '—' : (t.fat||0) + 'g';
+  $('rv-maint').textContent = quiet ? 'not shown' : (t.tdee||0).toLocaleString() + ' cal';
+  $('rv-note').innerHTML = $('live-note').innerHTML;
+
+  const c = buildConstraint();
+  $('rv-con-title').textContent = c.title;
+  $('rv-con-body').innerHTML = c.body.map(x => '<p>' + esc(x) + '</p>').join('');
+
+  /* The composed condition profile, when there is one. This is the block Exceed cannot produce,
+     because a PDF cookbook cannot resolve two conditions at once. */
+  const cp = t.condition;
+  const cpBox = $('rv-condition');
+  if (cp && cp.key !== 'general'){
+    cpBox.innerHTML = '<span class="lbl">How your plan is built</span>' +
+      '<h3>' + esc(cp.headline) + '</h3>' +
+      cp.notes.map(n => '<p>' + esc(n) + '</p>').join('');
+    cpBox.classList.remove('hidden');
+  } else cpBox.classList.add('hidden');
+
+  /* What their health answers changed about the build. Shown as capability, not as a warning. */
+  const fl = $('rv-flags');
+  if (F.list.length){
+    fl.innerHTML = '<span class="lbl">What your answers changed</span>' +
+      '<h3>Your plan gets built differently, and that is the point.</h3>' +
+      F.list.map(x => '<div class="flagrow"><strong>' + esc(x.label) + '</strong>' +
+        '<span>' + esc(x.build) + '</span>' +
+        '<em>' + esc(x.ask) + '</em></div>').join('');
+    fl.classList.remove('hidden');
+  } else fl.classList.add('hidden');
+
+  /* The one hard stop: reduced kidney function. Show the Read, never show the checkout. */
+  if (hardStop()){
+    $('price').innerHTML =
+      '<div class="wrap narrow"><div class="constraint" style="border-top-color:var(--warm-red)">' +
+      '<span class="lbl" style="color:#E0917E">This is where I stop</span>' +
+      '<h3>I am not going to sell you a plan.</h3>' +
+      '<p>You told me you have kidney disease or reduced kidney function. This whole system runs on a ' +
+      'protein floor set from your body weight, and that is the one variable your kidneys cannot safely ' +
+      'absorb. Working around it would mean gutting the thing that makes it work.</p>' +
+      '<p>You need a renal dietitian, who can set protein from your actual kidney function instead of your ' +
+      'goal weight. That is a real specialty and it is the right call here. You have not been charged and ' +
+      'you will not be.</p>' +
+      '<p>If it would help to be pointed toward one, email me and I will do that for free.</p>' +
+      '<p style="color:var(--gold)">jayme.gtkfitness@gmail.com</p></div></div>';
+    qsa('#reveal .js-pif, #reveal .js-plan2').forEach(b => b.classList.add('hidden'));
+  }
+
+  ['intake','note-section'].forEach(id => $(id).classList.add('hidden'));
+  qs('.hero').classList.add('hidden');
+  $('reveal').classList.add('open');
+  window.scrollTo({top:0, behavior:'instant'});
+  track('ViewContent', {content_name:'read_reveal', phase:P.phase});
+}
+
+/* ===================== CHECKOUT ===================== */
+function goCheckout(url, label){
+  return function(e){
+    e.preventDefault();
+    if (!url){ alert('Checkout link not configured. Add it to the CONFIG block at the top of this file.'); return; }
+    const p = payload('checkout_initiated');
+    p.checkout = label;
+    postDoorway(p);
+    track('InitiateCheckout', {value: label === 'pif' ? 497 : 275, currency:'USD'});
+    location.href = url;
+  };
+}
+qsa('.js-pif').forEach(b => b.addEventListener('click', goCheckout(CONFIG.pifUrl, 'pif')));
+qsa('.js-plan2').forEach(b => b.addEventListener('click', goCheckout(CONFIG.plan2xUrl, 'plan2x')));
+
+['consult-btn-1','consult-btn-2'].forEach(id => {
+  const b = $(id); if (!b) return;
+  if (!CONFIG.consultUrl){ b.closest('p, div').style.display = 'none'; return; }
+  b.addEventListener('click', e => {
+    e.preventDefault();
+    const p = payload('consult_requested'); p.type = 'consult';
+    p.topic = 'Readiness Consultation'; p.note = 'From the nutrition system build. Phase: ' + (PLAN||{}).phase;
+    postDoorway(p);
+    track('Lead', {content_name:'readiness_consultation'});
+    location.href = CONFIG.consultUrl;
+  });
+});
+
+/* ===================== DISPLAY CONFIG ===================== */
+$('pc-price').textContent = CONFIG.priceFull;
+qsa('.js-pif').forEach(b => { b.innerHTML = b.innerHTML.replace('$497', CONFIG.priceFull); });
+(function(){
+  const cap = CONFIG.monthlyCap, taken = Math.max(0, CONFIG.buildsTaken || 0);
+  const left = Math.max(0, cap - taken);
+  const el = $('cap-note');
+  if (!cap){ el.style.display = 'none'; return; }
+  if (left === 0){
+    el.innerHTML = '<strong>This month is full.</strong> Put your name in and you are first in '
+      + 'line when the next ' + cap + ' open on the first.';
+  } else if (taken === 0){
+    /* Day one of a month: state the cap, do not fake a countdown. */
+    el.innerHTML = 'I take <strong>' + cap + ' builds a month</strong>, because I set up every '
+      + 'one personally. That is the whole ceiling.';
+  } else {
+    el.innerHTML = '<strong>' + left + ' of ' + cap + '</strong> builds left this month. I set up '
+      + 'every one personally, so the number is real.';
+  }
+})();
+
+/* ===================== TRACKING (optional) ===================== */
+function track(ev, data){ try { if (window.fbq) fbq('track', ev, data||{}); } catch(e){} }
+if (CONFIG.metaPixelId){
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', CONFIG.metaPixelId); fbq('track','PageView');
+}
+
+/* ===================== BOOT ===================== */
+qsa('.starnote').forEach(n => n.textContent = STAR_HELP);
+renderFoodPills();
+recalc();
+</script>
+</body>
+</html>

@@ -365,6 +365,23 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .ra-readline span{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:800;border:1px solid var(--accent);border-radius:999px;padding:3px 8px}
 .ra-micro{font-size:12.5px;color:var(--muted);line-height:1.5;margin:0 0 8px}
 .ra-scaleframe{color:var(--ink-soft);border-left:3px solid var(--accent);padding-left:11px;margin:10px 0 16px;font-style:italic}
+/* Duration-to-goal arc (added 2026-09-03) — range never a date, phase rhythm visible */
+.ra-arc{background:var(--surface-2);border:1.5px solid var(--line);border-radius:16px;padding:16px 15px;margin:16px 0}
+.ra-arc-h{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:8px}
+.ra-arc-lead{font-size:14.5px;line-height:1.5;color:var(--ink);margin:0}
+.ra-arc-big{font-family:'Cinzel',serif;font-size:34px;font-weight:600;color:var(--accent);line-height:1.05;margin:10px 0 2px}
+.ra-arc-sub{font-size:12.5px;color:var(--muted);margin:0 0 14px}
+.ra-bar{display:flex;gap:3px;height:26px;margin:0 0 9px}
+.ra-seg{border-radius:5px;min-width:8px}
+.ra-seg.dt{background:var(--accent)}
+.ra-seg.br{background:transparent;border:1.5px dashed var(--muted);opacity:.75}
+.ra-legend{display:flex;gap:16px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin-bottom:13px;font-weight:600}
+.ra-legend i{display:inline-block;width:14px;height:9px;border-radius:2px;margin-right:6px;vertical-align:middle}
+.ra-legend i.dt{background:var(--accent)}
+.ra-legend i.br{background:transparent;border:1.5px dashed var(--muted)}
+.ra-arc-note{font-size:13px;line-height:1.55;color:var(--ink-soft);margin:0 0 9px}
+.ra-arc-note b{color:var(--headline)}
+.ra-arc-hon{font-size:12.5px;color:var(--muted);font-style:italic;line-height:1.5;margin:10px 0 0;border-left:3px solid var(--line);padding-left:11px}
 .ra-poss{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:16px;padding:16px 16px;margin:14px 0}
 .ra-poss p{margin:0 0 10px;font-size:14.5px;line-height:1.55;color:var(--ink)}
 .ra-poss p:last-child{margin-bottom:0}
@@ -1019,7 +1036,8 @@ select.input{appearance:none}
 <div id="printDoc" class="print-only"></div>
 
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — ONE source, also used by the Command Center. -->
-<script src="nutrition-engine.js"></script>
+<!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
+<script src="nutrition-engine.js?v=12"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3093,8 +3111,17 @@ function foodListsFor(it){
 }
 /* THE COMPLETE NUTRITION SYSTEM (rendered on-screen AND into the printable) */
 function nutritionHTML(it){
-  var p=it.pfs, m=mealsPerDay();
-  var pmCal=Math.round(p.calories/m), pmPro=Math.round(p.protein/m), pmCarb=Math.round(p.carbs/m), pmFat=Math.round(p.fat/m);
+  var p=it.pfs;
+  /* Per-meal math comes from the shared engine's mealSplit(), which reserves the protein shake
+     BEFORE splitting the meals. Frequency = the member's own "meals per day" answer; defaults
+     to 3 when they have not set one. ONE source of truth with the Power Food System, the meal
+     plan generator and the light dashboard. */
+  var MS=(typeof mealSplit==='function') ? mealSplit(p, it.meals||it.frequency, it.shakeGrams)
+    : {meals:3, label:'3 meals', shake:null, names:['Breakfast','Lunch','Dinner'],
+       perMeal:{calories:Math.round(p.calories/3), protein:Math.round(p.protein/3),
+                carbs:Math.round(p.carbs/3), fat:Math.round(p.fat/3)}};
+  var m=MS.meals;
+  var pmCal=MS.perMeal.calories, pmPro=MS.perMeal.protein, pmCarb=MS.perMeal.carbs, pmFat=MS.perMeal.fat;
   var lists=foodListsFor(it);
   var chkOz=(pmPro/31*100/28.35/0.75).toFixed(1), riceG=Math.round(pmCarb/28*100), oilTbsp=(pmFat/14).toFixed(1);
   var tn=TRACK_NAME[it.track]||it.track;
@@ -3112,7 +3139,7 @@ function nutritionHTML(it){
       +'<div><b>3.</b> Pile on veggies (a mountain — eat freely).</div>'
       +'<div><b>4.</b> Add fat with intention (a thumb).</div>'
       +'<div><b>5.</b> Ask: does this give me something, or just fill space?</div></div>'
-    +'<div class="lp-sub">Per meal · '+m+' meals a day</div>'
+    +'<div class="lp-sub">Per meal · '+esc(MS.label)+'</div>'
     +'<div class="macro-row">'
       +'<div class="macro"><div class="mn">'+pmCal+'</div><div class="ml">Calories</div></div>'
       +'<div class="macro"><div class="mn">'+pmPro+'g</div><div class="ml">Protein</div></div>'
@@ -3125,7 +3152,9 @@ function nutritionHTML(it){
     +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — a big pile every meal</span></div>'
     +'<div class="lp-sub">A sample meal (hits one meal target)</div>'
     +'<p class="wiz-hint" style="margin:0">≈ '+chkOz+' oz raw chicken breast · '+riceG+'g cooked rice · '+oilTbsp+' tbsp olive oil over a mountain of veg. Swap any protein / carb / fat from your lists to the same targets.</p>'
-    +'<p class="wiz-hint">A protein shake (25–40g) counts toward your protein anytime. One day is noise; two weeks is a trend.</p>';
+    +(MS.shake
+        ? '<p class="wiz-hint">Your '+MS.shake.protein+'g protein shake (~'+MS.shake.calories+' cal) is reserved out of the day first, so the meal numbers above are what is left after it. One day is noise; two weeks is a trend.</p>'
+        : '<p class="wiz-hint">A protein shake counts toward your protein anytime. Standard is '+SHAKE_PROTEIN_DEFAULT+'g, about one heaping scoop. One day is noise; two weeks is a trend.</p>');
 }
 /* ---- Your Journey — where they are in the arc + Genetic Blueprint status ---- */
 var JOURNEY_STAGES=[
@@ -3590,7 +3619,10 @@ function buildFastFood(items, calTarget, proTarget){
   return {items:chosen, cal:cal, protein:pro};
 }
 var FF_REST="Chick-fil-A", FF_MEALS=3, FF_SHAKE=false;
-var SHAKE_PRO=40, SHAKE_CAL=170;  // a protein shake reserved out of the day before splitting the meals
+/* From the shared engine (30g / 135 cal). Guarded so a stale or failed engine load can never
+   white-screen a live client dashboard. */
+var SHAKE_PRO=(typeof SHAKE_PROTEIN_DEFAULT!=='undefined')?SHAKE_PROTEIN_DEFAULT:30;
+var SHAKE_CAL=(typeof shakeCalories==='function')?shakeCalories(SHAKE_PRO):Math.round(SHAKE_PRO*4.5);
 function ffPick(c){ FF_REST=c; renderFastFood(); }
 function ffMeals(n, shake){ FF_MEALS=n; FF_SHAKE=!!shake; renderFastFood(); }
 function renderFastFood(){
@@ -3598,7 +3630,7 @@ function renderFastFood(){
   if(!it||!it.pfs){ card.style.display="none"; return; }
   card.style.display="";
   var restChips=Object.keys(FASTFOOD_DB).map(function(c){return '<button type="button" class="chip'+(c===FF_REST?' on':'')+'" onclick="ffPick(\''+esc(c).replace(/'/g,"\\'")+'\')">'+esc(c)+'</button>';}).join('');
-  var mealOpts=[[2,true,'2 + shake'],[3,false,'3'],[4,false,'4']];
+  var mealOpts=[[2,true,'2 + shake'],[3,false,'3'],[3,true,'3 + shake'],[4,false,'4']];
   var mealChips=mealOpts.map(function(o){ var on=(FF_MEALS===o[0]&&FF_SHAKE===o[1]); return '<button type="button" class="chip'+(on?' on':'')+'" onclick="ffMeals('+o[0]+','+o[1]+')">'+o[2]+'</button>';}).join('');
   box.innerHTML='<p class="wiz-hint" style="margin:0 0 8px">Pick a spot and I\'ll build a meal that fits your numbers. A rough guide — chains tweak menus.</p>'
     +'<div class="field"><label>Restaurant</label><div class="chips">'+restChips+'</div></div>'
@@ -3839,6 +3871,69 @@ var RA_ROUTE = {
   E:"You have never actually known how much you are eating.\n\nThat is not on you. Nobody ever taught you how to see it.\n\nIt is a skill, and it is simpler than you think. We can teach you the whole thing in a week.",
   F:"You know how to track. You just cannot live tracking every bite for the rest of your life.\n\nSo you swing between all-in and off completely. Tracking became a cage.\n\nThere is a framework that uses the skill without living on it. You eat out, you travel, you have the wine, and you still move toward your goal. It is called the Macro Freedom Framework, and it is exactly what we would build with you."
 };
+/* ---------------- Duration-to-goal estimator (added 2026-09-03) ----------------
+   Rate = the LOCKED program standard: 10-12% of bodyweight per 6 months. That blended
+   rate already accounts for the maintenance breaks, so the segments below are a
+   breakdown of the same total, not an addition to it.
+   Rhythm = 12-week diet phase + 4-week maintenance break, inside the 12-16 week cap,
+   which also lands every break on a remeasure point. Always ends on a diet phase.
+   ⚠️ Guardrails: a RANGE, never a date. "built to produce", never "you will".
+   No medication-assisted estimate is ever shown here (outcome claim on a Rx product). */
+function goalArc(){
+  var w=+WIZ.weight||0, gw=+WIZ.goalweight||0;
+  if(!w||!gw||w<=0) return null;
+  var diff=w-gw;
+  if(Math.abs(diff)<2) return {kind:"hold"};
+  if(diff<0) return {kind:"build", lbs:Math.round(Math.abs(diff))};
+  var pct=diff/w*100;
+  var mLo=Math.max(1,Math.round(pct/2.0));            // 12% per 6 months
+  var mHi=Math.max(mLo+1,Math.round(pct/1.6667));     // 10% per 6 months
+  var left=Math.round(mHi*4.33), segs=[], guard=0;
+  while(left>0 && guard++<24){
+    var d=Math.min(12,left); segs.push({t:"diet",w:d}); left-=d;
+    if(left>0){ var b=Math.min(4,left); segs.push({t:"break",w:b}); left-=b; }
+  }
+  /* Tidy the tail: never end on a break, never end on a stub phase. Roll the remainder
+     back into the previous phase, capped at 16 weeks so no phase breaks the 12-16 rule. */
+  while(segs.length>1 && (segs[segs.length-1].t==="break" || segs[segs.length-1].w<4)){
+    var tail=segs.pop(), last=segs[segs.length-1];
+    last.w = (last.t==="diet") ? Math.min(16,last.w+tail.w) : last.w+tail.w;
+  }
+  if(segs.length>1 && segs[segs.length-1].t==="break") segs.pop();
+  return {kind:"lose", lbs:Math.round(diff), pct:pct, mLo:mLo, mHi:mHi, segs:segs,
+          breaks:segs.filter(function(x){return x.t==="break";}).length,
+          route:(mHi<=6?"six":"twelve")};
+}
+/* Renders the arc. Member-facing: NO program names, NO prices. The routing signal is
+   saved for the coach instead (see raSaveIntake) — the money conversation belongs on
+   the Built for More application, never on this screen. */
+function goalArcHtml(){
+  var a=goalArc(); if(!a) return "";
+  var head='<div class="ra-arc"><div class="ra-arc-h">How long this actually takes</div>';
+  if(a.kind==="hold"){
+    return head+'<p class="ra-arc-lead">You are already at your number.</p>'
+      +'<p class="ra-arc-note" style="margin-top:9px">So this stops being about getting somewhere and starts being about holding it, on far less effort than it took to get here. That is its own skill, and almost nobody teaches it.</p></div>';
+  }
+  if(a.kind==="build"){
+    return head+'<p class="ra-arc-lead">You are looking to add about <b>'+a.lbs+' lb</b>.</p>'
+      +'<p class="ra-arc-note" style="margin-top:9px">Muscle does not arrive on the clock fat leaves on. It is slower, it is not linear, and the honest version of that timeline gets mapped with your coach rather than guessed off a form.</p></div>';
+  }
+  var bar=a.segs.map(function(sg){ return '<div class="ra-seg '+(sg.t==="break"?"br":"dt")+'" style="flex:'+sg.w+'"></div>'; }).join("");
+  var h=head;
+  h+='<p class="ra-arc-lead">Your goal is <b>'+a.lbs+' lb</b>, which is <b>'+a.pct.toFixed(0)+'% of your bodyweight</b>.</p>';
+  h+='<div class="ra-arc-big">'+a.mLo+' to '+a.mHi+' months</div>';
+  h+='<p class="ra-arc-sub">At the rate this system is built to produce.</p>';
+  h+='<div class="ra-bar">'+bar+'</div>';
+  h+='<div class="ra-legend"><span><i class="dt"></i>Diet phase</span><span><i class="br"></i>Maintenance break</span></div>';
+  if(a.breaks>0){
+    h+='<p class="ra-arc-note">Look at what is built into that. <b>'+a.breaks+' maintenance break'+(a.breaks>1?'s':'')+'.</b> Twelve weeks in a phase, four weeks back at maintenance, repeat. Every plan you have ever been handed drew a straight line down. This one does not, because a body that never comes off a deficit stops answering one. The breaks are not you falling off. They are the part that makes the next phase work.</p>';
+  }
+  h+=(a.route==="six")
+    ? '<p class="ra-arc-note">This one fits inside a single arc. That is a real advantage and it is worth not wasting.</p>'
+    : '<p class="ra-arc-note">This is not a six month project. It is closer to a year, and that is the honest version. Anyone who tells you otherwise is selling you the version you want to hear.</p>';
+  h+='<p class="ra-arc-hon">Read this as a range, not a date. It is an estimate off two numbers, and it moves with what your check-ins actually show. Nobody can promise you a finish line, and you should not trust anyone who does.</p>';
+  return h+'</div>';
+}
 /* SCREEN 3 — The Read. Numbers as THE ANSWER, then the possibility, then the curiosity gap → book. */
 function readinessRead(){
   raSaveIntake();                                              // persist on first view (guarded)
@@ -3863,6 +3958,7 @@ function readinessRead(){
   h+='<p class="ra-micro">Your calorie target: this is your starting number. Whether it holds or moves is the first thing your coach reads with you.</p>';
   h+='<p class="ra-micro">Your phase: this is your season. How you run it, and how long, is your call.</p>';
   h+='<p class="ra-micro ra-scaleframe">The scale is a tool, not a verdict. You will learn to read it, not fear it.</p>';
+  h+=goalArcHtml();                                            // duration-to-goal arc (2026-09-03)
   (WIZ.routes||[]).forEach(function(rk){ var txt=RA_ROUTE[rk]; if(!txt) return; txt=txt.replace(/\{coach\}/g, coach);
     h+='<div class="ra-poss">'+txt.split("\n\n").map(function(par){return '<p>'+esc(par)+'</p>';}).join("")+'</div>'; });
   ["Here is the part nobody tells you, though.","A number on its own does not change anything.","What it means for your body, your season, and the very first move you make with it...","...that is where this turns real.","And that is not something you read off a screen by yourself.","You have had plans before. You have probably had six of them.","Information was never your problem.","You could not see the middle, and no one ever sat down and showed you how to look.","That is exactly what your Readiness Consultation is for.","Your numbers, your season, your best next step, straight from your coach.","Let's get you booked and moving inside 48 hours."]
@@ -3882,15 +3978,19 @@ function raSaveIntake(){
   postToSheet({type:"intake", email:ID.email, ts:new Date().toISOString(), sex:WIZ.sex, dob:WIZ.dob||"",
     height:WIZ.height, weight:WIZ.weight, goalweight:WIZ.goalweight, activity:WIZ.activity||"Active",
     track:WIZ.track, signal:WIZ.signal, traindays:WIZ.traindays||"", trackingexp:WIZ.tracked||""});
+  var _arc=goalArc()||{};                                       // coach-side routing signal (2026-09-03)
   var blob={goal:WIZ.goal,intakecal:WIZ.intakecal,intakedur:WIZ.intakedur,adapted:WIZ.adapted,traindays:WIZ.traindays,
+    arcmonths:(_arc.mLo?(_arc.mLo+"-"+_arc.mHi):""), arcroute:_arc.route||_arc.kind||"", arcpct:(_arc.pct?_arc.pct.toFixed(0):""),
     restarts:WIZ.restarts,nextday:WIZ.nextday,scalerel:WIZ.scalerel,readiness:WIZ.readiness,tried:WIZ.tried||[],
     tracked:WIZ.tracked,normalday:WIZ.normalday,statusflags:status,routes:WIZ.routes||[]};
   postToSheet({type:"intakedeep", email:ID.email, ts:new Date().toISOString(), deep:JSON.stringify(blob), deepdone:"Yes",
     constraint:(WIZ.reverse?"Likely metabolically adapted":(WIZ.tracked||"")), constraintkey:(WIZ.routes||[]).join(","),
-    whynow:WIZ.whynow||"", inway:WIZ.inway||"", readiness:WIZ.readiness||""});
+    whynow:WIZ.whynow||"", inway:WIZ.inway||"", readiness:WIZ.readiness||"",
+    arcmonths:(_arc.mLo?(_arc.mLo+"-"+_arc.mHi):""), arcroute:_arc.route||_arc.kind||""});
   var rec={done:true, track:WIZ.track, signal:WIZ.signal, pfs:WIZ.pfs, weight:WIZ.weight, goalweight:WIZ.goalweight,
     sex:WIZ.sex, goal:WIZ.goal||"", routes:WIZ.routes||[], reverse:!!WIZ.reverse, tracked:WIZ.tracked||"",
-    statusRaw:status.join(', '), traindays:WIZ.traindays||"", readiness:WIZ.readiness||"", height:WIZ.height, activity:WIZ.activity||"Active"};
+    statusRaw:status.join(', '), traindays:WIZ.traindays||"", readiness:WIZ.readiness||"", height:WIZ.height, activity:WIZ.activity||"Active",
+    arcmonths:(_arc.mLo?(_arc.mLo+"-"+_arc.mHi):""), arcroute:_arc.route||_arc.kind||""};
   saveLS(LS_INTAKE, rec); M.intake=rec;
 }
 /* SCREEN 4 — the booking form (3 soft reads, no money gate; never blocks the booking). */

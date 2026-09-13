@@ -796,7 +796,8 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <aside class="drawer" id="drawer" aria-label="Client detail"><div id="drawerBody"></div></aside>
 
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — same file the client dashboard uses. -->
-<script src="nutrition-engine.js"></script>
+<!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
+<script src="nutrition-engine.js?v=12"></script>
 <script>
 /* ============================ SAMPLE DATA (demo mode) ============================ */
 /* Mirrors your real Weekly Check-In columns so the layout matches live data exactly. */
