@@ -523,12 +523,18 @@ select.input{appearance:none}
 .status{display:block;text-align:center;margin-top:11px;font-size:13px;min-height:18px}
 /* ===== LITE (free tier) — same URL, membership-gated ===== */
 #liteBanner{display:none}
-.lite #liteBanner{display:block;background:var(--gold);color:#1C1C1C;border-radius:12px;padding:12px 15px;margin:0 0 14px;font-weight:600;text-align:center;line-height:1.4}
-.lite #liteBanner a{color:#1C1C1C;font-weight:800;text-decoration:underline;white-space:nowrap}
+.lite:not(.cns) #liteBanner{display:block;background:var(--gold);color:#1C1C1C;border-radius:12px;padding:12px 15px;margin:0 0 14px;font-weight:600;text-align:center;line-height:1.4}
+.lite:not(.cns) #liteBanner a{color:#1C1C1C;font-weight:800;text-decoration:underline;white-space:nowrap}
 #liteUpsell{display:none}
-.lite #liteUpsell{display:block}
-.lite #ctab-btn-progress,.lite #ctab-btn-wellness{display:none!important}
-.lite #stdCard,.lite #readCard,.lite #awCard,.lite #journeyCard,.lite #geneticsCard,.lite #coachCard,.lite #requestsCard,.lite #bookCallCard,.lite #obCard,.lite #ciCta,.lite #moCta,.lite #qtCta,.lite .stats{display:none!important}
+.lite:not(.cns) #liteUpsell{display:block}
+/* Complete Nutrition System buyers on the free plan (.lite.cns) keep the weekly check-in, the
+   Progress tab and the stats, because the $497 build sells "one read on your trend every week".
+   Everything else stays free-tier. Decision: Jayme 2026-09-13. */
+.lite:not(.cns) #ctab-btn-progress,.lite #ctab-btn-wellness{display:none!important}
+.lite #stdCard,.lite #readCard,.lite #awCard,.lite #journeyCard,.lite #geneticsCard,.lite #coachCard,.lite #requestsCard,.lite #bookCallCard,.lite #obCard,.lite:not(.cns) #ciCta,.lite #moCta,.lite #qtCta,.lite:not(.cns) .stats{display:none!important}
+#cnsBanner{display:none}
+.lite.cns #cnsBanner{display:block;background:var(--gold);color:#1C1C1C;border-radius:12px;padding:12px 15px;margin:0 0 14px;line-height:1.45;font-size:14px;font-weight:500}
+.lite.cns #cnsBanner b{color:#1C1C1C;font-weight:800}
 /* NOTE: #fdnCard (Foundations checklist) is intentionally NOT hidden in LITE — it's the free trial. renderFoundations() shows it once they've set up. */
 .litebox{margin:2px 0 2px}
 .litebox .lk{display:flex;gap:9px;align-items:flex-start;margin:8px 0;color:var(--muted);font-size:14px;line-height:1.4}
@@ -703,6 +709,7 @@ select.input{appearance:none}
       <!-- The #1 CTA for a new member: book the Readiness Consultation (48h). Shown until booked. -->
       <div class="card book-banner" id="bookBanner" style="display:none"></div>
       <!-- LITE (free tier) banner + upsell — hidden unless #home has class .lite -->
+      <div id="cnsBanner"><b>Your Complete Nutrition System is active.</b> Your meal plan, restaurant playbook and weekly trend check-in are all unlocked.</div>
       <div id="liteBanner">You're on the free plan. <a id="liteBannerLink" href="#" target="_blank" rel="noopener">Unlock your full dashboard →</a></div>
       <div class="card" id="liteUpsell">
         <div class="sec-h"><h2>You're on the free trial</h2></div>
@@ -1227,7 +1234,7 @@ function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); sho
 /* LITE (free tier): same URL, membership-gated. Free members keep the Power Food System + weekly
    check-in; everything else locks behind the upgrade CTA → Skool. Toggled by M.lite. */
 function applyLite(){
-  var home=g("home"); if(home) home.classList.toggle("lite", !!M.lite);
+  var home=g("home"); if(home){ home.classList.toggle("lite", !!M.lite); home.classList.toggle("cns", !!M.lite && hasCNS()); }
   if(M.lite){ var u=CONFIG.upgradeUrl||CONFIG.skoolAppUrl||"#";
     ["liteBannerLink","liteUpgradeBtn"].forEach(function(id){ var e=g(id); if(e) e.href=u; }); }
 }
@@ -4083,7 +4090,8 @@ function startPreview(){
     +'</div><div class="pv-h" style="border:0;padding-top:6px">'
       +'<button class="pv-alt" onclick="showDeep()">▶ Walk the Deep Read (all blocks)</button> '
       +'<button class="pv-alt" onclick="showWizard()">▶ Walk setup from scratch</button> '
-      +'<button class="pv-alt" onclick="M.lite=true;showHome();">▶ Free member (LITE view)</button> '
+      +'<button class="pv-alt" onclick="M.lite=true;M.tier=\'\';M.complete=\'\';showHome();">▶ Free member (LITE view)</button> '
+      +'<button class="pv-alt" onclick="M.lite=true;M.tier=\'\';M.complete=\'Yes\';showHome();">▶ Free + CNS buyer</button> '
       +'<button class="pv-alt" onclick="M.lite=false;showHome();">▶ Full member (paid view)</button> '
       +'<button class="pv-alt" onclick="M.checkins=[{ts:1,weight:200,cons:85},{ts:2,weight:199,cons:88},{ts:3,weight:199,cons:90},{ts:4,weight:198,cons:86},{ts:5,weight:197,cons:91}];renderRead();showHome();">▶ Show the 5-check-ins-in variant</button>'
     +'</div>';
