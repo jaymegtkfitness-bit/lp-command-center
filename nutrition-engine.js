@@ -257,7 +257,7 @@ var FOOD_DB={
     {n:"chicken thighs",g:7.3,p:7.3,c:0,f:3.0,kcal:60,u:"oz",max:8,slot:"pm",t:2,k:"meat"},
     {n:"pork tenderloin",g:7.8,p:7.8,c:0,f:1.3,kcal:44,u:"oz",max:8,slot:"pm",t:2,k:"meat",sub:"pork"},
     {n:"whole eggs",g:6,p:6,c:0.6,f:5,kcal:72,u:"",whole:true,max:4,slot:"any",t:2,k:"egg",a:["egg"]},
-    {n:"extra-firm tofu",g:4.8,p:4.8,c:1.1,f:2.5,kcal:40,u:"oz",max:8,slot:"pm",t:2,k:"plant",a:["soy"]},
+    {n:"extra-firm tofu",g:4.8,p:4.8,c:1.1,f:2.5,kcal:40,u:"oz",max:8,slot:"any",t:2,k:"plant",a:["soy"]},
     {n:"tempeh",g:5.4,p:5.4,c:2.6,f:3.1,kcal:55,u:"oz",max:6,slot:"pm",t:2,k:"plant",a:["soy"]},
     {n:"seitan",g:6.5,p:6.5,c:4,f:0.5,kcal:45,u:"oz",max:6,slot:"pm",t:2,k:"plant",a:["gluten"]},
     {n:"edamame",g:18,p:18,c:14,f:8,kcal:190,u:"cup",frac:true,max:1.5,slot:"pm",t:2,k:"plant",a:["soy"]},
@@ -362,9 +362,11 @@ function displayUnits(f, units){
   /* Round DOWN to the nearest measurable step. Rounding to nearest biases every food upward, and
      across three macros and three meals that compounded into a day 10-15% over target. Under is
      the safer direction: the uncounted produce sits on top of this anyway. */
-  if(f.whole) return Math.max(1, Math.floor(units+0.5));
-  if(f.u==="oz") return Math.max(0.5, Math.floor(units*10)/10);
-  return Math.max(0.25, Math.floor(units*4)/4);
+  /* Whole items (scoops, eggs, bananas) round down unless they are at least three-quarters of the way
+     to the next one. Pure floor turned 1.9 scoops of protein into 1 and left vegan breakfasts ~35% short. */
+  if(f.whole) return Math.max(1, Math.floor(units+0.25+1e-9));
+  if(f.u==="oz") return Math.max(0.5, Math.floor(units*10+1e-9)/10);
+  return Math.max(0.25, Math.floor(units*4+1e-9)/4);
 }
 /* Real macros for a served portion. This is why calories stopped being an estimate. */
 function macrosOf(f, units){
@@ -374,23 +376,29 @@ function macrosOf(f, units){
 
 /* Render a quantity of ONE food. Pass an explicit unit count to override the target-derived one. */
 function fmtQty(f, targetG, unitsOverride){
+  /* Uses displayUnits, the same rounding the macros are counted from. Before this, the card could
+     print "2 bananas" while the calories were counted for 1.5. The printed portion and the counted
+     portion must be the same number or the card is lying. */
   var units=(unitsOverride!=null)?unitsOverride:unitsFor(f,targetG);
-  if(!isFinite(units)||units<=0.1) units=0.5;
+  var q=displayUnits(f, units);
   if(f.whole){
-    var c=Math.max(1,Math.round(units));
-    if(f.u) return c+' '+pluralUnit(f.u,c)+' '+f.n;
-    return c+' '+((c!==1 && !/s$/i.test(f.n)) ? f.n+'s' : f.n);   // "2 bananas", never "2 whole eggss"
+    if(f.u) return q+' '+pluralUnit(f.u,q)+' '+f.n;
+    return q+' '+((q!==1 && !/s$/i.test(f.n)) ? f.n+'s' : f.n);   // "2 bananas", never "2 whole eggss"
   }
-  if(f.u==="oz"){ return (Math.round(units*10)/10)+' oz '+f.n; }
-  var q=Math.max(0.25, Math.round(units*4)/4);
+  if(f.u==="oz"){ return q+' oz '+f.n; }
   return f.u? (q+' '+pluralUnit(f.u,q)+' '+f.n) : (q+' '+f.n);
 }
 
 /* Fill a macro target from the client's chosen foods for this meal slot, using up to TWO foods
    so no single food is pushed past a portion a real person would put on a plate.
    Returns { items:[strings], hit:gramsActuallyCovered }. */
-function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen){
-  if(!cands.length || targetG<=0) return {items:[], hit:0};
+function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen, capScale){
+  /* capScale lets a big meal carry bigger portions. A food's max is sized for a normal ~550 kcal
+     meal; on "2 meals + a shake" a dinner can be double that, and fixed caps left it short on fat. */
+  var cs=(capScale && capScale>1) ? capScale : 1;
+  /* The empty return MUST carry zeroed macros. Callers sum .kcal/.p/.c/.f, and an early return
+     without them made a meal total NaN whenever its carbs already covered its protein. */
+  if(!cands.length || targetG<=0) return {items:[], hit:0, short:0, kcal:0, p:0, c:0, f:0};
   var fit=cands.filter(function(f){ return f.slot==='any' || f.slot===slot; });
   if(!fit.length) fit=cands;                                   // they only picked off-slot foods; honour their picks
   /* POWER FOOD SYSTEM RULE: build the plan on TIER 1. Step out to tier 2, then 3, only when
@@ -411,6 +419,17 @@ function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen){
     if(!lean.length) lean=fit.filter(function(f){ return (f.t||1)<=2 || isStar(f); });
     if(lean.length) fit=lean;
   }
+  /* STEP UP A TIER ONLY WHEN THE LEANER FOODS CANNOT PHYSICALLY GET THERE. The Power Food System rule
+     is "tier 1 first, then tier 2 when nothing leaner does the job". Measured by capacity: if the
+     tier-limited foods at their portion caps cannot reach 90% of the target, open the next tier.
+     This is what lets a vegan breakfast reach its protein with tofu instead of stalling at 2 scoops. */
+  var capOf=function(list){ return list.slice().map(function(x){ return (x.max||99)*cs*x.g; })
+      .sort(function(a,b){return b-a;}).slice(0,4).reduce(function(a,b){return a+b;},0); };
+  if(capOf(fit) < targetG*0.9){
+    var wider=cands.filter(function(x){ return (x.slot==='any'||x.slot===slot) && fit.indexOf(x)<0; })
+                   .sort(function(a,b){ return (a.t||1)-(b.t||1); });
+    for(var wi=0; wi<wider.length && capOf(fit) < targetG*0.9; wi++) fit.push(wider[wi]);
+  }
   if(stars.length){                                            // never let the tier pass drop a star
     stars.forEach(function(f){ if(fit.indexOf(f)<0) fit.push(f); });
   }
@@ -428,7 +447,7 @@ function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen){
     if(sa!==sb) return sa-sb;                                  // starred first, in the order starred
     var ma=mine(a), mb=mine(b);
     if(ma!==mb) return ma-mb;                                  // then her own picks, then the fills
-    var ca=Math.min(unitsFor(a,targetG),a.max||99)*a.g, cb=Math.min(unitsFor(b,targetG),b.max||99)*b.g;
+    var ca=Math.min(unitsFor(a,targetG),(a.max||99)*cs)*a.g, cb=Math.min(unitsFor(b,targetG),(b.max||99)*cs)*b.g;
     return cb-ca;                                              // then biggest single-food coverage
   });
   var start=seed % ranked.length;
@@ -437,26 +456,45 @@ function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen){
   /* CHAIN foods until the target is actually met. A single capped food cannot carry a 60g
      protein meal (which is exactly what "2 meals + a shake" asks for), so stopping at one or
      two foods silently under-feeds the day. Cap at three so a meal stays a meal. */
-  var items=[], covered=0, used=0, tot={kcal:0,p:0,c:0,f:0};
-  function take(f, need){
-    var units=Math.min(unitsFor(f, need), f.max||99);
-    var m=macrosOf(f, units);
-    tot.kcal+=m.kcal; tot.p+=m.p; tot.c+=m.c; tot.f+=m.f;
-    items.push(fmtQty(f, need, units));
-    return m;
-  }
+  var picks=[], covered=0, used=0;
   for(var i=0; i<order.length && used<4 && covered < targetG*0.96; i++){
     var f=order[i], need=targetG-covered;
-    var units=Math.min(unitsFor(f, need), f.max||99);
-    var adds=displayUnits(f, units)*f.g;
+    var du=displayUnits(f, Math.min(unitsFor(f, need), (f.max||99)*cs));
+    var adds=du*f.g;
     if(adds <= 0) continue;
     if(used>0 && adds < targetG*0.14) continue;                // too small to be worth listing
-    take(f, need); covered+=adds; used++;
+    picks.push({f:f, u:du}); covered+=adds; used++;
   }
-  if(!items.length){                                           // nothing cleared the bar: take the best one
+  if(!picks.length){                                           // nothing cleared the bar: take the best one
     var f0=order[0];
-    var m0=take(f0, targetG); covered=m0.units*f0.g;
+    var du0=displayUnits(f0, Math.min(unitsFor(f0, targetG), (f0.max||99)*cs));
+    picks.push({f:f0, u:du0}); covered=du0*f0.g;
   }
+  /* SHORT BY A WHOLE UNIT. When the only food left comes in whole units (a scoop, an egg), rounding
+     can leave the target well short with nothing else to add: 1.7 scoops of protein became 1 and
+     vegan breakfasts landed ~35% under. If one more unit lands closer to the target, add it. */
+  if(covered < targetG*0.9){
+    for(var j=picks.length-1; j>=0; j--){
+      var pk=picks[j];
+      if(!pk.f.whole || pk.u+1 > (pk.f.max||99)*cs) continue;
+      /* On a tie, round up: for protein, a few grams over beats a few grams under. */
+      if(Math.abs(targetG-(covered+pk.f.g)) <= Math.abs(targetG-covered)){ pk.u+=1; covered+=pk.f.g; }
+      break;
+    }
+  }
+  /* STILL MORE THAN 10% SHORT? The leaner tier is too coarse to land (a 22g scoop cannot make 30g),
+     so retry one tier up and keep whichever lands closer. Tier 1 still wins whenever it gets there. */
+  var curTier=tierMax||1;
+  if(covered < targetG*0.9 && curTier < 3){
+    var wide=fillMacro(cands, targetG, slot, seed, curTier+1, starred, chosen, capScale);
+    if(Math.abs(targetG - wide.hit) < Math.abs(targetG - covered)) return wide;
+  }
+  var items=[], tot={kcal:0,p:0,c:0,f:0};
+  picks.forEach(function(pk){
+    var m=macrosOf(pk.f, pk.u);
+    tot.kcal+=m.kcal; tot.p+=m.p; tot.c+=m.c; tot.f+=m.f;
+    items.push(fmtQty(pk.f, null, pk.u));
+  });
   /* `short` lets a caller say "your food list cannot reach this target" instead of hiding it. */
   return {items:items, hit:Math.round(covered), short:Math.max(0, Math.round(targetG-covered)),
           kcal:Math.round(tot.kcal), p:Math.round(tot.p), c:Math.round(tot.c), f:Math.round(tot.f)};
@@ -504,18 +542,13 @@ function generateMealPlan(it, sel, days, name){
          index 0 is not automatically breakfast and must not be fed breakfast food. */
       var slot=(names[k]==='Breakfast')?'am':'pm';
       var seed=d+k;
-      var gPro=Math.round(p.protein*s.pro), gCarb=Math.round(p.carbs*s.e), gFat=Math.round(p.fat*s.e);
-      var rCarb=fillMacro(C,gCarb,slot,seed);
-      var fNeed=Math.max(0,gFat-rCarb.f);
-      var rFat=(fNeed>=Math.max(3,gFat*0.15))?fillMacro(F,fNeed,slot,seed+1):{items:[],hit:0,kcal:0,p:0,c:0,f:0};
-      var rPro=fillMacro(P,Math.max(0,gPro-rCarb.p-rFat.p),slot,seed);
-      var items=rPro.items.concat(rCarb.items, rFat.items);
-      items.push((slot==='am'?'a handful of ':'a big handful of ')+V[(d*m+k)%V.length]);
-      meals.push({name:names[k]||("Meal "+(k+1)), items:items,
-        cal:rPro.kcal+rCarb.kcal+rFat.kcal,
-        protein:rPro.p+rCarb.p+rFat.p,
-        carbs:rPro.c+rCarb.c+rFat.c,
-        fat:rPro.f+rCarb.f+rFat.f});
+      var target={protein:Math.round(p.protein*s.pro), carbs:Math.round(p.carbs*s.e), fat:Math.round(p.fat*s.e)};
+      /* Same meal builder as the /build deck (buildOption), so the dashboard's "Build my meal plan"
+         gets the same accuracy fixes instead of a second, older copy of the fill logic. */
+      var o=buildOption(P, C, F, V, target, slot, seed, d*m+k, null,
+                        sel.starred||{}, {protein:sel.protein, carb:sel.carb, fat:sel.fat});
+      meals.push({name:names[k]||("Meal "+(k+1)), items:o.items,
+        cal:o.cal, protein:o.protein, carbs:o.carbs, fat:o.fat});
     }
     /* The shake is its own slot, always last, so its protein is never double-counted. */
     if(S.shake) meals.push({name:"Protein shake", shake:true,
@@ -556,16 +589,53 @@ function buildOption(P, C, F, V, target, slot, seed, vegIndex, tierMax, star, ch
   /* Every food carries all three macros, so the three fills depend on each other. Iterate to a
      fixed point: three passes is enough to converge and it costs nothing. Protein resolves LAST
      inside each pass because protein is the anchor and has to land exact. */
-  for(var pass=0; pass<3; pass++){
-    var carbNeed=Math.max(0, target.carbs - rPro.c);
-    rCarb=fillMacro(C, carbNeed, slot, seed, tierMax, star.carb, chose.carb);
-    var fatNeed=Math.max(0, target.fat - rPro.f - rCarb.f);
-    /* If the meal already carries its fat, do not bolt oil onto it just to fill a line. */
-    rFat=(fatNeed >= Math.max(3, target.fat*0.15))
-      ? fillMacro(F, fatNeed, slot, seed+1, tierMax, star.fat, chose.fat) : EMPTY;
-    var proNeed=Math.max(0, target.protein - rCarb.p - rFat.p);
-    rPro=fillMacro(P, proNeed, slot, seed, tierMax, star.protein, chose.protein);
+  /* Each pass is a complete meal. Passes do not always settle (swapping one food changes what the
+     others need), so the LAST pass is not necessarily the most accurate one. Score every pass and
+     keep the best: calorie distance from the meal target, with protein under 95% of its target
+     treated as the worst miss, because protein is the anchor. */
+  var tCal=target.protein*4 + target.carbs*4 + target.fat*9;
+  var capScale=Math.min(1.6, Math.max(1, tCal/700));
+  /* Beans, lentils, chickpeas and peas count twice: as the carb AND as a big share of the protein.
+     With a real protein serving on the plate as well, that pushed protein past 120% of target.
+     So each meal is also tried with only the lower-protein carbs (potatoes, rice, oats, fruit), and
+     the scoring below keeps whichever version lands closest. Her beans still show up in the
+     options where they fit; they just stop doubling the protein. */
+  var pools=[C];
+  var lowP=C.filter(function(f){ return !((f.p||0) >= 0.3*Math.max(1, f.c||0)); });
+  if(lowP.length && lowP.length < C.length) pools.push(lowP);
+  var best=null;
+  for(var pi=0; pi<pools.length; pi++){
+    var CC=pools[pi];
+    rCarb=EMPTY; rFat=EMPTY; rPro=EMPTY;
+    /* Each pass is a complete meal. Passes do not always settle (swapping one food changes what the
+       others need), so the LAST pass is not necessarily the most accurate one. Score every pass and
+       keep the best: calorie distance from the meal target, with protein under 95% of its target
+       treated as the worst miss (protein is the anchor) and protein well over target also penalised. */
+    for(var pass=0; pass<6; pass++){
+      /* Credit carbs from BOTH other fills. Fat foods carry real carbs (a whole avocado is 13g, chia
+         5g a tablespoon) and leaving rFat.c out put carbs over target in 94% of meals. */
+      var carbNeed=Math.max(0, target.carbs - rPro.c - rFat.c);
+      rCarb=fillMacro(CC, carbNeed, slot, seed, tierMax, star.carb, chose.carb, capScale);
+      var fatNeed=Math.max(0, target.fat - rPro.f - rCarb.f);
+      /* If the meal already carries its fat, do not bolt oil onto it just to fill a line. */
+      rFat=(fatNeed >= Math.max(3, target.fat*0.15))
+        ? fillMacro(F, fatNeed, slot, seed+1, tierMax, star.fat, chose.fat, capScale) : EMPTY;
+      /* PROTEIN ANCHOR FLOOR. Crediting all the protein in beans shrank the actual protein food to a
+         garnish ("0.7 oz ground turkey") in a third of meals. The protein food always carries at
+         least half the meal's protein target, so every plate still starts with protein. */
+      var proNeed=Math.max(target.protein*0.5, target.protein - rCarb.p - rFat.p);
+      rPro=fillMacro(P, proNeed, slot, seed, tierMax, star.protein, chose.protein, capScale);
+      if(pass>0){
+        var cal=rPro.kcal+rCarb.kcal+rFat.kcal, pro=rPro.p+rCarb.p+rFat.p;
+        var pr=pro/Math.max(1,target.protein);
+        var score=Math.abs(cal-tCal)/Math.max(1,tCal)
+                + 3*Math.max(0, 0.95 - pr)
+                + 1*Math.max(0, pr - 1.10);
+        if(!best || score < best.score - 1e-9) best={score:score, rPro:rPro, rCarb:rCarb, rFat:rFat};
+      }
+    }
   }
+  rPro=best.rPro; rCarb=best.rCarb; rFat=best.rFat;
   var items=rPro.items.concat(rCarb.items, rFat.items);
   if(V && V.length) items.push((slot==='am'?'a handful of ':'a big handful of ')+V[vegIndex%V.length]);
   /* Calories are now SUMMED FROM REAL PER-FOOD VALUES, not inferred as 4/4/9 from the anchor
