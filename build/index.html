@@ -434,6 +434,9 @@ input.bad{border-color:var(--warm-red,#b5543c)!important;box-shadow:0 0 0 3px rg
 .speed-read{margin:12px 0 0;font-size:.95rem;color:var(--charcoal);font-weight:500}
 
 #steps-group .grouplbl{margin-top:24px}
+
+.klarna-note{margin:2px 0 0;text-align:center;font-size:.9rem;color:#6a675f;line-height:1.5}
+.klarna-note strong{color:var(--charcoal)}
 </style>
 </head>
 <body>
@@ -1453,8 +1456,7 @@ input.bad{border-color:var(--warm-red,#b5543c)!important;box-shadow:0 0 0 3px rg
       </div>
       <div class="paylinks">
         <a href="#" class="btn js-pif" id="pay-pif">Build my system &middot; $497</a>
-        <a href="#" class="btn ghost js-plan2" id="pay-plan">Or 2 payments of $275</a>
-        <a href="#" class="btn ghost js-plan4" id="pay-plan4">Or 4 payments of $175</a>
+        <p class="klarna-note">Want to spread it out? Choose <strong>Klarna</strong> at checkout and pay over time.</p>
       </div>
       <p class="btn-note" id="cap-note"></p>
       <p class="btn-note"><strong>30 days.</strong> If it is not right for you, I will rebuild it or refund you. No argument.</p>
@@ -1525,8 +1527,6 @@ const CONFIG = {
 
   /* FastPayDirect checkout links (live). */
   pifUrl:     "https://link.fastpaydirect.com/payment-link/6a70cebea655fa0b802a7a30",   // $497 pay in full
-  plan2xUrl:  "https://link.fastpaydirect.com/payment-link/6a70cf90a655fa0b802a7a35",   // 2 x $275, every 2 months ($550)
-  plan4xUrl:  "https://link.fastpaydirect.com/payment-link/6a70d16ba655fa0b802a7a3f",   // 4 x $175, every 2 weeks ($700)
 
   /* Readiness Consultation booking link (GHL calendar). "" -> button hidden. */
   consultUrl: "",
@@ -2789,7 +2789,7 @@ function showReveal(){
       'you will not be.</p>' +
       '<p>If it would help to be pointed toward one, email me and I will do that for free.</p>' +
       '<p style="color:var(--gold)">jayme.gtkfitness@gmail.com</p></div></div>';
-    qsa('#reveal .js-pif, #reveal .js-plan2, #reveal .js-plan4').forEach(b => b.classList.add('hidden'));
+    qsa('#reveal .js-pif, #reveal .klarna-note').forEach(b => b.classList.add('hidden'));
   }
 
   ['intake','note-section'].forEach(id => $(id).classList.add('hidden'));
@@ -2807,14 +2807,11 @@ function goCheckout(url, label){
     const p = payload('checkout_initiated');
     p.checkout = label;
     postDoorway(p);
-    /* value = what is charged today, so ad reporting does not overstate a split payment. */
-    track('InitiateCheckout', {value: ({pif:497, plan2x:275, plan4x:175})[label] || 0, currency:'USD'});
+    track('InitiateCheckout', {value: 497, currency:'USD'});
     location.href = url;
   };
 }
 qsa('.js-pif').forEach(b => b.addEventListener('click', goCheckout(CONFIG.pifUrl, 'pif')));
-qsa('.js-plan2').forEach(b => b.addEventListener('click', goCheckout(CONFIG.plan2xUrl, 'plan2x')));
-qsa('.js-plan4').forEach(b => b.addEventListener('click', goCheckout(CONFIG.plan4xUrl, 'plan4x')));
 
 ['consult-btn-1','consult-btn-2'].forEach(id => {
   const b = $(id); if (!b) return;
