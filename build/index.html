@@ -1543,7 +1543,7 @@ const CONFIG = {
      At buildsTaken 0 the page states the cap without a countdown, which is true on day one.
      The moment it is above 0 the countdown appears and has to keep being true, because a repeat
      visitor who sees the same number twice stops believing every other number on the page. */
-  monthlyCap:  25,
+  monthlyCap:  10,   // FIRST ROUND: 10 builds (Last 100 Days, Sept 2026). Back to 25/month after.
   buildsTaken: 0,
 
   /* Meta pixel id for paid traffic. "" -> no pixel loads. */
@@ -2835,14 +2835,14 @@ qsa('.js-pif').forEach(b => { b.innerHTML = b.innerHTML.replace('$497', CONFIG.p
   const el = $('cap-note');
   if (!cap){ el.style.display = 'none'; return; }
   if (left === 0){
-    el.innerHTML = '<strong>This month is full.</strong> Put your name in and you are first in '
-      + 'line when the next ' + cap + ' open on the first.';
+    el.innerHTML = '<strong>This first round is full.</strong> Book a call below and you are first in '
+      + 'line when the next round opens.';
   } else if (taken === 0){
     /* Day one of a month: state the cap, do not fake a countdown. */
-    el.innerHTML = 'I take <strong>' + cap + ' builds a month</strong>, because I set up every '
-      + 'one personally. That is the whole ceiling.';
+    el.innerHTML = 'I am opening <strong>' + cap + ' builds in this first round</strong>, because I set up '
+      + 'every one personally. That is the whole ceiling.';
   } else {
-    el.innerHTML = '<strong>' + left + ' of ' + cap + '</strong> builds left this month. I set up '
+    el.innerHTML = '<strong>' + left + ' of ' + cap + '</strong> first-round builds left. I set up '
       + 'every one personally, so the number is real.';
   }
 })();
