@@ -826,6 +826,11 @@ select.input{appearance:none}
         <div id="mealPlanBox"></div>
       </div>
 
+      <div class="card" id="swapCard" style="display:none">
+        <div class="sec-h"><h2>Your Swap Guide</h2></div>
+        <div id="swapBox"></div>
+      </div>
+
       <!-- Fast-food meal builder -->
       <div class="card" id="fastFoodCard" style="display:none">
         <div class="sec-h"><h2>Eating out?</h2></div>
@@ -1045,7 +1050,7 @@ select.input{appearance:none}
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — ONE source, also used by the Command Center. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
-<script src="nutrition-engine.js?v=15"></script>
+<script src="nutrition-engine.js?v=16"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -1443,6 +1448,7 @@ function renderHome(){
   renderNutritionHero();
   renderRoadmap();
   renderMealPlan();
+  renderSwaps();
   renderCronometer();
   renderFastFood();
   gateProtocolCards();
@@ -3674,6 +3680,43 @@ function renderMealPlan(){
     +'<div class="mp-days">'+chips+'</div>'
     +'<div id="mpDayBox">'+mpDayHTML(mp.days[MP_DAY])+'</div>'
     +'<div class="actions no-print"><button class="btn btn-primary" onclick="window.print()">⬇ Save my meal plan (PDF)</button> <button class="btn btn-ghost" onclick="showMealBuilder()">🍳 Edit my foods & regenerate</button></div>';
+}
+/* ---- Swap guide (CNS). Trade any food for another and land on the same numbers. Math lives in the
+   shared engine: foodSwaps() matches the anchor macro, swapChart() lists one meal's worth of each. ---- */
+var SW_FOOD="chicken breast", SW_AMT=6;
+function swSel(v){ SW_FOOD=v; var f=swapFind(v); var a=g("sw_amt"), u=g("sw_unit");
+  if(f){ SW_AMT=f.food.u==="oz"?5:(f.food.u==="tbsp"?1:(f.food.frac?0.5:1)); if(a) a.value=SW_AMT; if(u) u.textContent=f.food.u?(f.food.u+(f.food.whole?"(s)":"")):"each"; } swRun(); }
+function swAmt(v){ var n=parseFloat(v); if(isFinite(n)&&n>0){ SW_AMT=n; swRun(); } }
+function swRun(){
+  var box=g("sw_out"); if(!box||typeof foodSwaps!=="function") return;
+  var r=foodSwaps(SW_FOOD, SW_AMT); if(!r){ box.innerHTML=""; return; }
+  box.innerHTML='<p class="wiz-hint" style="margin:8px 0 6px"><b>'+esc(r.from.qty)+'</b> is '+r.from.grams+'g '+esc(r.macro)+' and '+r.from.kcal+' cal. Any of these gives you the same '+esc(r.macro)+':</p>'
+    +'<ul class="mp-items">'+r.swaps.slice(0,10).map(function(x){
+      var d=x.delta===0?'same calories':(x.delta>0?'+'+x.delta:x.delta)+' cal';
+      return '<li><b>'+esc(x.qty)+'</b> · '+x.kcal+' cal <span style="color:var(--muted)">('+d+')</span>'+(x.note?'<br><span style="color:var(--muted);font-size:.86em">'+esc(x.note.charAt(0).toUpperCase()+x.note.slice(1))+'.</span>':'')+'</li>';
+    }).join('')+'</ul>';
+}
+function renderSwaps(){
+  var card=g("swapCard"), box=g("swapBox"), it=M.intake; if(!card) return;
+  if(!hasCNS() || !it || !it.pfs || typeof foodSwaps!=="function"){ card.style.display="none"; return; }
+  card.style.display="";
+  var F=swapFoods({}), label={protein:"Proteins", carb:"Carbs", fat:"Fats"};
+  var opts=["protein","carb","fat"].map(function(k){ return '<optgroup label="'+label[k]+'">'+F[k].map(function(f){ return '<option'+(f.n===SW_FOOD?' selected':'')+'>'+esc(f.n)+'</option>'; }).join('')+'</optgroup>'; }).join('');
+  var hit=swapFind(SW_FOOD), unit=hit?(hit.food.u?hit.food.u+(hit.food.whole?"(s)":""):"each"):"";
+  var pm=(typeof mealSplit==="function")?mealSplit(it.pfs, it.meals||it.frequency, it.shakeGrams).perMeal:{protein:it.pfs.protein/3, carbs:it.pfs.carbs/3};
+  var ch=swapChart(pm, {});
+  var colHTML=function(title, c, what){ return '<div style="margin:10px 0"><div class="lp-sub" style="margin-bottom:4px">'+title+' <span style="color:var(--muted);font-weight:400">· '+what+'</span></div>'
+    +'<ul class="mp-items">'+c.items.slice(0,12).map(function(x){ return '<li>'+esc(x.qty)+' <span style="color:var(--muted)">· '+x.kcal+' cal</span></li>'; }).join('')+'</ul></div>'; };
+  box.innerHTML='<p class="wiz-hint" style="margin:0 0 8px">Out of something, or just tired of it? Trade it for another food and land on the same numbers. Protein swaps for protein, carbs for carbs, fat for fat, so the meal still does its job.</p>'
+    +'<div class="field"><label>I have this in my plan</label><select class="input" onchange="swSel(this.value)">'+opts+'</select></div>'
+    +'<div class="field"><label>How much</label><div style="display:flex;gap:8px;align-items:center"><input class="input" id="sw_amt" type="number" min="0.25" step="0.25" value="'+SW_AMT+'" oninput="swAmt(this.value)" style="max-width:110px"/><span id="sw_unit" style="color:var(--muted)">'+esc(unit)+'</span></div></div>'
+    +'<div id="sw_out"></div>'
+    +'<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">Your swap chart: one meal\'s worth of each</summary>'
+    +colHTML("Protein", ch.protein, "any one = "+ch.protein.grams+"g protein")
+    +colHTML("Carbs", ch.carb, "any one = "+ch.carb.grams+"g carbs")
+    +colHTML("Added fat", ch.fat, "any one = "+ch.fat.grams+"g fat")
+    +'<p class="wiz-hint">Every portion comes from USDA data or the brand label. Vegetables stay unlimited.</p></details>';
+  swRun();
 }
 function renderRoadmap(){
   var card=g("roadmapCard"), box=g("roadmapBox"), it=M.intake;

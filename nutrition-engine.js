@@ -382,6 +382,7 @@ function fmtQty(f, targetG, unitsOverride){
   var units=(unitsOverride!=null)?unitsOverride:unitsFor(f,targetG);
   var q=displayUnits(f, units);
   if(f.whole){
+    if(f.u && f.n.toLowerCase().indexOf(f.u.toLowerCase())>=0) return q+' '+(q!==1?f.n+'s':f.n);   // "2 corn tortillas", never "2 tortillas corn tortilla"
     if(f.u) return q+' '+pluralUnit(f.u,q)+' '+f.n;
     return q+' '+((q!==1 && !/s$/i.test(f.n)) ? f.n+'s' : f.n);   // "2 bananas", never "2 whole eggss"
   }
@@ -996,3 +997,77 @@ function restaurantMeals(chain, target, opts){
           retrieved:d?d.retrieved:'', official:d?d.official!==0:false, empty:!options.length};
 }
 function restaurantChains(){ return (typeof RESTAURANT_DB!=='undefined')? Object.keys(RESTAURANT_DB.chains).sort() : []; }
+
+/* ===== SWAP SYSTEM =====
+   Trade any food for another and land on the same numbers. A swap matches the food's ANCHOR macro:
+   protein for protein, carbs for carbs, fat for fat. That keeps the meal doing the same job. The
+   side effects (a swap that brings extra carbs or fat along) are called out so the member can trim
+   elsewhere, never hidden. Portions use the same rounding the deck prints, so a swap reads like a
+   real serving. */
+var SWAP_ANCHOR={protein:'p', carb:'c', fat:'f'};
+var SWAP_MACRO_NAME={p:'protein', c:'carbs', f:'fat'};
+function swapFind(name){
+  var cats=['protein','carb','fat'];
+  for(var i=0;i<cats.length;i++){
+    var list=FOOD_DB[cats[i]]||[];
+    for(var j=0;j<list.length;j++){ if(list[j].n===name) return {cat:cats[i], food:list[j]}; }
+  }
+  return null;
+}
+/* All foods a member can swap between, grouped, respecting eating style and allergies. */
+function swapFoods(opts){
+  opts=opts||{};
+  return {protein:safeFoods('protein',opts.style,opts.allergies),
+          carb:safeFoods('carb',opts.style,opts.allergies),
+          fat:safeFoods('fat',opts.style,opts.allergies)};
+}
+function swapNote(base, bu, m, key){
+  var notes=[], bc=bu*(base.c||0), bf=bu*(base.f||0), bp=bu*(base.p||0);
+  if(key!=='c' && m.c-bc>=8)  notes.push('brings about '+Math.round(m.c-bc)+'g more carbs, so go a little lighter on your carb');
+  if(key!=='f' && m.f-bf>=5)  notes.push('brings about '+Math.round(m.f-bf)+'g more fat, so skip or halve the added fat');
+  if(key!=='p' && m.p-bp>=8)  notes.push('adds about '+Math.round(m.p-bp)+'g protein, a bonus');
+  if(key==='p' && bp-m.p>=6)  notes.push('lands a little under on protein');
+  return notes.join('; ');
+}
+/* name: a FOOD_DB food name. units: how much of it (in that food's unit, e.g. 6 for 6 oz).
+   Returns {category, macro, from:{...}, swaps:[{name, qty, kcal, p, c, f, delta, tier, note, src}]} */
+function foodSwaps(name, units, opts){
+  opts=opts||{};
+  var hit=swapFind(name); if(!hit) return null;
+  var base=hit.food, key=SWAP_ANCHOR[hit.cat];
+  var bu=displayUnits(base, +units||1), grams=bu*base[key], baseKcal=bu*(base.kcal||0);
+  var pool=safeFoods(hit.cat, opts.style, opts.allergies).filter(function(f){ return f.n!==base.n && (f[key]||0)>0; });
+  var swaps=pool.map(function(f){
+    var raw=grams/f[key];
+    if(raw>(f.max||99)*1.25) return null;                        // a portion nobody would eat
+    var m=macrosOf(f, raw);
+    if(m[key] < grams*0.8) return null;                          // rounding lost too much
+    return {name:f.n, qty:fmtQty(f,null,raw), tier:f.t,
+            kcal:Math.round(m.kcal), p:Math.round(m.p), c:Math.round(m.c), f:Math.round(m.f),
+            delta:Math.round(m.kcal-baseKcal), note:swapNote(base, bu, m, key), src:f.src};
+  }).filter(Boolean).sort(function(a,b){ return (a.tier-b.tier) || (Math.abs(a.delta)-Math.abs(b.delta)); });
+  return {category:hit.cat, macro:SWAP_MACRO_NAME[key],
+          from:{name:base.n, qty:fmtQty(base,null,bu), grams:Math.round(grams), kcal:Math.round(baseKcal)},
+          swaps:swaps};
+}
+/* The member's swap chart: for ONE meal, every protein that gives her the meal's protein, every carb
+   that gives her the meal's carbs, and a standard 10g serving of added fat. perMeal = mealSplit().perMeal */
+var SWAP_FAT_SERVING=10;
+function swapChart(perMeal, opts){
+  opts=opts||{};
+  function col(cat, grams){
+    var key=SWAP_ANCHOR[cat];
+    return safeFoods(cat, opts.style, opts.allergies).map(function(f){
+      if(!(f[key]>0)) return null;
+      var raw=grams/f[key]; if(raw>(f.max||99)*1.25) return null;
+      var m=macrosOf(f, raw); if(m[key]<grams*0.8) return null;
+      return {name:f.n, qty:fmtQty(f,null,raw), tier:f.t, kcal:Math.round(m.kcal), p:Math.round(m.p), c:Math.round(m.c), f:Math.round(m.f)};
+    }).filter(Boolean).sort(function(a,b){ return (a.tier-b.tier) || (a.kcal-b.kcal); });
+  }
+  var pm=perMeal||{};
+  return {
+    protein:{grams:Math.round(pm.protein||0), items:col('protein', pm.protein||30)},
+    carb:{grams:Math.round(pm.carbs||0), items:col('carb', pm.carbs||30)},
+    fat:{grams:SWAP_FAT_SERVING, items:col('fat', SWAP_FAT_SERVING)}
+  };
+}

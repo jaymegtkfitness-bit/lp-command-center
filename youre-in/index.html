@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- CNS post-purchase page, served at dashboard.legacyperformance.co/youre-in/.
+     The $497 payment link redirects here. The SAME file prints to the PDF that goes in the
+     follow-up email: run make-pdf.sh in this folder after changing anything. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>You're In | Legacy Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{
+  --charcoal:#1C1C1C; --olive:#4A5C3E; --parchment:#F2EDE4; --gold:#C1AD72;
+  --card:#FFFDF9; --line:rgba(28,28,28,.12); --muted:#5d5a54;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--parchment);color:var(--charcoal);
+  font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+  font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased}
+h1,h2,h3{font-family:Cinzel,Georgia,serif;font-weight:600;line-height:1.2;margin:0}
+p{margin:0 0 .9em}
+.wrap{max-width:680px;margin:0 auto;padding:0 20px}
+header{text-align:center;padding:28px 0 8px}
+header img{height:46px;width:auto}
+.hero{text-align:center;padding:22px 0 30px}
+.eyebrow{font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;font-weight:700;color:var(--olive);margin:0 0 12px}
+.hero h1{font-size:2.3rem;margin-bottom:14px}
+.hero p{color:var(--muted);max-width:520px;margin:0 auto}
+.steps{display:grid;gap:14px;margin:0 0 30px}
+.step{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:20px 20px 18px;
+  box-shadow:0 2px 14px rgba(28,28,28,.06);display:grid;grid-template-columns:44px 1fr;gap:14px}
+.num{width:44px;height:44px;border-radius:50%;background:var(--charcoal);color:var(--gold);
+  display:flex;align-items:center;justify-content:center;font-family:Cinzel,Georgia,serif;font-weight:700;font-size:1.15rem}
+.step h2{font-size:1.12rem;margin:8px 0 6px}
+.step p{font-size:.95rem;color:#3d3b37;margin-bottom:12px}
+.btn{display:inline-block;background:var(--olive);color:#fff;text-decoration:none;font-weight:600;
+  padding:12px 18px;border-radius:10px;font-size:.95rem}
+.btn.gold{background:var(--charcoal);color:var(--gold)}
+.link-print{display:none;font-size:.85rem;color:var(--olive);word-break:break-all;font-weight:600}
+.pending{font-size:.88rem;color:var(--muted);font-style:italic}
+.panel{background:var(--charcoal);color:var(--parchment);border-radius:14px;padding:24px 22px;margin:0 0 26px}
+.panel h3{color:var(--gold);font-size:1rem;letter-spacing:.06em;margin-bottom:14px}
+.panel ol{margin:0;padding-left:20px}
+.panel li{margin:0 0 10px;font-size:.95rem}
+.panel li b{color:#fff}
+.guar{border-left:3px solid var(--gold);padding:4px 0 4px 16px;margin:0 0 26px;font-size:.95rem}
+.small{font-size:.86rem;color:var(--muted)}
+footer{text-align:center;padding:10px 0 40px}
+footer a{color:var(--olive)}
+@media (max-width:480px){ .hero h1{font-size:1.85rem} .step{grid-template-columns:1fr} .num{width:38px;height:38px} }
+@media print{
+  @page{margin:12mm}
+  body{background:#fff;font-size:12.5px}
+  .wrap{max-width:none}
+  header{padding:0 0 4px} header img{height:36px}
+  .hero{padding:8px 0 14px} .hero h1{font-size:1.7rem}
+  .step{box-shadow:none;break-inside:avoid;padding:14px}
+  .btn{padding:8px 14px;font-size:.85rem}
+  .link-print{display:block;margin-top:6px}
+  .panel,.guar{break-inside:avoid;print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .num{print-color-adjust:exact;-webkit-print-color-adjust:exact}
+  .screen-only{display:none}
+}
+</style>
+</head>
+<body>
+<header><img src="../logo.png" alt="Legacy Performance"></header>
+
+<main class="wrap">
+  <section class="hero">
+    <p class="eyebrow">Complete Nutrition System</p>
+    <h1>You're in.</h1>
+    <p>Your system is being built from the answers you just gave me. Here are the three things to do next, in order. They take about five minutes.</p>
+  </section>
+
+  <div class="steps">
+    <div class="step">
+      <div class="num">1</div>
+      <div>
+        <h2>Book your setup call</h2>
+        <p>Thirty minutes, just you and me. I walk you through your numbers, your meal deck and your restaurant orders, and I show you how to run it when life gets busy.</p>
+        <div data-link="setupCallUrl" data-label="Book my setup call"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">2</div>
+      <div>
+        <h2>Open your dashboard</h2>
+        <p>This is where your system lives. Sign in with the same email you used at checkout. Your full system unlocks as soon as your build is done, within one business day.</p>
+        <div data-link="dashboardUrl" data-label="Open my dashboard" data-style="gold"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="num">3</div>
+      <div>
+        <h2>Join the community, free</h2>
+        <p>Your build comes with a free seat in the Legacy Performance Project on Skool. The Wednesday coaching call, the courses, and people running the same system you are.</p>
+        <div data-link="skoolUrl" data-label="Join the community"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h3>What happens from here</h3>
+    <ol>
+      <li><b>Today.</b> Your answers are with me. Nothing else to fill out.</li>
+      <li><b>Within one business day.</b> I build your system: your calorie target and protein floor, your phase, a week of meals with three options for every meal, the orders for the restaurants you picked, and your swap guide.</li>
+      <li><b>On your setup call.</b> We go through it together. You leave knowing how to swap foods, how to eat out, how to plan a week with a dinner out already in it, and what to do when the scale stops moving.</li>
+      <li><b>Every week after.</b> A quick trend check-in, so the plan keeps up with you.</li>
+    </ol>
+  </div>
+
+  <p class="guar"><b>Backed by a 30-day guarantee.</b> Run the system for 30 days. If it is not working for you, I will rebuild it with you or refund you.</p>
+
+  <p class="small screen-only">The same three steps are in your email as a PDF, so you have them even if you lose this page.</p>
+  <p class="small">Did you pay before you finished the questions? <a href="https://dashboard.legacyperformance.co/build/" style="color:var(--olive)">Finish them here</a> so I can start your build.</p>
+</main>
+
+<footer class="small">Questions? Reply to your email or write <a href="mailto:jayme.gtkfitness@gmail.com">jayme.gtkfitness@gmail.com</a></footer>
+
+<script>
+/* =================== CONFIG — EDIT THIS BLOCK =================== */
+const CONFIG = {
+  setupCallUrl: "",                                                   // TODO: your setup-call calendar link
+  dashboardUrl: "https://dashboard.legacyperformance.co/client.html",
+  skoolUrl:     ""                                                    // TODO: your free Skool invite link
+};
+/* =============== END CONFIG (stop editing here) =============== */
+document.querySelectorAll('[data-link]').forEach(function(el){
+  var url = CONFIG[el.dataset.link];
+  if (!url){ el.innerHTML = '<span class="pending">Your link for this step is in your welcome email.</span>'; return; }
+  el.innerHTML = '<a class="btn' + (el.dataset.style === 'gold' ? ' gold' : '') + '" href="' + url + '">' + el.dataset.label + ' &rarr;</a>'
+    + '<span class="link-print">' + url + '</span>';
+});
+</script>
+</body>
+</html>
