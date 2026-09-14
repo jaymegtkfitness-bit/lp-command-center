@@ -1518,7 +1518,8 @@ input.bad{border-color:var(--warm-red,#b5543c)!important;box-shadow:0 0 0 3px rg
 
 <!-- shared math: ONE source of truth with the dashboards -->
 <!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
-<script src="../nutrition-engine.js?v=14"></script>
+<script src="../restaurant-data.js?v=1"></script>
+<script src="../nutrition-engine.js?v=15"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK =================== */
 const CONFIG = {
@@ -2397,12 +2398,12 @@ var REST_SWAPS = {
   "Del Taco":      {order:"Two chicken soft tacos plus a side of beans. Fresco style where you can.", cal:"~520", pro:"~38g"},
   "Qdoba":         {order:"Double chicken bowl, half rice, black beans, fajita veg, salsa, no queso.", cal:"~680", pro:"~62g"},
   "Moe's":         {order:"Double chicken bowl, half rice, black beans, all the salsa and veg.", cal:"~660", pro:"~60g"},
-  "Local burger place":{order:"Single patty, no mayo, extra veg. Share the fries or skip them.", cal:"~550", pro:"~32g"},
-  "Local Italian": {order:"Grilled chicken or fish with vegetables, sauce on the side. Skip the bread basket.", cal:"~600", pro:"~48g"},
-  "Local steakhouse":{order:"6 to 8oz sirloin or filet, steamed veg, plain potato. No bread basket.", cal:"~620", pro:"~50g"},
-  "Local pizza":   {order:"Thin crust with chicken and veg, two or three slices. Salad first, always.", cal:"~600", pro:"~32g"},
-  "Local diner":   {order:"Eggs, grilled chicken or turkey, and fruit or tomatoes instead of the hash browns.", cal:"~520", pro:"~44g"},
-  "The gas station, honestly":{order:"Beef jerky, a protein shake, string cheese, a banana. Not a meal, but it holds the line.", cal:"~400", pro:"~38g"},
+  "Local burger place":{order:"Burger with an extra patty, no mayo, mustard and all the veg. Side salad instead of fries, dressing on the side.", cal:"~570", pro:"~46g"},
+  "Local Italian": {order:"Grilled chicken, light oil, vegetables, marinara on the side, one small side of pasta. Bread basket goes back.", cal:"~635", pro:"~65g"},
+  "Local steakhouse":{order:"8oz sirloin, no butter to finish, plain baked potato, steamed broccoli. No bread basket.", cal:"~550", pro:"~59g"},
+  "Local pizza":   {order:"Two slices of thin crust with chicken and veg, plus a side salad with dressing on the side.", cal:"~615", pro:"~39g"},
+  "Local diner":   {order:"Two eggs plus egg whites, grilled chicken, fruit instead of hash browns, one slice of dry toast.", cal:"~515", pro:"~55g"},
+  "The gas station, honestly":{order:"Two ounces of jerky, a string cheese, a 30g protein shake and a banana. It is a real meal.", cal:"~565", pro:"~57g"},
   "Chipotle":      {order:"Double chicken bowl, half rice, black beans, fajita veggies, mild salsa, lettuce.", cal:"~700", pro:"~65g"},
   "Chick-fil-A":   {order:"Grilled chicken sandwich plus an 8-count grilled nugget, no sauce or a light one.", cal:"~570", pro:"~55g"},
   "Panera":        {order:"Double chicken on a Green Goddess or Caesar salad, dressing on the side.", cal:"~530", pro:"~50g"},
@@ -2422,11 +2423,28 @@ var REST_SWAPS = {
   "Cracker Barrel":{order:"Grilled chicken tenderloins with green beans and a side of turnip greens.", cal:"~490", pro:"~48g"},
   "Buffalo Wild Wings":{order:"Naked tenders, grilled, with a side salad and buffalo sauce on the side.", cal:"~520", pro:"~55g"},
   "Costco food court":{order:"Chicken bake, split in half, with the salad. Or just the salad plus a protein from home.", cal:"~570", pro:"~40g"},
-  "Local Mexican": {order:"Fajitas, chicken or steak, corn tortillas, no rice. Ask for extra grilled veg.", cal:"~650", pro:"~55g"},
-  "Local sushi":   {order:"Sashimi plus one roll and edamame, rather than three rolls.", cal:"~520", pro:"~45g"}
+  "Local Mexican": {order:"Chicken fajitas with light oil, three corn tortillas, pinto beans not refried, salsa. No rice, chips go back.", cal:"~660", pro:"~67g"},
+  "Local sushi":   {order:"Four ounces of tuna and salmon sashimi, one tuna roll and edamame. Skip the tempura and spicy mayo.", cal:"~505", pro:"~48g"}
 };
+/* Pill names on this page -> chain names in restaurant-data.js (verified official nutrition). */
+var REST_ALIAS = {"Panera":"Panera Bread","Outback":"Outback Steakhouse","Tropical Smoothie":"Tropical Smoothie Cafe",
+  "Moe's":"Moe's Southwest Grill","Sonic":"Sonic Drive-In","In-N-Out":"In-N-Out Burger"};
+function liveOrderFor(list, t){
+  if (typeof restaurantMeals !== 'function' || !t) return null;
+  const target = {calories: 4*(t.protein||0) + 4*(t.carbs||0) + 9*(t.fat||0), protein: t.protein||0};
+  for (const raw of (list||[])){
+    const name = REST_ALIAS[raw] || raw;
+    const r = restaurantMeals(name, target, {count:1});
+    const o = r.options[0];
+    if (o && o.fit.kcalPct <= 115 && o.fit.proteinPct >= 80) return {name: raw, o, official: r.official};
+  }
+  return null;
+}
 function swapFor(list){
-  for (var i=0;i<(list||[]).length;i++){ if (REST_SWAPS[list[i]]) return {name:list[i], s:REST_SWAPS[list[i]]}; }
+  /* Only for places without verified chain data (local spots). A verified chain that cannot fit
+     the meal falls back to the general rule, never to a hand-written estimate. */
+  const verified = n => typeof restaurantChains === 'function' && restaurantChains().indexOf(REST_ALIAS[n] || n) >= 0;
+  for (var i=0;i<(list||[]).length;i++){ if (REST_SWAPS[list[i]] && !verified(list[i])) return {name:list[i], s:REST_SWAPS[list[i]]}; }
   return null;
 }
 
@@ -2475,8 +2493,16 @@ function renderSample(){
     return 'Anchor every meal with the protein first, then build the rest of the plate around it. Do that and the numbers mostly take care of themselves.';
   })();
 
-  const swap = swapFor(S.multi.restaurants);
-  const swapHtml = swap ? `
+  const lunch = plan.slots.find(sl => sl.name === 'Lunch') || plan.slots[0];
+  const live = !quiet && lunch && liveOrderFor(S.multi.restaurants, lunch.target);
+  const swap = live ? null : swapFor(S.multi.restaurants);
+  const swapHtml = live ? `
+    <div class="swapbox">
+      <span class="swap-eyebrow">Eating out this week?</span>
+      <p class="swap-order"><strong>${esc(live.name)}:</strong> ${esc(live.o.title)}. Sauce or dressing on the side.</p>
+      <p class="swap-macros">${live.o.totals.kcal} cal &middot; ${live.o.totals.p}g protein &middot; ${live.official ? `from ${esc(live.name)}&rsquo;s own published nutrition` : `from the nutrition board posted in store`}</p>
+      <p class="swap-note">Your full system includes an order like this for every place you picked, fitted to each meal, so eating out stops being the thing that ruins the week.</p>
+    </div>` : swap ? `
     <div class="swapbox">
       <span class="swap-eyebrow">Eating out this week?</span>
       <p class="swap-order"><strong>${esc(swap.name)}:</strong> ${esc(swap.s.order)}</p>

@@ -841,3 +841,158 @@ function conditionProfile(flags){
   }
   return p;
 }
+
+/* ===== RESTAURANT MEALS: complete orders from verified chain data =====
+   Data lives in restaurant-data.js (RESTAURANT_DB), built from the official chain nutrition
+   files in data/restaurants/. Every item carries its source.
+   Rules (Jayme, Sept 2026): a meal is a REAL order. It always has a main (or a full bowl built
+   the way the line builds it). Protein goes up only with a real add-on the chain sells. Sides are
+   lean sides. Sauces and dressings are never added silently. No "half meals". */
+var RESTAURANT_RULES=[
+  "Protein you can see. Build around it.",
+  "Grilled, not fried. Ask for light oil.",
+  "Sauce and dressing on the side.",
+  "One starch. Skip the bread, chips or fries if the meal already has one.",
+  "Zero-calorie drink."
+];
+var RM_ROW={name:0,serving:1,cat:2,kcal:3,p:4,c:5,f:6,lto:7,src:8};
+function rmItems(chain){
+  var d=(typeof RESTAURANT_DB!=='undefined')&&RESTAURANT_DB.chains[chain]; if(!d) return [];
+  return d.items.map(function(r){ return {name:r[0],serving:r[1],cat:r[2],kcal:r[3],p:r[4],c:r[5],f:r[6],lto:!!r[7],src:d.src[r[8]]||''}; });
+}
+function rmKids(i){ return /\bkid|cub meal|junior|jr\.?\b|mini\b/i.test(i.name+' '+i.serving); }
+function rmLabel(i, role){
+  var n=i.name.replace(/\s*\([^)]*\b(add-?on|add extra|protein component|pasta topping|protein option)\b[^)]*\)/ig,' ').replace(/\s+/g,' ').trim();
+  n=n.replace(/,\s*(ingredient|cup and|medium|small|large|regular|bowl portion)\b.*$/i,'').replace(/\s*\(supplier [a-z]\)/ig,'');
+  if(role==='add-on' && i.cat==='component_protein') n='Extra '+n.toLowerCase();
+  return n;
+}
+function rmTotals(list){
+  var t={kcal:0,p:0,c:0,f:0}; list.forEach(function(i){ t.kcal+=i.kcal; t.p+=i.p; t.c+=i.c; t.f+=i.f; });
+  t.kcal=Math.round(t.kcal); t.p=Math.round(t.p); t.c=Math.round(t.c); t.f=Math.round(t.f); return t;
+}
+/* Lower is better. Overshoot costs more than undershoot, protein short costs most. */
+function rmScore(c, calT, proT){
+  var t=c.t, e=(t.kcal-calT)/calT, pr=t.p/proT;
+  var s=Math.max(0,Math.abs(e)-0.05)*(e>0?3:1.5);          // inside +-5% of calories is a perfect fit
+  s+=Math.max(0,0.95-pr)*3 + Math.max(0,pr-1.35)*0.5;       // protein 95-135% is a perfect fit
+  var extras=c.kind!=='main' ? c.protein.length-1 : c.parts.length-1;
+  s+=extras*0.05;                                           // simpler orders win ties
+  c.parts.forEach(function(p){ if(rmKids(p)) s+=0.08; });   // kids portions only when they really help
+  return s;
+}
+function rmBowls(items){
+  var comp=items.filter(function(i){ return /^component_/.test(i.cat) && !i.lto && !rmKids(i); });
+  var greens=comp.filter(function(i){ return i.cat==='component_base' && /green|lettuce|romaine|arugula|spinach|salad/i.test(i.name); });
+  var grains=comp.filter(function(i){ return i.cat==='component_base' && /rice|grain|quinoa|farro|lentil/i.test(i.name); });
+  var beans=comp.filter(function(i){ return /\bbeans?\b/i.test(i.name) && i.kcal<=160; });
+  var prots=comp.filter(function(i){ return i.cat==='component_protein' && i.p>=12; });
+  var buns=comp.filter(function(i){ return i.cat==='component_base' && /\bbun\b|\broll\b|bread/i.test(i.name) && !/mini|kid|hot dog/i.test(i.name); });
+  if(!greens.length && !grains.length && buns.length && prots.length){
+    /* Parts-only burger chains (Five Guys): bun or lettuce wrap, one or two patties, the free veg. */
+    var free0=comp.filter(function(i){ return i.cat==='component_topping' && i.kcal<=15; }).slice(0,4);
+    var cheese=comp.filter(function(i){ return i.cat==='component_topping' && /cheese/i.test(i.name) && i.kcal<=80; }).slice(0,1);
+    var outB=[];
+    prots.filter(function(p){ return /patty|burger|chicken|steak/i.test(p.name); }).forEach(function(p1){
+      [[p1],[p1,p1]].forEach(function(pp){ [null].concat(buns.slice(0,1)).forEach(function(bun){ [null].concat(cheese).forEach(function(ch){
+        outB.push({kind:'build', parts:[bun].concat(pp, free0, [ch]).filter(Boolean), protein:pp, bunless:!bun});
+      }); }); });
+    });
+    return outB;
+  }
+  var free=comp.filter(function(i){ return i.cat==='component_topping' && i.kcal<=40 && !/lettuce|romaine/i.test(i.name); });
+  var veg=free.filter(function(i){ return /fajita|vegetable|veggie|tomato|cucumber|onion|pepper|pico/i.test(i.name) && !/salsa/i.test(i.name); }).slice(0,1)
+    .concat(free.filter(function(i){ return /salsa|pico/i.test(i.name); }).sort(function(a,b){return a.kcal-b.kcal;}).slice(0,1));
+  var rich=comp.filter(function(i){ return i.cat==='component_topping' && i.kcal>40 && i.kcal<=250; });
+  if(!prots.length || (greens.length+grains.length)<1) return [];
+  var out=[], G=[null].concat(greens.slice(0,1)), R=[null].concat(grains), B=[null].concat(beans), X=[null].concat(rich);
+  prots.forEach(function(p1){
+    [null].concat(prots).forEach(function(p2){
+      G.forEach(function(g){ R.forEach(function(r){ if(!g&&!r) return;
+        B.forEach(function(b){ X.forEach(function(x){
+          var parts=[g,r,b,p1,p2].concat(veg,[x]).filter(Boolean);
+          out.push({kind:'bowl', parts:parts, protein:[p1,p2].filter(Boolean)});
+        }); });
+      }); });
+    });
+  });
+  return out;
+}
+function rmCombos(items, slot){
+  var ok=items.filter(function(i){ return !i.lto && i.kcal>0; });
+  var breakfastOnly=ok.filter(function(i){return i.cat==='main';}).length<3;
+  var anchors=ok.filter(function(i){
+    if(slot==='breakfast') return i.cat==='breakfast' || (breakfastOnly&&i.cat==='main');
+    return i.cat==='main' || (breakfastOnly&&i.cat==='breakfast');
+  }).filter(function(i){ return i.p>=8; });
+  var addons=ok.filter(function(i){
+    return ((i.cat==='protein_addon' || i.cat==='component_protein' || (i.cat==='drink'&&i.p>=15)) && i.p>=8 && i.p*4/i.kcal>=0.3)
+      || (i.cat==='main' && i.p>=15 && i.p*4/i.kcal>=0.6);     // very lean mains double as add-ons (8 ct grilled nuggets)
+  });
+  var sides=ok.filter(function(i){ return i.cat==='side' && i.kcal<=220; });
+  addons=addons.filter(function(i){ return !/collagen/i.test(i.name); });     // collagen is not a complete protein
+  if(slot==='breakfast'){                                                     // breakfast has to read as breakfast
+    addons=addons.filter(function(i){ return !/patty|burger|chili|roast beef|steak tips|tender|strip|diced chicken|snacker|thigh|drumstick|wing|nugget(?!.*grill)/i.test(i.name) || /grilled nugget|grilled filet/i.test(i.name); });
+    sides=sides.filter(function(i){ return /fruit|apple|berr|banana|yogurt|parfait|oat|egg|hash|grits|melon|grape|orange|mandarin/i.test(i.name); });
+  }
+  /* An add-on has to make sense on the thing it is added to: extra patty on a burger, extra
+     chicken on a chicken dish, salad or bowl. A whole lean entree (8 ct grilled nuggets) goes with anything. */
+  var BEEF_MAIN=/burger|whopper|stack|smasher|hamburger|dave'?s|baconator|double-double|patty melt|cheeseburger/i;
+  var fits=function(a, x){
+    if(x.cat==='main' || x.cat==='drink' || /latte|matcha|shake|milk\b|protein powder|jerky|egg/i.test(x.name)) return true;
+    if(/patty|burger|ground beef/i.test(x.name)) return BEEF_MAIN.test(a.name);
+    if(BEEF_MAIN.test(a.name)) return /bacon|egg|cheese/i.test(x.name);
+    return true;
+  };
+  var combos=[];
+  anchors.forEach(function(a){
+    var A=[[]], addons0=addons;
+    addons=addons0.filter(function(x){ return fits(a,x); });
+    var drink=function(i){ return i.cat==='drink' || /latte|matcha|shake|smoothie|protein powder|milk\b/i.test(i.name); };
+    addons.forEach(function(x,ix){ A.push([x]); if(!drink(x)) A.push([x,x]);
+      addons.slice(ix+1).forEach(function(y){ if(!(drink(x)&&drink(y))) A.push([x,y]); }); });
+    A.forEach(function(ad){
+      [null].concat(sides).forEach(function(s){
+        combos.push({kind:'main', anchor:a, parts:[a].concat(ad, s?[s]:[]), protein:ad});
+      });
+    });
+    addons=addons0;
+  });
+  if(slot!=='breakfast') rmBowls(items).forEach(function(b){ combos.push(b); });
+  return combos;
+}
+/* chain: a RESTAURANT_DB key. target: {calories, protein} for ONE meal.
+   Returns {chain, target, options:[{title, items:[...], totals, fit}], rules, sources, empty}. */
+function restaurantMeals(chain, target, opts){
+  opts=opts||{};
+  var calT=Math.max(200,+target.calories||0), proT=Math.max(10,+target.protein||0);
+  var items=rmItems(chain), slot=opts.slot||'meal', want=opts.count||3;
+  var combos=rmCombos(items, slot);
+  combos.forEach(function(c){ c.t=rmTotals(c.parts); c.s=rmScore(c, calT, proT); });
+  var fits=combos.filter(function(c){ return c.t.kcal<=calT*1.10 && c.t.p>=proT*0.90; });
+  var pool=(fits.length? fits : combos).sort(function(a,b){ return a.s-b.s; });
+  var picked=[], seenKey={};
+  for(var i=0;i<pool.length && picked.length<want;i++){
+    var c=pool[i], key=c.kind!=='main' ? c.kind+':'+c.protein.map(function(p){return p.name;}).sort()[0]+(c.bunless?':wrap':'') : c.anchor.name;
+    if(seenKey[key]) continue; seenKey[key]=1; picked.push(c);
+  }
+  var options=picked.map(function(c){
+    var counts={}, rows=[];
+    c.parts.forEach(function(p){ var k=p.name+'|'+p.serving; if(counts[k]){ counts[k].qty++; return; } counts[k]={item:p, qty:1}; rows.push(counts[k]); });
+    var lines=rows.map(function(r){
+      var role = c.kind!=='main' ? (r.item.cat==='component_protein'?'protein':'bowl')
+               : r.item===c.anchor ? 'main' : (r.item.cat==='side'?'side':'add-on');
+      return {name:rmLabel(r.item, role), serving:r.item.serving, qty:r.qty, role:role,
+              kcal:Math.round(r.item.kcal*r.qty), p:Math.round(r.item.p*r.qty), src:r.item.src};
+    });
+    var title = c.kind!=='main'
+      ? (c.kind==='bowl' ? 'Bowl: ' : c.bunless ? 'Lettuce wrap or bowl: ' : 'Build it: ')+lines.map(function(l){ return (l.qty>1?'double ':'')+l.name; }).join(', ')
+      : lines.map(function(l){ return (l.qty>1?l.qty+'x ':'')+l.name; }).join(' + ');
+    return {title:title, items:lines, totals:c.t,
+            fit:{kcalPct:Math.round(c.t.kcal/calT*100), proteinPct:Math.round(c.t.p/proT*100)}};
+  });
+  var d=(typeof RESTAURANT_DB!=='undefined')&&RESTAURANT_DB.chains[chain];
+  return {chain:chain, target:{calories:calT, protein:proT}, options:options, rules:RESTAURANT_RULES,
+          retrieved:d?d.retrieved:'', official:d?d.official!==0:false, empty:!options.length};
+}
+function restaurantChains(){ return (typeof RESTAURANT_DB!=='undefined')? Object.keys(RESTAURANT_DB.chains).sort() : []; }

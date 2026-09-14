@@ -1044,7 +1044,8 @@ select.input{appearance:none}
 
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — ONE source, also used by the Command Center. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
-<script src="nutrition-engine.js?v=14"></script>
+<script src="restaurant-data.js?v=1"></script>
+<script src="nutrition-engine.js?v=15"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3600,61 +3601,58 @@ function doGenerate(){
   if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"mealplan", email:ID.email, title:plan.title, plan:plan});
   MP_DAY=0; showHome(); showClientTab('nutrition');
 }
-/* ---- Fast-food meal builder — pick a chain, get a combo that fits your per-meal numbers ---- */
-var FASTFOOD_DB={
-  "Chick-fil-A":[{name:"Grilled Chicken Sandwich",cal:390,protein:28},{name:"Grilled Deluxe Sandwich",cal:420,protein:28},{name:"Grilled Nuggets (12 ct)",cal:200,protein:38},{name:"Grilled Nuggets (8 ct)",cal:130,protein:25},{name:"Cobb Salad w/ grilled chicken",cal:510,protein:40},{name:"Medium Waffle Fries",cal:420,protein:5},{name:"Side Salad",cal:160,protein:5},{name:"Greek Yogurt Parfait",cal:270,protein:9}],
-  "McDonald's":[{name:"Quarter Pounder w/ Cheese",cal:520,protein:30},{name:"Big Mac",cal:590,protein:25},{name:"McDouble",cal:400,protein:22},{name:"10-pc McNuggets",cal:410,protein:23},{name:"6-pc McNuggets",cal:250,protein:14},{name:"Egg McMuffin",cal:310,protein:17},{name:"Medium Fries",cal:320,protein:5},{name:"Side Salad",cal:20,protein:1}],
-  "Chipotle":[{name:"Chicken (double)",cal:360,protein:64},{name:"Chicken",cal:180,protein:32},{name:"Steak",cal:150,protein:21},{name:"White rice",cal:210,protein:4},{name:"Black beans",cal:130,protein:8},{name:"Fajita veggies",cal:20,protein:1},{name:"Guacamole",cal:230,protein:2},{name:"Cheese",cal:110,protein:6}],
-  "Subway":[{name:'Footlong Rotisserie Chicken',cal:640,protein:50},{name:'6" Rotisserie Chicken',cal:320,protein:25},{name:'6" Turkey',cal:280,protein:18},{name:'6" Steak & Cheese',cal:380,protein:26},{name:"Chips",cal:210,protein:3}],
-  "Wendy's":[{name:"Grilled Chicken Sandwich",cal:370,protein:34},{name:"Dave's Single",cal:590,protein:29},{name:"Jr. Bacon Cheeseburger",cal:380,protein:20},{name:"10-pc Nuggets",cal:420,protein:22},{name:"Small Chili",cal:240,protein:15},{name:"Medium Fries",cal:420,protein:5}]
-};
-function buildFastFood(items, calTarget, proTarget){
-  var chosen=[], used={}, cal=0, pro=0;
-  var main=items.slice().sort(function(a,b){return b.protein-a.protein;})[0];
-  chosen.push(main); used[main.name]=1; cal+=main.cal; pro+=main.protein;
-  var guard=0;
-  while(cal < calTarget-140 && guard<6){
-    guard++;
-    var best=null, bestScore=1e9;
-    items.forEach(function(it){ var nc=cal+it.cal; if(nc>calTarget+160) return;
-      var penalty=(used[it.name]||0)*400;                 // discourage repeats → a varied main + sides
-      var score=Math.abs(calTarget-nc) - it.protein*0.5 + penalty;
-      if(score<bestScore){ bestScore=score; best=it; } });
-    if(!best) break;
-    chosen.push(best); used[best.name]=(used[best.name]||0)+1; cal+=best.cal; pro+=best.protein;
-  }
-  return {items:chosen, cal:cal, protein:pro};
-}
-var FF_REST="Chick-fil-A", FF_MEALS=3, FF_SHAKE=false;
+/* ---- Restaurant meal builder. Complete orders from each chain's own published nutrition
+   (restaurant-data.js + restaurantMeals() in the shared engine). Always a real main; protein goes
+   up only with an add-on the chain sells. ---- */
+var FF_REST="Chick-fil-A", FF_MEALS=3, FF_SHAKE=false, FF_SLOT="meal";
 /* From the shared engine (30g / 135 cal). Guarded so a stale or failed engine load can never
    white-screen a live client dashboard. */
 var SHAKE_PRO=(typeof SHAKE_PROTEIN_DEFAULT!=='undefined')?SHAKE_PROTEIN_DEFAULT:30;
 var SHAKE_CAL=(typeof shakeCalories==='function')?shakeCalories(SHAKE_PRO):Math.round(SHAKE_PRO*4.5);
-function ffPick(c){ FF_REST=c; renderFastFood(); }
+function ffPick(c){ FF_REST=c; var r=g("ffResult"); if(r) r.innerHTML=""; }
 function ffMeals(n, shake){ FF_MEALS=n; FF_SHAKE=!!shake; renderFastFood(); }
+function ffSlot(sl){ FF_SLOT=sl; renderFastFood(); }
 function renderFastFood(){
   var card=g("fastFoodCard"), box=g("fastFoodBox"), it=M.intake; if(!card) return;
-  if(!it||!it.pfs){ card.style.display="none"; return; }
+  var chains=(typeof restaurantChains==='function')?restaurantChains():[];
+  if(!it||!it.pfs||!chains.length){ card.style.display="none"; return; }
   card.style.display="";
-  var restChips=Object.keys(FASTFOOD_DB).map(function(c){return '<button type="button" class="chip'+(c===FF_REST?' on':'')+'" onclick="ffPick(\''+esc(c).replace(/'/g,"\\'")+'\')">'+esc(c)+'</button>';}).join('');
+  if(chains.indexOf(FF_REST)<0) FF_REST=chains[0];
+  var restOpts=chains.map(function(c){return '<option'+(c===FF_REST?' selected':'')+'>'+esc(c)+'</option>';}).join('');
   var mealOpts=[[2,true,'2 + shake'],[3,false,'3'],[3,true,'3 + shake'],[4,false,'4']];
   var mealChips=mealOpts.map(function(o){ var on=(FF_MEALS===o[0]&&FF_SHAKE===o[1]); return '<button type="button" class="chip'+(on?' on':'')+'" onclick="ffMeals('+o[0]+','+o[1]+')">'+o[2]+'</button>';}).join('');
-  box.innerHTML='<p class="wiz-hint" style="margin:0 0 8px">Pick a spot and I\'ll build a meal that fits your numbers. A rough guide — chains tweak menus.</p>'
-    +'<div class="field"><label>Restaurant</label><div class="chips">'+restChips+'</div></div>'
+  var slotChips=[['breakfast','Breakfast'],['meal','Lunch or dinner']].map(function(o){ return '<button type="button" class="chip'+(FF_SLOT===o[0]?' on':'')+'" onclick="ffSlot(\''+o[0]+'\')">'+o[1]+'</button>';}).join('');
+  box.innerHTML='<p class="wiz-hint" style="margin:0 0 8px">Pick a spot and I\'ll build a real order that fits this meal. Every number comes from the restaurant\'s own published nutrition.</p>'
+    +'<div class="field"><label>Restaurant</label><select class="input" onchange="ffPick(this.value)">'+restOpts+'</select></div>'
+    +'<div class="field"><label>Which meal</label><div class="chips">'+slotChips+'</div></div>'
     +'<div class="field"><label>Meals a day</label><div class="chips">'+mealChips+'</div></div>'
-    +'<div class="actions"><button class="btn btn-primary" onclick="ffBuild()">Build my meal →</button></div>'
+    +'<div class="actions"><button class="btn btn-primary" onclick="ffBuild()">Build my order →</button></div>'
     +'<div id="ffResult" style="margin-top:12px"></div>';
 }
 function ffBuild(){
-  var p=M.intake.pfs, dayCal=p.calories, dayPro=p.protein;
-  if(FF_SHAKE){ dayCal=Math.max(0,dayCal-SHAKE_CAL); dayPro=Math.max(0,dayPro-SHAKE_PRO); }  // reserve the shake first, THEN split the meals
-  var calT=Math.round(dayCal/FF_MEALS), proT=Math.round(dayPro/FF_MEALS);
-  var r=buildFastFood(FASTFOOD_DB[FF_REST], calT, proT);
-  var counts={}; r.items.forEach(function(i){counts[i.name]=(counts[i.name]||0)+1;});
-  var lines=Object.keys(counts).map(function(n){return '<li>'+(counts[n]>1?counts[n]+'× ':'')+esc(n)+'</li>';}).join('');
-  g("ffResult").innerHTML='<div class="lp-sub">At '+esc(FF_REST)+' · this meal ~'+calT+' cal · '+proT+'g protein'+(FF_SHAKE?' <span style="color:var(--muted);font-weight:400">(your ~'+SHAKE_PRO+'g shake is set aside)</span>':'')+'</div>'
-    +'<ul class="mp-items">'+lines+'</ul>'
-    +'<p class="wiz-hint" style="margin-top:2px">This combo ≈ <b>'+r.cal+' cal · '+r.protein+'g protein</b>. Tweak a side or portion to dial it in — protein first.</p>';
+  var p=M.intake.pfs;
+  var split=(typeof mealSplit==='function')
+    ? mealSplit({calories:p.calories, protein:p.protein}, FF_MEALS===2?'2 + shake':(FF_MEALS===4?'4':(FF_SHAKE?'3 + shake':'3')), SHAKE_PRO).perMeal
+    : {calories:Math.round(p.calories/FF_MEALS), protein:Math.round(p.protein/FF_MEALS)};
+  var r=restaurantMeals(FF_REST, split, {slot:FF_SLOT, count:3});
+  var head='<div class="lp-sub">At '+esc(FF_REST)+' · this meal ~'+r.target.calories+' cal · '+r.target.protein+'g protein'+(FF_SHAKE?' <span style="color:var(--muted);font-weight:400">(your ~'+SHAKE_PRO+'g shake is set aside)</span>':'')+'</div>';
+  if(r.empty){
+    g("ffResult").innerHTML=head+'<p class="wiz-hint">'+(FF_SLOT==='breakfast'?esc(FF_REST)+' does not serve breakfast. Try lunch or dinner.':'Nothing here builds a complete meal for this target yet.')+'</p>';
+    return;
+  }
+  var opts=r.options.map(function(o,ix){
+    var lines=o.items.map(function(l){ return '<li>'+(l.qty>1?l.qty+'× ':'')+esc(l.name)+(l.role!=='main'&&l.role!=='bowl'?' <span style="color:var(--muted)">('+esc(l.role)+')</span>':'')+'</li>'; }).join('');
+    var short=o.fit.proteinPct<90, over=o.fit.kcalPct>110;
+    var kind=o.title.indexOf(': ')>0 && !o.items.some(function(l){return l.role==='main';}) ? ' · '+esc(o.title.split(': ')[0]) : '';
+    var warn=short&&over ? 'It runs over on calories and short on protein, so keep the next meal lighter and lean on your shake.'
+            : short ? 'It runs a little short on protein, so lean on your next meal or your shake.'
+            : 'It runs a little over, so keep the next meal lighter.';
+    return '<div style="margin:10px 0 4px"><b>Option '+(ix+1)+'</b>'+kind+' · '+o.totals.kcal+' cal · '+o.totals.p+'g protein</div><ul class="mp-items">'+lines+'</ul>'
+      +((short||over)?'<p class="wiz-hint" style="margin-top:0">Closest real order here. '+warn+'</p>':'');
+  }).join('');
+  if(!r.official) head+='<p class="wiz-hint" style="margin:4px 0 0">'+esc(FF_REST)+' does not publish nutrition online, so these numbers come from the nutrition board posted in store.</p>';
+  g("ffResult").innerHTML=head+opts
+    +'<p class="wiz-hint" style="margin-top:6px"><b>How to order:</b> '+esc(r.rules.join(' '))+'</p>';
 }
 function renderMealPlan(){
   var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
