@@ -5,5 +5,5 @@
 var YI_LINKS = {
   setupCallUrl: "https://legacyperformance.co/onboarding-call",       // GHL: Onboarding Call w/ Jayme Olson
   dashboardUrl: "https://dashboard.legacyperformance.co/client.html",
-  skoolUrl:     ""                                                    // TODO: your free Skool invite link
+  skoolUrl:     "https://www.skool.com/legacy-performance/about"
 };
