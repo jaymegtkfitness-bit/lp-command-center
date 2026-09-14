@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
 <!-- CNS post-purchase page, served at dashboard.legacyperformance.co/youre-in/.
-     The $497 payment link redirects here. The SAME file prints to the PDF that goes in the
-     follow-up email: run make-pdf.sh in this folder after changing anything. -->
+     The $497 payment link redirects here. The one-page email PDF is pdf.html (same links, from links.js). Run make-pdf.sh after changing either. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -124,14 +123,9 @@ footer a{color:var(--olive)}
 
 <footer class="small">Questions? Reply to your email or write <a href="mailto:jayme.gtkfitness@gmail.com">jayme.gtkfitness@gmail.com</a></footer>
 
+<script src="links.js"></script>
 <script>
-/* =================== CONFIG — EDIT THIS BLOCK =================== */
-const CONFIG = {
-  setupCallUrl: "",                                                   // TODO: your setup-call calendar link
-  dashboardUrl: "https://dashboard.legacyperformance.co/client.html",
-  skoolUrl:     ""                                                    // TODO: your free Skool invite link
-};
-/* =============== END CONFIG (stop editing here) =============== */
+const CONFIG = YI_LINKS;
 document.querySelectorAll('[data-link]').forEach(function(el){
   var url = CONFIG[el.dataset.link];
   if (!url){ el.innerHTML = '<span class="pending">Your link for this step is in your welcome email.</span>'; return; }
