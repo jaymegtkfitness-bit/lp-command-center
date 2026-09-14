@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
 @page{size:8.5in 11in;margin:0}
-:root{--ink:#121511;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.36);--char:#1C1C1C;--olive:#4A5C3E;--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac}
+:root{--ink:#161616;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.26);--char:#1C1C1C;--olive:#4A5C3E;--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac}
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:8.5in;height:10.98in;overflow:hidden;background:var(--ink)}
 body{font-family:Montserrat,Helvetica,Arial,sans-serif;color:var(--parch);-webkit-print-color-adjust:exact;print-color-adjust:exact}
@@ -16,9 +16,9 @@ body{font-family:Montserrat,Helvetica,Arial,sans-serif;color:var(--parch);-webki
   background:
     radial-gradient(ellipse 50% 35% at 100% 0%, rgba(193,173,114,.16), transparent 70%),
     radial-gradient(ellipse 100% 65% at 0% 100%, rgba(84,106,70,.72), transparent 72%),
-    radial-gradient(ellipse 90% 55% at 15% 32%, rgba(74,92,62,.40), transparent 72%),
-    repeating-linear-gradient(135deg, rgba(143,169,122,.05) 0 1px, transparent 1px 22px),
-    linear-gradient(180deg,#20271b 0%,#181e15 55%,#121511 100%)}
+    radial-gradient(ellipse 90% 55% at 15% 32%, rgba(74,92,62,.16), transparent 72%),
+    repeating-linear-gradient(135deg, rgba(193,173,114,.035) 0 1px, transparent 1px 22px),
+    linear-gradient(180deg,#1f1f1e 0%,#191918 55%,#141414 100%)}
 .topbar{position:absolute;left:0;top:0;right:0;height:6px;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
 .mark{position:absolute;right:-.9in;top:1.55in;width:5.2in;opacity:.055;pointer-events:none}
 .head{display:flex;justify-content:space-between;align-items:center}
@@ -32,7 +32,7 @@ h1 span{color:var(--gold)}
 .rule{width:1.1in;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:.26in 0 .22in}
 .steps{display:grid;gap:12px}
 .step{display:grid;grid-template-columns:.78in 1fr auto;align-items:center;gap:14px;
-  background:linear-gradient(90deg,rgba(84,106,70,.36),rgba(74,92,62,.08));
+  background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.03));
   border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:14px;padding:15px 18px 15px 14px}
 .n{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:40px;color:var(--gold);text-align:center;line-height:1}
 .step h2{font-size:15px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff}
@@ -49,7 +49,7 @@ h1 span{color:var(--gold)}
 .pt:before{content:"";position:absolute;left:0;top:0;width:13px;height:13px;border-radius:50%;background:var(--olive);border:2px solid var(--olive-lt)}
 .pt b{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff}
 .pt span{display:block;font-size:10px;line-height:1.5;color:var(--soft);margin-top:4px}
-.guar{margin-top:.3in;display:flex;align-items:center;gap:16px;background:linear-gradient(90deg,rgba(84,106,70,.52),rgba(74,92,62,.14));border:1px solid var(--olive-dim);border-radius:14px;padding:14px 18px}
+.guar{margin-top:.3in;display:flex;align-items:center;gap:16px;background:linear-gradient(90deg,rgba(84,106,70,.34),rgba(255,255,255,.03));border:1px solid var(--olive-dim);border-radius:14px;padding:14px 18px}
 .guar img{height:.52in;width:auto}
 .guar b{font-family:Cinzel,Georgia,serif;font-size:15px;color:var(--gold);font-weight:700;letter-spacing:.04em}
 .guar p{font-size:11px;color:#d9d3c8;margin-top:3px;line-height:1.5}
