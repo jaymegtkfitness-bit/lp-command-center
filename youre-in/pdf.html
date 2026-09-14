@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- ONE-PAGE welcome PDF for the CNS follow-up email. Links come from links.js.
+     Print with make-pdf.sh (US Letter, no margins). Must stay on ONE page. -->
+<meta charset="utf-8">
+<title>You're In | Legacy Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+@page{size:8.5in 11in;margin:0}
+:root{--ink:#161616;--char:#1C1C1C;--olive:#4A5C3E;--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:8.5in;height:10.98in;overflow:hidden;background:var(--ink)}
+body{font-family:Montserrat,Helvetica,Arial,sans-serif;color:var(--parch);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{position:relative;width:8.5in;height:10.98in;overflow:hidden;padding:.55in .6in .45in;
+  background:
+    radial-gradient(ellipse 60% 45% at 100% 0%, rgba(193,173,114,.22), transparent 70%),
+    radial-gradient(ellipse 70% 50% at 0% 100%, rgba(74,92,62,.55), transparent 70%),
+    repeating-linear-gradient(135deg, rgba(193,173,114,.035) 0 1px, transparent 1px 22px),
+    linear-gradient(180deg,#1d1d1c 0%,#141414 100%)}
+.topbar{position:absolute;left:0;top:0;right:0;height:6px;background:linear-gradient(90deg,var(--olive),var(--gold) 55%,#e3d3a1)}
+.mark{position:absolute;right:-.9in;top:1.55in;width:5.2in;opacity:.055;pointer-events:none}
+.head{display:flex;justify-content:space-between;align-items:center}
+.head img{height:.62in;width:auto;margin-left:-.12in}
+.tag{font-size:8.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:700;text-align:right;line-height:1.7}
+.hero{margin-top:.42in}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:13px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+h1{font-weight:900;font-size:78px;line-height:.95;letter-spacing:-.01em;margin-top:8px;text-transform:uppercase}
+h1 span{color:var(--gold)}
+.lead{margin-top:14px;font-size:13.5px;line-height:1.6;color:#d9d3c8;max-width:5.4in}
+.rule{width:1.1in;height:2px;background:var(--gold);margin:.26in 0 .22in}
+.steps{display:grid;gap:12px}
+.step{display:grid;grid-template-columns:.78in 1fr auto;align-items:center;gap:14px;
+  background:linear-gradient(90deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+  border:1px solid var(--gold-dim);border-radius:14px;padding:15px 18px 15px 14px}
+.n{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:40px;color:var(--gold);text-align:center;line-height:1}
+.step h2{font-size:15px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff}
+.step p{font-size:11px;line-height:1.5;color:var(--soft);margin-top:4px}
+.url{display:block;font-size:9.5px;color:var(--gold);margin-top:6px;word-break:break-all;font-weight:600;text-decoration:none}
+.btn{display:inline-block;white-space:nowrap;background:var(--gold);color:var(--ink);font-weight:800;font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;padding:10px 14px;border-radius:9px;text-decoration:none}
+.btn.pending{background:transparent;color:var(--gold);border:1px dashed var(--gold-dim);font-weight:600;text-transform:none;letter-spacing:0;white-space:normal;max-width:1.35in;text-align:center;line-height:1.35}
+.next{margin-top:.3in}
+.next h3{font-family:Cinzel,Georgia,serif;font-size:12px;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.line{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px;position:relative}
+.line:before{content:"";position:absolute;left:6px;right:6px;top:6px;height:1px;background:var(--gold-dim)}
+.pt{position:relative;padding-top:20px}
+.pt:before{content:"";position:absolute;left:0;top:0;width:13px;height:13px;border-radius:50%;background:var(--ink);border:2px solid var(--gold)}
+.pt b{display:block;font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff}
+.pt span{display:block;font-size:10px;line-height:1.5;color:var(--soft);margin-top:4px}
+.guar{margin-top:.3in;display:flex;align-items:center;gap:16px;border-top:1px solid var(--gold-dim);border-bottom:1px solid var(--gold-dim);padding:14px 2px}
+.guar img{height:.52in;width:auto}
+.guar b{font-family:Cinzel,Georgia,serif;font-size:15px;color:var(--gold);font-weight:700;letter-spacing:.04em}
+.guar p{font-size:11px;color:#d9d3c8;margin-top:3px;line-height:1.5}
+.foot{position:absolute;left:.6in;right:.6in;bottom:.38in;display:flex;justify-content:space-between;font-size:9px;color:#8f8a80;letter-spacing:.02em}
+.foot a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar"></div>
+  <img class="mark" src="../shield-gold.png" alt="">
+
+  <div class="head">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <div class="tag">Complete<br>Nutrition System</div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">Welcome in</div>
+    <h1>You're <span>in.</span></h1>
+    <p class="lead">Your system is being built from the answers you gave me. Here are your three next steps, in order. They take about five minutes, and every link is printed here so you never lose them.</p>
+  </div>
+  <div class="rule"></div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="n">01</div>
+      <div><h2>Book your setup call</h2><p>Thirty minutes, just you and me. We walk through your numbers, your meals and your restaurant orders.</p><span class="url" data-url="setupCallUrl"></span></div>
+      <a class="btn" data-link="setupCallUrl">Book my call</a>
+    </div>
+    <div class="step">
+      <div class="n">02</div>
+      <div><h2>Open your dashboard</h2><p>Sign in with the email you used at checkout. Your full system unlocks within 2 business days.</p><span class="url" data-url="dashboardUrl"></span></div>
+      <a class="btn" data-link="dashboardUrl">Open dashboard</a>
+    </div>
+    <div class="step">
+      <div class="n">03</div>
+      <div><h2>Join the community, free</h2><p>Your seat in the Legacy Performance Project on Skool. The Wednesday call, the courses, and your people.</p><span class="url" data-url="skoolUrl"></span></div>
+      <a class="btn" data-link="skoolUrl">Join free</a>
+    </div>
+  </div>
+
+  <div class="next">
+    <h3>What happens from here</h3>
+    <div class="line">
+      <div class="pt"><b>Today</b><span>Your answers are with me. Nothing else to fill out.</span></div>
+      <div class="pt"><b>Within 2 business days</b><span>Your numbers, phase, a week of meals, restaurant orders and swap guide.</span></div>
+      <div class="pt"><b>Setup call</b><span>How to swap, eat out, plan a week with a dinner out, and handle a stall.</span></div>
+      <div class="pt"><b>Every week</b><span>A quick trend check-in, so the plan keeps up with you.</span></div>
+    </div>
+  </div>
+
+  <div class="guar">
+    <img src="../shield-gold.png" alt="">
+    <div><b>Backed by a 30-day guarantee</b><p>Run the system for 30 days. If it is not working for you, I will rebuild it with you or refund you.</p></div>
+  </div>
+
+  <div class="foot">
+    <span>Questions? Reply to your welcome email or write <a href="mailto:jayme.gtkfitness@gmail.com">jayme.gtkfitness@gmail.com</a></span>
+    <span>Paid before finishing your questions? <a href="https://dashboard.legacyperformance.co/build/">Finish them here</a></span>
+  </div>
+</div>
+
+<script src="links.js"></script>
+<script>
+document.querySelectorAll('[data-link]').forEach(function(a){
+  var u = YI_LINKS[a.dataset.link];
+  if (u) a.href = u;
+  else { a.classList.add('pending'); a.textContent = 'Link in your welcome email'; a.removeAttribute('href'); }
+});
+document.querySelectorAll('[data-url]').forEach(function(s){
+  var u = YI_LINKS[s.dataset.url];
+  s.textContent = u ? u.replace(/^https?:\/\//,'') : '';
+});
+</script>
+</body>
+</html>
