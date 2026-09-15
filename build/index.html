@@ -437,6 +437,150 @@ input.bad{border-color:var(--warm-red,#b5543c)!important;box-shadow:0 0 0 3px rg
 
 .klarna-note{margin:2px 0 0;text-align:center;font-size:.9rem;color:#6a675f;line-height:1.5}
 .klarna-note strong{color:var(--charcoal)}
+
+/* ═════════════════════════════════════════════════════════════════════════════════════════════
+   LEGACY DARK (2026-09-14). The house design: dashboard-studio references/legacy-dark-design.md.
+   Everything above is the original light build; this block re-skins it. Keep new styles in the
+   dark language: charcoal ground, green fade, lightly green tiles, gold for actions and numbers.
+   ═════════════════════════════════════════════════════════════════════════════════════════════ */
+:root{
+  --ink:#F2EDE4; --paper:#1a1a1a; --muted:#bdb7ac; --body:#d9d3c8; --soft:#bdb7ac;
+  --line:rgba(242,237,228,.12); --olive-dim:rgba(143,169,122,.22); --gold-dim:rgba(193,173,114,.28);
+  --tile:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));
+  --card:var(--tile); --shadow:none; --field:rgba(0,0,0,.26);
+}
+html{background:#1a1a1a}
+body{background:transparent;color:var(--ink);position:relative}
+/* The background is its own fixed layer so it holds still on iPhone too. */
+body::before{content:"";position:fixed;inset:0;z-index:-2;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+body::after{content:"";position:fixed;right:-170px;top:130px;width:560px;height:650px;z-index:-1;pointer-events:none;
+  background:url(../shield-white-gold.png) no-repeat center/contain;opacity:.05}
+@media(max-width:640px){body::after{width:380px;height:440px;right:-150px;top:110px}}
+p{color:inherit}
+h1,h2,h3,.disp{font-family:Montserrat,-apple-system,sans-serif;color:#fff}
+h2{font-weight:900;text-transform:uppercase;letter-spacing:-.005em;line-height:1.08}
+h3{font-weight:800;letter-spacing:.005em}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-weight:600;letter-spacing:.3em;color:var(--gold)}
+.muted,.help,.btn-note{color:var(--muted)}
+.rule{height:3px;width:110px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt))}
+
+/* header + top bar */
+.topbar{background:linear-gradient(90deg,#4A5C3E 0%,#8FA97A 45%,#C1AD72 85%,#e3d3a1);height:calc(env(safe-area-inset-top) + 4px)}
+header.brand{background:rgba(22,22,22,.82);border-bottom:1px solid var(--olive-dim)}
+header.brand img{height:44px}
+header.brand .fallback b{color:#fff}
+.progress{background:linear-gradient(90deg,var(--olive-lt),var(--gold))}
+
+/* hero */
+.hero{background:transparent;padding:58px 0 48px}
+.hero h1{font-weight:900;text-transform:uppercase;letter-spacing:-.01em;line-height:1.02;font-size:clamp(2rem,6vw,3.2rem)}
+.hero .hl{background:none;color:var(--gold);padding:0}
+.cred{background:rgba(255,255,255,.04);border:1px solid var(--olive-dim)}
+.cred-n{color:var(--gold);font-weight:800}
+.cred-d{color:var(--soft)}
+.cta-side{color:var(--soft)} .cta-side strong{color:#fff}
+.trustrow .chip{background:rgba(255,255,255,.04);border-color:var(--olive-dim);color:var(--soft)}
+
+/* buttons: gold is the action */
+.btn{background:var(--gold);color:#161616;font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.92rem;
+  box-shadow:none}
+.btn:hover{box-shadow:0 8px 22px rgba(193,173,114,.25)}
+.btn:disabled{background:rgba(242,237,228,.14);color:rgba(242,237,228,.45)}
+.btn.gold{color:#161616;box-shadow:none}
+.btn.ghost,.dark .btn.ghost{background:transparent;color:var(--gold);border:1.5px solid var(--gold-dim)}
+.btn.ghost:hover{background:var(--gold);color:#161616}
+
+/* dark bands become quiet bands on the dark page */
+.dark{background:rgba(0,0,0,.22);border-top:1px solid var(--olive-dim);border-bottom:1px solid var(--olive-dim)}
+.dark .muted,.dark .btn-note{color:var(--soft)}
+
+/* steps = tiles */
+.step{background:var(--tile);border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);box-shadow:none}
+.step h3{color:#fff}
+.step .num{color:var(--gold);border-color:var(--gold-dim)}
+.step.dark{background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(0,0,0,.28));border-color:var(--olive-dim);border-left-color:var(--gold)}
+
+/* choices */
+.opt,.ack,.yn button{background:rgba(255,255,255,.03);border-color:rgba(242,237,228,.13);color:var(--ink)}
+.opt:hover,.pill:hover{border-color:var(--olive-lt)}
+.opt.on,.ack.checked{border-color:var(--olive-lt);background:rgba(84,106,70,.30);box-shadow:inset 0 0 0 1px var(--olive-lt)}
+.opt .dot,.ack .bx{border-color:rgba(242,237,228,.35)}
+.opt.on .dot{border-color:var(--olive-lt)} .opt.on .dot:after{background:var(--olive-lt)}
+.ack.checked .bx{background:var(--olive-lt);border-color:var(--olive-lt)}
+.ack.checked .bx:after{border-color:#161616}
+.opt .d{color:var(--soft)}
+.yn button.on{background:var(--olive);border-color:var(--olive-lt);color:#fff}
+.pill{background:rgba(255,255,255,.04);border-color:rgba(242,237,228,.14);color:var(--ink)}
+.pill.on{background:var(--olive);border-color:var(--olive-lt);color:#fff}
+.grouplbl,.starnote{color:var(--soft)}
+
+/* fields */
+.f label{color:var(--soft)}
+.f input,.f select,.f textarea{background:var(--field);border-color:rgba(242,237,228,.16);color:var(--ink);color-scheme:dark}
+.f input::placeholder,.f textarea::placeholder{color:rgba(242,237,228,.38)}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--olive-lt)}
+.f select option{background:#1e1e1e;color:#F2EDE4}
+.medq{border-color:var(--line)} .medq .why{color:var(--soft)}
+.warn{background:rgba(166,67,47,.16);color:var(--ink)}
+.warn.ok{background:rgba(84,106,70,.24)}
+
+/* live panels, notes, read */
+.panel,.constraint,.coachnote,.bio-facts,.gn,.proof-me{background:rgba(0,0,0,.30);border:1px solid var(--olive-dim)}
+.constraint{border-top:3px solid var(--gold)}
+.coachnote,.proof-me{border-left:4px solid var(--gold)}
+.note{background:rgba(193,173,114,.08);color:var(--body)}
+.note strong{color:var(--gold)}
+.quote{color:#fff}
+.lever{border-color:var(--line)} .lever p{color:var(--soft)}
+.lever .n{background:var(--gold);color:#161616}
+
+/* sample deck */
+.meal{background:var(--tile);border:1px solid var(--olive-dim)}
+.meal .mt{color:#fff} .meal ul{color:var(--body)}
+.meal .mm{color:var(--soft);border-color:var(--line)} .meal .mm b{color:var(--olive-lt)}
+.slot-h .mn{color:#fff} .slot-t{color:var(--soft)}
+.swapbox{background:var(--tile);border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt)}
+.swap-eyebrow{color:var(--olive-lt)} .swap-order{color:var(--ink)} .swap-macros{color:var(--gold)} .swap-note{color:var(--soft)}
+.mirror .chip{background:rgba(255,255,255,.05);border-color:var(--olive-dim);color:var(--ink)}
+.mirror .chip i{color:var(--olive-lt)}
+.goodnews{background:var(--tile);border-color:var(--olive-dim)}
+
+/* the lock */
+.lockwrap.locked::after{background:linear-gradient(to bottom,rgba(26,26,26,0),#1a1a1a)}
+.lockmsg .card{background:linear-gradient(90deg,rgba(84,106,70,.28),rgba(22,22,22,.96));border:1px solid var(--gold-dim);box-shadow:0 10px 34px rgba(0,0,0,.5)}
+
+/* proof + bio */
+.proof,.bio{background:transparent;border-top:1px solid var(--olive-dim)}
+.proof h2,.bio h2{color:#fff}
+.proof-lede{color:var(--body)}
+.pcard{background:var(--tile);border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt)}
+.ptag{color:var(--olive-lt);background:rgba(143,169,122,.12)}
+.pres{color:var(--gold);font-weight:800} .pnote{color:var(--soft)}
+.bio-main p{color:var(--body)}
+.bio-main .quote{color:#fff}
+.bio-close{color:#fff!important;border-color:var(--line)}
+
+/* projection slider */
+#speed-range{background:linear-gradient(90deg,var(--olive-lt) 0%,var(--olive-lt) var(--fill,0%),rgba(242,237,228,.14) var(--fill,0%))}
+#speed-range::-webkit-slider-thumb{border-color:#1a1a1a}
+#speed-range::-moz-range-thumb{border-color:#1a1a1a}
+.speed-ticks{color:var(--soft)} .speed-read{color:var(--ink)}
+
+/* price + faq + footer */
+.price-card{background:linear-gradient(160deg,rgba(84,106,70,.28),rgba(0,0,0,.30));border:1px solid var(--gold-dim);box-shadow:0 12px 40px rgba(0,0,0,.35)}
+.price-big{color:var(--gold)}
+.price-anchor,.price-sub{color:var(--soft)}
+.incl div{color:var(--body)} .incl strong{color:#fff}
+.incl .ck{background:var(--olive-lt)} .incl .ck:after{border-color:#161616}
+.klarna-note{color:var(--soft)} .klarna-note strong{color:#fff}
+.faq details{border-color:var(--line)} .faq summary{color:#fff} .faq details p{color:var(--soft)}
+footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
+@media(max-width:640px){.cred{border-radius:16px;justify-content:center}}
 </style>
 </head>
 <body>
@@ -445,7 +589,7 @@ input.bad{border-color:var(--warm-red,#b5543c)!important;box-shadow:0 0 0 3px rg
 <div class="progress" id="prog"></div>
 
 <header class="brand">
-  <img src="../logo.png" alt="Legacy Performance" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'">
+  <img src="../logo-white-gold.png" alt="Legacy Performance" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'">
   <span class="fallback"><b>LEGACY</b> <i>PERFORMANCE</i></span>
 </header>
 
