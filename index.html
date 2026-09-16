@@ -797,7 +797,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — same file the client dashboard uses. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
-<script src="nutrition-engine.js?v=16"></script>
+<script src="nutrition-engine.js?v=17"></script>
 <script>
 /* ============================ SAMPLE DATA (demo mode) ============================ */
 /* Mirrors your real Weekly Check-In columns so the layout matches live data exactly. */
@@ -3041,6 +3041,7 @@ function cnsbTile(d, email){ return cnsBuilderTile(d, email); }
 function cnsBuilderTile(d, email){
   var intk=(d.intake&&d.intake.length)?d.intake[d.intake.length-1]:null;
   var cnsI=(d.cnsintake&&d.cnsintake.length)?d.cnsintake[d.cnsintake.length-1]:null;
+  window.__cnsIntakeRow=cnsI;
   var trk=intk?(intk['Track']||''):''; if(trk==='Long') trk='Sustain';
   var splt=function(v){ return String(v||'').split(',').map(function(s){return s.trim();}).filter(Boolean); };
   var preP=cnsI?splt(cnsI['Proteins']):null, preC=cnsI?splt(cnsI['Carbs']):null, preF=cnsI?splt(cnsI['Fats']):null, preV=cnsI?splt(cnsI['Veg']):null;
@@ -3064,6 +3065,7 @@ function cnsBuilderTile(d, email){
     +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:6px">'
       + '<button class="btn" type="button" onclick="cnsbPreview()" style="background:var(--surface-2);border:1px solid var(--line);color:var(--ink);padding:9px 16px;border-radius:8px">Preview plan</button>'
       + '<button class="btn" type="button" onclick="cnsbPush(\''+esc(email)+'\')" style="background:var(--gold);border:1px solid var(--gold);color:var(--accent-ink,#1C1C1C);padding:9px 16px;border-radius:8px;font-weight:700">Build &amp; push to their dashboard</button>'
+      + '<button class="btn" type="button" onclick="cnsbSystem()" style="background:var(--surface-2);border:1px solid var(--gold);color:var(--gold);padding:9px 16px;border-radius:8px;font-weight:700">Open full system + PDF</button>'
     +'</div><div id="cnsb_status" style="font-size:12.5px;margin-top:6px"></div><div id="cnsb_preview" style="margin-top:12px"></div>'
   +'</div>';
   return '<div class="tile" style="margin-bottom:12px"><div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap"><div class="nav-h" style="padding:0">Build their nutrition system</div>'
@@ -3079,6 +3081,21 @@ function cnsbMaint(){ var s=cnsbStats(); if(!s.weight||!s.height||!s.age){cnsbHi
 function cnsbSel(id){ var el=document.getElementById(id); return el?Array.from(el.querySelectorAll('.cns-on')).map(function(b){return b.textContent.trim();}):[]; }
 function cnsbBuildPlan(){ var s=cnsbStats(), cal=+cnsbV('cnsb_cal'), pro=+cnsbV('cnsb_pro'); if(!cal||!pro)return null; var it={pfs:macrosFrom(cal,pro,s.sex)}; var sel={protein:cnsbSel('cnsb_fprot'),carb:cnsbSel('cnsb_fcarb'),fat:cnsbSel('cnsb_ffat'),veg:cnsbSel('cnsb_fveg')}; return {it:it, sel:sel, stats:s, plan:generateMealPlan(it, sel, 3, window.__journeyName||'')}; }
 function cnsbPreview(){ var b=cnsbBuildPlan(), box=document.getElementById('cnsb_preview'); if(!b){box.innerHTML='<div class="tool-d">Set calories + protein first.</div>';return;} var p=b.it.pfs; var meals=b.plan.days[0].meals.map(function(m){return '<div style="margin:5px 0"><b>'+esc(m.name)+'</b> <span style="color:var(--muted)">'+m.cal+' cal · '+m.protein+'g P</span><div style="font-size:12.5px;color:var(--ink-soft)">'+m.items.map(esc).join(' · ')+'</div></div>';}).join(''); box.innerHTML='<div class="tile" style="background:var(--surface-2)"><b style="color:var(--gold)">'+p.calories+' cal · '+p.protein+'g P · '+p.carbs+'g C · '+p.fat+'g F</b><div style="font-size:11px;color:var(--muted);margin:4px 0 6px">Day 1 preview · same targets every day, swappable</div>'+meals+'</div>'; }
+/* The full member document: meals, shopping lists, prep guides, swaps, restaurant orders. Download it as
+   the PDF you send with her first plan. Uses the same inputs as the builder above. */
+function cnsbSystem(){
+  var s=cnsbStats(), cal=+cnsbV('cnsb_cal'), pro=+cnsbV('cnsb_pro');
+  var st=document.getElementById('cnsb_status');
+  if(!cal||!pro){ st.textContent="Set calories + protein first."; st.style.color="var(--stall-tx)"; return; }
+  var m=macrosFrom(cal,pro,s.sex), c=window.__cnsIntakeRow||null;
+  var list=function(v){ return String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
+  var inp={name:(window.__journeyName||''), cal:m.calories, pro:m.protein, carbG:m.carbs, fatG:m.fat,
+    phase:(s.track==='Long'?'Sustain':(s.track||'Lean')), freq:(c&&(c['Meals']||c['Frequency']))||'3', shake:30,
+    style:(c&&(c['Eating style']||c['EatingStyle']))||'', allergies:list(c&&(c['Allergen keys']||c['AllergenKeys'])),
+    protein:cnsbSel('cnsb_fprot'), carb:cnsbSel('cnsb_fcarb'), fat:cnsbSel('cnsb_ffat'), veg:cnsbSel('cnsb_fveg'),
+    restaurants:list(c&&c['Restaurants']).map(function(r){ return ({"Panera":"Panera Bread","Outback":"Outback Steakhouse","Tropical Smoothie":"Tropical Smoothie Cafe","Moe's":"Moe's Southwest Grill","Sonic":"Sonic Drive-In","In-N-Out":"In-N-Out Burger"})[r]||r; })};
+  window.open(systemLink(inp,'system/'),'_blank');
+}
 async function cnsbPush(email){
   var b=cnsbBuildPlan(), st=document.getElementById('cnsb_status');
   if(!b){ st.textContent="Set calories + protein first."; st.style.color="var(--stall-tx)"; return; }

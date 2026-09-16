@@ -1050,7 +1050,7 @@ select.input{appearance:none}
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — ONE source, also used by the Command Center. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
-<script src="nutrition-engine.js?v=16"></script>
+<script src="nutrition-engine.js?v=17"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3660,6 +3660,19 @@ function ffBuild(){
   g("ffResult").innerHTML=head+opts
     +'<p class="wiz-hint" style="margin-top:6px"><b>How to order:</b> '+esc(r.rules.join(' '))+'</p>';
 }
+/* Her whole Complete Nutrition System as one document she can rebuild and download any time:
+   meals, shopping lists, prep guides, swap guide and restaurant orders (system/index.html). */
+function openMySystem(){
+  var it=M.intake||{}, p=it.pfs||{}, f=loadFoods(), c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
+  var list=function(v){ return Array.isArray(v)?v:String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
+  var alias={"Panera":"Panera Bread","Outback":"Outback Steakhouse","Tropical Smoothie":"Tropical Smoothie Cafe","Moe's":"Moe's Southwest Grill","Sonic":"Sonic Drive-In","In-N-Out":"In-N-Out Burger"};
+  var inp={name:(ID&&ID.name)||'', cal:Math.round(p.calories||0), pro:Math.round(p.protein||0), carbG:Math.round(p.carbs||0), fatG:Math.round(p.fat||0),
+    phase:(it.track==='Long'?'Sustain':(it.track||'Lean')), freq:it.meals||it.frequency||'3', shake:it.shakeGrams||30,
+    style:c['Eating style']||'', allergies:list(c['Allergen keys']),
+    protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
+    restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
+  window.open(systemLink(inp,'system/'),'_blank');
+}
 function renderMealPlan(){
   var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
   if(!hasCNS()){ card.style.display="none"; return; }
@@ -3670,7 +3683,7 @@ function renderMealPlan(){
     var note=done ? "Your setup is in ✓ "+esc(CONFIG.coachName)+" is building your plan — or build your own right now from your favorites."
                   : "Your Complete Nutrition System is ready. Tell "+esc(CONFIG.coachName)+" your favorites in setup, or build a plan yourself right now.";
     box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">'+note+'</div>'
-      +'<div class="actions no-print" style="margin-top:10px"><button class="btn btn-primary" onclick="showMealBuilder()">🍳 Build my meal plan</button>'
+      +'<div class="actions no-print" style="margin-top:10px"><button class="btn btn-primary" onclick="showMealBuilder()">🍳 Build my meal plan</button> <button class="btn btn-ghost" onclick="openMySystem()">⬇ My full system (PDF)</button>'
       +(done?'':' <button class="btn btn-ghost" onclick="showCnsSetup()">Do the full setup</button>')+'</div>';
     return;
   }
@@ -3679,7 +3692,7 @@ function renderMealPlan(){
   box.innerHTML=(mp.note?'<p class="wiz-hint" style="margin:0 0 10px">'+esc(mp.note)+'</p>':'')
     +'<div class="mp-days">'+chips+'</div>'
     +'<div id="mpDayBox">'+mpDayHTML(mp.days[MP_DAY])+'</div>'
-    +'<div class="actions no-print"><button class="btn btn-primary" onclick="window.print()">⬇ Save my meal plan (PDF)</button> <button class="btn btn-ghost" onclick="showMealBuilder()">🍳 Edit my foods & regenerate</button></div>';
+    +'<div class="actions no-print"><button class="btn btn-primary" onclick="openMySystem()">⬇ My full system (PDF)</button> <button class="btn btn-ghost" onclick="showMealBuilder()">🍳 Edit my foods & regenerate</button></div>';
 }
 /* ---- Swap guide (CNS). Trade any food for another and land on the same numbers. Math lives in the
    shared engine: foodSwaps() matches the anchor macro, swapChart() lists one meal's worth of each. ---- */

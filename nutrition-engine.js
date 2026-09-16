@@ -399,7 +399,7 @@ function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen, capScal
   var cs=(capScale && capScale>1) ? capScale : 1;
   /* The empty return MUST carry zeroed macros. Callers sum .kcal/.p/.c/.f, and an early return
      without them made a meal total NaN whenever its carbs already covered its protein. */
-  if(!cands.length || targetG<=0) return {items:[], hit:0, short:0, kcal:0, p:0, c:0, f:0};
+  if(!cands.length || targetG<=0) return {items:[], parts:[], hit:0, short:0, kcal:0, p:0, c:0, f:0};
   var fit=cands.filter(function(f){ return f.slot==='any' || f.slot===slot; });
   if(!fit.length) fit=cands;                                   // they only picked off-slot foods; honour their picks
   /* POWER FOOD SYSTEM RULE: build the plan on TIER 1. Step out to tier 2, then 3, only when
@@ -490,14 +490,15 @@ function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen, capScal
     var wide=fillMacro(cands, targetG, slot, seed, curTier+1, starred, chosen, capScale);
     if(Math.abs(targetG - wide.hit) < Math.abs(targetG - covered)) return wide;
   }
-  var items=[], tot={kcal:0,p:0,c:0,f:0};
+  var items=[], parts=[], tot={kcal:0,p:0,c:0,f:0};
   picks.forEach(function(pk){
     var m=macrosOf(pk.f, pk.u);
     tot.kcal+=m.kcal; tot.p+=m.p; tot.c+=m.c; tot.f+=m.f;
     items.push(fmtQty(pk.f, null, pk.u));
+    parts.push({n:pk.f.n, units:m.units, u:pk.f.u||'', whole:!!pk.f.whole});   // structured, for shopping + prep
   });
   /* `short` lets a caller say "your food list cannot reach this target" instead of hiding it. */
-  return {items:items, hit:Math.round(covered), short:Math.max(0, Math.round(targetG-covered)),
+  return {items:items, parts:parts, hit:Math.round(covered), short:Math.max(0, Math.round(targetG-covered)),
           kcal:Math.round(tot.kcal), p:Math.round(tot.p), c:Math.round(tot.c), f:Math.round(tot.f)};
 }
 
@@ -638,10 +639,14 @@ function buildOption(P, C, F, V, target, slot, seed, vegIndex, tierMax, star, ch
   }
   rPro=best.rPro; rCarb=best.rCarb; rFat=best.rFat;
   var items=rPro.items.concat(rCarb.items, rFat.items);
-  if(V && V.length) items.push((slot==='am'?'a handful of ':'a big handful of ')+V[vegIndex%V.length]);
+  var parts=(rPro.parts||[]).concat(rCarb.parts||[], rFat.parts||[]);
+  if(V && V.length){
+    items.push((slot==='am'?'a handful of ':'a big handful of ')+V[vegIndex%V.length]);
+    parts.push({n:V[vegIndex%V.length], veg:true, cups:(slot==='am'?1:1.5)});
+  }
   /* Calories are now SUMMED FROM REAL PER-FOOD VALUES, not inferred as 4/4/9 from the anchor
      macros. Protein foods carry fat, carb foods carry protein, and that is now counted. */
-  return {items:items,
+  return {items:items, parts:parts,
           cal:rPro.kcal+rCarb.kcal+rFat.kcal,
           protein:rPro.p+rCarb.p+rFat.p,
           carbs:rPro.c+rCarb.c+rFat.c,
@@ -672,7 +677,7 @@ function generateCompanions(sel, count, name){
     var items=rPro.items.concat(extra.items);
     var carbs=(kind===0)?extra.hit:0, fat=(kind===1)?extra.hit:0;
     out.push({name:(kind===2?'Protein booster':'Snack')+' '+(i+1),
-              items:items, cal:rPro.kcal+(extra.kcal||0),
+              items:items, parts:(rPro.parts||[]).concat(extra.parts||[]), cal:rPro.kcal+(extra.kcal||0),
               protein:rPro.p+(extra.p||0), carbs:rPro.c+(extra.c||0), fat:rPro.f+(extra.f||0)});
   }
   return out;
@@ -738,7 +743,7 @@ function generateMealOptions(it, sel, name){
   });
 
   if(S.shake) slots.push({name:'Protein shake', target:{protein:S.shake.protein},
-    options:[{items:[S.shake.protein+'g protein shake'], cal:S.shake.calories,
+    options:[{items:[S.shake.protein+'g protein shake'], parts:[{n:'protein shake', shake:true, grams:S.shake.protein}], cal:S.shake.calories,
               protein:S.shake.protein, carbs:0, fat:0}]});
 
   var nm=name?(String(name).split(' ')[0]+"'s"):'Your';
@@ -1070,4 +1075,191 @@ function swapChart(perMeal, opts){
     carb:{grams:Math.round(pm.carbs||0), items:col('carb', pm.carbs||30)},
     fat:{grams:SWAP_FAT_SERVING, items:col('fat', SWAP_FAT_SERVING)}
   };
+}
+
+/* ===== SHOPPING LIST + MEAL PREP GUIDE =====
+   Built from the member's own meal deck. The rhythm is batch cooking, three days at a time:
+     Batch A = Option 1 of every meal for days 1-3
+     Batch B = Option 2 for days 4-6
+     Day 7   = Option 3 (or a free meal)
+   Three days because cooked food keeps 3-4 days in the fridge (USDA FSIS leftovers guidance).
+   Meal portions are COOKED amounts; the list converts to what you actually buy. Safe internal
+   temperatures follow USDA FSIS. Every conversion here is a buying estimate, and says so. */
+var PREP_DAYS=3;
+var PLAN_ROTATION=[{label:'Batch A', days:'Days 1 to 3', option:0, count:3},
+                   {label:'Batch B', days:'Days 4 to 6', option:1, count:3},
+                   {label:'Day 7',   days:'Day 7',       option:2, count:1}];
+/* sec = shopping section. buy(total, unitsLabel) turns the COOKED total into a store amount.
+   cook = how to batch it. temp = USDA FSIS safe minimum internal temperature where one applies. */
+var SHOP_INFO=(function(){
+  var lb=function(oz){ return Math.max(0.25, Math.ceil(oz/16*4)/4); };
+  var rawMeat=function(cookedOz){ return 'about '+lb(cookedOz/0.75)+' lb raw'; };   // meat and fish lose about 25% cooking
+  var n=function(x){ return Math.ceil(x); };
+  return {
+    'chicken breast':   {sec:'Meat and fish', buy:rawMeat, cook:'Season and bake at 425°F for 20 to 25 minutes.', temp:'165°F'},
+    'turkey breast':    {sec:'Meat and fish', buy:rawMeat, cook:'Roast at 375°F, or buy it roasted and slice it.', temp:'165°F'},
+    '93% ground turkey':{sec:'Meat and fish', buy:rawMeat, cook:'Brown in a skillet, breaking it up as it cooks.', temp:'165°F'},
+    'white fish (cod or tilapia)':{sec:'Meat and fish', buy:rawMeat, cook:'Bake at 400°F for 12 to 15 minutes.', temp:'145°F'},
+    'canned tuna':      {sec:'Meat and fish', buy:function(oz){ return n(oz/4)+' cans (5 oz)'; }, cook:'No cooking. Drain and portion.'},
+    'shrimp':           {sec:'Meat and fish', buy:rawMeat, cook:'Sauté 2 to 3 minutes per side until pink and opaque.', temp:'145°F'},
+    'salmon':           {sec:'Meat and fish', buy:rawMeat, cook:'Bake at 400°F for 12 to 15 minutes.', temp:'145°F'},
+    'sirloin steak':    {sec:'Meat and fish', buy:rawMeat, cook:'Sear or grill, then rest 3 minutes before slicing.', temp:'145°F'},
+    '93% ground beef':  {sec:'Meat and fish', buy:rawMeat, cook:'Brown in a skillet and drain.', temp:'160°F'},
+    'chicken thighs':   {sec:'Meat and fish', buy:rawMeat, cook:'Bake at 425°F for 25 to 30 minutes.', temp:'165°F'},
+    'pork tenderloin':  {sec:'Meat and fish', buy:rawMeat, cook:'Roast at 425°F for 20 to 25 minutes, rest 3 minutes.', temp:'145°F'},
+    'ribeye':           {sec:'Meat and fish', buy:rawMeat, cook:'Sear or grill, then rest 3 minutes.', temp:'145°F'},
+    '80/20 ground beef':{sec:'Meat and fish', buy:rawMeat, cook:'Brown in a skillet and drain.', temp:'160°F'},
+    'egg whites':       {sec:'Eggs and dairy', buy:function(c){ return n(c/13)+' carton'+(n(c/13)>1?'s':'')+' (16 oz)'; }, cook:'Bake as egg-white bites at 350°F for 20 minutes, or cook fresh.', temp:'160°F'},
+    'whole eggs':       {sec:'Eggs and dairy', buy:function(c){ return n(c/12)+' dozen'; }, cook:'Hard-boil a batch (12 minutes), or cook fresh.', temp:'160°F'},
+    'nonfat Greek yogurt':{sec:'Eggs and dairy', buy:function(c){ return n(c/4)+' tub'+(n(c/4)>1?'s':'')+' (32 oz)'; }, cook:'No cooking. Portion into containers.'},
+    'low-fat cottage cheese':{sec:'Eggs and dairy', buy:function(c){ return n(c/3)+' tub'+(n(c/3)>1?'s':'')+' (24 oz)'; }, cook:'No cooking. Portion into containers.'},
+    'cheese':           {sec:'Eggs and dairy', buy:function(oz){ return n(oz/8)+' block (8 oz)'; }, cook:'Slice or shred and portion.'},
+    'butter':           {sec:'Eggs and dairy', buy:function(){ return 'from your pantry'; }},
+    'extra-firm tofu':  {sec:'Plant protein', buy:function(oz){ return n(oz/14)+' block'+(n(oz/14)>1?'s':'')+' (14 oz)'; }, cook:'Press, cube and bake at 400°F for 25 minutes.'},
+    'tempeh':           {sec:'Plant protein', buy:function(oz){ return n(oz/8)+' package'+(n(oz/8)>1?'s':'')+' (8 oz)'; }, cook:'Slice and pan-sear 4 minutes per side.'},
+    'seitan':           {sec:'Plant protein', buy:function(oz){ return n(oz/8)+' package'+(n(oz/8)>1?'s':'')+' (8 oz)'; }, cook:'Slice and sear until browned.'},
+    'edamame':          {sec:'Plant protein', buy:function(c){ return n(c/2.5)+' frozen bag'+(n(c/2.5)>1?'s':'')+' (12 oz)'; }, cook:'Steam from frozen for 5 minutes.'},
+    'whey protein powder':{sec:'Protein powder', buy:function(sc){ return sc+(sc===1?' scoop':' scoops')+' (check your tub)'; }},
+    'plant protein powder':{sec:'Protein powder', buy:function(sc){ return sc+(sc===1?' serving':' servings')+' (check your tub)'; }},
+    'protein shake':    {sec:'Protein powder', buy:function(x){ return x+(x===1?' shake':' shakes'); }},
+    'potatoes':         {sec:'Carbs and grains', buy:function(c){ return 'about '+lb(c*5.6)+' lb'; }, cook:'Cube and roast at 425°F for 30 to 35 minutes.'},
+    'sweet potato':     {sec:'Carbs and grains', buy:function(c){ return 'about '+lb(c*8.5)+' lb'; }, cook:'Cube and roast at 425°F for 35 to 40 minutes.'},
+    'oats':             {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c*4)/4+' cups dry'; }, cook:'Make overnight oats in jars, one per breakfast.'},
+    'lentils':          {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c/2.5*4)/4+' cups dry'; }, cook:'Simmer 20 to 25 minutes until tender.'},
+    'black beans':      {sec:'Carbs and grains', buy:function(c){ return n(c/1.5)+' can'+(n(c/1.5)>1?'s':'')+' (15 oz)'; }, cook:'Rinse and drain.'},
+    'chickpeas':        {sec:'Carbs and grains', buy:function(c){ return n(c/1.5)+' can'+(n(c/1.5)>1?'s':'')+' (15 oz)'; }, cook:'Rinse and drain, or roast at 400°F for 25 minutes.'},
+    'green peas':       {sec:'Carbs and grains', buy:function(c){ return n(c/2.5)+' frozen bag'+(n(c/2.5)>1?'s':'')+' (12 oz)'; }, cook:'Steam from frozen for 4 minutes.'},
+    'corn':             {sec:'Carbs and grains', buy:function(c){ return n(c/2.5)+' frozen bag'+(n(c/2.5)>1?'s':'')+' (12 oz)'; }, cook:'Steam from frozen for 4 minutes.'},
+    'butternut squash': {sec:'Carbs and grains', buy:function(c){ return n(c/4)+' medium squash'; }, cook:'Cube and roast at 400°F for 30 minutes.'},
+    'white rice':       {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c/3*4)/4+' cups dry'; }, cook:'1 cup dry rice to 2 cups water. Simmer covered 18 minutes.'},
+    'brown rice':       {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c/3*4)/4+' cups dry'; }, cook:'1 cup dry rice to 2.5 cups water. Simmer covered 45 minutes.'},
+    'quinoa':           {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c/3*4)/4+' cups dry'; }, cook:'Rinse. 1 cup dry to 2 cups water. Simmer 15 minutes.'},
+    'whole-wheat pasta':{sec:'Carbs and grains', buy:function(c){ return Math.ceil(c*2)+' oz dry'; }, cook:'Boil 9 to 11 minutes, drain, toss with a little olive oil.'},
+    'white pasta':      {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c*2)+' oz dry'; }, cook:'Boil 9 to 11 minutes, drain, toss with a little olive oil.'},
+    'sourdough':        {sec:'Carbs and grains', buy:function(x){ return x+' slices (about '+n(x/16)+' loaf)'; }},
+    'corn tortilla':    {sec:'Carbs and grains', buy:function(x){ return x+(x===1?' tortilla':' tortillas'); }},
+    'bagel':            {sec:'Carbs and grains', buy:function(x){ return x+(x===1?' bagel':' bagels'); }},
+    'berries':          {sec:'Fruit', buy:function(c){ return n(c/2)+' pint'+(n(c/2)>1?'s':'')+' (or frozen)'; }, cook:'Wash and portion.'},
+    'banana':           {sec:'Fruit', buy:function(x){ return x+(x===1?' banana':' bananas'); }},
+    'apple':            {sec:'Fruit', buy:function(x){ return x+(x===1?' apple':' apples'); }},
+    'avocado':          {sec:'Fats, nuts and extras', buy:function(x){ return n(x)+(n(x)===1?' avocado':' avocados'); }, cook:'Cut fresh each day so it stays green.'},
+    'olive oil':        {sec:'Fats, nuts and extras', buy:function(){ return 'from your pantry'; }}
+  };
+})();
+var VEG_SOLD={cucumber:{oz:8,each:'cucumbers'}, tomatoes:{oz:5,each:'tomatoes'}, peppers:{oz:6,each:'bell peppers'}};
+var VEG_RAW={spinach:1,'salad greens':1,cucumber:1,tomatoes:1,cabbage:1};   // eaten raw, just wash and chop
+
+function shopRound(x, u){
+  if(u==='oz') return Math.ceil(x*2)/2;
+  if(u==='tbsp') return Math.ceil(x);
+  if(!u) return Math.ceil(x*4)/4;
+  return Math.ceil(x*4)/4;
+}
+/* Everything eaten in one batch: option index `option` of every meal, for `days` days, plus
+   one snack a day. Returns {totals:{name:{qty,u,whole,veg,cups}}, meals:[{slot, items, parts}]} */
+function batchTotals(deck, option, days, withSnack){
+  var totals={}, meals=[];
+  (deck.slots||[]).forEach(function(sl){
+    if(!sl.options||!sl.options.length) return;
+    var o=sl.options[Math.min(option, sl.options.length-1)];
+    meals.push({slot:sl.name, items:o.items, parts:o.parts||[], cal:o.cal, protein:o.protein});
+    (o.parts||[]).forEach(function(pt){ addPart(totals, pt, days); });
+  });
+  if(withSnack && deck.companions && deck.companions.length){
+    var c=deck.companions[option % deck.companions.length];
+    meals.push({slot:'Snack', items:c.items, parts:c.parts||[], cal:c.cal, protein:c.protein});
+    (c.parts||[]).forEach(function(pt){ addPart(totals, pt, days); });
+  }
+  return {totals:totals, meals:meals};
+}
+function addPart(totals, pt, days){
+  var k=pt.n, t=totals[k]||(totals[k]={qty:0, u:pt.u||'', whole:!!pt.whole, veg:!!pt.veg, shake:!!pt.shake});
+  if(pt.veg) t.qty+=(pt.cups||1)*days;
+  else if(pt.shake) t.qty+=days;
+  else t.qty+=(pt.units||0)*days;
+}
+function shopAmount(name, t){
+  var info=SHOP_INFO[name]||{};
+  if(t.shake) return Math.ceil(t.qty)+(Math.ceil(t.qty)===1?' shake':' shakes');
+  if(t.whole || !t.u){
+    var q=t.whole ? Math.ceil(t.qty) : Math.ceil(t.qty*4)/4;
+    if(t.u) return q+' '+pluralUnit(t.u,q);
+    return (t.whole ? q : 'about '+Math.ceil(t.qty))+(name==='avocado'?(Math.ceil(t.qty)===1?' avocado':' avocados'):'');
+  }
+  var v=shopRound(t.qty, t.u);
+  if(t.u==='oz') return v+' oz'+(info.sec==='Meat and fish'?' cooked':'');
+  return v+' '+pluralUnit(t.u, v);
+}
+var NO_COOK=/^(No cooking|Wash and portion|Cut fresh|Slice or shred|Rinse and drain\.$)/;
+/* deck = generateMealOptions() output. opts.option = which batch (0 A, 1 B, 2 day 7); opts.days. */
+function shoppingList(deck, opts){
+  opts=opts||{};
+  var option=opts.option||0, days=opts.days||PREP_DAYS;
+  var bt=batchTotals(deck, option, days, opts.snack!==false);
+  var order=['Meat and fish','Plant protein','Eggs and dairy','Protein powder','Carbs and grains','Fruit','Vegetables','Fats, nuts and extras'];
+  var secs={};
+  Object.keys(bt.totals).forEach(function(name){
+    var t=bt.totals[name], info=SHOP_INFO[name]||{}, sec, need, buy='';
+    if(t.veg){
+      sec='Vegetables';
+      var oz=t.qty*3;                                          // about 3 oz of chopped vegetables per cup
+      need=Math.ceil(t.qty)+' cups';
+      buy=VEG_SOLD[name] ? Math.ceil(oz/VEG_SOLD[name].oz)+' '+VEG_SOLD[name].each : 'about '+Math.max(0.5, Math.ceil(oz/16*2)/2)+' lb (fresh or frozen)';
+    } else {
+      sec=info.sec||'Fats, nuts and extras';
+      var q=(t.whole||t.shake) ? Math.ceil(t.qty) : shopRound(t.qty, t.u);
+      need=shopAmount(name, t);
+      buy=info.buy ? info.buy(q) : (t.u==='tbsp' ? 'one jar or bag covers it' : '');
+    }
+    (secs[sec]=secs[sec]||[]).push({name:name, need:String(need), buy:buy});
+  });
+  var r=PLAN_ROTATION[Math.min(option, PLAN_ROTATION.length-1)];
+  return {label:r.label, days:days, option:option,
+    sections:order.filter(function(s){ return secs[s]; }).map(function(s){
+      return {name:s, items:secs[s].sort(function(a,b){ return a.name<b.name?-1:1; })}; }),
+    note:'Meal amounts are cooked portions. The buying amounts are estimates, rounded up so you never come up short.'};
+}
+/* A prep session for one batch: what to cook, how, safe temperatures, then how to pack it. */
+function prepGuide(deck, opts){
+  opts=opts||{};
+  var option=opts.option||0, days=opts.days||PREP_DAYS;
+  var bt=batchTotals(deck, option, days, opts.snack!==false);
+  var cookLines=[], noCook=[], vegRoast=[], vegRaw=[];
+  Object.keys(bt.totals).forEach(function(name){
+    var t=bt.totals[name], info=SHOP_INFO[name]||{};
+    if(t.veg){ (VEG_RAW[name]?vegRaw:vegRoast).push(name); return; }
+    if(t.shake){ noCook.push('Protein shakes: mix fresh each day.'); return; }
+    var amt=shopAmount(name, t);
+    if(!info.cook){ noCook.push(name+', '+amt+'.'); return; }
+    if(NO_COOK.test(info.cook)){ noCook.push(name+', '+amt+'. '+info.cook.replace(/^No cooking\.\s*/,'')); return; }
+    cookLines.push({name:name, amount:amt, how:info.cook, temp:info.temp||''});
+  });
+  var protein=cookLines.filter(function(l){ return /Meat and fish|Plant protein|Eggs and dairy/.test((SHOP_INFO[l.name]||{}).sec||''); });
+  var carbs=cookLines.filter(function(l){ return protein.indexOf(l)<0; });
+  var steps=[];
+  if(protein.length) steps.push({title:'Cook your proteins', lines:protein.map(function(l){
+    return l.name+', '+l.amount+'. '+l.how+(l.temp?' Cook to '+l.temp+' inside.':''); })});
+  if(carbs.length) steps.push({title:'Cook your carbs', lines:carbs.map(function(l){ return l.name+', '+l.amount+'. '+l.how; })});
+  if(vegRoast.length) steps.push({title:'Roast your vegetables', lines:['Chop '+vegRoast.join(', ')+'. Toss with a teaspoon of olive oil and roast at 425°F for 20 to 25 minutes.']});
+  if(vegRaw.length) steps.push({title:'Wash and chop the fresh vegetables', lines:['Wash, dry and chop '+vegRaw.join(', ')+'. Store in a sealed container with a paper towel.']});
+  if(noCook.length) steps.push({title:'Portion the no-cook foods', lines:noCook});
+  var containers=bt.meals.filter(function(m){ return !/shake/i.test(m.slot); }).map(function(m){ return {slot:m.slot, count:days, items:m.items, cal:m.cal, protein:m.protein}; });
+  steps.push({title:'Pack your containers', lines:containers.map(function(c){
+    return c.count+' '+c.slot.toLowerCase()+' containers: '+c.items.join(', ')+'.'; })});
+  var r=PLAN_ROTATION[Math.min(option, PLAN_ROTATION.length-1)];
+  return {label:r.label, days:days, option:option, steps:steps, containers:containers,
+    storage:['Get cooked food into the fridge within 2 hours.',
+             'Eat it within 3 to 4 days. That is why every batch covers 3 days.',
+             'Want to cook once for longer? Freeze the day 3 containers and move them to the fridge the night before.'],
+    source:'Cooking temperatures and storage times follow USDA Food Safety and Inspection Service guidance.'};
+}
+
+/* ===== LINK TO THE SYSTEM DOCUMENT =====
+   system/index.html builds the full member document (meals, shopping lists, prep guides, swaps,
+   restaurant orders) and saves it as a PDF. Callers pass the member's inputs and open the link.
+   inp = {name, cal, pro, carbG, fatG, phase, freq, shake, style, allergies[], protein[], carb[], fat[], veg[], restaurants[]} */
+function systemLink(inp, base){
+  var json=JSON.stringify(inp||{});
+  var b64=(typeof btoa==='function') ? btoa(unescape(encodeURIComponent(json))) : '';
+  return (base||'system/')+'#d='+encodeURIComponent(b64);
 }
