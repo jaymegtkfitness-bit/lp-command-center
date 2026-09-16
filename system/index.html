@@ -79,7 +79,7 @@ details.builder[open]>summary:after{content:" \2013"}
 .sheet-foot{margin-top:22px;padding-top:12px;border-top:1px solid var(--line);display:flex;justify-content:space-between;gap:10px;font-size:.72rem;color:#8f8a80}
 .cover{min-height:640px;display:flex;flex-direction:column}
 .cover .mark{position:absolute;right:-110px;top:60px;width:430px;opacity:.06;pointer-events:none}
-.cover img.logo{height:54px;align-self:flex-start}
+.cover img.logo{width:34%;min-width:180px;height:auto;align-self:flex-start}
 .cover h1{font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);line-height:.98;margin:46px 0 12px}
 .cover .who{font-size:1.05rem;color:var(--body)}
 .nums{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:34px}
@@ -102,6 +102,7 @@ td b{color:#fff}
 .slot-h span{font-size:.76rem;color:var(--soft)}
 .opts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .opt{padding:14px 14px 12px;break-inside:avoid}
+.opt .mname{margin:4px 0 0;font:800 .86rem/1.25 Montserrat,sans-serif;color:#fff;text-transform:none;letter-spacing:0}
 .opt .on{font-size:.64rem;letter-spacing:.15em;text-transform:uppercase;font-weight:800;color:var(--gold)}
 .opt ul{margin:8px 0 10px 16px;font-size:.84rem;color:var(--body)}
 .opt li{margin-bottom:2px}
@@ -152,13 +153,15 @@ td b{color:#fff}
   .doc{padding:0;gap:0;display:block}
   .sheet{border:0;border-radius:0;background:transparent;padding:.45in .55in .4in;break-after:page;min-height:11in}
   .sheet h2{font-size:22px;margin:4px 0 8px}
-  .sheet .intro{margin-bottom:10px}
-  .slot{margin-top:10px}
+  .sheet .intro{margin-bottom:6px}
+  .slot{margin-top:8px}
   .slot-h{margin-bottom:6px;padding-bottom:4px}
-  .opt{padding:9px 10px 8px}
-  .opt ul{margin:5px 0 6px 14px;font-size:10.5px}
+  .opt{padding:7px 10px 6px}
+  .opt .mname{font-size:11px;margin-top:2px}
+  .opt ul{margin:3px 0 4px 14px;font-size:10px}
   .opt li{margin-bottom:0}
-  .macros{font-size:8.5px;padding-top:5px}
+  .macros{font-size:7.5px;padding-top:4px;gap:2px 7px;letter-spacing:.03em}
+  .opts{gap:8px}
   .step{padding:9px 12px}
   .step li{font-size:10.5px;margin-bottom:3px}
   .steps{gap:8px}
@@ -167,6 +170,7 @@ td b{color:#fff}
   .shopitem{padding:4px 0}
   .sheet-foot{margin-top:12px}
   .cover .mark{width:360px}
+  .cover img.logo{width:3.1in;min-width:0}
   .sheet:last-child{break-after:auto}
   .cover{min-height:11in}
   .opts{grid-template-columns:repeat(3,1fr)}
@@ -226,7 +230,7 @@ td b{color:#fff}
 </div>
 
 <script src="../restaurant-data.js?v=1"></script>
-<script src="../nutrition-engine.js?v=17"></script>
+<script src="../nutrition-engine.js?v=18"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -308,7 +312,7 @@ function build(){
   /* 3. meals */
   var slotsHTML = deck.slots.map(function(sl){
     var opts = sl.options.map(function(o, i){
-      return '<div class="tile opt"><span class="on">Option ' + (i+1) + '</span><ul>' + o.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(o) + '</div>';
+      return '<div class="tile opt"><span class="on">Option ' + (i+1) + '</span>' + (o.name ? '<h4 class="mname">' + esc(o.name) + '</h4>' : '') + '<ul>' + o.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(o) + '</div>';
     }).join('');
     return '<div class="slot"><div class="slot-h"><h3>' + esc(sl.name) + '</h3><span>every option ≈ ' + (sl.target.protein||0) + 'g protein</span></div><div class="opts">' + opts + '</div></div>';
   }).join('');

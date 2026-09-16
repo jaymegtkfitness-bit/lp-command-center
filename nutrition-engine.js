@@ -313,6 +313,108 @@ var FOOD_DB={
        "cauliflower","mushrooms","cucumber","tomatoes","cabbage","brussels sprouts","carrots"]
 };
 
+
+/* ===== NAMED MEALS (LP's own) =====
+   Method borrowed from how the best recipe products work (Exceed OS analysis, 2026-09-01): obvious
+   meals beat clever ones, low effort and batch-friendly, repetition is a feature. The RECIPES are
+   ours, not theirs: each is a meal shape built only from sourced FOOD_DB foods, portioned to the
+   member's numbers by the same fill logic as every other option. A template is used only when her
+   food list and eating style can actually make it. */
+var MEAL_NICE={'chicken breast':'Chicken','turkey breast':'Turkey','93% ground turkey':'Ground Turkey',
+  'white fish (cod or tilapia)':'White Fish','canned tuna':'Tuna','shrimp':'Shrimp','egg whites':'Egg White',
+  'nonfat Greek yogurt':'Greek Yogurt','low-fat cottage cheese':'Cottage Cheese','whey protein powder':'Protein',
+  'plant protein powder':'Plant Protein','salmon':'Salmon','sirloin steak':'Steak','93% ground beef':'Lean Beef',
+  'chicken thighs':'Chicken Thigh','pork tenderloin':'Pork Tenderloin','whole eggs':'Egg','extra-firm tofu':'Tofu',
+  'tempeh':'Tempeh','seitan':'Seitan','edamame':'Edamame','ribeye':'Ribeye','80/20 ground beef':'Beef',
+  'potatoes':'Potatoes','sweet potato':'Sweet Potato','oats':'Oats','lentils':'Lentil','black beans':'Black Bean',
+  'chickpeas':'Chickpea','green peas':'Pea','butternut squash':'Squash','berries':'Berry','banana':'Banana',
+  'apple':'Apple','corn':'Corn','white rice':'Rice','brown rice':'Brown Rice','quinoa':'Quinoa','sourdough':'Toast',
+  'whole-wheat pasta':'Pasta','white pasta':'Pasta','corn tortilla':'Taco','bagel':'Bagel',
+  'broccoli':'Broccoli','spinach':'Spinach','peppers':'Peppers','zucchini':'Zucchini','green beans':'Green Beans',
+  'asparagus':'Asparagus','salad greens':'Greens','cauliflower':'Cauliflower','mushrooms':'Mushrooms',
+  'cucumber':'Cucumber','tomatoes':'Tomatoes','cabbage':'Cabbage','brussels sprouts':'Brussels Sprouts','carrots':'Carrots'};
+function mealNice(n){ return MEAL_NICE[n] || (n ? n.charAt(0).toUpperCase()+n.slice(1) : ''); }
+var MEAL_TEMPLATES=[
+  /* breakfast */
+  {id:'parfait', slot:'am', veg:false, protein:['nonfat Greek yogurt','whey protein powder'], carb:['berries','banana','apple'],
+   fat:['walnuts','almonds','chia seeds','hemp seeds','pumpkin seeds','ground flaxseed','almond butter','peanut butter'], minUnits:{'nonfat Greek yogurt':1},
+   name:function(r){ return 'Greek Yogurt '+(r.fruit?mealNice(r.fruit)+' ':'')+'Parfait'; }, lead:['nonfat Greek yogurt'], boost:['whey protein powder'], carbs:2},
+  {id:'scramble', slot:'am', veg:true, lead:['whole eggs','egg whites'], boost:['egg whites','turkey breast'], protein:['whole eggs','egg whites','turkey breast'], carb:['sourdough','potatoes','sweet potato','bagel'],
+   vegs:['spinach','peppers','onions','tomatoes','mushrooms','zucchini','asparagus'], fat:['avocado','cheese','butter'], name:function(r){ return (r.p==='egg whites'?'Egg White':'Egg')+' Scramble with '+mealNice(r.v||'spinach')+(r.c?' and '+mealNice(r.c):''); }},
+  {id:'oats', slot:'am', veg:false, protein:['whey protein powder','plant protein powder','nonfat Greek yogurt','egg whites'], carb:['oats','berries','banana'],
+   fat:['peanut butter','almond butter','chia seeds','walnuts','hemp seeds'], name:function(r){ return 'Protein Oats'+(r.fruit?' with '+(r.fruit==='berries'?'Berries':mealNice(r.fruit)):''); }, needs:['oats'], carbs:2, minUnits:{'oats':0.5}},
+  {id:'cottage', slot:'am', veg:false, protein:['low-fat cottage cheese'], carb:['berries','apple','banana'],
+   fat:['almonds','walnuts','pumpkin seeds','chia seeds'], name:function(r){ return 'Cottage Cheese and '+mealNice(r.fruit||r.c||'berries')+' Bowl'; }, boost:['nonfat Greek yogurt'], carbs:2},
+  {id:'btacos', slot:'am', veg:true, protein:['whole eggs','egg whites','93% ground turkey'], carb:['corn tortilla','potatoes'],
+   fat:['avocado','cheese'], vegs:['peppers','spinach','onions','tomatoes'], name:function(){ return 'Breakfast Tacos'; }, lead:['whole eggs','egg whites'], boost:['egg whites'], needs:['corn tortilla']},
+  {id:'smoothie', slot:'am', veg:false, protein:['whey protein powder','plant protein powder','nonfat Greek yogurt'], carb:['banana','berries','oats'],
+   fat:['almond butter','peanut butter','chia seeds','hemp seeds','ground flaxseed'], name:function(r){ return mealNice(r.fruit||'berries')+' Protein Smoothie'; }, lead:['whey protein powder','plant protein powder'], boost:['nonfat Greek yogurt'], carbs:2, needsAny:['banana','berries']},
+  {id:'tofuscramble', slot:'am', veg:true, protein:['extra-firm tofu'], carb:['potatoes','sourdough','sweet potato'],
+   fat:['avocado','hemp seeds'], name:function(r){ return 'Tofu Scramble with '+mealNice(r.c||'potatoes'); }},
+  /* lunch and dinner */
+  {id:'bowl', slot:'pm', veg:true, protein:['chicken breast','chicken thighs','93% ground turkey','sirloin steak','salmon','shrimp','pork tenderloin','extra-firm tofu','tempeh','seitan'],
+   carb:['white rice','brown rice','quinoa'], fat:['avocado','olive oil','tahini'],
+   name:function(r){ return mealNice(r.p)+', '+mealNice(r.c)+' and '+mealNice(r.v||'broccoli')+' Bowl'; }},
+  {id:'sheetpan', slot:'pm', veg:true, protein:['salmon','white fish (cod or tilapia)','sirloin steak','chicken breast','pork tenderloin','chicken thighs','turkey breast','ribeye'],
+   carb:['potatoes','sweet potato','butternut squash'], fat:['olive oil','butter'],
+   name:function(r){ return mealNice(r.p)+' with Roasted '+mealNice(r.c)+' and '+mealNice(r.v||'green beans'); }},
+  {id:'tacos', slot:'pm', veg:true, protein:['93% ground turkey','93% ground beef','chicken breast','shrimp','white fish (cod or tilapia)','80/20 ground beef'],
+   carb:['corn tortilla','black beans'], fat:['avocado','cheese'], name:function(r){ return mealNice(r.p)+' Tacos'; }, needs:['corn tortilla'], carbs:2},
+  {id:'burrito', slot:'pm', veg:true, protein:['chicken breast','93% ground beef','93% ground turkey','sirloin steak','extra-firm tofu'],
+   carb:['white rice','brown rice','black beans'], fat:['avocado','cheese'], vegs:['peppers','onions','salad greens','tomatoes'], carbs:1, name:function(r){ return mealNice(r.p)+' Burrito Bowl'; }},
+  {id:'pasta', slot:'pm', veg:true, protein:['93% ground beef','93% ground turkey','chicken breast','shrimp'],
+   carb:['whole-wheat pasta','white pasta'], fat:['olive oil','cheese'], name:function(r){ return mealNice(r.p)+' Pasta with '+mealNice(r.v||'spinach'); }},
+  {id:'stirfry', slot:'pm', veg:true, protein:['chicken breast','shrimp','sirloin steak','pork tenderloin','extra-firm tofu','tempeh','edamame'],
+   carb:['white rice','brown rice','quinoa'], fat:['olive oil'], vegs:['broccoli','peppers','zucchini','green beans','asparagus','snap peas','mushrooms','onions'], name:function(r){ return mealNice(r.p)+' Stir-Fry'; }},
+  {id:'salad', slot:'pm', veg:true, protein:['chicken breast','salmon','canned tuna','shrimp','turkey breast','whole eggs','edamame'],
+   carb:['chickpeas','quinoa','sweet potato','sourdough'], fat:['avocado','olives','olive oil','walnuts','cheese','hummus'],
+   vegs:['salad greens','spinach','peppers','tomatoes','cucumber'], name:function(r){ return mealNice(r.p)+' Power Salad'; }},
+  {id:'sandwich', slot:'pm', veg:true, protein:['turkey breast','canned tuna','chicken breast'], carb:['sourdough','bagel'],
+   fat:['avocado','hummus','cheese'], name:function(r){ return mealNice(r.p)+' and '+mealNice(r.f||'avocado')+' Sandwich'; }},
+  {id:'grainbowl', slot:'pm', veg:true, protein:['extra-firm tofu','tempeh','seitan','edamame'], carb:['lentils','chickpeas','quinoa','black beans'],
+   fat:['tahini','hummus','avocado'], name:function(r){ return mealNice(r.p)+' and '+mealNice(r.c)+' Bowl'; }}
+];
+MEAL_NICE['avocado']='Avocado'; MEAL_NICE['hummus']='Hummus'; MEAL_NICE['cheese']='Cheese';
+/* Order a template's foods: her starred foods first, then her picks, then the template's own order. */
+function tplPool(pool, names, picks, starred){
+  var inTpl=pool.filter(function(f){ return names.indexOf(f.n)>=0; });
+  var rank=function(f){ var st=(starred||[]).indexOf(f.n); if(st>=0) return st; return (picks&&picks.length&&picks.indexOf(f.n)>=0) ? 10 : 20+names.indexOf(f.n); };
+  return inTpl.sort(function(a,b){ return rank(a)-rank(b); });
+}
+function mealName(tpl, opt){
+  var ps=opt.parts||[], role=function(list){ return ps.filter(function(x){ return !x.veg && list.indexOf(x.n)>=0; }).map(function(x){ return x.n; }); };
+  var pr=role(tpl.protein), cr=role(tpl.carb), fr=role(tpl.fat||[]), vg=ps.filter(function(x){ return x.veg; })[0];
+  var fruit=cr.filter(function(n){ return /berries|banana|apple/.test(n); })[0];
+  try { return tpl.name({p:pr[0], c:cr[0], fruit:fruit, f:fr[0], v:vg&&vg.n}); } catch(e){ return ''; }
+}
+/* A plain, honest name for a meal that did not come from a template: lead protein, carb, vegetable. */
+function plainMealName(opt){
+  var ps=opt.parts||[], P=ps.filter(function(x){ return !x.veg && (FOOD_DB.protein||[]).some(function(f){ return f.n===x.n; }); }),
+      C=ps.filter(function(x){ return !x.veg && (FOOD_DB.carb||[]).some(function(f){ return f.n===x.n; }); }), V=ps.filter(function(x){ return x.veg; });
+  if(P[0] && /protein powder/.test(P[0].n)) return 'Protein Shake'+(C[0]?' with '+(C[0].n==='berries'?'Berries':mealNice(C[0].n)):'');
+  if(P[0] && /yogurt|cottage/.test(P[0].n)) return mealNice(P[0].n)+(C[0]?' and '+(C[0].n==='berries'?'Berry':mealNice(C[0].n)):'')+' Bowl';
+  if(P[0] && C.some(function(x){ return x.n==='oats'; })) return 'Oatmeal with '+mealNice(P[0].n)+' on the Side';
+  var bits=[P[0]&&mealNice(P[0].n), C[0]&&mealNice(C[0].n), V[0]&&mealNice(V[0].n)].filter(Boolean);
+  if(!bits.length) return '';
+  return bits.length===1 ? bits[0]+' Plate' : bits.slice(0,-1).join(', ')+' and '+bits[bits.length-1]+' Plate';
+}
+/* PROTEIN BOOSTERS: a short list of real, obvious snacks, each a fixed portion of sourced foods.
+   Filtered by eating style and allergies, her own foods first. (Replaces the generated companions,
+   which could produce "2.2 oz chicken" as a snack.) */
+var PROTEIN_BOOSTERS=[
+  {name:'Greek Yogurt and Berries', parts:[['nonfat Greek yogurt',1],['berries',0.5]]},
+  {name:'Turkey and Cheese Roll-Ups', parts:[['turkey breast',3],['cheese',1]]},
+  {name:'Protein Shake and a Banana', parts:[['whey protein powder',1],['banana',1]]},
+  {name:'Cottage Cheese and Fruit', parts:[['low-fat cottage cheese',0.75],['apple',1]]},
+  {name:'Three Hard-Boiled Eggs', parts:[['whole eggs',3]]},
+  {name:'Tuna and Hummus Cup', parts:[['canned tuna',4],['hummus',2]]},
+  {name:'Egg White Bites', parts:[['egg whites',6],['cheese',0.5]]},
+  {name:'Steamed Edamame', parts:[['edamame',1]]},
+  {name:'Plant Protein Shake and a Banana', parts:[['plant protein powder',1],['banana',1]]},
+  {name:'Baked Tofu Bites', parts:[['extra-firm tofu',5]]}
+];
+function foodByName(n){ var h=(typeof swapFind==='function')?swapFind(n):null; return h?h.food:null; }
+
 /* ===== EATING-STYLE + ALLERGY FILTERING =====
    style is a lowercase string like "vegan" / "vegetarian" / "pescatarian" / "no red meat".
    Vegetarian leans on DAIRY + EGGS. Vegan has to lean on tofu, tempeh, seitan, edamame and
@@ -367,6 +469,19 @@ function displayUnits(f, units){
   if(f.whole) return Math.max(1, Math.floor(units+0.25+1e-9));
   if(f.u==="oz") return Math.max(0.5, Math.floor(units*10+1e-9)/10);
   return Math.max(0.25, Math.floor(units*4+1e-9)/4);
+}
+/* The smallest portion that reads as real food. A meal never lists "0.5 oz chicken" or "0.25 tbsp
+   seeds": a fragment like that is rounding noise, not a portion anyone plates (Jayme, 2026-09-16). */
+function minPortion(f){
+  var u=f.u||'';
+  if(u==='oz') return (f.n==='cheese') ? 1 : 3;
+  if(u==='cup') return 0.5;
+  if(u==='cup dry') return 0.25;
+  if(u==='tbsp') return 1;
+  if(u==='scoop' || u==='serving' || u==='slice') return 1;
+  if(u==='tortilla') return 2;
+  if(f.whole) return /egg whites/.test(f.n) ? 3 : (/eggs/.test(f.n) ? 2 : 1);
+  return 0.25;                                                   // avocado and other part-of-a-whole foods
 }
 /* Real macros for a served portion. This is why calories stopped being an estimate. */
 function macrosOf(f, units){
@@ -471,6 +586,17 @@ function fillMacro(cands, targetG, slot, seed, tierMax, starred, chosen, capScal
     var du0=displayUnits(f0, Math.min(unitsFor(f0, targetG), (f0.max||99)*cs));
     picks.push({f:f0, u:du0}); covered=du0*f0.g;
   }
+  /* REAL PORTIONS ONLY. A second food below its minimum folds into the lead food when the lead has
+     room; otherwise it is raised to a real portion. A lead food below its minimum is raised too. */
+  for(var q=picks.length-1; q>=1; q--){
+    var sm=picks[q], mn=minPortion(sm.f);
+    if(sm.u >= mn-1e-9) continue;
+    var lead=picks[0], room=(lead.f.max||99)*cs - lead.u, add=sm.u*sm.f.g/lead.f.g;
+    if(add <= room+1e-9){ lead.u=displayUnits(lead.f, lead.u+add); picks.splice(q,1); }
+    else sm.u=mn;
+  }
+  if(picks[0].u < minPortion(picks[0].f)-1e-9) picks[0].u=minPortion(picks[0].f);
+  covered=picks.reduce(function(a,pk){ return a+pk.u*pk.f.g; }, 0);
   /* SHORT BY A WHOLE UNIT. When the only food left comes in whole units (a scoop, an egg), rounding
      can leave the target well short with nothing else to add: 1.7 scoops of protein became 1 and
      vegan breakfasts landed ~35% under. If one more unit lands closer to the target, add it. */
@@ -661,6 +787,21 @@ function buildOption(P, C, F, V, target, slot, seed, vegIndex, tierMax, star, ch
 var COMPANION_PROTEIN=20;        // grams, the useful size of a protein top-up
 function generateCompanions(sel, count, name){
   sel=sel||{};
+  var want=count||COMPANIONS_PER_PLAN, mine=[].concat(sel.protein||[], sel.carb||[], sel.fat||[]);
+  var boost=PROTEIN_BOOSTERS.map(function(b, idx){
+    var foods=b.parts.map(function(pt){ return {f:foodByName(pt[0]), u:pt[1]}; });
+    if(foods.some(function(x){ return !x.f || !allowsFood(x.f, sel.style, sel.allergies); })) return null;
+    var score=idx - 5*foods.filter(function(x){ return mine.indexOf(x.f.n)>=0; }).length;
+    return {b:b, foods:foods, score:score};
+  }).filter(Boolean).sort(function(a,b){ return a.score-b.score; }).slice(0, want);
+  if(boost.length >= Math.min(2, want)){
+    return boost.map(function(x){
+      var t={kcal:0,p:0,c:0,f:0}, items=[], parts=[];
+      x.foods.forEach(function(fd){ var m=macrosOf(fd.f, fd.u); t.kcal+=m.kcal; t.p+=m.p; t.c+=m.c; t.f+=m.f;
+        items.push(fmtQty(fd.f, null, fd.u)); parts.push({n:fd.f.n, units:m.units, u:fd.f.u||'', whole:!!fd.f.whole}); });
+      return {name:x.b.name, items:items, parts:parts, cal:Math.round(t.kcal), protein:Math.round(t.p), carbs:Math.round(t.c), fat:Math.round(t.f)};
+    });
+  }
   var P=safeFoods('protein', sel.style, sel.allergies),
       C=safeFoods('carb',    sel.style, sel.allergies),
       F=safeFoods('fat',     sel.style, sel.allergies);
@@ -726,6 +867,50 @@ function generateMealOptions(it, sel, name){
     var star=sel.starred||{};
     var chose={protein:sel.protein, carb:sel.carb, fat:sel.fat};
     var options=[], seen={};
+    /* NAMED MEALS FIRST. Every template her pools can actually make, ranked by how many of her own
+       (and starred) foods it uses, rotated per slot so lunch and dinner do not open on the same meal. */
+    var kind=slot, tplMine=[].concat(sel.protein||[], sel.carb||[], sel.fat||[]);
+    var starAll=[].concat(star.protein||[], star.carb||[], star.fat||[]);
+    var cands=MEAL_TEMPLATES.filter(function(t){ return t.slot===kind; }).map(function(t, ti){
+      var tp=tplPool(P, t.protein, sel.protein, star.protein), tc=tplPool(C, t.carb, sel.carb, star.carb), tf=tplPool(F, t.fat||[], sel.fat, star.fat);
+      if(t.lead) tp=tp.filter(function(f){ return t.lead.indexOf(f.n)>=0; }).concat(tp.filter(function(f){ return t.lead.indexOf(f.n)<0; }));
+      if(!tp.length || !tc.length) return null;
+      if(t.lead && t.lead.indexOf(tp[0].n)<0) return null;
+      if(t.needs && !t.needs.every(function(nd){ return tc.some(function(f){ return f.n===nd; }); })) return null;
+      var names=tp.concat(tc, tf).map(function(f){ return f.n; });
+      var hits=names.filter(function(nm2){ return tplMine.indexOf(nm2)>=0; }).length + 2*names.filter(function(nm2){ return starAll.indexOf(nm2)>=0; }).length;
+      return {t:t, tp:tp, tc:tc, tf:tf, score:-hits*10 + ((ti + k*2) % 7)};
+    }).filter(Boolean).sort(function(a,b){ return a.score-b.score; });
+    var tCalT=target.protein*4+target.carbs*4+target.fat*9;
+    var usedTpl={};
+    [[0.95,0.12,1],[0.95,0.12,2]].forEach(function(gate){ cands.forEach(function(cd, ci){
+      if(options.length>=n) return;
+      if((usedTpl[cd.t.id]||0)>=gate[2]) return;
+      var t=cd.t, leads=cd.tp.filter(function(f){ return !t.lead || t.lead.indexOf(f.n)>=0; });
+      for(var li=0; li<Math.min(3, leads.length) && options.length<n; li++){
+        var lead=leads[(li+ci) % leads.length];
+        var Pp=[lead].concat(cd.tp.filter(function(f){ return (t.boost||[]).indexOf(f.n)>=0 && f.n!==lead.n; }));
+        var need=(t.needs||[]).map(function(nd){ return cd.tc.filter(function(f){ return f.n===nd; })[0]; }).filter(Boolean);
+        var rest=cd.tc.filter(function(f){ return need.indexOf(f)<0; });
+        var Cp=need.concat(rest.slice((li+ci) % Math.max(1,rest.length)).concat(rest.slice(0,(li+ci) % Math.max(1,rest.length)))).slice(0, t.carbs||1);
+        if(!Cp.length) Cp=cd.tc.slice(0,1);
+        var Vt=t.veg ? (t.vegs ? V.filter(function(v){ return t.vegs.indexOf(typeof v==='string'?v:v.n)>=0; }) : V) : [];
+        if(t.veg && !Vt.length) Vt=V;
+        var opt=buildOption(Pp, Cp, cd.tf, Vt, target, slot, ci+li, k+ci+li, 3, star, chose);
+        var key=opt.items.join('|');
+        if(seen[key] || !opt.items.length) continue;
+        var got=(opt.parts||[]).map(function(x){ return x.n; });
+        if(t.needs && !t.needs.every(function(nd){ return got.indexOf(nd)>=0; })) continue;
+        if(t.lead && !t.lead.some(function(nd){ return got.indexOf(nd)>=0; })) continue;
+        if(t.needsAny && !t.needsAny.some(function(nd){ return got.indexOf(nd)>=0; })) continue;
+        if(t.minUnits && (opt.parts||[]).some(function(x){ return t.minUnits[x.n]!=null && x.units < t.minUnits[x.n]-1e-9; })) continue;
+        var leadPart=(opt.parts||[]).filter(function(x){ return x.n===lead.n; })[0];
+        if(!leadPart || (lead.p||0)*leadPart.units < opt.protein*0.55) continue;   // the named protein has to carry the meal
+        if(opt.protein < target.protein*gate[0] || Math.abs(opt.cal-tCalT) > tCalT*gate[1]) continue;   // a named meal that misses the numbers is not offered
+        seen[key]=1; opt.tier=1; opt.name=mealName(t, opt); options.push(opt); usedTpl[t.id]=(usedTpl[t.id]||0)+1;
+        break;                                                     // one version of each meal per pass
+      }
+    }); });
     /* Option 1 is pure Tier 1. If the tier-1 pool cannot yield three DIFFERENT meals, later
        options open to tier 2, then 3. That is not a compromise, it is the lesson: the leanest
        option first, then what it costs you to reach past it. */
@@ -734,7 +919,7 @@ function generateMealOptions(it, sel, name){
         var opt=buildOption(P,C,F,V,target,slot,seed,k+options.length,tier,star,chose);
         var key=opt.items.join('|');
         if(seen[key]) continue;
-        seen[key]=1; opt.tier=tier; options.push(opt);
+        seen[key]=1; opt.tier=tier; opt.name=plainMealName(opt); options.push(opt);
       }
     }
     /* If the food list genuinely cannot produce n DIFFERENT meals, return fewer rather than
