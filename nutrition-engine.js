@@ -1483,7 +1483,7 @@ function batchTotals(deck, option, days, withSnack){
 function addPart(totals, pt, days){
   var k=pt.n;
   if(totals[k] && !pt.veg && !pt.shake && (totals[k].u||'')!==(pt.u||'')){
-    var conv={'tsp>tbsp':1/3, 'tbsp>tsp':3, 'tbsp>oz':0.5, 'oz>tbsp':2, 'cup>oz':8, 'oz>cup':0.125};
+    var conv={'>oz':/cherry tomato/.test(pt.n)?0.6:0, 'tsp>tbsp':1/3, 'tbsp>tsp':3, 'tbsp>oz':0.5, 'oz>tbsp':2, 'cup>oz':8, 'oz>cup':0.125};
     var r=conv[(pt.u||'')+'>'+(totals[k].u||'')];
     if(r && !(pt.u==='cup' && /oil|milk/.test(pt.n))){ pt={n:pt.n, units:(pt.units||0)*r, u:totals[k].u, whole:pt.whole, sec:pt.sec, recipe:pt.recipe}; }
   }
@@ -1531,7 +1531,7 @@ function shoppingList(deck, opts){
     (secs[sec]=secs[sec]||[]).push({name:name, need:String(need), buy:buy});
   });
   var r=PLAN_ROTATION[Math.min(option, PLAN_ROTATION.length-1)];
-  return {label:r.label, days:days, option:option,
+  return {label:r.label, days:days, option:option, meals:bt.meals.map(function(m){ return {slot:m.slot, name:m.name||m.items.join(', ')}; }),
     sections:order.filter(function(s){ return secs[s]; }).map(function(s){
       return {name:s, items:secs[s].sort(function(a,b){ return a.name<b.name?-1:1; })}; }),
     note:'Meal amounts are cooked portions. The buying amounts are estimates, rounded up so you never come up short.'};
