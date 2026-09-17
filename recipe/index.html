@@ -74,7 +74,11 @@ function copyText(text, btn, label){
   function fallback(){ var t = document.getElementById('clip'); t.value = text; t.select(); t.setSelectionRange(0, text.length);
     var done = false; try{ done = document.execCommand('copy'); }catch(e){}
     if(done) ok(); else manual(); }
-  if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(text).then(ok, fallback); } else fallback();
+  var settled = false, finish = function(fn){ return function(){ if(settled) return; settled = true; fn(); }; };
+  if(navigator.clipboard && window.isSecureContext){
+    navigator.clipboard.writeText(text).then(finish(ok), finish(fallback));
+    setTimeout(finish(fallback), 1500);                              // a copy request that never answers
+  } else fallback();
 }
 var M = readMeal(), app = document.getElementById('app');
 if(!M){
