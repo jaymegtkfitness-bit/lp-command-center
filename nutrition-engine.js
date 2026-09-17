@@ -1644,6 +1644,21 @@ function prepGuide(deck, opts){
    system/index.html builds the full member document (meals, shopping lists, prep guides, swaps,
    restaurant orders) and saves it as a PDF. Callers pass the member's inputs and open the link.
    inp = {name, cal, pro, carbG, fatG, phase, freq, shake, style, allergies[], protein[], carb[], fat[], veg[], restaurants[]} */
+/* ===== TIME TO GOAL =====
+   Lean pace uses the same band as the /build trajectory: 0.35% to 0.48% of CURRENT bodyweight a
+   week (10 to 12% every 6 months, the rate the guarantee is written against). Weekly loss shrinks
+   as she gets lighter, so this counts week by week instead of dividing pounds by a flat rate. */
+function goalTimeline(weight, goalweight, phase){
+  var w=+weight, g=+goalweight; if(!(w>0 && g>0)) return null;
+  var ph=String(phase||'Lean');
+  var out={start:Math.round(w), goal:Math.round(g), change:Math.round(Math.abs(w-g)), phase:ph};
+  if(ph!=='Lean' || w<=g){ out.weeks=null; return out; }
+  var count=function(rate){ var x=w, n=0; while(x>g && n<260){ x-=x*rate; n++; } return n; };
+  out.weeks=count(0.00415); out.fastWeeks=count(0.0048); out.slowWeeks=count(0.0035);
+  out.firstWeekLb=Math.round(w*0.00415*10)/10;
+  return out;
+}
+
 /* ===== CRONOMETER =====
    Cronometer imports a recipe from a pasted ingredient list. These lines are plain text, one food per
    line, decimal amounts (no ½ characters, which importers can misread). mealLink() opens a small page

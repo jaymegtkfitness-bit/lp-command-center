@@ -83,6 +83,9 @@ details.builder[open]>summary:after{content:" \2013"}
 .cover h1{font-weight:900;font-size:clamp(2.2rem,6vw,3.6rem);line-height:.98;margin:46px 0 12px}
 .cover .who{font-size:1.05rem;color:var(--body)}
 .nums{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:34px}
+.nums.four{grid-template-columns:repeat(4,1fr);margin-top:10px}
+.eyebrow + .nums{margin-top:10px}
+.startnote{margin-top:10px;font-size:.86rem;color:var(--body);max-width:68ch}
 .num{padding:14px 12px}
 .num b{display:block;font-family:Cinzel,Georgia,serif;font-size:1.55rem;color:var(--gold);line-height:1.1}
 .num span{display:block;font-size:.64rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--soft);margin-top:5px}
@@ -187,6 +190,8 @@ td b{color:#fff}
   .principles{grid-template-columns:1fr 1fr}
   .swapgrid{grid-template-columns:repeat(3,1fr)}
   .nums{grid-template-columns:repeat(5,1fr)}
+  .nums.four{grid-template-columns:repeat(4,1fr)}
+  .startnote{font-size:10.5px}
   body{font-size:11.5px}
   .tile,.panel,.step,.opt,.shopsec,.rest{break-inside:avoid}
 }
@@ -213,6 +218,8 @@ td b{color:#fff}
       <div class="bld">
         <div class="grid4">
           <div class="f"><label for="in-name">First name</label><input id="in-name" type="text" autocomplete="off"></div>
+          <div class="f"><label for="in-weight">Starting weight (lb)</label><input id="in-weight" type="number" inputmode="numeric" min="80" max="600"></div>
+          <div class="f"><label for="in-goal">Goal weight (lb)</label><input id="in-goal" type="number" inputmode="numeric" min="80" max="600"></div>
           <div class="f"><label for="in-cal">Calories</label><input id="in-cal" type="number" inputmode="numeric" min="900" max="5000"></div>
           <div class="f"><label for="in-pro">Protein (g)</label><input id="in-pro" type="number" inputmode="numeric" min="40" max="350"></div>
           <div class="f"><label for="in-phase">Phase</label>
@@ -241,11 +248,11 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=3"></script>
-<script src="../nutrition-engine.js?v=23"></script>
+<script src="../nutrition-engine.js?v=24"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
-var EXAMPLE = {name:'Rachel', cal:1800, pro:150, carbG:160, fatG:60, phase:'Lean', freq:'3', shake:30, style:'', allergies:[],
+var EXAMPLE = {name:'Rachel', weight:180, goalweight:150, cal:1800, pro:150, carbG:160, fatG:60, phase:'Lean', freq:'3', shake:30, style:'', allergies:[],
   protein:['chicken breast','salmon','nonfat Greek yogurt','whole eggs'], carb:['white rice','oats','berries','sweet potato'],
   fat:['avocado','almonds'], veg:['broccoli','spinach','peppers'], restaurants:["Chick-fil-A","Chipotle","Panera Bread"], example:true};
 
@@ -266,6 +273,24 @@ if (IN.fatG == null && typeof IN.fat === 'number') { IN.fatG = IN.fat; IN.fat = 
 /* ======================= HELPERS ======================= */
 var $ = function(id){ return document.getElementById(id); };
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function startBlock(){
+  var tl = (typeof goalTimeline === 'function') ? goalTimeline(IN.weight, IN.goalweight, IN.phase || 'Lean') : null;
+  if (!tl) return '';
+  var lose = tl.start > tl.goal, who = IN.example || !IN.name ? 'you' : esc(IN.name);
+  var time = tl.weeks ? '<div class="tile num start"><b>' + tl.weeks + ' wks</b><span>Time to goal</span></div>' : '';
+  var note = tl.weeks
+    ? 'At a steady pace of about ' + tl.firstWeekLb + ' lb a week to start, ' + (IN.example || !IN.name ? 'you reach' : who + ' reaches') + ' ' + tl.goal + ' lb in about ' + tl.weeks + ' weeks (' + tl.fastWeeks + ' to ' + tl.slowWeeks + '). That pace, 10 to 12% of bodyweight every 6 months, keeps the weight you lose coming off fat, not muscle. Your check-ins keep it on track, with maintenance breaks built in along the way.'
+    : (IN.phase === 'Strong' ? 'This is a Strong phase: the goal is building muscle, so the scale is not the main measure.'
+      : IN.phase === 'Reverse Diet' ? 'This is a Reverse Diet: calories come up first, so the scale mostly holds while your metabolism recovers.'
+      : 'This is a Sustain phase: the goal is holding your weight steady while your habits settle in.');
+  return '<span class="eyebrow" style="margin-top:28px">Your starting point</span>' +
+    '<div class="nums four">' +
+      '<div class="tile num start"><b>' + tl.start + ' lb</b><span>Starting weight</span></div>' +
+      '<div class="tile num start"><b>' + tl.goal + ' lb</b><span>Goal weight</span></div>' +
+      '<div class="tile num start"><b>' + tl.change + ' lb</b><span>' + (lose ? 'To lose' : 'To gain') + '</span></div>' + time +
+    '</div><p class="startnote">' + note + '</p>' +
+    '<span class="eyebrow" style="margin-top:22px">Your daily numbers</span>';
+}
 function cronLink(o){ return (typeof mealLink === 'function') ? '<a class="cron" href="' + esc(mealLink(o)) + '" target="_blank" rel="noopener">Log it in Cronometer →</a>' : ''; }
 function cap(s){ s = String(s||''); return s.charAt(0).toUpperCase() + s.slice(1); }
 function fmtDate(){ return new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}); }
@@ -297,6 +322,7 @@ function build(){
     '<span class="eyebrow" style="margin-top:40px">' + esc(IN.phase || 'Lean') + ' phase</span>' +
     '<h1>' + esc(owner()) + '<br>Complete Nutrition <span class="gold">System</span></h1>' +
     '<p class="who">Built from your numbers and the food you actually eat. Yours for life.</p>' +
+    startBlock() +
     '<div class="nums">' +
       '<div class="tile num"><b>' + (+IN.cal).toLocaleString() + '</b><span>Calories a day</span></div>' +
       '<div class="tile num"><b>' + IN.pro + 'g</b><span>Protein floor</span></div>' +
@@ -415,6 +441,7 @@ function pills(el, list, key, labelFn){
   }).join('');
 }
 function fillBuilder(){
+  $('in-weight').value = IN.weight || ''; $('in-goal').value = IN.goalweight || '';
   $('in-name').value = IN.name || ''; $('in-cal').value = IN.cal || ''; $('in-pro').value = IN.pro || '';
   $('in-carb').value = IN.carbG || ''; $('in-fat').value = IN.fatG || ''; $('in-phase').value = IN.phase || 'Lean';
   $('in-freq').value = IN.freq || '3'; $('in-style').value = IN.style || '';
@@ -432,6 +459,7 @@ document.addEventListener('click', function(e){
   p.classList.toggle('on', i < 0); p.setAttribute('aria-pressed', String(i < 0));
 });
 $('btn-build').addEventListener('click', function(){
+  IN.weight = +$('in-weight').value || ''; IN.goalweight = +$('in-goal').value || '';
   IN.name = $('in-name').value.trim(); IN.cal = +$('in-cal').value; IN.pro = +$('in-pro').value;
   IN.carbG = +$('in-carb').value; IN.fatG = +$('in-fat').value; IN.phase = $('in-phase').value;
   IN.freq = $('in-freq').value; IN.style = $('in-style').value; IN.example = false;
