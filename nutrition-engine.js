@@ -1645,17 +1645,28 @@ function prepGuide(deck, opts){
    restaurant orders) and saves it as a PDF. Callers pass the member's inputs and open the link.
    inp = {name, cal, pro, carbG, fatG, phase, freq, shake, style, allergies[], protein[], carb[], fat[], veg[], restaurants[]} */
 /* ===== TIME TO GOAL =====
-   Lean pace uses the same band as the /build trajectory: 0.35% to 0.48% of CURRENT bodyweight a
-   week (10 to 12% every 6 months, the rate the guarantee is written against). Weekly loss shrinks
-   as she gets lighter, so this counts week by week instead of dividing pounds by a flat rate. */
+   Jayme's standard (2026-09-17): 1 lb a week is the baseline (about a 500 calorie daily deficit,
+   3,500 a week), 1.5 lb a week is the faster end, and no week is quoted above 1% of current
+   bodyweight, the usual line past which muscle starts going with the fat.
+   Levers use the same math as the /build intake: steps burn about 0.25 calories per lb of
+   bodyweight per 1,000 steps; lifting mostly changes WHAT comes off (about 92% fat with lifting
+   and a protein floor, about 74% without), not how fast the scale moves. */
+var GOAL_PACE={base:1, fast:1.5, maxPct:0.01};
+function weeksAt(w, g, lbPerWeek){
+  var x=w, n=0; while(x>g+0.01 && n<260){ x-=Math.min(lbPerWeek, x*GOAL_PACE.maxPct); n++; } return n;
+}
 function goalTimeline(weight, goalweight, phase){
   var w=+weight, g=+goalweight; if(!(w>0 && g>0)) return null;
   var ph=String(phase||'Lean');
   var out={start:Math.round(w), goal:Math.round(g), change:Math.round(Math.abs(w-g)), phase:ph};
   if(ph!=='Lean' || w<=g){ out.weeks=null; return out; }
-  var count=function(rate){ var x=w, n=0; while(x>g && n<260){ x-=x*rate; n++; } return n; };
-  out.weeks=count(0.00415); out.fastWeeks=count(0.0048); out.slowWeeks=count(0.0035);
-  out.firstWeekLb=Math.round(w*0.00415*10)/10;
+  out.weeks=weeksAt(w, g, GOAL_PACE.base);
+  out.fastWeeks=weeksAt(w, g, GOAL_PACE.fast);
+  out.basePace=Math.min(GOAL_PACE.base, Math.round(w*GOAL_PACE.maxPct*10)/10);
+  out.fastPace=Math.min(GOAL_PACE.fast, Math.round(w*GOAL_PACE.maxPct*10)/10);
+  var stepCal=Math.round(0.25*w*2);                              // +2,000 steps a day
+  out.steps={extra:2000, calories:stepCal, weeks:weeksAt(w, g, GOAL_PACE.base + stepCal*7/3500)};
+  out.lifting={fatShare:92, withoutShare:74};
   return out;
 }
 

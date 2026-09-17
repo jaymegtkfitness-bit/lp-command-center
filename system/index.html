@@ -86,6 +86,16 @@ details.builder[open]>summary:after{content:" \2013"}
 .nums.four{grid-template-columns:repeat(4,1fr);margin-top:10px}
 .eyebrow + .nums{margin-top:10px}
 .startnote{margin-top:10px;font-size:.86rem;color:var(--body);max-width:68ch}
+.levers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
+.lever{padding:10px 12px;border-radius:12px;border:1px solid var(--olive-dim);background:rgba(255,255,255,.03)}
+.lever b{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:3px}
+.lever p{font-size:.78rem;color:var(--body);line-height:1.45}
+.nextlinks{display:grid;gap:12px;margin-top:18px}
+.nextlink{display:grid;grid-template-columns:1fr auto;gap:14px;align-items:center;padding:14px 16px}
+.nextlink b{display:block;font-size:.95rem;margin-bottom:3px}
+.nextlink p{font-size:.84rem;color:var(--body)}
+.nextlink .url{display:block;font-size:.7rem;color:var(--soft);margin-top:4px;word-break:break-all}
+.gbtn{display:inline-block;padding:10px 14px;border-radius:10px;background:var(--gold);color:#161616;font-weight:800;font-size:.74rem;letter-spacing:.06em;text-transform:uppercase;text-decoration:none;white-space:nowrap}
 .num{padding:14px 12px}
 .num b{display:block;font-family:Cinzel,Georgia,serif;font-size:1.55rem;color:var(--gold);line-height:1.1}
 .num span{display:block;font-size:.64rem;font-weight:700;letter-spacing:.13em;text-transform:uppercase;color:var(--soft);margin-top:5px}
@@ -191,7 +201,10 @@ td b{color:#fff}
   .swapgrid{grid-template-columns:repeat(3,1fr)}
   .nums{grid-template-columns:repeat(5,1fr)}
   .nums.four{grid-template-columns:repeat(4,1fr)}
-  .startnote{font-size:10.5px}
+  .startnote{font-size:10px}
+  .lever p{font-size:9px} .lever b{font-size:9px} .lever{padding:7px 9px}
+  .levers{grid-template-columns:repeat(3,1fr)}
+  .nextlink{padding:10px 12px} .nextlink p{font-size:10px} .gbtn{font-size:9px;padding:8px 10px}
   body{font-size:11.5px}
   .tile,.panel,.step,.opt,.shopsec,.rest{break-inside:avoid}
 }
@@ -248,7 +261,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=3"></script>
-<script src="../nutrition-engine.js?v=24"></script>
+<script src="../nutrition-engine.js?v=25"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -276,20 +289,36 @@ function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c
 function startBlock(){
   var tl = (typeof goalTimeline === 'function') ? goalTimeline(IN.weight, IN.goalweight, IN.phase || 'Lean') : null;
   if (!tl) return '';
-  var lose = tl.start > tl.goal, who = IN.example || !IN.name ? 'you' : esc(IN.name);
+  var lose = tl.start > tl.goal;
   var time = tl.weeks ? '<div class="tile num start"><b>' + tl.weeks + ' wks</b><span>Time to goal</span></div>' : '';
   var note = tl.weeks
-    ? 'At a steady pace of about ' + tl.firstWeekLb + ' lb a week to start, ' + (IN.example || !IN.name ? 'you reach' : who + ' reaches') + ' ' + tl.goal + ' lb in about ' + tl.weeks + ' weeks (' + tl.fastWeeks + ' to ' + tl.slowWeeks + '). That pace, 10 to 12% of bodyweight every 6 months, keeps the weight you lose coming off fat, not muscle. Your check-ins keep it on track, with maintenance breaks built in along the way.'
+    ? 'Your plan is built for about ' + tl.basePace + ' lb a week, a daily deficit of about 500 calories. At that pace you reach ' + tl.goal + ' lb in about ' + tl.weeks + ' weeks. At ' + tl.fastPace + ' lb a week, about ' + tl.fastWeeks + ' weeks. Maintenance breaks get built in along the way, timed from your check-ins.'
     : (IN.phase === 'Strong' ? 'This is a Strong phase: the goal is building muscle, so the scale is not the main measure.'
       : IN.phase === 'Reverse Diet' ? 'This is a Reverse Diet: calories come up first, so the scale mostly holds while your metabolism recovers.'
       : 'This is a Sustain phase: the goal is holding your weight steady while your habits settle in.');
-  return '<span class="eyebrow" style="margin-top:28px">Your starting point</span>' +
+  var levers = tl.weeks
+    ? '<div class="levers">' +
+        '<div class="lever"><b>Walk more</b><p>About 2,000 extra steps a day burns roughly ' + tl.steps.calories + ' more calories a day at your size. Same food, and your ' + tl.weeks + ' weeks becomes about ' + tl.steps.weeks + '.</p></div>' +
+        '<div class="lever"><b>Lift weights</b><p>Resistance training and your protein floor decide what comes off. With them, about ' + tl.lifting.fatShare + '% of the weight you lose is fat. Without them, closer to ' + tl.lifting.withoutShare + '%, and the rest is muscle.</p></div>' +
+        '<div class="lever"><b>Stay consistent</b><p>Hitting your portions most days and checking in every week is what keeps the pace real. The scale is read as a trend, not one morning.</p></div>' +
+      '</div>'
+    : '';
+  return '<span class="eyebrow" style="margin-top:26px">Your starting point</span>' +
     '<div class="nums four">' +
       '<div class="tile num start"><b>' + tl.start + ' lb</b><span>Starting weight</span></div>' +
       '<div class="tile num start"><b>' + tl.goal + ' lb</b><span>Goal weight</span></div>' +
       '<div class="tile num start"><b>' + tl.change + ' lb</b><span>' + (lose ? 'To lose' : 'To gain') + '</span></div>' + time +
-    '</div><p class="startnote">' + note + '</p>' +
-    '<span class="eyebrow" style="margin-top:22px">Your daily numbers</span>';
+    '</div><p class="startnote">' + note + '</p>' + levers +
+    '<span class="eyebrow" style="margin-top:20px">Your daily numbers</span>';
+}
+var NEXT_LINKS = {
+  didache:   'https://dashboard.legacyperformance.co/didache.pdf',
+  community: 'https://www.skool.com/legacy-performance/plans',
+  apply:     'https://legacyperformance.co/book-a-call'
+};
+function nextLink(title, text, cta, url){
+  return '<div class="tile nextlink"><div><b>' + esc(title) + '</b><p>' + esc(text) + '</p><span class="url">' + esc(url.replace(/^https:\/\//, '')) + '</span></div>' +
+    '<a class="gbtn" href="' + esc(url) + '" target="_blank" rel="noopener">' + esc(cta) + '</a></div>';
 }
 function cronLink(o){ return (typeof mealLink === 'function') ? '<a class="cron" href="' + esc(mealLink(o)) + '" target="_blank" rel="noopener">Log it in Cronometer →</a>' : ''; }
 function cap(s){ s = String(s||''); return s.charAt(0).toUpperCase() + s.slice(1); }
@@ -421,6 +450,12 @@ function build(){
       '<div class="tile pr"><b>Rebuild any time</b><p>New goal, new phase, tired of your meals? Open your dashboard and build a new plan. Download it again whenever you like.</p></div>' +
       '<div class="tile pr"><b>Stick to the portions</b><p>The numbers are already inside the meals. Consistency with the portions beats perfection every time.</p></div>' +
       '<div class="tile pr"><b>We perfect it together</b><p>Your first 30 days are the tuning period. If something is not working, we adjust it.</p></div>' +
+    '</div>' +
+    '<h3 style="margin:22px 0 4px;font-size:.95rem">Your next steps</h3>' +
+    '<div class="nextlinks">' +
+      nextLink('Read the Didache', 'Free with your purchase. The whole Legacy Performance system in one read: the phases, the pillars and why it works.', 'Download free', NEXT_LINKS.didache) +
+      nextLink('Join The Legacy Performance Project', 'The paid community: weekly coaching calls, the full curriculum, and the app with your workouts. Keep building with people doing the same thing.', 'Join the community', NEXT_LINKS.community) +
+      nextLink('Apply for Built 4 More', 'Want a coach in your corner? Apply for 1:1 coaching. The $497 you invested in this system comes off the top.', 'Apply now', NEXT_LINKS.apply) +
     '</div>' +
     '<p class="note" style="margin-top:22px">Educational coaching guidance, not medical advice. Individual results vary. Consult your physician before changing your diet, especially with a medical condition.</p>' +
     foot(9) + '</section>');
