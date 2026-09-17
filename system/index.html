@@ -179,9 +179,11 @@ td b{color:#fff}
   .opt li{margin-bottom:0}
   .macros{font-size:7.5px;padding-top:4px;gap:2px 7px;letter-spacing:.03em}
   .opts{gap:8px}
-  .step{padding:9px 12px}
-  .step li{font-size:10.5px;margin-bottom:3px}
-  .steps{gap:8px}
+  .step{padding:7px 10px}
+  .step li{font-size:9.5px;margin-bottom:2px;line-height:1.35}
+  .step h3{font-size:10px}
+  .storage{font-size:9.5px;padding:7px 10px}
+  .steps{gap:6px}
   .storage{padding:9px 12px;margin-top:8px;font-size:10.5px}
   .shopsec{padding:10px 12px 6px;margin-bottom:10px}
   .shopitem{padding:2px 0;font-size:9.5px;gap:6px;grid-template-columns:10px 1fr}
@@ -207,6 +209,11 @@ td b{color:#fff}
   .nextlink{padding:10px 12px} .nextlink p{font-size:10px} .gbtn{font-size:9px;padding:8px 10px}
   body{font-size:11.5px}
   .tile,.panel,.step,.opt,.shopsec,.rest{break-inside:avoid}
+  .rest{padding:8px 11px;margin-bottom:6px}
+  .rest h3{font-size:10.5px}
+  .rest .order{font-size:9.5px;margin-top:3px;line-height:1.35}
+  .rest .fit{font-size:8.5px;margin-top:2px}
+  .rules li{font-size:9.5px;margin-bottom:2px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 </style>
@@ -260,14 +267,18 @@ td b{color:#fff}
 </div>
 
 <script src="../restaurant-data.js?v=1"></script>
-<script src="../recipe-data.js?v=3"></script>
-<script src="../nutrition-engine.js?v=25"></script>
+<script src="../recipe-data.js?v=4"></script>
+<script src="../nutrition-engine.js?v=26"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
-var EXAMPLE = {name:'Rachel', weight:180, goalweight:150, cal:1800, pro:150, carbG:160, fatG:60, phase:'Lean', freq:'3', shake:30, style:'', allergies:[],
-  protein:['chicken breast','salmon','nonfat Greek yogurt','whole eggs'], carb:['white rice','oats','berries','sweet potato'],
-  fat:['avocado','almonds'], veg:['broccoli','spinach','peppers'], restaurants:["Chick-fil-A","Chipotle","Panera Bread"], example:true};
+var EXAMPLE = {name:'Rachel', weight:182, goalweight:150, cal:1950, pro:150, carbG:203, fatG:60, phase:'Lean', freq:'3 + shake', shake:30,
+  style:'', allergies:[],
+  protein:['chicken breast','93% ground turkey','salmon','shrimp','nonfat Greek yogurt','whole eggs','egg whites','canned tuna','low-fat cottage cheese','sirloin steak'],
+  carb:['white rice','potatoes','sweet potato','oats','berries','banana','sourdough','quinoa','black beans'],
+  fat:['avocado','olive oil','almonds','peanut butter','cheese'],
+  veg:['broccoli','spinach','peppers','green beans','zucchini','asparagus','salad greens','tomatoes'],
+  restaurants:['Chick-fil-A','Chipotle','Panera Bread','Starbucks','Texas Roadhouse'], example:true};
 
 function decodeHash(){
   var m = location.hash.match(/[#&]d=([^&]+)/);

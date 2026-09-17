@@ -492,14 +492,16 @@ function recipeOption(r, target, sel, slot){
           name:r.name, tier:1, recipe:{id:r.id, how:r.how, scale:Math.round(s*100)/100}};
 }
 /* Order the recipes for a slot: her starred and picked lead proteins first, then a rotation. */
-function recipeCandidates(slotKind, sel, k, used){
+function recipeCandidates(slotKind, sel, k, used, slotName){
   if(typeof RECIPE_LIBRARY==='undefined') return [];
   var star=(sel.starred||{}).protein||[], picks=sel.protein||[];
   return RECIPE_LIBRARY.map(function(r, i){ return {r:r, i:i}; })
     .filter(function(x){ return x.r.slot===slotKind; })
     .map(function(x){
       var pref=star.indexOf(x.r.lead)>=0 ? 0 : (!picks.length || picks.indexOf(x.r.lead)>=0 ? 1 : 3);
-      return {r:x.r, score:pref*100 + (used[x.r.id]?50:0) + ((x.i*7 + k*11) % 37)};
+      /* Dinner should read like dinner: a cooked meal beats a cold salad at the end of the day. */
+      var heat=(slotName==='Dinner') ? (x.r.hot?0:40) : (slotName==='Lunch' && x.r.hot ? 8 : 0);
+      return {r:x.r, score:pref*100 + heat + (used[x.r.id]?50:0) + ((x.i*7 + k*11) % 37)};
     }).sort(function(a,b){ return a.score-b.score; }).map(function(x){ return x.r; });
 }
 
@@ -990,7 +992,7 @@ function generateMealOptions(it, sel, name){
     /* NAMED MEALS FIRST. Every template her pools can actually make, ranked by how many of her own
        (and starred) foods it uses, rotated per slot so lunch and dinner do not open on the same meal. */
     /* RECIPES FIRST: the licensed library, portioned to this slot's numbers. */
-    var rc=recipeCandidates(slot, sel, k, usedRecipes);
+    var rc=recipeCandidates(slot, sel, k, usedRecipes, nm);
     rc.filter(function(r){ return !usedRecipes[r.id]; }).concat(rc.filter(function(r){ return usedRecipes[r.id]; })).forEach(function(r){
       if(options.length>=n) return;
       var ro=recipeOption(r, target, sel, slot);
@@ -1652,20 +1654,46 @@ function prepGuide(deck, opts){
    bodyweight per 1,000 steps; lifting mostly changes WHAT comes off (about 92% fat with lifting
    and a protein floor, about 74% without), not how fast the scale moves. */
 var GOAL_PACE={base:1, fast:1.5, maxPct:0.01};
+var PHASE_WEEKS=16;                     // a Lean phase runs 12 to 16 weeks, then calories step down
 function weeksAt(w, g, lbPerWeek){
   var x=w, n=0; while(x>g+0.01 && n<260){ x-=Math.min(lbPerWeek, x*GOAL_PACE.maxPct); n++; } return n;
 }
-function goalTimeline(weight, goalweight, phase){
+function goalTimeline(weight, goalweight, phase, opts){
+  opts=opts||{};
   var w=+weight, g=+goalweight; if(!(w>0 && g>0)) return null;
   var ph=String(phase||'Lean');
   var out={start:Math.round(w), goal:Math.round(g), change:Math.round(Math.abs(w-g)), phase:ph};
   if(ph!=='Lean' || w<=g){ out.weeks=null; return out; }
+  var cal=+opts.calories||0, tdee=+opts.tdee||0;
+  if(cal>0 && tdee>0){
+    /* HER OWN NUMBERS. Pace comes from the gap between her target and her maintenance, maintenance
+       falls about 6.2 calories for every pound lost, and calories step down one multiplier
+       (one goal weight) every PHASE_WEEKS until the Lean floor at goal weight x 11. */
+    var run=function(bonus){
+      var x=w, c=cal, n=0, first=0, last=0;
+      while(x>g+0.01 && n<260){
+        var t=tdee-(w-x)*6.2, def=Math.max(0, t-c+(bonus||0));
+        var lb=Math.min(def*7/3500, x*GOAL_PACE.maxPct);
+        if(lb<=0.02) break;                                   // maintenance, not a deficit
+        if(!n) first=lb;
+        last=lb; x-=lb; n++;
+        if(n%PHASE_WEEKS===0) c=Math.max(g*11, c-g);          // next phase steps the calories down
+      }
+      return {weeks:(x<=g+0.01? n : null), first:Math.round(first*100)/100, last:Math.round(last*100)/100};
+    };
+    var base=run(0), stepCal=Math.round(0.25*w*2);
+    out.fromNumbers=true; out.calories=cal; out.tdee=tdee; out.deficit=Math.round(tdee-cal);
+    out.weeks=base.weeks; out.paceNow=base.first; out.paceLater=base.last;
+    out.steps={extra:2000, calories:stepCal, weeks:run(stepCal).weeks};
+    out.lifting={fatShare:92, withoutShare:74};
+    return out;
+  }
   out.weeks=weeksAt(w, g, GOAL_PACE.base);
   out.fastWeeks=weeksAt(w, g, GOAL_PACE.fast);
   out.basePace=Math.min(GOAL_PACE.base, Math.round(w*GOAL_PACE.maxPct*10)/10);
   out.fastPace=Math.min(GOAL_PACE.fast, Math.round(w*GOAL_PACE.maxPct*10)/10);
-  var stepCal=Math.round(0.25*w*2);                              // +2,000 steps a day
-  out.steps={extra:2000, calories:stepCal, weeks:weeksAt(w, g, GOAL_PACE.base + stepCal*7/3500)};
+  var sc=Math.round(0.25*w*2);
+  out.steps={extra:2000, calories:sc, weeks:weeksAt(w, g, GOAL_PACE.base + sc*7/3500)};
   out.lifting={fatShare:92, withoutShare:74};
   return out;
 }
