@@ -86,6 +86,13 @@ details.builder[open]>summary:after{content:" \2013"}
 .nums.four{grid-template-columns:repeat(4,1fr);margin-top:10px}
 .eyebrow + .nums{margin-top:10px}
 .startnote{margin-top:10px;font-size:.86rem;color:var(--body);max-width:68ch}
+.mlist{display:grid;gap:10px}
+.mgroup{border:1px solid var(--olive-dim);border-radius:12px;padding:8px 12px 10px}
+.mgroup h4{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--olive-lt);margin-bottom:4px}
+.mrow{display:grid;grid-template-columns:1.1fr 3fr 1fr;gap:8px;padding:4px 0;border-top:1px solid rgba(143,169,122,.12);font-size:.8rem;color:var(--body)}
+.mrow:first-of-type{border-top:0}
+.mch{color:#fff;font-weight:700}
+.mfit{color:var(--gold);text-align:right;white-space:nowrap}
 .steptbl{margin-top:12px;border:1px solid var(--olive-dim);border-radius:12px;overflow:hidden}
 .srow{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.1fr;gap:8px;padding:7px 12px;font-size:.8rem;color:var(--body);border-top:1px solid rgba(143,169,122,.14)}
 .srow:first-child{border-top:0}
@@ -225,6 +232,12 @@ td b{color:#fff}
   .nextlink{padding:10px 12px} .nextlink p{font-size:10px} .gbtn{font-size:9px;padding:8px 10px}
   body{font-size:11.5px}
   .tile,.panel,.step,.opt,.shopsec,.rest{break-inside:avoid}
+  .mrow{font-size:7.8px;padding:1px 0;gap:5px;line-height:1.25}
+  .mgroup{padding:5px 8px 6px}
+  .mlist{gap:6px}
+  .mgroup{padding:6px 9px 7px}
+  .mgroup h4{font-size:7.5px}
+  .mlist{gap:7px}
   .rest{padding:8px 11px;margin-bottom:6px}
   .rest h3{font-size:10.5px}
   .rest .order{font-size:9.5px;margin-top:3px;line-height:1.35}
@@ -288,7 +301,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=28"></script>
+<script src="../nutrition-engine.js?v=29"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -335,7 +348,13 @@ function startBlock(){
   }).join('');
   var levers = tl.weeks
     ? '<div class="steptbl"><div class="srow head"><span>If you walk</span><span>You burn about</span><span>You lose about</span><span>You get there in</span></div>' + steps + '</div>' +
-      '<p class="startnote">Walking is the fastest lever you own, and it costs you nothing. Lifting is the other one: with resistance training and your protein floor, about ' + tl.lifting.fatShare + '% of what you lose is fat. Without them, closer to ' + tl.lifting.withoutShare + '%, and the rest is muscle you spent years building.</p>'
+      '<p class="startnote">Walking is the fastest lever you own, and it costs you nothing. Lifting is the other one: with resistance training and your protein floor, about ' + tl.lifting.fatShare + '% of what you lose is fat. Without them, closer to ' + tl.lifting.withoutShare + '%, and the rest is muscle you spent years building.</p>' +
+      '<ul class="rules" style="margin-top:6px">' +
+        '<li><b>Walk 10 minutes after each meal.</b> Three meals is 30 minutes without finding 30 minutes. It also settles digestion and steadies your energy instead of the afternoon crash.</li>' +
+        '<li><b>Put one 20 minute walk on the calendar.</b> Same time every day, treated like an appointment. A walk you schedule happens. A walk you hope for does not.</li>' +
+        '<li><b>Take your calls on your feet.</b> Phone calls, voice notes, catching up with a friend. That alone is often 2,000 steps you were going to spend sitting.</li>' +
+        '<li><b>Park at the far end and take the long way.</b> Small on its own, but it repeats every single day, and it needs no willpower.</li>' +
+      '</ul>'
     : '';
   window.STEPS_BLOCK = levers;
   return '<span class="eyebrow" style="margin-top:26px">Your starting point</span>' +
@@ -412,16 +431,35 @@ function build(){
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
     (window.STEPS_BLOCK ? '<h3 style="margin:22px 0 8px;font-size:.95rem">How fast you get there</h3>' + window.STEPS_BLOCK : '') +
-    (FREE ? '<h3 style="margin:22px 0 8px;font-size:.95rem">Macro freedom: ' + FREE.freeMeals + ' free meals a week</h3>' +
-      '<p class="startnote" style="margin-top:0">' +
-        (FREE.extra
-          ? 'Two free meals are built into your number. You picked ' + FREE.freeMeals + ', so your daily target comes down ' + FREE.cut + ' calories to ' + DAILY.calories.toLocaleString() + ' and your portions are already adjusted for it.'
-          : 'Two free meals a week are already built into your ' + DAILY.calories.toLocaleString() + ' calories. Nothing to earn, nothing to make up.') +
-      '</p><ul class="rules" style="margin-top:8px">' + FREE.rules.map(function(r){ return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>' : '') +
     '<h3 style="margin:22px 0 8px;font-size:.95rem">An example week</h3>' +
     '<div class="tablewrap"><table class="weektbl"><thead><tr><th>Day</th>' + mealSlots.map(function(n){ return '<th>' + esc(n) + '</th>'; }).join('') + '</tr></thead><tbody>' + rot + '</tbody></table></div>' +
     '<p class="note">This is one easy way to eat through your meals. Any option works on any day. Meal prep made easy, later in this system, shows two simple ways to prep it.</p>' +
     foot(2) + '</section>');
+
+  /* 2b. the macro freedom framework */
+  if (FREE) doc.push('<section class="sheet"><span class="label">The Macro Freedom Framework</span>' +
+    '<h2>Structure you can keep. <span class="gold">Freedom you can use.</span></h2>' +
+    '<p class="intro">Most plans break because they leave no room for real life, so the first birthday dinner turns into a lost month. This is the room, and it is built into your numbers instead of bolted on after you feel guilty.</p>' +
+    '<div class="principles">' +
+      '<div class="tile pr"><b>' + FREE.freeMeals + ' free meals a week</b><p>' +
+        (FREE.extra
+          ? 'Two are built into the plan. You chose ' + FREE.freeMeals + ', so your day comes down ' + FREE.cut + ' calories to ' + DAILY.calories.toLocaleString() + ' and every portion in this system is already sized for that.'
+          : 'They are already inside your ' + DAILY.calories.toLocaleString() + ' calories. Nothing to earn first, nothing to make up after.') + '</p></div>' +
+      '<div class="tile pr"><b>It replaces, it never adds</b><p>A free meal takes the place of a meal in this plan. Dinner out replaces your dinner. You keep the rest of the day exactly as written.</p></div>' +
+      '<div class="tile pr"><b>One number, 600 to 800 calories</b><p>That is the only thing you watch on a free meal. Order what you actually want inside that range, eat it slowly, and stop when you are satisfied rather than stuffed.</p></div>' +
+      '<div class="tile pr"><b>Protein and produce never flex</b><p>Hit your ' + DAILY.protein + 'g of protein and your fruit and vegetables that day anyway. Those two hold your muscle and your health steady no matter what the free meal is.</p></div>' +
+      '<div class="tile pr"><b>Want more than two?</b><p>Every extra free meal costs 100 calories a day for that week. Four free meals means your daily number drops 200. The week still averages out, which is the only thing that decides the result.</p></div>' +
+      '<div class="tile pr"><b>Forecast on Sunday</b><p>Look at the week ahead and count the free meals going in. A planned Friday dinner is part of the system. A surprise one is what starts the "I blew it, I will restart Monday" spiral.</p></div>' +
+    '</div>' +
+    '<h3 style="margin:18px 0 6px;font-size:.95rem">Why this works when willpower does not</h3>' +
+    '<ul class="rules">' +
+      '<li><b>Your body reads the week, not the meal.</b> One dinner cannot undo a week any more than one salad can fix one. The average is what moves the scale, so the plan is built on the average.</li>' +
+      '<li><b>Nothing is off limits, so nothing gets binged.</b> Foods you forbid are the ones you overeat the moment you are tired, stressed or celebrating.</li>' +
+      '<li><b>You stop needing a restart.</b> There is no falling off a plan that already has the pizza in it.</li>' +
+      '<li><b>It trains the skill you actually need.</b> Structure most of the time, freedom on purpose, and you learn what a normal portion feels like instead of guessing forever.</li>' +
+    '</ul>' +
+    '<p class="note" style="margin-top:14px">Free meals are free meals, not cheat meals. Nothing to cheat on and nothing to feel bad about. Enjoy it, then go back to the plan at the next meal, not next Monday.</p>' +
+    foot(3) + '</section>');
 
   /* 3. meals */
   var slotsHTML = deck.slots.map(function(sl){
@@ -436,7 +474,7 @@ function build(){
   doc.push('<section class="sheet"><span class="label">Your meals</span><h2>Meal plans for <span class="gold">every goal.</span></h2>' +
     '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day.</p>' + slotsHTML +
     (snacks ? '<div class="slot"><div class="slot-h"><h3>Snacks and protein boosters</h3><span>for the days you come up short</span></div><div class="opts">' + snacks + '</div></div>' : '') +
-    foot(3) + '</section>');
+    foot(4) + '</section>');
 
   /* 4. shopping lists */
   shop.forEach(function(sh, idx){
@@ -449,7 +487,7 @@ function build(){
     doc.push('<section class="sheet"><span class="label">Shopping list · the whole week</span><h2>One list. <span class="gold">One trip.</span></h2>' +
       '<p class="intro">Everything for the example week: all three options of every meal and one snack a day. Shop once. Check it off as you shop.</p>' +
       '<p class="intro forms">' + byBatch + '</p>' +
-      '<div class="shopcols">' + secs + '</div><p class="note">' + esc(sh.note) + '</p>' + foot(4) + '</section>');
+      '<div class="shopcols">' + secs + '</div><p class="note">' + esc(sh.note) + '</p>' + foot(5) + '</section>');
   });
 
   /* 5. prep guides */
@@ -462,7 +500,7 @@ function build(){
         : '<h2>Halfway there. <span class="gold">Prep once more.</span></h2><p class="intro">About an hour. Start the oven first, then work through the steps in order.</p>') +
       '<div class="steps">' + steps + '</div>' +
       '<div class="panel storage"><b>Storage.</b> ' + pg.storage.map(esc).join(' ') + '</div>' +
-      '<p class="note">' + esc(pg.source) + '</p>' + foot(5 + idx) + '</section>');
+      '<p class="note">' + esc(pg.source) + '</p>' + foot(6 + idx) + '</section>');
   });
 
   /* 6. swap guide */
@@ -472,21 +510,46 @@ function build(){
   doc.push('<section class="sheet"><span class="label">Swap guide</span><h2>Tired of a food? <span class="gold">Trade it.</span></h2>' +
     '<p class="intro">Each column is one meal\'s worth. Swap protein for protein, carbs for carbs, fat for fat, and the meal still hits your numbers.</p>' +
     '<div class="swapgrid">' + col('Protein', ch.protein, ch.protein.grams + 'g protein') + col('Carbs', ch.carb, ch.carb.grams + 'g carbs') + col('Added fat', ch.fat, ch.fat.grams + 'g fat') + '</div>' +
-    '<p class="note">Vegetables stay unlimited. Every portion comes from USDA data or the brand label.</p>' + foot(7) + '</section>');
+    '<p class="note">Vegetables stay unlimited. Every portion comes from USDA data or the brand label.</p>' + foot(8) + '</section>');
 
-  /* 7. restaurants */
-  var rests = (IN.restaurants||[]).map(function(name){
-    var r = restaurantMeals(name, {calories:lunchCal, protein:lunch.target.protein}, {count:2});
+  /* 7. restaurants: her places in full, then a wider list so she is covered anywhere */
+  var mine = (IN.restaurants||[]);
+  var rests = mine.map(function(name){
+    var r = restaurantMeals(name, {calories:lunchCal, protein:lunch.target.protein}, {count:3});
     if (r.empty) return '';
     return '<div class="tile rest"><h3>' + esc(name) + '</h3>' + r.options.map(function(o){
       return '<p class="order">' + esc(o.title) + '</p><p class="fit">' + o.totals.kcal + ' cal · ' + o.totals.p + 'g protein</p>'; }).join('') +
       (r.official ? '' : '<p class="note">From the nutrition board posted in store.</p>') + '</div>';
   }).join('');
+  /* Everywhere else, one solid order each, grouped so she can find the kind of place she is at. */
+  var GROUPS = [
+    {name:'Fast food', list:["Chick-fil-A","Wendy's","McDonald's","Taco Bell","Burger King","Arby's","KFC","Popeyes","Culver's","Whataburger","Zaxby's","Raising Cane's","Jack in the Box","Sonic Drive-In","Del Taco","In-N-Out Burger","Five Guys","Shake Shack","El Pollo Loco","Waffle House"]},
+    {name:'Fast casual and bowls', list:["Chipotle","Cava","Sweetgreen","Qdoba","Moe's Southwest Grill","Panera Bread","Panda Express","Subway","Jersey Mike's","Jimmy John's","Firehouse Subs","Tropical Smoothie Cafe","Costco food court","Whole Foods (packaged prepared foods)","Domino's","Pizza Hut"]},
+    {name:'Coffee and breakfast', list:["Starbucks","Dunkin'","IHOP","Denny's","Cracker Barrel"]},
+    {name:'Sit down', list:["Texas Roadhouse","Olive Garden","Chili's","Applebee's","Outback Steakhouse","Buffalo Wild Wings","P.F. Chang's"]}
+  ];
+  var more = GROUPS.map(function(g){
+    var rows = g.list.filter(function(n){ return mine.indexOf(n) < 0 && restaurantChains().indexOf(n) >= 0; }).map(function(n){
+      var r = restaurantMeals(n, {calories:lunchCal, protein:lunch.target.protein}, {count:6});
+      if (r.empty || !r.options.length) return '';
+      var grown = r.options.filter(function(x){ return !/kid|cub meal|junior|\bjr\b|mini\b/i.test(x.title); });
+      if (!grown.length) return '';                                  // a kids' meal is not an order I am giving her
+      var o = grown[0];
+      var order = o.title.length > 96 ? o.title.slice(0, 94).replace(/[ ,+]+$/, '') + '...' : o.title;
+      return '<div class="mrow"><span class="mch">' + esc(n) + '</span><span class="mor">' + esc(order) + '</span>' +
+        '<span class="mfit">' + o.totals.kcal + ' cal · ' + o.totals.p + 'g</span></div>';
+    }).filter(Boolean).join('');
+    return rows ? '<div class="mgroup"><h4>' + esc(g.name) + '</h4>' + rows + '</div>' : '';
+  }).join('');
   doc.push('<section class="sheet"><span class="label">Eating out</span><h2>No more guessing at <span class="gold">restaurants.</span></h2>' +
     '<p class="intro">Real orders, sized to one of your meals (about ' + Math.round(lunchCal) + ' calories and ' + lunch.target.protein + 'g protein), from each restaurant\'s own published nutrition.</p>' +
-    (rests || '<p class="note">No restaurants picked yet. Add the places you go and rebuild.</p>') +
-    '<h3 style="margin:20px 0 8px;font-size:.95rem">The rules that work anywhere</h3><ul class="rules">' +
-    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot(8) + '</section>');
+    (rests ? '<h3 style="margin:14px 0 8px;font-size:.95rem">The places you told me you go</h3>' + rests : '<p class="note">No restaurants picked yet. Add the places you go and rebuild.</p>') +
+    foot(9) + '</section>');
+  doc.push('<section class="sheet"><span class="label">Eating out · everywhere else</span><h2>Covered <span class="gold">anywhere you end up.</span></h2>' +
+    '<p class="intro">One order that works at ' + (more.match(/mrow/g)||[]).length + ' more places, sized to the same meal. Someone else picks the restaurant, you already know what you are having.</p>' +
+    '<div class="mlist">' + more + '</div>' +
+    '<h3 style="margin:14px 0 6px;font-size:.95rem">The rules that work anywhere</h3><ul class="rules">' +
+    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot(10) + '</section>');
 
   /* 8. next steps */
   doc.push('<section class="sheet"><span class="label">From here</span><h2>Your system <span class="gold">keeps up with you.</span></h2>' +
@@ -503,7 +566,7 @@ function build(){
       nextLink('Apply for Built 4 More', 'Want a coach in your corner? Apply for 1:1 coaching. The $497 you invested in this system comes off the top.', 'Apply now', NEXT_LINKS.apply) +
     '</div>' +
     '<p class="note" style="margin-top:22px">Educational coaching guidance, not medical advice. Individual results vary. Consult your physician before changing your diet, especially with a medical condition.</p>' +
-    foot(9) + '</section>');
+    foot(11) + '</section>');
 
   $('doc').innerHTML = doc.join('');
   $('status').innerHTML = IN.example
