@@ -305,7 +305,7 @@ var FOOD_DB={
     {n:"hummus",g:2.7,p:1.2,c:2.2,f:2.7,kcal:36,u:"tbsp",frac:true,max:6,slot:"pm",t:2,k:"plant",a:["sesame"],src:"USDA FDC 174289 \u00b7 1 tbsp"},
     {n:"cheese",g:9.6,p:6.6,c:0.7,f:9.6,kcal:116,u:"oz",frac:true,max:3,slot:"any",t:2,k:"dairy",a:["dairy"],src:"USDA FDC 328637 \u00b7 1 oz cheddar"},
     /* Tier 3 - cooking fats, deliberately last */
-    {n:"olive oil",g:13.5,p:0,c:0,f:13.5,kcal:119,u:"tbsp",frac:true,max:2,slot:"pm",t:3,k:"plant",src:"USDA FDC 171413 \u00b7 1 tbsp"},
+    {n:"olive oil",g:1,p:0,c:0,f:1,kcal:8.84,u:"g",max:27,slot:"pm",t:3,k:"plant",src:"USDA FDC 171413 \u00b7 1 tbsp"},
     {n:"butter",g:11.5,p:0.1,c:0,f:11.5,kcal:102,u:"tbsp",frac:true,max:2,slot:"any",t:3,k:"dairy",a:["dairy"],src:"USDA FDC 173410 \u00b7 1 tbsp"}],
   /* Vegetables stay plain strings: client.html and index.html consume FOOD_DB.veg directly.
      They are eaten freely and not calorie-counted, per the Power Food System. */
@@ -426,7 +426,9 @@ function recipeIngredients(r, sel){
       if(left.some(function(t){ return blocked.indexOf(t)>=0; })) return null;
       name=sw.to;
     }
-    out.push([g[0], g[1], name, g[4]]);
+    var q0=g[0], u0=g[1];
+    if(/\boil\b/.test(name) && (u0==='tbsp'||u0==='tsp')){ q0=q0*(u0==='tbsp'?13.5:4.5); u0='g'; }   // oils in grams
+    out.push([q0, u0, name, g[4]]);
   }
   return out;
 }
@@ -437,6 +439,7 @@ function fracText(q){
   return ((w? String(w):'')+f) || '0';
 }
 function recipeQty(q, u, name){
+  if(u==='g') return Math.max(1, Math.round(q));
   if(u==='oz') return q<2 ? Math.max(0.25, Math.round(q*4)/4) : Math.round(q*2)/2;
   if(u==='cup'||u==='tsp') return Math.max(0.25, Math.round(q*4)/4);
   if(u==='tbsp'||u==='scoop'||u==='handful') return Math.max(0.5, Math.round(q*2)/2);
@@ -569,6 +572,7 @@ function displayUnits(f, units){
   /* Whole items (scoops, eggs, bananas) round down unless they are at least three-quarters of the way
      to the next one. Pure floor turned 1.9 scoops of protein into 1 and left vegan breakfasts ~35% short. */
   if(f.whole) return Math.max(1, Math.floor(units+0.25+1e-9));
+  if(f.u==="g") return Math.max(1, Math.round(units));                  // oils are weighed in grams (Jayme 2026-09-17)
   if(f.u==="oz") return Math.max(0.5, Math.floor(units*10+1e-9)/10);
   return Math.max(0.25, Math.floor(units*4+1e-9)/4);
 }
@@ -576,6 +580,7 @@ function displayUnits(f, units){
    seeds": a fragment like that is rounding noise, not a portion anyone plates (Jayme, 2026-09-16). */
 function minPortion(f){
   var u=f.u||'';
+  if(u==='g') return 5;
   if(u==='oz') return (f.n==='cheese') ? 1 : 3;
   if(u==='cup') return 0.5;
   if(u==='cup dry') return 0.25;
@@ -1498,6 +1503,7 @@ var VEG_SOLD={cucumber:{oz:8,each:'cucumbers'}, tomatoes:{oz:5,each:'tomatoes'},
 var VEG_RAW={spinach:1,'salad greens':1,cucumber:1,tomatoes:1,cabbage:1};   // eaten raw, just wash and chop
 
 function shopRound(x, u){
+  if(u==='g') return Math.ceil(x);
   if(u==='oz') return Math.ceil(x*2)/2;
   if(u==='tbsp') return Math.ceil(x);
   if(!u) return Math.ceil(x*4)/4;
@@ -1577,7 +1583,7 @@ function shoppingList(deck, opts){
       var q=(t.whole||t.shake) ? Math.ceil(t.qty) : shopRound(t.qty, t.u);
       need=shopAmount(name, t);
       var dbf=foodByName(name), sameUnit=!dbf || (dbf.u||'')===(t.u||'');
-      buy=(info.buy && sameUnit) ? info.buy(q) : ((t.u==='tbsp'||t.u==='tsp') ? 'one jar or bag covers it' : '');
+      buy=(/\boil\b/.test(name) && t.u==='g') ? 'from your pantry' : (info.buy && sameUnit) ? info.buy(q) : ((t.u==='tbsp'||t.u==='tsp') ? 'one jar or bag covers it' : '');
     }
     (secs[sec]=secs[sec]||[]).push({name:name, need:String(need), buy:buy});
   });
@@ -1620,7 +1626,7 @@ function prepGuide(deck, opts){
   if(protein.length) steps.push({title:'Cook your proteins', lines:protein.map(function(l){
     return l.name+', '+l.amount+'. '+l.how+(l.temp?' Cook to '+l.temp+' inside.':''); })});
   if(carbs.length) steps.push({title:'Cook your carbs', lines:carbs.map(function(l){ return l.name+', '+l.amount+'. '+l.how; })});
-  if(vegRoast.length) steps.push({title:'Roast your vegetables', lines:['Chop '+vegRoast.join(', ')+'. Toss with a teaspoon of olive oil and roast at 425°F for 20 to 25 minutes.']});
+  if(vegRoast.length) steps.push({title:'Roast your vegetables', lines:['Chop '+vegRoast.join(', ')+'. Toss with 5 g of olive oil and roast at 425°F for 20 to 25 minutes.']});
   if(vegRaw.length) steps.push({title:'Wash and chop the fresh vegetables', lines:['Wash, dry and chop '+vegRaw.join(', ')+'. Store in a sealed container with a paper towel.']});
   if(noCook.length) steps.push({title:'Portion the no-cook foods', lines:noCook});
   var containers=bt.meals.filter(function(m){ return !/shake/i.test(m.slot); }).map(function(m){ return {slot:m.slot, name:m.name, count:m.days||days, forDays:m.forDays||'', items:m.items, cal:m.cal, protein:m.protein}; });

@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=3"></script>
-<script src="nutrition-engine.js?v=22"></script>
+<script src="nutrition-engine.js?v=23"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3138,7 +3138,7 @@ function nutritionHTML(it){
   var m=MS.meals;
   var pmCal=MS.perMeal.calories, pmPro=MS.perMeal.protein, pmCarb=MS.perMeal.carbs, pmFat=MS.perMeal.fat;
   var lists=foodListsFor(it);
-  var chkOz=(pmPro/31*100/28.35/0.75).toFixed(1), riceG=Math.round(pmCarb/28*100), oilTbsp=(pmFat/14).toFixed(1);
+  var chkOz=(pmPro/31*100/28.35/0.75).toFixed(1), riceG=Math.round(pmCarb/28*100), oilG=Math.round(pmFat);
   var tn=TRACK_NAME[it.track]||it.track;
   return ''
     +'<div style="font-size:12.5px;color:var(--muted);margin-bottom:6px">Starting targets · <b style="color:var(--accent)">'+esc(tn)+'</b></div>'
@@ -3166,7 +3166,7 @@ function nutritionHTML(it){
     +'<div class="foodcol"><b>Fats (keep moderate):</b> <span>'+esc(lists.fat)+'</span></div>'
     +'<div class="foodcol"><b>Veggies:</b> <span>eat freely — a big pile every meal</span></div>'
     +'<div class="lp-sub">A sample meal (hits one meal target)</div>'
-    +'<p class="wiz-hint" style="margin:0">≈ '+chkOz+' oz raw chicken breast · '+riceG+'g cooked rice · '+oilTbsp+' tbsp olive oil over a mountain of veg. Swap any protein / carb / fat from your lists to the same targets.</p>'
+    +'<p class="wiz-hint" style="margin:0">≈ '+chkOz+' oz raw chicken breast · '+riceG+'g cooked rice · '+oilG+'g olive oil over a mountain of veg. Swap any protein / carb / fat from your lists to the same targets.</p>'
     +(MS.shake
         ? '<p class="wiz-hint">Your '+MS.shake.protein+'g protein shake (~'+MS.shake.calories+' cal) is reserved out of the day first, so the meal numbers above are what is left after it. One day is noise; two weeks is a trend.</p>'
         : '<p class="wiz-hint">A protein shake counts toward your protein anytime. Standard is '+SHAKE_PROTEIN_DEFAULT+'g, about one heaping scoop. One day is noise; two weeks is a trend.</p>');
