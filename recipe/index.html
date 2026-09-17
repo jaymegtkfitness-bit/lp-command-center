@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- One meal from a member's Complete Nutrition System, opened from the PDF or the system page.
+     Everything comes from ?r= (base64url JSON built by mealLink() in nutrition-engine.js):
+     {n: name, i: [ingredient lines], m: [cal, protein, carbs, fat], h: method}.
+     Job: one tap copies the ingredients so she can paste them into Cronometer's recipe import. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1e1e1e">
+<title>Your Meal | Legacy Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--soft:#bdb7ac;--body:#d9d3c8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);-webkit-font-smoothing:antialiased;line-height:1.55;overflow-x:hidden;background:#1a1a1a}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;background:
+  radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+  radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+  linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:fixed;left:0;top:0;right:0;height:5px;z-index:3;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
+.wrap{position:relative;z-index:1;max-width:620px;margin:0 auto;padding:36px 18px 40px}
+.head img{height:46px;width:auto;margin-left:-8px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.78rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);margin-top:30px}
+h1{font-weight:900;font-size:clamp(1.7rem,7vw,2.4rem);line-height:1.05;text-transform:uppercase;margin-top:6px}
+.nums{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.nums span{font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--soft);padding:6px 10px;border:1px solid var(--olive-dim);border-radius:8px}
+.nums b{color:var(--gold);font-family:Cinzel,Georgia,serif;font-size:.95rem;margin-right:3px}
+.tile{margin-top:18px;padding:16px;border-radius:16px;background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt)}
+.tile h2{font-size:.8rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--olive-lt);margin-bottom:8px}
+ul{margin-left:18px;color:var(--body);font-size:.95rem}
+li{margin-bottom:3px}
+.btn{display:block;width:100%;margin-top:18px;padding:16px;border:0;border-radius:12px;background:var(--gold);color:var(--ink);font:800 1rem Montserrat,sans-serif;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;text-align:center;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--gold);border:1px solid rgba(193,173,114,.5);font-size:.85rem;padding:13px}
+.btn:active{transform:translateY(1px)}
+.done{background:var(--olive-lt)!important}
+ol{margin-left:18px;color:var(--body);font-size:.9rem}
+ol li{margin-bottom:6px}
+.how{color:var(--body);font-size:.9rem}
+textarea{position:absolute;left:-9999px}
+.foot{margin-top:28px;font-size:.74rem;color:#8f8a80;text-align:center}
+.err{margin-top:40px;color:var(--body)}
+</style>
+</head>
+<body>
+<div class="bg"></div><div class="topbar"></div>
+<main class="wrap" id="app">
+  <div class="head"><img src="../logo-white-gold.png" alt="Legacy Performance"></div>
+</main>
+<textarea id="clip" aria-hidden="true"></textarea>
+<script>
+function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+function readMeal(){
+  try{
+    var r = new URLSearchParams(location.search).get('r'); if(!r) return null;
+    r = r.replace(/-/g,'+').replace(/_/g,'/'); while(r.length % 4) r += '=';
+    return JSON.parse(decodeURIComponent(escape(atob(r))));
+  }catch(e){ return null; }
+}
+function copyText(text, btn, label){
+  function ok(){ btn.textContent = 'Copied. Now paste it into Cronometer'; btn.classList.add('done'); setTimeout(function(){ btn.textContent = label; btn.classList.remove('done'); }, 4000); }
+  function fallback(){ var t = document.getElementById('clip'); t.value = text; t.select(); t.setSelectionRange(0, text.length);
+    try{ document.execCommand('copy'); ok(); }catch(e){ prompt('Copy this:', text); } }
+  if(navigator.clipboard && window.isSecureContext){ navigator.clipboard.writeText(text).then(ok, fallback); } else fallback();
+}
+var M = readMeal(), app = document.getElementById('app');
+if(!M){
+  app.insertAdjacentHTML('beforeend', '<p class="err">This meal link is incomplete. Open it again from your nutrition system.</p>');
+} else {
+  document.title = M.n + ' | Legacy Performance';
+  var list = (M.i||[]).join('\n');
+  app.insertAdjacentHTML('beforeend',
+    '<p class="eyebrow">Your meal · one serving</p><h1>' + esc(M.n) + '</h1>' +
+    '<div class="nums"><span><b>' + M.m[0] + '</b>cal</span><span><b>' + M.m[1] + 'g</b>protein</span><span><b>' + M.m[2] + 'g</b>carbs</span><span><b>' + M.m[3] + 'g</b>fat</span></div>' +
+    '<button class="btn" id="copyList">Copy ingredients</button>' +
+    '<div class="tile"><h2>Ingredients</h2><ul>' + (M.i||[]).map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul></div>' +
+    '<div class="tile"><h2>Add it to Cronometer</h2><ol>' +
+      '<li>Tap <b>Copy ingredients</b> above.</li>' +
+      '<li>In Cronometer, create a new recipe and choose to import it.</li>' +
+      '<li>Paste the ingredients, name it <b>' + esc(M.n) + '</b>, and set it to 1 serving.</li>' +
+      '<li>Check each food matched, then save. Log it any time you eat this meal.</li></ol>' +
+      '<button class="btn ghost" id="copyLink">Or copy this page link to import by URL</button></div>' +
+    (M.h ? '<div class="tile"><h2>How to make it</h2><p class="how">' + esc(M.h) + '</p></div>' : '') +
+    '<p class="foot">Legacy Performance · Complete Nutrition System</p>');
+  var b1 = document.getElementById('copyList'); b1.onclick = function(){ copyText(list, b1, 'Copy ingredients'); };
+  var b2 = document.getElementById('copyLink'); b2.onclick = function(){ copyText(location.href, b2, 'Or copy this page link to import by URL'); };
+  /* Structured recipe data, for importers that read it. */
+  var ld = document.createElement('script'); ld.type = 'application/ld+json';
+  ld.textContent = JSON.stringify({'@context':'https://schema.org','@type':'Recipe', name:M.n, recipeYield:'1 serving', recipeIngredient:M.i||[],
+    recipeInstructions:M.h||'', nutrition:{'@type':'NutritionInformation', calories:M.m[0]+' calories', proteinContent:M.m[1]+' g', carbohydrateContent:M.m[2]+' g', fatContent:M.m[3]+' g'}});
+  document.head.appendChild(ld);
+}
+</script>
+</body>
+</html>

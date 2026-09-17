@@ -1638,6 +1638,31 @@ function prepGuide(deck, opts){
    system/index.html builds the full member document (meals, shopping lists, prep guides, swaps,
    restaurant orders) and saves it as a PDF. Callers pass the member's inputs and open the link.
    inp = {name, cal, pro, carbG, fatG, phase, freq, shake, style, allergies[], protein[], carb[], fat[], veg[], restaurants[]} */
+/* ===== CRONOMETER =====
+   Cronometer imports a recipe from a pasted ingredient list. These lines are plain text, one food per
+   line, decimal amounts (no ½ characters, which importers can misread). mealLink() opens a small page
+   (recipe/) with a one-tap Copy button, because a link alone is not allowed to write to the clipboard. */
+function cronNum(q){ return String(Math.round(q*100)/100); }
+function mealIngredientLines(opt){
+  var out=[];
+  (opt.parts||[]).forEach(function(pt){
+    if(pt.shake){ out.push((pt.grams||30)+' g protein powder'); return; }
+    if(pt.veg){ out.push(cronNum(pt.cups||1)+' cup '+pt.n); return; }
+    var n=pt.n.replace(/\s*\((raw)\)/,', raw').replace(/\s*\((dry)\)/,', dry');
+    var u=pt.u||'';
+    if(u==='handful'){ out.push(cronNum(pt.units)+' cup '+n); return; }
+    if(!u){ out.push(cronNum(pt.units)+' '+(/^can /.test(n)? n : n)); return; }
+    out.push(cronNum(pt.units)+' '+u+' '+n);
+  });
+  return out;
+}
+var MEAL_PAGE='https://dashboard.legacyperformance.co/recipe/';
+function mealLink(opt, base){
+  var data={n:opt.name||'LP meal', i:mealIngredientLines(opt), m:[Math.round(opt.cal||0), Math.round(opt.protein||0), Math.round(opt.carbs||0), Math.round(opt.fat||0)],
+            h:(opt.recipe&&opt.recipe.how)||''};
+  var b64=(typeof btoa==='function') ? btoa(unescape(encodeURIComponent(JSON.stringify(data)))) : '';
+  return (base||MEAL_PAGE)+'?r='+b64.replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
 function systemLink(inp, base){
   var json=JSON.stringify(inp||{});
   var b64=(typeof btoa==='function') ? btoa(unescape(encodeURIComponent(json))) : '';
