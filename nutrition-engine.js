@@ -447,6 +447,7 @@ function recipeQty(q, u, name){
 function recipeLine(q, u, name){
   var t=fracText(q), many=q>1;
   if(!u && /^can /.test(name)) return t+' '+(many?'cans ':'can ')+name.slice(4);
+  if(!u && !many && /eggs$/.test(name)) return t+' '+name.replace(/eggs$/,'egg');
   if(!u) return t+' '+(many && !/s$/.test(name) && !/tuna|zucchini|shrimp|celery stick$|fillet$/.test(name) ? name+'s' : name);
   var uu=u;
   if(many && (u==='cup'||u==='slice'||u==='clove'||u==='scoop')) uu=u+'s';
@@ -1220,12 +1221,20 @@ function rmBowls(items){
   var rich=comp.filter(function(i){ return i.cat==='component_topping' && i.kcal>40 && i.kcal<=250; });
   if(!prots.length || (greens.length+grains.length)<1) return [];
   var out=[], G=[null].concat(greens.slice(0,1)), R=[null].concat(grains), B=[null].concat(beans), X=[null].concat(rich);
-  prots.forEach(function(p1){
-    [null].concat(prots).forEach(function(p2){
+  /* Two proteins are ordered one of two ways, and the order has to say which:
+     HALF AND HALF (a half portion of each, same as one serving) or DOUBLE MEAT (a full portion of each). */
+  var half=function(i){ return {name:i.name, serving:i.serving, cat:i.cat, kcal:i.kcal/2, p:i.p/2, c:i.c/2, f:i.f/2, lto:i.lto, src:i.src, half:true}; };
+  prots.forEach(function(p1, i1){
+    var pairs=[[p1]];
+    prots.forEach(function(p2, i2){
+      if(p2===p1) pairs.push([p1,p1]);                              // double portion of one meat
+      else if(i2>i1){ pairs.push([p1,p2]); pairs.push([half(p1),half(p2)]); }
+    });
+    pairs.forEach(function(pp){
       G.forEach(function(g){ R.forEach(function(r){ if(!g&&!r) return;
         B.forEach(function(b){ X.forEach(function(x){
-          var parts=[g,r,b,p1,p2].concat(veg,[x]).filter(Boolean);
-          out.push({kind:'bowl', parts:parts, protein:[p1,p2].filter(Boolean)});
+          var parts=[g,r,b].concat(pp, veg, [x]).filter(Boolean);
+          out.push({kind:'bowl', parts:parts, protein:pp});
         }); });
       }); });
     });
@@ -1292,15 +1301,23 @@ function restaurantMeals(chain, target, opts){
   }
   var options=picked.map(function(c){
     var counts={}, rows=[];
-    c.parts.forEach(function(p){ var k=p.name+'|'+p.serving; if(counts[k]){ counts[k].qty++; return; } counts[k]={item:p, qty:1}; rows.push(counts[k]); });
+    c.parts.forEach(function(p){ var k=p.name+'|'+p.serving+(p.half?'|half':''); if(counts[k]){ counts[k].qty++; return; } counts[k]={item:p, qty:1}; rows.push(counts[k]); });
     var lines=rows.map(function(r){
       var role = c.kind!=='main' ? (r.item.cat==='component_protein'?'protein':'bowl')
                : r.item===c.anchor ? 'main' : (r.item.cat==='side'?'side':'add-on');
-      return {name:rmLabel(r.item, role), serving:r.item.serving, qty:r.qty, role:role,
+      var nm=rmLabel(r.item, role), qty=r.qty;
+      var twoMeats=c.kind==='bowl' && c.protein.length>1;
+      if(role==='protein' && c.kind==='bowl'){
+        if(r.item.half) nm+=' (half portion)';
+        else if(r.qty>1){ nm+=' (double portion)'; qty=1; }
+        else nm+=twoMeats ? ' (full portion)' : ' (one portion)';
+      }
+      return {name:nm, serving:r.item.serving, qty:qty, portions:r.qty, role:role,
               kcal:Math.round(r.item.kcal*r.qty), p:Math.round(r.item.p*r.qty), src:r.item.src};
     });
     var title = c.kind!=='main'
       ? (c.kind==='bowl' ? 'Bowl: ' : c.bunless ? 'Lettuce wrap or bowl: ' : 'Build it: ')+lines.map(function(l){ return (l.qty>1?'double ':'')+l.name; }).join(', ')
+        +(c.kind==='bowl' && c.protein.length>1 ? (c.protein[0].half ? '. Ask for half and half.' : c.protein[0]===c.protein[1] ? '. Ask for double meat.' : '. Ask for double meat, a full portion of each.') : '')
       : lines.map(function(l){ return (l.qty>1?l.qty+'x ':'')+l.name; }).join(' + ');
     return {title:title, items:lines, totals:c.t,
             fit:{kcalPct:Math.round(c.t.kcal/calT*100), proteinPct:Math.round(c.t.p/proT*100)}};
@@ -1386,17 +1403,40 @@ function swapChart(perMeal, opts){
 }
 
 /* ===== SHOPPING LIST + MEAL PREP GUIDE =====
-   Built from the member's own meal deck. The rhythm is batch cooking, three days at a time:
-     Batch A = Option 1 of every meal for days 1-3
-     Batch B = Option 2 for days 4-6
-     Day 7   = Option 3 (or a free meal)
-   Three days because cooked food keeps 3-4 days in the fridge (USDA FSIS leftovers guidance).
+   Built from the member's own meal deck. ONE shopping list covers the example week (PLAN_ROTATION):
+     option 1 of every meal days 1-3, option 2 days 4-5, option 3 days 6-7.
+   Prep happens in two sessions (PREP_SESSIONS) because cooked food keeps 3-4 days in the fridge
+   (USDA FSIS leftovers guidance).
    Meal portions are COOKED amounts; the list converts to what you actually buy. Safe internal
    temperatures follow USDA FSIS. Every conversion here is a buying estimate, and says so. */
 var PREP_DAYS=3;
-var PLAN_ROTATION=[{label:'Batch A', days:'Days 1 to 3', option:0, count:3},
-                   {label:'Batch B', days:'Days 4 to 6', option:1, count:3},
-                   {label:'Day 7',   days:'Day 7',       option:2, count:1}];
+/* The EXAMPLE WEEK (Jayme 2026-09-17: no batch labels in the plan). The plan is one set of meals,
+   three options per meal, one shopping list. This is only the suggested way to eat through it. */
+var PLAN_ROTATION=[{label:'Option 1', days:'Days 1 to 3',  option:0, count:3, start:1},
+                   {label:'Option 2', days:'Days 4 and 5', option:1, count:2, start:4},
+                   {label:'Option 3', days:'Days 6 and 7', option:2, count:2, start:6}];
+/* Two short prep sessions keep every cooked meal inside the 3 to 4 day fridge window. */
+var PREP_SESSIONS=[{label:'Day 1 prep', when:'Day 1', covers:[0]},
+                   {label:'Day 4 prep', when:'Day 4', covers:[1,2]}];
+var PREP_WAYS=[
+  {title:'Easiest: one option at a time',
+   lines:['Eat option 1 of every meal for days 1 to 3, option 2 for days 4 and 5, and option 3 for days 6 and 7.',
+          'Prep twice: on day 1 make option 1, on day 4 make options 2 and 3.',
+          'Repeating a meal for two or three days is the point. Fewer decisions, easier shopping.']},
+  {title:'Mix and match',
+   lines:['Cook the same foods on the same two prep days, but pack them loose instead of by meal.',
+          'Each day, pick any option for any meal. They all hit your numbers.',
+          'Best if you get bored easily or your days change a lot.']}
+];
+function exampleWeek(deck){
+  var days=[];
+  PLAN_ROTATION.forEach(function(r){
+    for(var d=0; d<r.count; d++) days.push({day:r.start+d, option:r.option,
+      meals:(deck.slots||[]).filter(function(sl){ return sl.options && sl.options.length; }).map(function(sl){
+        var o=sl.options[Math.min(r.option, sl.options.length-1)]; return {slot:sl.name, name:o.name||o.items.join(', ')}; })});
+  });
+  return days;
+}
 /* sec = shopping section. buy(total, unitsLabel) turns the COOKED total into a store amount.
    cook = how to batch it. temp = USDA FSIS safe minimum internal temperature where one applies. */
 var SHOP_INFO=(function(){
@@ -1465,8 +1505,8 @@ function shopRound(x, u){
 }
 /* Everything eaten in one batch: option index `option` of every meal, for `days` days, plus
    one snack a day. Returns {totals:{name:{qty,u,whole,veg,cups}}, meals:[{slot, items, parts}]} */
-function batchTotals(deck, option, days, withSnack){
-  var totals={}, meals=[];
+function batchTotals(deck, option, days, withSnack, into){
+  var totals=into||{}, meals=[];
   (deck.slots||[]).forEach(function(sl){
     if(!sl.options||!sl.options.length) return;
     var o=sl.options[Math.min(option, sl.options.length-1)];
@@ -1483,7 +1523,8 @@ function batchTotals(deck, option, days, withSnack){
 function addPart(totals, pt, days){
   var k=pt.n;
   if(totals[k] && !pt.veg && !pt.shake && (totals[k].u||'')!==(pt.u||'')){
-    var conv={'>oz':/cherry tomato/.test(pt.n)?0.6:0, 'tsp>tbsp':1/3, 'tbsp>tsp':3, 'tbsp>oz':0.5, 'oz>tbsp':2, 'cup>oz':8, 'oz>cup':0.125};
+    var each=/cherry tomato/.test(pt.n)?0.6:(/olives/.test(pt.n)?0.14:0), tb=/green onion/.test(pt.n)?2:0;
+    var conv={'>oz':each, 'oz>':each?1/each:0, '>tbsp':tb, 'tbsp>':tb?1/tb:0, 'tsp>tbsp':1/3, 'tbsp>tsp':3, 'tbsp>oz':0.5, 'oz>tbsp':2, 'cup>oz':8, 'oz>cup':0.125};
     var r=conv[(pt.u||'')+'>'+(totals[k].u||'')];
     if(r && !(pt.u==='cup' && /oil|milk/.test(pt.n))){ pt={n:pt.n, units:(pt.units||0)*r, u:totals[k].u, whole:pt.whole, sec:pt.sec, recipe:pt.recipe}; }
   }
@@ -1501,6 +1542,7 @@ function shopAmount(name, t){
     if(t.u) return q+' '+pluralUnit(t.u,q);
     return (t.whole ? q : 'about '+Math.ceil(t.qty))+(name==='avocado'?(Math.ceil(t.qty)===1?' avocado':' avocados'):'');
   }
+  if(t.u==='tsp' && t.qty>=3) return (Math.ceil(t.qty/3*2)/2)+' tbsp';
   var v=shopRound(t.qty, t.u);
   if(t.u==='oz' && t.recipe) return v+' oz'+(v>=16 ? ' (about '+(Math.ceil(v/16*4)/4)+' lb)' : '');
   if(t.u==='oz') return v+' oz'+(info.sec==='Meat and fish'?' cooked':'');
@@ -1511,7 +1553,16 @@ var NO_COOK=/^(No cooking|Wash and portion|Cut fresh|Slice or shred|Rinse and dr
 function shoppingList(deck, opts){
   opts=opts||{};
   var option=opts.option||0, days=opts.days||PREP_DAYS;
-  var bt=batchTotals(deck, option, days, opts.snack!==false);
+  var bt;
+  if(opts.week){
+    /* ONE list for the whole week: every batch in the rotation, added together. */
+    bt={totals:{}, meals:[]};
+    PLAN_ROTATION.forEach(function(rr){
+      var b=batchTotals(deck, rr.option, rr.count, opts.snack!==false, bt.totals);
+      b.meals.forEach(function(m){ m.batch=rr.label; bt.meals.push(m); });
+    });
+    days=PLAN_ROTATION.reduce(function(a,rr){ return a+rr.count; }, 0);
+  } else bt=batchTotals(deck, option, days, opts.snack!==false);
   var order=['Meat and fish','Plant protein','Eggs and dairy','Protein powder','Carbs and grains','Fruit','Vegetables','Fats, nuts and extras','Pantry and spices'];
   var secs={};
   Object.keys(bt.totals).forEach(function(name){
@@ -1530,8 +1581,8 @@ function shoppingList(deck, opts){
     }
     (secs[sec]=secs[sec]||[]).push({name:name, need:String(need), buy:buy});
   });
-  var r=PLAN_ROTATION[Math.min(option, PLAN_ROTATION.length-1)];
-  return {label:r.label, days:days, option:option, meals:bt.meals.map(function(m){ return {slot:m.slot, name:m.name||m.items.join(', ')}; }),
+  var r=opts.week ? {label:'The week'} : PLAN_ROTATION[Math.min(option, PLAN_ROTATION.length-1)];
+  return {label:r.label, days:days, option:option, meals:bt.meals.map(function(m){ return {slot:m.slot, batch:m.batch||r.label, name:m.name||m.items.join(', ')}; }),
     sections:order.filter(function(s){ return secs[s]; }).map(function(s){
       return {name:s, items:secs[s].sort(function(a,b){ return a.name<b.name?-1:1; })}; }),
     note:'Meal amounts are cooked portions. The buying amounts are estimates, rounded up so you never come up short.'};
@@ -1539,8 +1590,16 @@ function shoppingList(deck, opts){
 /* A prep session for one batch: what to cook, how, safe temperatures, then how to pack it. */
 function prepGuide(deck, opts){
   opts=opts||{};
-  var option=opts.option||0, days=opts.days||PREP_DAYS;
-  var bt=batchTotals(deck, option, days, opts.snack!==false);
+  var option=opts.option||0, days=opts.days||PREP_DAYS, bt, session=null;
+  if(opts.session!=null){
+    session=PREP_SESSIONS[opts.session];
+    bt={totals:{}, meals:[]}; days=0;
+    session.covers.forEach(function(ri){
+      var rr=PLAN_ROTATION[ri], b=batchTotals(deck, rr.option, rr.count, opts.snack!==false, bt.totals);
+      b.meals.forEach(function(m){ m.days=rr.count; m.forDays=rr.days; bt.meals.push(m); });
+      days+=rr.count;
+    });
+  } else bt=batchTotals(deck, option, days, opts.snack!==false);
   var cookLines=[], noCook=[], vegRoast=[], vegRaw=[];
   Object.keys(bt.totals).forEach(function(name){
     var t=bt.totals[name], info=SHOP_INFO[name]||{};
@@ -1557,21 +1616,21 @@ function prepGuide(deck, opts){
   var steps=[];
   var recipes=bt.meals.filter(function(m){ return m.recipe && m.recipe.how; });
   if(recipes.length) steps.push({title:'Make the recipes', lines:recipes.map(function(m){
-    return m.name+' ('+days+' '+(days===1?'serving':'servings')+'): '+m.recipe.how; })});
+    var dd=m.days||days; return m.name+' ('+dd+' '+(dd===1?'serving':'servings')+'): '+m.recipe.how; })});
   if(protein.length) steps.push({title:'Cook your proteins', lines:protein.map(function(l){
     return l.name+', '+l.amount+'. '+l.how+(l.temp?' Cook to '+l.temp+' inside.':''); })});
   if(carbs.length) steps.push({title:'Cook your carbs', lines:carbs.map(function(l){ return l.name+', '+l.amount+'. '+l.how; })});
   if(vegRoast.length) steps.push({title:'Roast your vegetables', lines:['Chop '+vegRoast.join(', ')+'. Toss with a teaspoon of olive oil and roast at 425°F for 20 to 25 minutes.']});
   if(vegRaw.length) steps.push({title:'Wash and chop the fresh vegetables', lines:['Wash, dry and chop '+vegRaw.join(', ')+'. Store in a sealed container with a paper towel.']});
   if(noCook.length) steps.push({title:'Portion the no-cook foods', lines:noCook});
-  var containers=bt.meals.filter(function(m){ return !/shake/i.test(m.slot); }).map(function(m){ return {slot:m.slot, count:days, items:m.items, cal:m.cal, protein:m.protein}; });
+  var containers=bt.meals.filter(function(m){ return !/shake/i.test(m.slot); }).map(function(m){ return {slot:m.slot, name:m.name, count:m.days||days, forDays:m.forDays||'', items:m.items, cal:m.cal, protein:m.protein}; });
   steps.push({title:'Pack your containers', lines:containers.map(function(c){
-    return c.count+' '+c.slot.toLowerCase()+' containers: '+c.items.join(', ')+'.'; })});
-  var r=PLAN_ROTATION[Math.min(option, PLAN_ROTATION.length-1)];
-  return {label:r.label, days:days, option:option, steps:steps, containers:containers,
+    return c.count+' '+c.slot.toLowerCase()+' '+(c.count===1?'container':'containers')+(c.name?' of '+c.name:'')+(c.forDays?' ('+c.forDays.toLowerCase()+')':'')+'.'; })});
+  var r=session ? {label:session.label} : PLAN_ROTATION[Math.min(option, PLAN_ROTATION.length-1)];
+  return {label:r.label, days:days, option:option, steps:steps, containers:containers, ways:PREP_WAYS,
     storage:['Get cooked food into the fridge within 2 hours.',
-             'Eat it within 3 to 4 days. That is why every batch covers 3 days.',
-             'Want to cook once for longer? Freeze the day 3 containers and move them to the fridge the night before.'],
+             'Eat it within 3 to 4 days. That is why you prep twice a week.',
+             'Want to cook once for longer? Freeze the later containers and move them to the fridge the night before.'],
     source:'Cooking temperatures and storage times follow USDA Food Safety and Inspection Service guidance.'};
 }
 

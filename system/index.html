@@ -92,6 +92,7 @@ details.builder[open]>summary:after{content:" \2013"}
 .pr b{display:block;color:#fff;font-weight:800;font-size:.95rem}
 .pr p{font-size:.86rem;color:var(--soft);margin-top:5px}
 table{width:100%;border-collapse:collapse;font-size:.84rem}
+.weektbl td,.weektbl th{font-size:.74rem;vertical-align:top}
 th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line);vertical-align:top}
 th{font-size:.66rem;letter-spacing:.13em;text-transform:uppercase;color:var(--soft);font-weight:700}
 td b{color:#fff}
@@ -170,6 +171,8 @@ td b{color:#fff}
   .shopitem{padding:2px 0;font-size:9.5px;gap:6px;grid-template-columns:10px 1fr}
   .shopitem span{display:inline;margin-left:5px;font-size:8.5px}
   .shopcols{columns:3;column-gap:10px}
+  .weektbl td,.weektbl th{font-size:8.5px;padding:4px 6px}
+  .sheet .intro.forms{font-size:9.5px;line-height:1.35;margin-bottom:8px}
   .shopsec{padding:8px 10px 4px;margin-bottom:8px}
   .shopitem .box{width:8px;height:8px;margin-top:2px}
   .sheet-foot{margin-top:12px}
@@ -234,8 +237,8 @@ td b{color:#fff}
 </div>
 
 <script src="../restaurant-data.js?v=1"></script>
-<script src="../recipe-data.js?v=1"></script>
-<script src="../nutrition-engine.js?v=19"></script>
+<script src="../recipe-data.js?v=3"></script>
+<script src="../nutrition-engine.js?v=21"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -274,8 +277,9 @@ function build(){
   var sel = {protein:IN.protein||[], carb:IN.carb||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[],
              frequency:IN.freq||'3', shakeGrams:+IN.shake||30};
   var deck = generateMealOptions(it, sel, IN.name||'');
-  var shop = [0,1,2].map(function(o){ return shoppingList(deck, {option:o, days:PLAN_ROTATION[o].count}); });
-  var prep = [0,1].map(function(o){ return prepGuide(deck, {option:o, days:3}); });
+  var shop = [shoppingList(deck, {week:true})];
+  var prep = PREP_SESSIONS.map(function(x, i){ return prepGuide(deck, {session:i}); });
+  var week = exampleWeek(deck);
   var produce = (typeof produceTarget === 'function') ? produceTarget(+IN.cal, IN.phase === 'Reverse Diet' ? 'Reverse Diet' : IN.phase) : null;
   var lunch = deck.slots.filter(function(s){ return s.name === 'Lunch'; })[0] || deck.slots[0];
   var lunchCal = lunch.target.protein*4 + lunch.target.carbs*4 + lunch.target.fat*9;
@@ -300,7 +304,8 @@ function build(){
     '</section>');
 
   /* 2. how it works */
-  var rot = PLAN_ROTATION.map(function(r){ return '<tr><td><b>' + r.label + '</b></td><td>' + r.days + '</td><td>Option ' + (r.option+1) + ' of every meal</td></tr>'; }).join('');
+  var mealSlots = week.length ? week[0].meals.map(function(m){ return m.slot; }) : [];
+  var rot = week.map(function(d){ return '<tr><td><b>Day ' + d.day + '</b></td>' + d.meals.map(function(m){ return '<td>' + esc(m.name) + '</td>'; }).join('') + '</tr>'; }).join('');
   doc.push('<section class="sheet"><span class="label">How your system works</span><h2>Simple on <span class="gold">purpose.</span></h2>' +
     '<p class="intro">You do not have to count anything. The numbers are already inside the meals. Your job is to eat the portions, check in weekly, and rebuild when life changes.</p>' +
     '<div class="principles">' +
@@ -309,15 +314,15 @@ function build(){
       '<div class="tile pr"><b>Carbs and fats, done for you</b><p>Every option is already balanced. All you do is stick to the portions.</p></div>' +
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
-    '<h3 style="margin:24px 0 8px;font-size:.95rem">Your rhythm: batch cook three days at a time</h3>' +
-    '<div class="tablewrap"><table><thead><tr><th>Batch</th><th>When</th><th>What you eat</th></tr></thead><tbody>' + rot + '</tbody></table></div>' +
-    '<p class="note">Cooked food keeps 3 to 4 days in the fridge, so every batch covers 3 days. Day 7 is a good day for a free meal.</p>' +
+    '<h3 style="margin:24px 0 8px;font-size:.95rem">An example week</h3>' +
+    '<div class="tablewrap"><table class="weektbl"><thead><tr><th>Day</th>' + mealSlots.map(function(n){ return '<th>' + esc(n) + '</th>'; }).join('') + '</tr></thead><tbody>' + rot + '</tbody></table></div>' +
+    '<p class="note">This is one easy way to eat through your meals. Any option works on any day. Meal prep made easy, later in this system, shows two simple ways to prep it.</p>' +
     foot(2) + '</section>');
 
   /* 3. meals */
   var slotsHTML = deck.slots.map(function(sl){
     var opts = sl.options.map(function(o, i){
-      return '<div class="tile opt"><span class="on">Option ' + (i+1) + ' · ' + esc((PLAN_ROTATION[i]||PLAN_ROTATION[PLAN_ROTATION.length-1]).label) + '</span>' + (o.name ? '<h4 class="mname">' + esc(o.name) + '</h4>' : '') + '<ul>' + o.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(o) + '</div>';
+      return '<div class="tile opt"><span class="on">Option ' + (i+1) + '</span>' + (o.name ? '<h4 class="mname">' + esc(o.name) + '</h4>' : '') + '<ul>' + o.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(o) + '</div>';
     }).join('');
     return '<div class="slot"><div class="slot-h"><h3>' + esc(sl.name) + '</h3><span>every option ≈ ' + (sl.target.protein||0) + 'g protein</span></div><div class="opts">' + opts + '</div></div>';
   }).join('');
@@ -325,7 +330,7 @@ function build(){
     return '<div class="tile opt"><span class="on">' + esc(c.name) + '</span><ul>' + c.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(c) + '</div>';
   }).join('');
   doc.push('<section class="sheet"><span class="label">Your meals</span><h2>Meal plans for <span class="gold">every goal.</span></h2>' +
-    '<p class="intro">Three options for every meal. Option 1 is Batch A (days 1 to 3), option 2 is Batch B (days 4 to 6), option 3 is day 7. Each option hits the same numbers, so swap freely.</p>' + slotsHTML +
+    '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day.</p>' + slotsHTML +
     (snacks ? '<div class="slot"><div class="slot-h"><h3>Snacks and protein boosters</h3><span>for the days you come up short</span></div><div class="opts">' + snacks + '</div></div>' : '') +
     foot(3) + '</section>');
 
@@ -336,20 +341,24 @@ function build(){
         return '<div class="shopitem"><div class="box"></div><div><b>' + esc(cap(i.name)) + '</b><span>' + esc(i.need) + (i.buy ? ' · ' + (/^(one |from )/.test(i.buy) ? '' : 'buy ') + esc(i.buy) : '') + '</span></div></div>';
       }).join('') + '</div>';
     }).join('');
-    doc.push('<section class="sheet"><span class="label">Shopping list · ' + esc(sh.label) + '</span><h2>' + esc(PLAN_ROTATION[idx].days) + ', <span class="gold">in one trip.</span></h2>' +
-      '<p class="intro">Everything for ' + (sh.days === 1 ? 'day 7' : 'these ' + sh.days + ' days') + ', including one snack a day. Check it off as you shop.</p>' +
-      '<p class="intro forms"><b>This list makes:</b> ' + esc(sh.meals.map(function(m){ return m.slot + ': ' + m.name; }).join(' · ')) + '</p>' +
-      '<div class="shopcols">' + secs + '</div><p class="note">' + esc(sh.note) + '</p>' + foot(4 + idx) + '</section>');
+    var byBatch = '<b>Covers every meal in your system:</b> ' + esc(sh.meals.map(function(m){ return m.name; }).filter(function(n, i, a){ return a.indexOf(n) === i; }).join(', ')) + '.';
+    doc.push('<section class="sheet"><span class="label">Shopping list · the whole week</span><h2>One list. <span class="gold">One trip.</span></h2>' +
+      '<p class="intro">Everything for the example week: all three options of every meal and one snack a day. Shop once. Check it off as you shop.</p>' +
+      '<p class="intro forms">' + byBatch + '</p>' +
+      '<div class="shopcols">' + secs + '</div><p class="note">' + esc(sh.note) + '</p>' + foot(4) + '</section>');
   });
 
   /* 5. prep guides */
+  var ways = (prep[0] && prep[0].ways || PREP_WAYS).map(function(w, i){ return '<div class="tile pr"><b>Way ' + (i+1) + '. ' + esc(w.title) + '</b><p>' + w.lines.map(esc).join(' ') + '</p></div>'; }).join('');
   prep.forEach(function(pg, idx){
     var steps = pg.steps.map(function(st){ return '<div class="tile step"><h3>' + esc(st.title) + '</h3><ul>' + st.lines.map(function(l){ return '<li>' + esc(l) + '</li>'; }).join('') + '</ul></div>'; }).join('');
-    doc.push('<section class="sheet"><span class="label">Meal prep guide · ' + esc(pg.label) + '</span><h2>Cook once. <span class="gold">Eat for three days.</span></h2>' +
-      '<p class="intro">About an hour on prep day. Start the oven first, then work through the steps in order.</p>' +
+    doc.push('<section class="sheet"><span class="label">Meal prep made easy · ' + esc(pg.label) + '</span>' +
+      (idx === 0
+        ? '<h2>Two ways. <span class="gold">Pick the easy one.</span></h2><p class="intro">One set of meals, one shopping list. Here are two simple ways to prep it. Both use two short prep days so food stays fresh.</p><div class="principles">' + ways + '</div><h3 style="margin:18px 0 8px;font-size:.95rem">' + esc(pg.label) + ': what to make</h3>'
+        : '<h2>Halfway there. <span class="gold">Prep once more.</span></h2><p class="intro">About an hour. Start the oven first, then work through the steps in order.</p>') +
       '<div class="steps">' + steps + '</div>' +
       '<div class="panel storage"><b>Storage.</b> ' + pg.storage.map(esc).join(' ') + '</div>' +
-      '<p class="note">' + esc(pg.source) + '</p>' + foot(7 + idx) + '</section>');
+      '<p class="note">' + esc(pg.source) + '</p>' + foot(5 + idx) + '</section>');
   });
 
   /* 6. swap guide */
@@ -359,7 +368,7 @@ function build(){
   doc.push('<section class="sheet"><span class="label">Swap guide</span><h2>Tired of a food? <span class="gold">Trade it.</span></h2>' +
     '<p class="intro">Each column is one meal\'s worth. Swap protein for protein, carbs for carbs, fat for fat, and the meal still hits your numbers.</p>' +
     '<div class="swapgrid">' + col('Protein', ch.protein, ch.protein.grams + 'g protein') + col('Carbs', ch.carb, ch.carb.grams + 'g carbs') + col('Added fat', ch.fat, ch.fat.grams + 'g fat') + '</div>' +
-    '<p class="note">Vegetables stay unlimited. Every portion comes from USDA data or the brand label.</p>' + foot(9) + '</section>');
+    '<p class="note">Vegetables stay unlimited. Every portion comes from USDA data or the brand label.</p>' + foot(7) + '</section>');
 
   /* 7. restaurants */
   var rests = (IN.restaurants||[]).map(function(name){
@@ -373,7 +382,7 @@ function build(){
     '<p class="intro">Real orders, sized to one of your meals (about ' + Math.round(lunchCal) + ' calories and ' + lunch.target.protein + 'g protein), from each restaurant\'s own published nutrition.</p>' +
     (rests || '<p class="note">No restaurants picked yet. Add the places you go and rebuild.</p>') +
     '<h3 style="margin:20px 0 8px;font-size:.95rem">The rules that work anywhere</h3><ul class="rules">' +
-    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot(10) + '</section>');
+    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot(8) + '</section>');
 
   /* 8. next steps */
   doc.push('<section class="sheet"><span class="label">From here</span><h2>Your system <span class="gold">keeps up with you.</span></h2>' +
@@ -384,7 +393,7 @@ function build(){
       '<div class="tile pr"><b>We perfect it together</b><p>Your first 30 days are the tuning period. If something is not working, we adjust it.</p></div>' +
     '</div>' +
     '<p class="note" style="margin-top:22px">Educational coaching guidance, not medical advice. Individual results vary. Consult your physician before changing your diet, especially with a medical condition.</p>' +
-    foot(11) + '</section>');
+    foot(9) + '</section>');
 
   $('doc').innerHTML = doc.join('');
   $('status').innerHTML = IN.example
