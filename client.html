@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=26"></script>
+<script src="nutrition-engine.js?v=27"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3667,7 +3667,7 @@ function openMySystem(){
   var it=M.intake||{}, p=it.pfs||{}, f=loadFoods(), c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
   var list=function(v){ return Array.isArray(v)?v:String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
   var alias={"Panera":"Panera Bread","Outback":"Outback Steakhouse","Tropical Smoothie":"Tropical Smoothie Cafe","Moe's":"Moe's Southwest Grill","Sonic":"Sonic Drive-In","In-N-Out":"In-N-Out Burger"};
-  var inp={name:(ID&&ID.name)||'', weight:+it.weight||'', goalweight:+it.goalweight||'', cal:Math.round(p.calories||0), pro:Math.round(p.protein||0), carbG:Math.round(p.carbs||0), fatG:Math.round(p.fat||0),
+  var inp={name:(ID&&ID.name)||'', weight:+it.weight||'', goalweight:+it.goalweight||'', activity:it.activity||'', cal:Math.round(p.calories||0), pro:Math.round(p.protein||0), carbG:Math.round(p.carbs||0), fatG:Math.round(p.fat||0),
     phase:(it.track==='Long'?'Sustain':(it.track||'Lean')), freq:it.meals||it.frequency||'3', shake:it.shakeGrams||30,
     style:c['Eating style']||'', allergies:list(c['Allergen keys']),
     protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),

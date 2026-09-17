@@ -86,6 +86,13 @@ details.builder[open]>summary:after{content:" \2013"}
 .nums.four{grid-template-columns:repeat(4,1fr);margin-top:10px}
 .eyebrow + .nums{margin-top:10px}
 .startnote{margin-top:10px;font-size:.86rem;color:var(--body);max-width:68ch}
+.steptbl{margin-top:12px;border:1px solid var(--olive-dim);border-radius:12px;overflow:hidden}
+.srow{display:grid;grid-template-columns:1.2fr 1fr 1fr 1.1fr;gap:8px;padding:7px 12px;font-size:.8rem;color:var(--body);border-top:1px solid rgba(143,169,122,.14)}
+.srow:first-child{border-top:0}
+.srow.head{font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--olive-lt);font-weight:700}
+.srow.mine{background:rgba(84,106,70,.18);color:#fff}
+.srow b{color:#fff}
+.tag{font-style:normal;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--ink);background:var(--gold);padding:1px 5px;border-radius:5px;margin-left:5px}
 .levers{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:12px}
 .lever{padding:10px 12px;border-radius:12px;border:1px solid var(--olive-dim);background:rgba(255,255,255,.03)}
 .lever b{display:block;font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gold);margin-bottom:3px}
@@ -190,6 +197,15 @@ td b{color:#fff}
   .shopitem span{display:inline;margin-left:5px;font-size:8.5px}
   .shopcols{columns:3;column-gap:10px}
   .weektbl td,.weektbl th{font-size:8.5px;padding:4px 6px}
+  .srow{font-size:8.5px;padding:3px 8px;gap:6px}
+  .tile.pr{padding:8px 11px}
+  .tile.pr b{font-size:10px}
+  .tile.pr p{font-size:9px;line-height:1.35}
+  .principles{gap:7px}
+  .rules li{font-size:8.5px}
+  h3{font-size:10.5px!important;margin:12px 0 5px!important}
+  .srow.head{font-size:7.5px}
+  .steptbl{margin-top:8px}
   .sheet .intro.forms{font-size:9.5px;line-height:1.35;margin-bottom:8px}
   .shopsec{padding:8px 10px 4px;margin-bottom:8px}
   .shopitem .box{width:8px;height:8px;margin-top:2px}
@@ -240,8 +256,12 @@ td b{color:#fff}
           <div class="f"><label for="in-name">First name</label><input id="in-name" type="text" autocomplete="off"></div>
           <div class="f"><label for="in-weight">Starting weight (lb)</label><input id="in-weight" type="number" inputmode="numeric" min="80" max="600"></div>
           <div class="f"><label for="in-goal">Goal weight (lb)</label><input id="in-goal" type="number" inputmode="numeric" min="80" max="600"></div>
+          <div class="f"><label for="in-activity">Daily steps</label>
+            <select id="in-activity"><option value="Sedentary">About 5,000</option><option value="Lightly active">About 7,500</option><option value="Active">About 10,000</option><option value="Very active">12,000 or more</option></select></div>
           <div class="f"><label for="in-cal">Calories</label><input id="in-cal" type="number" inputmode="numeric" min="900" max="5000"></div>
           <div class="f"><label for="in-pro">Protein (g)</label><input id="in-pro" type="number" inputmode="numeric" min="40" max="350"></div>
+          <div class="f"><label for="in-free">Free meals a week</label>
+            <select id="in-free"><option value="2">2 (built in)</option><option value="3">3 (−100 cal a day)</option><option value="4">4 (−200 cal a day)</option><option value="5">5 (−300 cal a day)</option><option value="6">6 (−400 cal a day)</option></select></div>
           <div class="f"><label for="in-phase">Phase</label>
             <select id="in-phase"><option>Lean</option><option>Strong</option><option>Sustain</option><option>Reverse Diet</option></select></div>
           <div class="f"><label for="in-carb">Carbs (g)</label><input id="in-carb" type="number" inputmode="numeric" min="30" max="600"></div>
@@ -268,11 +288,11 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=26"></script>
+<script src="../nutrition-engine.js?v=27"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
-var EXAMPLE = {name:'Rachel', weight:182, goalweight:150, cal:1950, pro:150, carbG:203, fatG:60, phase:'Lean', freq:'3 + shake', shake:30,
+var EXAMPLE = {name:'Rachel', weight:182, goalweight:150, activity:'Active', cal:1950, pro:150, carbG:203, fatG:60, phase:'Lean', freq:'3 + shake', shake:30,
   style:'', allergies:[],
   protein:['chicken breast','93% ground turkey','salmon','shrimp','nonfat Greek yogurt','whole eggs','egg whites','canned tuna','low-fat cottage cheese','sirloin steak'],
   carb:['white rice','potatoes','sweet potato','oats','berries','banana','sourdough','quinoa','black beans'],
@@ -298,28 +318,32 @@ if (IN.fatG == null && typeof IN.fat === 'number') { IN.fatG = IN.fat; IN.fat = 
 var $ = function(id){ return document.getElementById(id); };
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function startBlock(){
-  var tl = (typeof goalTimeline === 'function') ? goalTimeline(IN.weight, IN.goalweight, IN.phase || 'Lean') : null;
+  var tl = (typeof goalTimeline === 'function')
+    ? goalTimeline(IN.weight, IN.goalweight, IN.phase || 'Lean', {calories:+(window.DAILY_CAL || IN.cal), activity:IN.activity, steps:IN.steps}) : null;
   if (!tl) return '';
   var lose = tl.start > tl.goal;
   var time = tl.weeks ? '<div class="tile num start"><b>' + tl.weeks + ' wks</b><span>Time to goal</span></div>' : '';
   var note = tl.weeks
-    ? 'Your plan is built for about ' + tl.basePace + ' lb a week, a daily deficit of about 500 calories. At that pace you reach ' + tl.goal + ' lb in about ' + tl.weeks + ' weeks. At ' + tl.fastPace + ' lb a week, about ' + tl.fastWeeks + ' weeks. Maintenance breaks get built in along the way, timed from your check-ins.'
+    ? 'At ' + esc(tl.stepLabel.toLowerCase()) + ' a day you burn about ' + tl.maintenance.toLocaleString() + ' calories, and your plan feeds you ' + tl.calories.toLocaleString() + '. That gap of about ' + tl.deficit + ' calories a day is roughly ' + tl.paceNow + ' lb a week to start, easing to about ' + tl.paceLater + ' lb as you get lighter and your calories step down with each phase. About ' + tl.weeks + ' weeks to ' + tl.goal + ' lb, with maintenance breaks built in along the way.'
     : (IN.phase === 'Strong' ? 'This is a Strong phase: the goal is building muscle, so the scale is not the main measure.'
       : IN.phase === 'Reverse Diet' ? 'This is a Reverse Diet: calories come up first, so the scale mostly holds while your metabolism recovers.'
       : 'This is a Sustain phase: the goal is holding your weight steady while your habits settle in.');
+  /* Rows, not a <table>: a table inside the flex cover breaks Chrome's print pagination. */
+  var steps = (tl.bySteps || []).map(function(r){
+    return '<div class="srow' + (r.mine ? ' mine' : '') + '"><span><b>' + esc(r.label) + '</b>' + (r.mine ? ' <i class="tag">yours</i>' : '') + '</span>' +
+      '<span>' + r.maintenance.toLocaleString() + ' cal out</span><span>' + r.pace + ' lb a week</span><span>' + (r.weeks ? r.weeks + ' weeks to goal' : 'not from food alone') + '</span></div>';
+  }).join('');
   var levers = tl.weeks
-    ? '<div class="levers">' +
-        '<div class="lever"><b>Walk more</b><p>About 2,000 extra steps a day burns roughly ' + tl.steps.calories + ' more calories a day at your size. Same food, and your ' + tl.weeks + ' weeks becomes about ' + tl.steps.weeks + '.</p></div>' +
-        '<div class="lever"><b>Lift weights</b><p>Resistance training and your protein floor decide what comes off. With them, about ' + tl.lifting.fatShare + '% of the weight you lose is fat. Without them, closer to ' + tl.lifting.withoutShare + '%, and the rest is muscle.</p></div>' +
-        '<div class="lever"><b>Stay consistent</b><p>Hitting your portions most days and checking in every week is what keeps the pace real. The scale is read as a trend, not one morning.</p></div>' +
-      '</div>'
+    ? '<div class="steptbl"><div class="srow head"><span>If you walk</span><span>You burn about</span><span>You lose about</span><span>You get there in</span></div>' + steps + '</div>' +
+      '<p class="startnote">Walking is the fastest lever you own, and it costs you nothing. Lifting is the other one: with resistance training and your protein floor, about ' + tl.lifting.fatShare + '% of what you lose is fat. Without them, closer to ' + tl.lifting.withoutShare + '%, and the rest is muscle you spent years building.</p>'
     : '';
+  window.STEPS_BLOCK = levers;
   return '<span class="eyebrow" style="margin-top:26px">Your starting point</span>' +
     '<div class="nums four">' +
       '<div class="tile num start"><b>' + tl.start + ' lb</b><span>Starting weight</span></div>' +
       '<div class="tile num start"><b>' + tl.goal + ' lb</b><span>Goal weight</span></div>' +
       '<div class="tile num start"><b>' + tl.change + ' lb</b><span>' + (lose ? 'To lose' : 'To gain') + '</span></div>' + time +
-    '</div><p class="startnote">' + note + '</p>' + levers +
+    '</div><p class="startnote">' + note + '</p>' +
     '<span class="eyebrow" style="margin-top:20px">Your daily numbers</span>';
 }
 var NEXT_LINKS = {
@@ -342,17 +366,20 @@ function macros(o){ return '<div class="macros"><span><b>' + Math.round(o.cal) +
 
 /* ======================= BUILD ======================= */
 function build(){
-  var it = {pfs:{calories:+IN.cal, protein:+IN.pro, carbs:+IN.carbG, fat:+IN.fatG}};
+  var FREE = (typeof freedomPlan === 'function') ? freedomPlan({calories:+IN.cal, protein:+IN.pro}, IN.free || 2) : null;
+  var DAILY = (FREE && FREE.extra) ? FREE.pfs : {calories:+IN.cal, protein:+IN.pro, carbs:+IN.carbG, fat:+IN.fatG};
+  var it = {pfs:{calories:DAILY.calories, protein:DAILY.protein, carbs:DAILY.carbs, fat:DAILY.fat}};
   var sel = {protein:IN.protein||[], carb:IN.carb||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[],
              frequency:IN.freq||'3', shakeGrams:+IN.shake||30};
   var deck = generateMealOptions(it, sel, IN.name||'');
   var shop = [shoppingList(deck, {week:true})];
   var prep = PREP_SESSIONS.map(function(x, i){ return prepGuide(deck, {session:i}); });
   var week = exampleWeek(deck);
-  var produce = (typeof produceTarget === 'function') ? produceTarget(+IN.cal, IN.phase === 'Reverse Diet' ? 'Reverse Diet' : IN.phase) : null;
+  var produce = (typeof produceTarget === 'function') ? produceTarget(DAILY.calories, IN.phase === 'Reverse Diet' ? 'Reverse Diet' : IN.phase) : null;
   var lunch = deck.slots.filter(function(s){ return s.name === 'Lunch'; })[0] || deck.slots[0];
   var lunchCal = lunch.target.protein*4 + lunch.target.carbs*4 + lunch.target.fat*9;
   var perMeal = mealSplit(it.pfs, sel.frequency, sel.shakeGrams).perMeal;
+  window.DAILY_CAL = DAILY.calories;
   var doc = [];
 
   /* 1. cover */
@@ -364,10 +391,10 @@ function build(){
     '<p class="who">Built from your numbers and the food you actually eat. Yours for life.</p>' +
     startBlock() +
     '<div class="nums">' +
-      '<div class="tile num"><b>' + (+IN.cal).toLocaleString() + '</b><span>Calories a day</span></div>' +
-      '<div class="tile num"><b>' + IN.pro + 'g</b><span>Protein floor</span></div>' +
-      '<div class="tile num"><b>' + IN.carbG + 'g</b><span>Carbs</span></div>' +
-      '<div class="tile num"><b>' + IN.fatG + 'g</b><span>Fat</span></div>' +
+      '<div class="tile num"><b>' + DAILY.calories.toLocaleString() + '</b><span>Calories a day</span></div>' +
+      '<div class="tile num"><b>' + DAILY.protein + 'g</b><span>Protein floor</span></div>' +
+      '<div class="tile num"><b>' + DAILY.carbs + 'g</b><span>Carbs</span></div>' +
+      '<div class="tile num"><b>' + DAILY.fat + 'g</b><span>Fat</span></div>' +
       (produce ? '<div class="tile num"><b>' + produce + 'g</b><span>Fruit and veg</span></div>' : '') +
     '</div>' +
     '<p class="meta">' + esc(deck.label) + ' · Built ' + fmtDate() + ' · Rebuild it any time from your dashboard.</p>' +
@@ -384,7 +411,14 @@ function build(){
       '<div class="tile pr"><b>Carbs and fats, done for you</b><p>Every option is already balanced. All you do is stick to the portions.</p></div>' +
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
-    '<h3 style="margin:24px 0 8px;font-size:.95rem">An example week</h3>' +
+    (window.STEPS_BLOCK ? '<h3 style="margin:22px 0 8px;font-size:.95rem">How fast you get there</h3>' + window.STEPS_BLOCK : '') +
+    (FREE ? '<h3 style="margin:22px 0 8px;font-size:.95rem">Macro freedom: ' + FREE.freeMeals + ' free meals a week</h3>' +
+      '<p class="startnote" style="margin-top:0">' +
+        (FREE.extra
+          ? 'Two free meals are built into your number. You picked ' + FREE.freeMeals + ', so your daily target comes down ' + FREE.cut + ' calories to ' + DAILY.calories.toLocaleString() + ' and your portions are already adjusted for it.'
+          : 'Two free meals a week are already built into your ' + DAILY.calories.toLocaleString() + ' calories. Nothing to earn, nothing to make up.') +
+      '</p><ul class="rules" style="margin-top:8px">' + FREE.rules.map(function(r){ return '<li>' + esc(r) + '</li>'; }).join('') + '</ul>' : '') +
+    '<h3 style="margin:22px 0 8px;font-size:.95rem">An example week</h3>' +
     '<div class="tablewrap"><table class="weektbl"><thead><tr><th>Day</th>' + mealSlots.map(function(n){ return '<th>' + esc(n) + '</th>'; }).join('') + '</tr></thead><tbody>' + rot + '</tbody></table></div>' +
     '<p class="note">This is one easy way to eat through your meals. Any option works on any day. Meal prep made easy, later in this system, shows two simple ways to prep it.</p>' +
     foot(2) + '</section>');
@@ -474,7 +508,7 @@ function build(){
   $('doc').innerHTML = doc.join('');
   $('status').innerHTML = IN.example
     ? '<b>Example system.</b> Open the builder below to enter a member\'s numbers and foods.'
-    : '<b>' + esc(owner()) + ' system</b> · ' + (+IN.cal).toLocaleString() + ' calories · ' + IN.pro + 'g protein · ' + esc(deck.label);
+    : '<b>' + esc(owner()) + ' system</b> · ' + DAILY.calories.toLocaleString() + ' calories · ' + IN.pro + 'g protein · ' + esc(deck.label);
   document.title = (IN.example ? '' : owner() + ' ') + 'Complete Nutrition System | Legacy Performance';
 }
 
@@ -487,7 +521,8 @@ function pills(el, list, key, labelFn){
   }).join('');
 }
 function fillBuilder(){
-  $('in-weight').value = IN.weight || ''; $('in-goal').value = IN.goalweight || '';
+  $('in-free').value = String(IN.free || 2);
+  $('in-weight').value = IN.weight || ''; $('in-goal').value = IN.goalweight || ''; $('in-activity').value = IN.activity || 'Lightly active';
   $('in-name').value = IN.name || ''; $('in-cal').value = IN.cal || ''; $('in-pro').value = IN.pro || '';
   $('in-carb').value = IN.carbG || ''; $('in-fat').value = IN.fatG || ''; $('in-phase').value = IN.phase || 'Lean';
   $('in-freq').value = IN.freq || '3'; $('in-style').value = IN.style || '';
@@ -505,7 +540,8 @@ document.addEventListener('click', function(e){
   p.classList.toggle('on', i < 0); p.setAttribute('aria-pressed', String(i < 0));
 });
 $('btn-build').addEventListener('click', function(){
-  IN.weight = +$('in-weight').value || ''; IN.goalweight = +$('in-goal').value || '';
+  IN.free = +$('in-free').value || 2;
+  IN.weight = +$('in-weight').value || ''; IN.goalweight = +$('in-goal').value || ''; IN.activity = $('in-activity').value;
   IN.name = $('in-name').value.trim(); IN.cal = +$('in-cal').value; IN.pro = +$('in-pro').value;
   IN.carbG = +$('in-carb').value; IN.fatG = +$('in-fat').value; IN.phase = $('in-phase').value;
   IN.freq = $('in-freq').value; IN.style = $('in-style').value; IN.example = false;

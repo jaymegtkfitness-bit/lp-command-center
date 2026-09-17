@@ -798,7 +798,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — same file the client dashboard uses. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=26"></script>
+<script src="nutrition-engine.js?v=27"></script>
 <script>
 /* ============================ SAMPLE DATA (demo mode) ============================ */
 /* Mirrors your real Weekly Check-In columns so the layout matches live data exactly. */
@@ -3090,7 +3090,7 @@ function cnsbSystem(){
   if(!cal||!pro){ st.textContent="Set calories + protein first."; st.style.color="var(--stall-tx)"; return; }
   var m=macrosFrom(cal,pro,s.sex), c=window.__cnsIntakeRow||null;
   var list=function(v){ return String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
-  var inp={name:(window.__journeyName||''), weight:s.weight||'', goalweight:s.goalweight||'', cal:m.calories, pro:m.protein, carbG:m.carbs, fatG:m.fat,
+  var inp={name:(window.__journeyName||''), weight:s.weight||'', goalweight:s.goalweight||'', activity:s.activity||'', cal:m.calories, pro:m.protein, carbG:m.carbs, fatG:m.fat,
     phase:(s.track==='Long'?'Sustain':(s.track||'Lean')), freq:(c&&(c['Meals']||c['Frequency']))||'3', shake:30,
     style:(c&&(c['Eating style']||c['EatingStyle']))||'', allergies:list(c&&(c['Allergen keys']||c['AllergenKeys'])),
     protein:cnsbSel('cnsb_fprot'), carb:cnsbSel('cnsb_fcarb'), fat:cnsbSel('cnsb_ffat'), veg:cnsbSel('cnsb_fveg'),

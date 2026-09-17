@@ -1646,54 +1646,70 @@ function prepGuide(deck, opts){
    system/index.html builds the full member document (meals, shopping lists, prep guides, swaps,
    restaurant orders) and saves it as a PDF. Callers pass the member's inputs and open the link.
    inp = {name, cal, pro, carbG, fatG, phase, freq, shake, style, allergies[], protein[], carb[], fat[], veg[], restaurants[]} */
+/* ===== THE MACRO FREEDOM FRAMEWORK =====
+   Two free meals a week are built into the Lean number (goal weight x 13). A free meal REPLACES a
+   meal, it never adds on top. Want more than two? Every extra free meal costs 100 calories a day
+   for that week, and the plan is rebuilt at the lower number, so the portions come down with it.
+   On a free meal the only target is 600 to 800 calories. Protein and produce still count that day. */
+var MACRO_FREEDOM={included:2, cutPerExtra:100, mealCal:[600,800], max:6};
+function freedomPlan(pfs, freeMeals, sex){
+  var n=Math.max(MACRO_FREEDOM.included, Math.min(MACRO_FREEDOM.max, +freeMeals||MACRO_FREEDOM.included));
+  var extra=n-MACRO_FREEDOM.included, cut=extra*MACRO_FREEDOM.cutPerExtra;
+  var out=macrosFrom(Math.max(1000, (+pfs.calories||0)-cut), +pfs.protein||0, sex);
+  return {freeMeals:n, extra:extra, cut:cut, base:Math.round(+pfs.calories||0), pfs:out,
+    rules:['A free meal replaces a meal, it never adds on top.',
+           'On a free meal the only number is 600 to 800 calories. Nothing else to count.',
+           'Protein and produce still count that day. Those two never flex.',
+           'Forecast on Sunday. Count the week\'s free meals going in, never discover them as they happen.']};
+}
+
 /* ===== TIME TO GOAL =====
-   Jayme's standard (2026-09-17): 1 lb a week is the baseline (about a 500 calorie daily deficit,
-   3,500 a week), 1.5 lb a week is the faster end, and no week is quoted above 1% of current
-   bodyweight, the usual line past which muscle starts going with the fat.
-   Levers use the same math as the /build intake: steps burn about 0.25 calories per lb of
-   bodyweight per 1,000 steps; lifting mostly changes WHAT comes off (about 92% fat with lifting
-   and a protein floor, about 74% without), not how fast the scale moves. */
-var GOAL_PACE={base:1, fast:1.5, maxPct:0.01};
-var PHASE_WEEKS=16;                     // a Lean phase runs 12 to 16 weeks, then calories step down
-function weeksAt(w, g, lbPerWeek){
-  var x=w, n=0; while(x>g+0.01 && n<260){ x-=Math.min(lbPerWeek, x*GOAL_PACE.maxPct); n++; } return n;
+   Jayme's gauge (2026-09-17): maintenance is CURRENT bodyweight x a multiplier set by how much she
+   walks (5,000 steps x13 up to 12,000+ x16, the same scale the plan is built on). Her target is her
+   goal weight x the phase multiplier, so the deficit is real: Rachel at 182 lb walking 10,000 steps
+   maintains near 2,730 and eats 1,950, which is about 1.5 lb a week.
+   Maintenance falls as she gets lighter because it is tied to her bodyweight. Calories step down one
+   multiplier (one goal weight) every PHASE_WEEKS to the Lean floor at goal weight x 11.
+   No week is quoted above 1% of bodyweight, the line past which muscle starts going with the fat. */
+var GOAL_PACE={maxPct:0.01, maxLb:1.5};   // never quote faster than 1.5 lb a week, or 1% of bodyweight
+var PHASE_WEEKS=16;
+var STEP_LEVELS=[{steps:5000, label:'5,000 steps', mult:13},
+                 {steps:7500, label:'7,500 steps', mult:14},
+                 {steps:10000, label:'10,000 steps', mult:15},
+                 {steps:12000, label:'12,000 steps', mult:16}];
+var ACTIVITY_STEPS={'Sedentary':5000, 'Lightly active':7500, 'Active':10000, 'Very active':12000};
+function stepLevel(steps){
+  var want=+steps||7500, hit=STEP_LEVELS[1];
+  STEP_LEVELS.forEach(function(L){ if(want>=L.steps) hit=L; });
+  return hit;
+}
+function paceRun(weight, goal, calories, mult){
+  var x=+weight, g=+goal, c=+calories, n=0, first=0, last=0;
+  while(x>g+0.01 && n<260){
+    var maint=x*mult, lb=Math.min(Math.max(0, maint-c)*7/3500, x*GOAL_PACE.maxPct, GOAL_PACE.maxLb);
+    if(lb<=0.02) break;
+    if(!n) first=lb;
+    last=lb; x-=lb; n++;
+    if(n%PHASE_WEEKS===0) c=Math.max(g*11, c-g);
+  }
+  return {weeks:(x<=g+0.01 ? n : null), first:Math.round(first*10)/10, last:Math.round(last*10)/10};
 }
 function goalTimeline(weight, goalweight, phase, opts){
   opts=opts||{};
   var w=+weight, g=+goalweight; if(!(w>0 && g>0)) return null;
   var ph=String(phase||'Lean');
   var out={start:Math.round(w), goal:Math.round(g), change:Math.round(Math.abs(w-g)), phase:ph};
-  if(ph!=='Lean' || w<=g){ out.weeks=null; return out; }
-  var cal=+opts.calories||0, tdee=+opts.tdee||0;
-  if(cal>0 && tdee>0){
-    /* HER OWN NUMBERS. Pace comes from the gap between her target and her maintenance, maintenance
-       falls about 6.2 calories for every pound lost, and calories step down one multiplier
-       (one goal weight) every PHASE_WEEKS until the Lean floor at goal weight x 11. */
-    var run=function(bonus){
-      var x=w, c=cal, n=0, first=0, last=0;
-      while(x>g+0.01 && n<260){
-        var t=tdee-(w-x)*6.2, def=Math.max(0, t-c+(bonus||0));
-        var lb=Math.min(def*7/3500, x*GOAL_PACE.maxPct);
-        if(lb<=0.02) break;                                   // maintenance, not a deficit
-        if(!n) first=lb;
-        last=lb; x-=lb; n++;
-        if(n%PHASE_WEEKS===0) c=Math.max(g*11, c-g);          // next phase steps the calories down
-      }
-      return {weeks:(x<=g+0.01? n : null), first:Math.round(first*100)/100, last:Math.round(last*100)/100};
-    };
-    var base=run(0), stepCal=Math.round(0.25*w*2);
-    out.fromNumbers=true; out.calories=cal; out.tdee=tdee; out.deficit=Math.round(tdee-cal);
-    out.weeks=base.weeks; out.paceNow=base.first; out.paceLater=base.last;
-    out.steps={extra:2000, calories:stepCal, weeks:run(stepCal).weeks};
-    out.lifting={fatShare:92, withoutShare:74};
-    return out;
-  }
-  out.weeks=weeksAt(w, g, GOAL_PACE.base);
-  out.fastWeeks=weeksAt(w, g, GOAL_PACE.fast);
-  out.basePace=Math.min(GOAL_PACE.base, Math.round(w*GOAL_PACE.maxPct*10)/10);
-  out.fastPace=Math.min(GOAL_PACE.fast, Math.round(w*GOAL_PACE.maxPct*10)/10);
-  var sc=Math.round(0.25*w*2);
-  out.steps={extra:2000, calories:sc, weeks:weeksAt(w, g, GOAL_PACE.base + sc*7/3500)};
+  var cal=+opts.calories||0;
+  if(ph!=='Lean' || w<=g || !cal){ out.weeks=null; return out; }
+  var steps=+opts.steps || ACTIVITY_STEPS[opts.activity] || 7500, L=stepLevel(steps);
+  var run=paceRun(w, g, cal, L.mult);
+  out.steps=L.steps; out.stepLabel=L.label; out.multiplier=L.mult;
+  out.maintenance=Math.round(w*L.mult); out.calories=cal; out.deficit=Math.round(w*L.mult-cal);
+  out.weeks=run.weeks; out.paceNow=run.first; out.paceLater=run.last;
+  out.bySteps=STEP_LEVELS.map(function(x){
+    var r=paceRun(w, g, cal, x.mult);
+    return {steps:x.steps, label:x.label, maintenance:Math.round(w*x.mult), pace:r.first, weeks:r.weeks, mine:x.steps===L.steps};
+  });
   out.lifting={fatShare:92, withoutShare:74};
   return out;
 }
