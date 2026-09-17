@@ -398,6 +398,107 @@ function plainMealName(opt){
   if(!bits.length) return '';
   return bits.length===1 ? bits[0]+' Plate' : bits.slice(0,-1).join(', ')+' and '+bits[bits.length-1]+' Plate';
 }
+
+/* ===== RECIPES (white-label library in recipe-data.js) =====
+   A recipe stays the recipe. We scale the whole thing to her protein, add a side from the recipe's
+   own pairing list when calories are still short, and swap an ingredient only when her eating style
+   or allergies require it. A recipe that cannot land her numbers is simply not offered. */
+var RECIPE_STYLE_BLOCK={vegan:'M P R F S E D', vegetarian:'M P R F S', pescatarian:'M P R', 'no red meat':'R', 'no pork':'P'};
+var RECIPE_ALLERGY_TAG={dairy:'D', egg:'E', fish:'F', shellfish:'S', nut:'N', peanut:'K', gluten:'G', soy:'Y'};
+var RECIPE_SEC={mf:'Meat and fish', pp:'Plant protein', ed:'Eggs and dairy', pw:'Protein powder', cg:'Carbs and grains',
+                fr:'Fruit', vg:'Vegetables', fx:'Fats, nuts and extras', ps:'Pantry and spices'};
+function recipeBlocked(sel){
+  var b=(RECIPE_STYLE_BLOCK[String(sel.style||'').toLowerCase()]||'').split(' ').filter(Boolean);
+  (sel.allergies||[]).forEach(function(a){ if(RECIPE_ALLERGY_TAG[a]) b.push(RECIPE_ALLERGY_TAG[a]); });
+  return b;
+}
+/* The recipe's ingredients after any swaps her style or allergies require, or null if it cannot be made. */
+function recipeIngredients(r, sel){
+  var blocked=recipeBlocked(sel), swaps=(typeof RECIPE_SWAPS!=='undefined')?RECIPE_SWAPS:[], out=[];
+  for(var i=0;i<r.ing.length;i++){
+    var g=r.ing[i], name=g[2], tags=(g[3]||'').split(' ').filter(Boolean);
+    var bad=tags.filter(function(t){ return blocked.indexOf(t)>=0; });
+    if(bad.length){
+      if(bad.length>1) return null;                                  // one swap clears one conflict
+      var sw=swaps.filter(function(x){ return x.match.test(name) && x.need===bad[0]; })[0];
+      if(!sw) return null;
+      var left=(sw.tags||'').split(' ').filter(Boolean).concat(tags.filter(function(t){ return t!==sw.need; }));
+      if(left.some(function(t){ return blocked.indexOf(t)>=0; })) return null;
+      name=sw.to;
+    }
+    out.push([g[0], g[1], name, g[4]]);
+  }
+  return out;
+}
+var FRAC={0.25:'¼', 0.33:'⅓', 0.5:'½', 0.67:'⅔', 0.75:'¾', 0.13:'⅛'};
+function fracText(q){
+  var w=Math.floor(q+1e-9), r=Math.round((q-w)*100)/100, f=FRAC[r]||'';
+  if(!f && r>0) return String(Math.round(q*100)/100);
+  return ((w? String(w):'')+f) || '0';
+}
+function recipeQty(q, u, name){
+  if(u==='oz') return q<2 ? Math.max(0.25, Math.round(q*4)/4) : Math.round(q*2)/2;
+  if(u==='cup'||u==='tsp') return Math.max(0.25, Math.round(q*4)/4);
+  if(u==='tbsp'||u==='scoop'||u==='handful') return Math.max(0.5, Math.round(q*2)/2);
+  if(u==='slice'||u==='clove') return Math.max(1, Math.round(q));
+  if(/egg|shrimp|tomatoes|olives|radishes|basil|kiwi|chicken thigh|fillet|can tuna|green onion/.test(name)) return Math.max(1, Math.round(q));
+  return Math.max(0.25, Math.round(q*4)/4);
+}
+function recipeLine(q, u, name){
+  var t=fracText(q), many=q>1;
+  if(!u && /^can /.test(name)) return t+' '+(many?'cans ':'can ')+name.slice(4);
+  if(!u) return t+' '+(many && !/s$/.test(name) && !/tuna|zucchini|shrimp|celery stick$|fillet$/.test(name) ? name+'s' : name);
+  var uu=u;
+  if(many && (u==='cup'||u==='slice'||u==='clove'||u==='scoop')) uu=u+'s';
+  if(many && u==='handful') uu='handfuls';
+  return t+' '+uu+' '+name;
+}
+function recipeOption(r, target, sel, slot){
+  var ing=recipeIngredients(r, sel); if(!ing) return null;
+  var tCal=target.protein*4+target.carbs*4+target.fat*9, tP=target.protein;
+  var s=tP/r.m[1];
+  if(r.m[0]*s > tCal*1.08) s=Math.max(s*0.95, tCal*1.06/r.m[0]);   // a rich recipe gives a little protein back
+  s=Math.max(0.75, Math.min(3, s));
+  var tot={kcal:r.m[0]*s, p:r.m[1]*s, c:r.m[2]*s, f:r.m[3]*s};
+  var items=[], parts=[];
+  ing.forEach(function(g){
+    var sc=(g[3]==='ps') ? Math.min(s, 1.5) : s;
+    var q=recipeQty(g[0]*sc, g[1], g[2]);
+    if(g[3]!=='ps') items.push(recipeLine(q, g[1], g[2]));
+    parts.push({n:g[2], units:q, u:g[1], whole:!g[1], sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id});
+  });
+  var gap=tCal-tot.kcal;
+  if(gap > tCal*0.05 && r.sides && r.sides.length){
+    var carbs=safeFoods('carb', sel.style, sel.allergies), picks=sel.carb||[];
+    var sides=r.sides.map(function(n){ return carbs.filter(function(f){ return f.n===n; })[0]; }).filter(Boolean)
+      .sort(function(a,b){ return (picks.indexOf(a.n)>=0?0:1)-(picks.indexOf(b.n)>=0?0:1); });
+    var sf=sides[0];
+    if(sf){
+      var mm=macrosOf(sf, Math.min(sf.max||2, gap/sf.kcal));
+      if(mm.units < minPortion(sf)) mm=macrosOf(sf, minPortion(sf));
+      if(tot.kcal+mm.kcal <= tCal*1.10){
+        tot.kcal+=mm.kcal; tot.p+=mm.p; tot.c+=mm.c; tot.f+=mm.f;
+        items.push('on the side: '+fmtQty(sf, null, mm.units));
+        parts.push({n:sf.n, units:mm.units, u:sf.u||'', whole:!!sf.whole, side:true});
+      }
+    }
+  }
+  if(tot.p < tP*0.95 || Math.abs(tot.kcal-tCal) > tCal*0.10) return null;
+  return {items:items, parts:parts, cal:Math.round(tot.kcal), protein:Math.round(tot.p), carbs:Math.round(tot.c), fat:Math.round(tot.f),
+          name:r.name, tier:1, recipe:{id:r.id, how:r.how, scale:Math.round(s*100)/100}};
+}
+/* Order the recipes for a slot: her starred and picked lead proteins first, then a rotation. */
+function recipeCandidates(slotKind, sel, k, used){
+  if(typeof RECIPE_LIBRARY==='undefined') return [];
+  var star=(sel.starred||{}).protein||[], picks=sel.protein||[];
+  return RECIPE_LIBRARY.map(function(r, i){ return {r:r, i:i}; })
+    .filter(function(x){ return x.r.slot===slotKind; })
+    .map(function(x){
+      var pref=star.indexOf(x.r.lead)>=0 ? 0 : (!picks.length || picks.indexOf(x.r.lead)>=0 ? 1 : 3);
+      return {r:x.r, score:pref*100 + (used[x.r.id]?50:0) + ((x.i*7 + k*11) % 37)};
+    }).sort(function(a,b){ return a.score-b.score; }).map(function(x){ return x.r; });
+}
+
 /* PROTEIN BOOSTERS: a short list of real, obvious snacks, each a fixed portion of sourced foods.
    Filtered by eating style and allergies, her own foods first. (Replaces the generated companions,
    which could produce "2.2 oz chicken" as a snack.) */
@@ -794,8 +895,20 @@ function generateCompanions(sel, count, name){
     var score=idx - 5*foods.filter(function(x){ return mine.indexOf(x.f.n)>=0; }).length;
     return {b:b, foods:foods, score:score};
   }).filter(Boolean).sort(function(a,b){ return a.score-b.score; }).slice(0, want);
-  if(boost.length >= Math.min(2, want)){
-    return boost.map(function(x){
+  var recipeSnacks=(typeof RECIPE_LIBRARY==='undefined'?[]:RECIPE_LIBRARY).filter(function(r){ return r.slot==='snack'; }).map(function(r){
+    var ing=recipeIngredients(r, sel); if(!ing) return null;
+    return {name:r.name, items:ing.filter(function(g){ return g[3]!=='ps'; }).map(function(g){ return recipeLine(recipeQty(g[0], g[1], g[2]), g[1], g[2]); }),
+            parts:ing.map(function(g){ return {n:g[2], units:recipeQty(g[0], g[1], g[2]), u:g[1], whole:!g[1], sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id}; }),
+            cal:r.m[0], protein:r.m[1], carbs:r.m[2], fat:r.m[3], recipe:{id:r.id, how:r.how, scale:1}};
+  }).filter(Boolean);
+  if(recipeSnacks.length + boost.length >= Math.min(2, want)){
+    var mixed=[];
+    for(var mi=0; mixed.length<want && mi<Math.max(recipeSnacks.length, boost.length); mi++){
+      if(recipeSnacks[mi] && mixed.length<want) mixed.push(recipeSnacks[mi]);
+      if(boost[mi] && mixed.length<want) mixed.push(boost[mi]);
+    }
+    return mixed.map(function(x){
+      if(x.recipe) return x;
       var t={kcal:0,p:0,c:0,f:0}, items=[], parts=[];
       x.foods.forEach(function(fd){ var m=macrosOf(fd.f, fd.u); t.kcal+=m.kcal; t.p+=m.p; t.c+=m.c; t.f+=m.f;
         items.push(fmtQty(fd.f, null, fd.u)); parts.push({n:fd.f.n, units:m.units, u:fd.f.u||'', whole:!!fd.f.whole}); });
@@ -853,6 +966,7 @@ function generateMealOptions(it, sel, name){
   var split=MEAL_SPLIT[Math.min(S.meals,5)-1]||MEAL_SPLIT[2];
   var n=sel.optionsPerSlot||OPTIONS_PER_SLOT;
 
+  var usedRecipes={};
   var slots=S.names.map(function(nm,k){
     var w=split[k]||split[split.length-1];
     var slot=(nm==='Breakfast')?'am':'pm';
@@ -869,6 +983,15 @@ function generateMealOptions(it, sel, name){
     var options=[], seen={};
     /* NAMED MEALS FIRST. Every template her pools can actually make, ranked by how many of her own
        (and starred) foods it uses, rotated per slot so lunch and dinner do not open on the same meal. */
+    /* RECIPES FIRST: the licensed library, portioned to this slot's numbers. */
+    var rc=recipeCandidates(slot, sel, k, usedRecipes);
+    rc.filter(function(r){ return !usedRecipes[r.id]; }).concat(rc.filter(function(r){ return usedRecipes[r.id]; })).forEach(function(r){
+      if(options.length>=n) return;
+      var ro=recipeOption(r, target, sel, slot);
+      if(!ro) return;
+      var key=ro.items.join('|'); if(seen[key]) return;
+      seen[key]=1; usedRecipes[r.id]=1; options.push(ro);
+    });
     var kind=slot, tplMine=[].concat(sel.protein||[], sel.carb||[], sel.fat||[]);
     var starAll=[].concat(star.protein||[], star.carb||[], star.fat||[]);
     var cands=MEAL_TEMPLATES.filter(function(t){ return t.slot===kind; }).map(function(t, ti){
@@ -1347,18 +1470,25 @@ function batchTotals(deck, option, days, withSnack){
   (deck.slots||[]).forEach(function(sl){
     if(!sl.options||!sl.options.length) return;
     var o=sl.options[Math.min(option, sl.options.length-1)];
-    meals.push({slot:sl.name, items:o.items, parts:o.parts||[], cal:o.cal, protein:o.protein});
+    meals.push({slot:sl.name, name:o.name, recipe:o.recipe, items:o.items, parts:o.parts||[], cal:o.cal, protein:o.protein});
     (o.parts||[]).forEach(function(pt){ addPart(totals, pt, days); });
   });
   if(withSnack && deck.companions && deck.companions.length){
     var c=deck.companions[option % deck.companions.length];
-    meals.push({slot:'Snack', items:c.items, parts:c.parts||[], cal:c.cal, protein:c.protein});
+    meals.push({slot:'Snack', name:c.name, recipe:c.recipe, items:c.items, parts:c.parts||[], cal:c.cal, protein:c.protein});
     (c.parts||[]).forEach(function(pt){ addPart(totals, pt, days); });
   }
   return {totals:totals, meals:meals};
 }
 function addPart(totals, pt, days){
-  var k=pt.n, t=totals[k]||(totals[k]={qty:0, u:pt.u||'', whole:!!pt.whole, veg:!!pt.veg, shake:!!pt.shake});
+  var k=pt.n;
+  if(totals[k] && !pt.veg && !pt.shake && (totals[k].u||'')!==(pt.u||'')){
+    var conv={'tsp>tbsp':1/3, 'tbsp>tsp':3, 'tbsp>oz':0.5, 'oz>tbsp':2, 'cup>oz':8, 'oz>cup':0.125};
+    var r=conv[(pt.u||'')+'>'+(totals[k].u||'')];
+    if(r && !(pt.u==='cup' && /oil|milk/.test(pt.n))){ pt={n:pt.n, units:(pt.units||0)*r, u:totals[k].u, whole:pt.whole, sec:pt.sec, recipe:pt.recipe}; }
+  }
+  if(totals[k] && !pt.veg && !pt.shake && (totals[k].u||'')!==(pt.u||'')) k=pt.n+' ('+(pt.u||'each')+')';
+  var t=totals[k]||(totals[k]={qty:0, u:pt.u||'', whole:!!pt.whole, veg:!!pt.veg, shake:!!pt.shake, sec:pt.sec||'', recipe:pt.recipe||''});
   if(pt.veg) t.qty+=(pt.cups||1)*days;
   else if(pt.shake) t.qty+=days;
   else t.qty+=(pt.units||0)*days;
@@ -1372,6 +1502,7 @@ function shopAmount(name, t){
     return (t.whole ? q : 'about '+Math.ceil(t.qty))+(name==='avocado'?(Math.ceil(t.qty)===1?' avocado':' avocados'):'');
   }
   var v=shopRound(t.qty, t.u);
+  if(t.u==='oz' && t.recipe) return v+' oz'+(v>=16 ? ' (about '+(Math.ceil(v/16*4)/4)+' lb)' : '');
   if(t.u==='oz') return v+' oz'+(info.sec==='Meat and fish'?' cooked':'');
   return v+' '+pluralUnit(t.u, v);
 }
@@ -1381,7 +1512,7 @@ function shoppingList(deck, opts){
   opts=opts||{};
   var option=opts.option||0, days=opts.days||PREP_DAYS;
   var bt=batchTotals(deck, option, days, opts.snack!==false);
-  var order=['Meat and fish','Plant protein','Eggs and dairy','Protein powder','Carbs and grains','Fruit','Vegetables','Fats, nuts and extras'];
+  var order=['Meat and fish','Plant protein','Eggs and dairy','Protein powder','Carbs and grains','Fruit','Vegetables','Fats, nuts and extras','Pantry and spices'];
   var secs={};
   Object.keys(bt.totals).forEach(function(name){
     var t=bt.totals[name], info=SHOP_INFO[name]||{}, sec, need, buy='';
@@ -1391,10 +1522,11 @@ function shoppingList(deck, opts){
       need=Math.ceil(t.qty)+' cups';
       buy=VEG_SOLD[name] ? Math.ceil(oz/VEG_SOLD[name].oz)+' '+VEG_SOLD[name].each : 'about '+Math.max(0.5, Math.ceil(oz/16*2)/2)+' lb (fresh or frozen)';
     } else {
-      sec=info.sec||'Fats, nuts and extras';
+      sec=info.sec||t.sec||'Fats, nuts and extras';
       var q=(t.whole||t.shake) ? Math.ceil(t.qty) : shopRound(t.qty, t.u);
       need=shopAmount(name, t);
-      buy=info.buy ? info.buy(q) : (t.u==='tbsp' ? 'one jar or bag covers it' : '');
+      var dbf=foodByName(name), sameUnit=!dbf || (dbf.u||'')===(t.u||'');
+      buy=(info.buy && sameUnit) ? info.buy(q) : ((t.u==='tbsp'||t.u==='tsp') ? 'one jar or bag covers it' : '');
     }
     (secs[sec]=secs[sec]||[]).push({name:name, need:String(need), buy:buy});
   });
@@ -1412,6 +1544,7 @@ function prepGuide(deck, opts){
   var cookLines=[], noCook=[], vegRoast=[], vegRaw=[];
   Object.keys(bt.totals).forEach(function(name){
     var t=bt.totals[name], info=SHOP_INFO[name]||{};
+    if(t.recipe) return;
     if(t.veg){ (VEG_RAW[name]?vegRaw:vegRoast).push(name); return; }
     if(t.shake){ noCook.push('Protein shakes: mix fresh each day.'); return; }
     var amt=shopAmount(name, t);
@@ -1422,6 +1555,9 @@ function prepGuide(deck, opts){
   var protein=cookLines.filter(function(l){ return /Meat and fish|Plant protein|Eggs and dairy/.test((SHOP_INFO[l.name]||{}).sec||''); });
   var carbs=cookLines.filter(function(l){ return protein.indexOf(l)<0; });
   var steps=[];
+  var recipes=bt.meals.filter(function(m){ return m.recipe && m.recipe.how; });
+  if(recipes.length) steps.push({title:'Make the recipes', lines:recipes.map(function(m){
+    return m.name+' ('+days+' '+(days===1?'serving':'servings')+'): '+m.recipe.how; })});
   if(protein.length) steps.push({title:'Cook your proteins', lines:protein.map(function(l){
     return l.name+', '+l.amount+'. '+l.how+(l.temp?' Cook to '+l.temp+' inside.':''); })});
   if(carbs.length) steps.push({title:'Cook your carbs', lines:carbs.map(function(l){ return l.name+', '+l.amount+'. '+l.how; })});

@@ -167,7 +167,11 @@ td b{color:#fff}
   .steps{gap:8px}
   .storage{padding:9px 12px;margin-top:8px;font-size:10.5px}
   .shopsec{padding:10px 12px 6px;margin-bottom:10px}
-  .shopitem{padding:4px 0}
+  .shopitem{padding:2px 0;font-size:9.5px;gap:6px;grid-template-columns:10px 1fr}
+  .shopitem span{display:inline;margin-left:5px;font-size:8.5px}
+  .shopcols{columns:3;column-gap:10px}
+  .shopsec{padding:8px 10px 4px;margin-bottom:8px}
+  .shopitem .box{width:8px;height:8px;margin-top:2px}
   .sheet-foot{margin-top:12px}
   .cover .mark{width:360px}
   .cover img.logo{width:3.1in;min-width:0}
@@ -230,7 +234,8 @@ td b{color:#fff}
 </div>
 
 <script src="../restaurant-data.js?v=1"></script>
-<script src="../nutrition-engine.js?v=18"></script>
+<script src="../recipe-data.js?v=1"></script>
+<script src="../nutrition-engine.js?v=19"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
