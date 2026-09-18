@@ -1712,8 +1712,8 @@ var PHASE_WEEKS=16;
 var STEP_LEVELS=[{steps:5000, label:'5,000 steps'}, {steps:7500, label:'7,500 steps'},
                  {steps:10000, label:'10,000 steps'}, {steps:12000, label:'12,000 steps'}];
 var ACTIVITY_STEPS={'Sedentary':5000, 'Lightly active':7500, 'Active':10000, 'Very active':12000};
-var STEP_BASE=5000;                     // the maintenance multiplier already covers about 5,000 steps of daily life
-function stepBurn(weight, steps){ return Math.round(0.25*(+weight)*Math.max(0,(+steps||0)-STEP_BASE)/1000); }
+var PACE_STEP_BASE=5000;                     // the maintenance multiplier already covers about 5,000 steps of daily life
+function stepBurn(weight, steps){ return Math.round(0.25*(+weight)*Math.max(0,(+steps||0)-PACE_STEP_BASE)/1000); }
 function stepLevel(steps){
   var want=+steps||7500, hit=STEP_LEVELS[0];
   STEP_LEVELS.forEach(function(L){ if(want>=L.steps) hit=L; });
@@ -1722,7 +1722,7 @@ function stepLevel(steps){
 function paceRun(weight, goal, calories, mult, steps){
   var x=+weight, g=+goal, c=+calories, n=0, first=0, last=0;
   while(x>g+0.01 && n<260){
-    var burn=g*15 + 0.25*x*Math.max(0,steps-STEP_BASE)/1000;          // upper limit (ideal x15) plus what extra steps add
+    var burn=g*15 + 0.25*x*Math.max(0,steps-PACE_STEP_BASE)/1000;          // upper limit (ideal x15) plus what extra steps add
     var lb=Math.min(Math.max(0, burn-c)*7/3500, x*GOAL_PACE.maxPct, GOAL_PACE.maxLb);
     if(lb<=0.02) break;
     if(!n) first=lb;
