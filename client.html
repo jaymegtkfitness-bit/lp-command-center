@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=29"></script>
+<script src="nutrition-engine.js?v=30"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3090,12 +3090,11 @@ function verdictHTML(it){
 /* mealsPerDay(), computePFS(), FOOD_DB, fmtQty(), generateMealPlan() now live in nutrition-engine.js (shared). */
 
 /* Full phase ladder — same math as computePFS(), walked across each phase multiplier. */
-var LADDER_MULT={"Lean":[15,14,13,12],"Strong":[15,16,17,18],"Sustain":[15],"Long":[15],"Reverse Diet":[10,12,13,14,15]};
+/* LOCKED scale (Sep 1 2026): goal weight x multiplier. Lean 13/12/11 and never below 11. Max 3 phases. */
+var LADDER_MULT={"Lean":[13,12,11],"Strong":[15,16,17],"Sustain":[15],"Long":[15],"Reverse Diet":[10,12,13]};
 function phaseLabels(track,n){
   if(track==="Long") return ["Maintenance"];
   var out=[]; for(var i=0;i<n;i++) out.push("Phase "+(i+1));
-  if(track==="Lean") out[n-1]="Floor";
-  if(track==="Strong") out[n-1]="Ceiling";
   if(track==="Reverse Diet") out[0]="Phase 1 · start";
   return out;
 }
@@ -3264,7 +3263,7 @@ function renderNutritionHero(){
     +'<div class="nh-num">'+center+'</div><div class="nh-unit">'+unit+'</div>'
     +(goalTxt?'<div class="nh-goal">'+esc(goalTxt)+'</div>':'')+'</div></div></div>'+deltaHTML
     +'<div class="nh-duo">'
-    +'<div class="nh-mini"><div class="nh-l">Protein floor</div><div class="nh-v">'+(pfloor||'—')+'<small> g</small></div></div>'
+    +'<div class="nh-mini"><div class="nh-l">Protein target</div><div class="nh-v">'+(isFinite(it.pfs.protein)?Math.round(it.pfs.protein):(pfloor||'—'))+'<small> g</small></div>'+(pfloor&&isFinite(it.pfs.protein)&&pfloor<Math.round(it.pfs.protein)?'<div class="nh-l" style="margin-top:4px;opacity:.75">never below '+pfloor+' g</div>':'')+'</div>'
     +'<div class="nh-mini"><div class="nh-l">Water floor</div><div class="nh-v">'+(water||'—')+'<small> oz</small></div></div>'
     +'</div>';
   box.innerHTML=h;
@@ -3378,7 +3377,7 @@ function roadmapHTML(it){
   var cv=M.checkins.map(function(x){return x.cons;}).filter(function(v){return v!=null;});
   var cons=cv.length?Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length):null;
   var deficit=p.tdee-first.calories, dir=(it.track==="Strong"||it.track==="Reverse Diet")?"surplus":"deficit";
-  var pace=Math.abs(deficit*7/3500).toFixed(1);
+  var pace=Math.min(Math.abs(deficit*7/3500), 1.5, (+curW||+it.weight||200)*0.01).toFixed(1);   // never quote past 1.5 lb or 1% of bodyweight a week
   var snap='<div class="lp-sub">Where you are now</div>'
     +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Maintenance")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
     +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Phase 1 sits about '+Math.abs(deficit)+' cal/day '+(deficit>=0?"below":"above")+' your estimated maintenance, roughly '+pace+' lb a week. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
@@ -4177,7 +4176,7 @@ function startPreview(){
 function demoBoot(){
   buildModel(null);
   var now=Date.now(), day=86400000;
-  var it={ done:true, signal:"clear", sex:"Female", age:47, height:65, weight:171, goalweight:150,
+  var it={ done:true, signal:"clear", sex:"Female", age:44, height:65, weight:182, goalweight:150,
     activity:"Active", track:"Lean", steps:"7,500–10,000", trackingexp:"A little, not consistently",
     trainloc:"Home / garage", traindays:"3–4", pregnant:"No", diethistory:"3+ years",
     fueling:"Eating pretty little — restricting", filters:[], priorities:["Lean","Strong","Long"],
@@ -4194,21 +4193,23 @@ function demoBoot(){
   DEEP=M.deep;
   var pf=proteinFloor()||135;
   M.checkins=[0,1,2,3].map(function(i){
-    return { ts:now-(3-i)*7*day, weight:+(171-i*0.9).toFixed(1), cons:80+i*4, consLabel:"85–95%",
+    return { ts:now-(3-i)*7*day, weight:+(182-i*1.4).toFixed(1), cons:80+i*4, consLabel:"85–95%",
       cal:it.pfs.calories-40+i*15, protein:pf-18+i*7, steps:8200+i*300, workouts:3, effort:7,
       digdir:"Normal", food:7, energy:3+(i%2), sleep:3, acuity:3, strength:4, digestion:4,
       hunger:3, libido:3, inflammation:3, mood:3+(i%2), recovery:4, stress:3, followups:[] };
   });
   M.measurements=[0,2].map(function(i){ return { Timestamp:new Date(now-(3-i)*7*day).toISOString(),
-    Weight:+(171-i*0.9).toFixed(1), Waist:+(34-i*0.4).toFixed(1), Hip:41, Units:"in" }; });
+    Weight:+(182-i*1.4).toFixed(1), Waist:+(35-i*0.4).toFixed(1), Hip:42, Units:"in" }; });
   M.lite=false; M.tier="Built for More"; M.complete="Yes"; M.onProtocol="Yes"; M.genetics="in";
   M.geneticsintake=[{Timestamp:new Date(now-30*day).toISOString()}];
-  M.mealplan={ title:"Rachel — Lean Phase", note:"Built around your favorites. Protein anchors every meal.", ts:now,
-    days:[ {day:1,label:"Everyday",meals:[
-      {name:"Breakfast",items:["3 eggs + 2 egg whites","1 cup berries","black coffee"],cal:340,protein:32,carbs:18,fat:16},
-      {name:"Lunch",items:["6 oz chicken","1 cup jasmine rice","big salad + olive oil"],cal:520,protein:45,carbs:52,fat:16},
-      {name:"Snack",items:["Greek yogurt","1 scoop protein","1 apple"],cal:280,protein:34,carbs:30,fat:4},
-      {name:"Dinner",items:["6 oz salmon","roasted potatoes","asparagus"],cal:560,protein:42,carbs:44,fat:22} ]} ] };
+  /* Her meal plan is the real engine output (option 1 of every meal), the same meals as her system PDF. */
+  var dsel={protein:['chicken breast','93% ground turkey','salmon','shrimp','nonfat Greek yogurt','whole eggs','egg whites','canned tuna','low-fat cottage cheese','sirloin steak'],
+    carb:['white rice','potatoes','sweet potato','oats','berries','banana','sourdough','quinoa','black beans'], fat:['avocado','olive oil','almonds','peanut butter','cheese'],
+    veg:['broccoli','spinach','peppers','green beans','zucchini','asparagus','salad greens','tomatoes'], frequency:'3 + shake', shakeGrams:30};
+  var dd=generateMealOptions({pfs:it.pfs}, dsel, 'Rachel');
+  M.mealplan={ title:"Rachel's Lean Phase", note:"Built around your favorites. Protein anchors every meal.", ts:now,
+    days:[ {day:1,label:"Everyday",meals:dd.slots.map(function(sl){ var o=sl.options[0];
+      return {name:sl.name+(o.name?' · '+o.name:''), items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0)}; })} ] };
   ID={ name:"Rachel", email:"rachel@demo.legacy", gender:"woman" };
   serverOk=true; applyTheme("charcoal", false); showHome();
 }

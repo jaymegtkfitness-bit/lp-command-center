@@ -16,11 +16,14 @@ function macrosFrom(cal, protein, sex){
 }
 
 /* Estimated maintenance (TDEE) from a client's numbers — the "use maintenance" option's source. */
+/* Maintenance = CURRENT bodyweight x a multiplier set by how much she moves (Jayme 2026-09-17):
+   about 5,000 steps x13, 7,500 x14, 10,000 x15, 12,000+ x16. The same gauge the system document
+   uses for her pace, so every surface quotes the same maintenance. (Was Mifflin-St Jeor x activity,
+   which read Rachel at 2,030 against a 1,950 target: an 80 calorie "deficit".) */
+var MAINT_MULT={"Sedentary":13,"Lightly active":14,"Active":15,"Very active":16,"Athlete":17};
 function computeTDEE(w){
-  var kg=(+w.weight)/2.2046, cm=(+w.height)*2.54;
-  var bmr=/^m/i.test(w.sex)?(10*kg+6.25*cm-5*w.age+5):(10*kg+6.25*cm-5*w.age-161);
-  var af={"Sedentary":1.2,"Lightly active":1.375,"Active":1.55,"Very active":1.725,"Athlete":1.9}[w.activity]||1.375;
-  return Math.round(bmr*af);
+  var wt=+w.weight; if(!(wt>0)) return 0;
+  return Math.round(wt*(MAINT_MULT[w.activity]||14));
 }
 
 /* Daily macro targets from a client's numbers + track (the formula DEFAULT, before any override).
