@@ -719,7 +719,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 <section class="proof">
   <div class="wrap">
     <p class="eyebrow">Real people. Real numbers.</p>
-    <h2>Fifteen years of this, and the pattern never changes.</h2>
+    <h2>Fifteen years of this, and the same three patterns keep showing up.</h2>
     <p class="proof-lede">Almost every one of them came in eating too little and doing too much cardio.
       Every one of them ate <em>more</em> and trained <em>less but smarter</em>. These are their
       numbers, not a promise about yours.</p>
@@ -1112,7 +1112,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
     </ol>
     <p class="help">None of the three is a willpower problem. Each one has a clear way forward, and your answers here tell me which one is yours.</p>
     <div class="gn-stats">
-      <div class="gn"><span class="gnn">6 yrs</span><span class="gnl">Legacy Performance, built from what actually worked</span></div>
+      <div class="gn"><span class="gnn">15 yrs</span><span class="gnl">Of coaching, built from what actually worked</span></div>
       <div class="gn"><span class="gnn">3</span><span class="gnl">Phases in a fat loss run. You never need a fourth.</span></div>
       <div class="gn"><span class="gnn">30 days</span><span class="gnl">Rebuild it free or refund you, no argument</span></div>
     </div>
@@ -2692,7 +2692,7 @@ function renderSample(){
       : 'Fill in your basics and pick your foods above and your deck appears here.';
     return;
   }
-  help.textContent = 'Portioned to your numbers. Swap freely inside any meal.';
+  help.textContent = 'One real meal from your plan, portioned to your numbers.';
   note.classList.remove('hidden');
 
   let plan;
@@ -2747,21 +2747,24 @@ function renderSample(){
       <p class="swap-note">Your full system turns that rule into the actual order at each place you picked, with the macros attached.</p>
     </div>` : '');
 
-  const slotsHtml = plan.slots.map(sl => `
+  /* ONE example meal, not the deck (Jayme 2026-09-18): the preview proves the build is real without
+     handing over a plan someone could copy and walk away with. */
+  const ex = lunch && lunch.options[0];
+  const optCount = Math.max.apply(null, plan.slots.map(sl => sl.options.length));
+  const slotsHtml = ex ? `
     <div class="slot">
       <div class="slot-h">
-        <span class="mn">${esc(sl.name)}</span>
-        ${quiet ? '' : `<span class="slot-t">every option \u2248 ${sl.target.protein||0}g protein</span>`}
+        <span class="mn">One meal from your plan</span>
+        ${quiet ? '' : `<span class="slot-t">${esc(lunch.name)} \u2248 ${lunch.target.protein||0}g protein</span>`}
       </div>
-      ${sl.options.map((o,i) => `
-        <div class="meal">
-          <div class="mh"><span class="mn">Option ${i+1}</span></div>
-          <ul>${o.items.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>
-          <div class="mm">${macros(o)}</div>
-        </div>`).join('')}
-    </div>`).join('');
-
-  const compHtml = plan.companions.length ? `
+      <div class="meal">
+        <div class="mh"><span class="mn">${esc(ex.name || 'Option 1')}</span></div>
+        <ul>${ex.items.map(x => '<li>' + esc(x) + '</li>').join('')}</ul>
+        <div class="mm">${macros(ex)}</div>
+      </div>
+      <p class="muted" style="margin-top:8px">Your full system has ${optCount} options like this for every meal, every day, plus snacks, one shopping list for the week and a meal prep guide.</p>
+    </div>` : '';
+  const compHtml = false ? `
     <div class="slot">
       <div class="slot-h">
         <span class="mn">Snacks &amp; protein boosters</span>
@@ -2791,11 +2794,11 @@ function renderSample(){
 
   out.innerHTML = slotsHtml
     + (coachNote ? '<div class="coachnote"><span>From Jayme</span><p>'+esc(coachNote)+'</p></div>' : '')
-    + swapHtml + compHtml +
+    + swapHtml +
     `<p class="muted" style="margin-top:10px">Plus roughly ${CALC.produce}g of fruit and vegetables
      across the day, eaten freely and not counted. Options are built from the leanest
      <strong>Tier 1</strong> version of your food unless you starred something else.
-     Starred favourites always win.</p>` + addedNote + thinNote;
+     Starred favourites always win.</p>`;
 }
 
 /* ===================== PROGRESS + SUBMIT GATE ===================== */
