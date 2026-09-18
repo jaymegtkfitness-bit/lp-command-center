@@ -288,6 +288,7 @@ td b{color:#fff}
         <div class="pickgroup"><div class="glabel">Allergies</div><div class="pills" id="pk-allergies"></div></div>
         <div class="pickgroup"><div class="glabel">Proteins she likes</div><div class="pills" id="pk-protein"></div></div>
         <div class="pickgroup"><div class="glabel">Carbs she likes</div><div class="pills" id="pk-carb"></div></div>
+        <div class="pickgroup"><div class="glabel">Fruit she likes</div><div class="pills" id="pk-fruit"></div></div>
         <div class="pickgroup"><div class="glabel">Fats she likes</div><div class="pills" id="pk-fat"></div></div>
         <div class="pickgroup"><div class="glabel">Vegetables</div><div class="pills" id="pk-veg"></div></div>
         <div class="pickgroup"><div class="glabel">Restaurants she goes to</div><div class="pills" id="pk-rest"></div></div>
@@ -302,14 +303,15 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=34"></script>
+<script src="../nutrition-engine.js?v=35"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
 var EXAMPLE = {name:'Rachel', sex:'female', weight:182, goalweight:150, activity:'Active', cal:1950, pro:150, carbG:203, fatG:60, phase:'Lean', freq:'3 + shake', shake:30,
   style:'', allergies:[],
   protein:['chicken breast','93% ground turkey','salmon','shrimp','nonfat Greek yogurt','whole eggs','egg whites','canned tuna','low-fat cottage cheese','sirloin steak'],
-  carb:['white rice','potatoes','sweet potato','oats','berries','banana','sourdough','quinoa','black beans'],
+  carb:['white rice','potatoes','sweet potato','oats','sourdough','quinoa','black beans'],
+  fruit:['berries','banana','apple'],
   fat:['avocado','olive oil','almonds','peanut butter','cheese'],
   veg:['broccoli','spinach','peppers','green beans','zucchini','asparagus','salad greens','tomatoes'],
   restaurants:['Chick-fil-A','Chipotle','Panera Bread','Starbucks','Texas Roadhouse'], example:true};
@@ -390,7 +392,7 @@ function build(){
   var FREE = (typeof freedomPlan === 'function') ? freedomPlan({calories:+IN.cal, protein:+IN.pro}, IN.free || 2) : null;
   var DAILY = (FREE && FREE.extra) ? FREE.pfs : {calories:+IN.cal, protein:+IN.pro, carbs:+IN.carbG, fat:+IN.fatG};
   var it = {pfs:{calories:DAILY.calories, protein:DAILY.protein, carbs:DAILY.carbs, fat:DAILY.fat}};
-  var sel = {protein:IN.protein||[], carb:IN.carb||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[],
+  var sel = {protein:IN.protein||[], carb:IN.carb||[], fruit:IN.fruit||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[],
              frequency:IN.freq||'3', shakeGrams:+IN.shake||30};
   var deck = generateMealOptions(it, sel, IN.name||'');
   var shop = [shoppingList(deck, {week:true})];
@@ -597,6 +599,7 @@ function fillBuilder(){
   $('in-freq').value = IN.freq || '3'; $('in-style').value = IN.style || '';
   pills('pk-protein', FOOD_DB.protein.map(function(f){ return f.n; }), 'protein');
   pills('pk-carb', FOOD_DB.carb.map(function(f){ return f.n; }), 'carb');
+  pills('pk-fruit', (FOOD_DB.fruit||[]).map(function(f){ return f.n; }), 'fruit');
   pills('pk-fat', FOOD_DB.fat.map(function(f){ return f.n; }), 'fat');
   pills('pk-veg', FOOD_DB.veg, 'veg');
   pills('pk-allergies', ['dairy','egg','fish','shellfish','soy','gluten','nut','peanut','sesame'], 'allergies', cap);

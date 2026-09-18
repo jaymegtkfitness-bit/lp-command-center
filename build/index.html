@@ -1263,6 +1263,9 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
     <p class="grouplbl">Carbs</p>
     <div class="pills" data-multi="carbs" id="pl-carb"></div>
     <p class="starnote"></p>
+    <p class="grouplbl">Fruit</p>
+    <div class="pills" data-multi="fruits" id="pl-fruit"></div>
+    <p class="starnote"></p>
     <p class="grouplbl">Fats</p>
     <div class="pills" data-multi="fats" id="pl-fat"></div>
     <p class="starnote"></p>
@@ -1683,7 +1686,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 <!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=34"></script>
+<script src="../nutrition-engine.js?v=35"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK =================== */
 const CONFIG = {
@@ -1723,7 +1726,7 @@ const S = {
   stall:'', dur:'', track:'', obstacle:'', why:'',
   cooking:'normal', frequency:'3', schedule:'normal', eatout:'weekly', glp1:'no',
   horizon:'12', protect:'yes',
-  med:{}, multi:{}, starred:{proteins:[],carbs:[],fats:[],veg:[]}
+  med:{}, multi:{}, starred:{proteins:[],carbs:[],fruits:[],fats:[],veg:[]}
 };
 const MAX_STARS = 3;
 let CALC = null;    // last computed targets
@@ -1803,7 +1806,7 @@ const STYLE_COPY = {
 function renderFoodPills(){
   const style = activeStyle(), allerg = activeAllergens();
   const kept = {};
-  ['proteins','carbs','fats','veg'].forEach(k => kept[k] = S.multi[k] || []);
+  ['proteins','carbs','fruits','fats','veg'].forEach(k => kept[k] = S.multi[k] || []);
 
   const build = (elId, key, cat) => {
     const el = $(elId); if (!el) return;
@@ -1812,9 +1815,13 @@ function renderFoodPills(){
         `<span class="pill${kept.veg.includes(n)?' on':''}">${esc(n)}</span>`).join('');
       return;
     }
-    const list = (typeof safeFoods === 'function')
-      ? safeFoods(cat, style, allerg)
+    /* Fruit is its own pick list; the engine eats it as a carb, so split it back out here. */
+    const fruitNames = (FOOD_DB.fruit || []).map(f => f.n);
+    const base = (typeof safeFoods === 'function')
+      ? safeFoods(cat === 'fruit' ? 'carb' : cat, style, allerg)
       : (FOOD_DB[cat] || []);
+    const list = cat === 'fruit' ? base.filter(f => fruitNames.includes(f.n))
+               : cat === 'carb'  ? base.filter(f => !fruitNames.includes(f.n)) : base;
     /* Tier 1 first, so the leanest options are what they see and reach for. */
     const sorted = list.slice().sort((a,b) => (a.t||1)-(b.t||1));
     const stars = S.starred[key] || [];
@@ -1825,11 +1832,12 @@ function renderFoodPills(){
   };
   build('pl-protein','proteins','protein');
   build('pl-carb','carbs','carb');
+  build('pl-fruit','fruits','fruit');
   build('pl-fat','fats','fat');
   build('pl-veg','veg','veg');
 
   /* Selections that no longer exist after filtering must be dropped from state too. */
-  ['proteins','carbs','fats','veg'].forEach(k => {
+  ['proteins','carbs','fruits','fats','veg'].forEach(k => {
     const box = qs(`[data-multi="${k}"]`);
     S.multi[k] = qsa('.pill.on', box).map(p => p.firstChild.textContent.trim());
   });
@@ -2568,8 +2576,8 @@ function renderMirrors(){
   const m2 = $('m2-chips');
   if (m2){
     const M = S.multi || {};
-    const foods = ['proteins','carbs','fats','veg'].reduce((n,k) => n + ((M[k]||[]).length), 0);
-    const stars = ['proteins','carbs','fats'].reduce((n,k) => n + ((S.starred[k]||[]).length), 0);
+    const foods = ['proteins','carbs','fruits','fats','veg'].reduce((n,k) => n + ((M[k]||[]).length), 0);
+    const stars = ['proteins','carbs','fruits','fats'].reduce((n,k) => n + ((S.starred[k]||[]).length), 0);
     const rest  = (M.restaurants || []).length;
     const out = [];
     out.push(chip('Foods you picked', foods));
@@ -2682,7 +2690,7 @@ function swapFor(list){
 
 function renderSample(){
   const out = $('sample-out'), help = $('sample-help'), note = $('sample-note');
-  const picked = S.multi.proteins || [], pc = S.multi.carbs || [],
+  const picked = S.multi.proteins || [], pc = (S.multi.carbs || []).concat(S.multi.fruits || []),
         pf = S.multi.fats || [],      pv = S.multi.veg || [];
   const enough = CALC && picked.length && pc.length && pf.length;
   if (!enough){
@@ -2702,7 +2710,7 @@ function renderSample(){
        style:activeStyle(), allergies:activeAllergens(),
        frequency:S.frequency, shakeGrams:30,
        optionsPerSlot:(CALC.condition && CALC.condition.optionsPerSlot) || 3,
-       starred:{protein:S.starred.proteins, carb:S.starred.carbs, fat:S.starred.fats}},
+       starred:{protein:S.starred.proteins, carb:(S.starred.carbs||[]).concat(S.starred.fruits||[]), fat:S.starred.fats}},
       val('fname'));
   } catch(e){ out.innerHTML = ''; return; }
 
@@ -2939,9 +2947,9 @@ function payload(status){
     noDeficit:!!F.noDeficit, suppressNumbers:!!F.suppressNumbers,
     eatingStyle:activeStyle(), allergenKeys:activeAllergens().join(', '),
     /* meal-plan build inputs */
-    starredProteins:(S.starred.proteins||[]).join(', '), starredCarbs:(S.starred.carbs||[]).join(', '),
+    starredProteins:(S.starred.proteins||[]).join(', '), starredCarbs:(S.starred.carbs||[]).concat(S.starred.fruits||[]).join(', '),
     starredFats:(S.starred.fats||[]).join(', '),
-    proteins:(M.proteins||[]).join(', '), carbsList:(M.carbs||[]).join(', '),
+    proteins:(M.proteins||[]).join(', '), carbsList:(M.carbs||[]).concat(M.fruits||[]).join(', '), fruits:(M.fruits||[]).join(', '),
     fats:(M.fats||[]).join(', '),        veg:(M.veg||[]).join(', '),
     meals:S.frequency, frequency:S.frequency, shakeGrams:30,
     schedule:S.schedule, cooking:S.cooking, prep:S.cooking,

@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=34"></script>
+<script src="nutrition-engine.js?v=35"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3610,13 +3610,13 @@ function renderFoodEditor(){
       return '<button type="button" class="chip'+(on?' on':'')+'" onclick="this.classList.toggle(\'on\')">'+esc(n)+'</button>';
     }).join('')+'</div></div>';
   }
-  g("foodEditor").innerHTML=catBlock('protein','fe_prot','Proteins')+catBlock('carb','fe_carb','Smart carbs')+catBlock('fat','fe_fat','Fats')+catBlock('veg','fe_veg','Veggies')
+  g("foodEditor").innerHTML=catBlock('protein','fe_prot','Proteins')+catBlock('carb','fe_carb','Smart carbs')+catBlock('fruit','fe_fruit','Fruit')+catBlock('fat','fe_fat','Fats')+catBlock('veg','fe_veg','Veggies')
     +'<div class="actions"><button class="btn btn-primary" onclick="doGenerate()">Generate my plan →</button> <span class="status" id="genPlanStatus"></span></div>';
 }
 function showMealBuilder(){ renderFoodEditor(); show("mealbuilder"); }
 function doGenerate(){
   if(!M.intake||!M.intake.pfs){ var s=g('genPlanStatus'); if(s){s.textContent="Build your Power Food System first.";s.style.color="var(--stall-tx)";} return; }
-  var sel={protein:mval('fe_prot').split(', ').filter(Boolean),carb:mval('fe_carb').split(', ').filter(Boolean),fat:mval('fe_fat').split(', ').filter(Boolean),veg:mval('fe_veg').split(', ').filter(Boolean)};
+  var sel={protein:mval('fe_prot').split(', ').filter(Boolean),carb:mval('fe_carb').split(', ').filter(Boolean),fruit:mval('fe_fruit').split(', ').filter(Boolean),fat:mval('fe_fat').split(', ').filter(Boolean),veg:mval('fe_veg').split(', ').filter(Boolean)};
   if(!sel.protein.length||!sel.carb.length){ var s2=g('genPlanStatus'); if(s2){s2.textContent="Keep at least one protein and one carb on.";s2.style.color="var(--stall-tx)";} return; }
   saveFoods(sel);
   var plan=generateMealPlan(M.intake, sel, 3, (ID&&ID.name)||"");
@@ -3687,7 +3687,7 @@ function openMySystem(){
   var inp={name:(ID&&ID.name)||'', sex:it.sex||'', weight:+it.weight||'', goalweight:+it.goalweight||'', activity:it.activity||'', cal:Math.round(p.calories||0), pro:Math.round(p.protein||0), carbG:Math.round(p.carbs||0), fatG:Math.round(p.fat||0),
     phase:(it.track==='Long'?'Sustain':(it.track||'Lean')), freq:it.meals||it.frequency||'3', shake:it.shakeGrams||30,
     style:c['Eating style']||'', allergies:list(c['Allergen keys']),
-    protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
+    protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fruit:list(f.fruit||c['Fruits']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
     restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
   window.open(systemLink(inp,'system/'),'_blank');
 }

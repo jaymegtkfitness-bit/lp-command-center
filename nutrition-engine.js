@@ -286,6 +286,9 @@ var FOOD_DB={
     {n:"low-fat cottage cheese",g:28,p:28,c:6.1,f:2.3,kcal:163,u:"cup",frac:true,max:1.5,slot:"any",t:1,k:"dairy",a:["dairy"],src:"USDA FDC 173417 \u00b7 1 cup"},
     {n:"whey protein powder",g:24,p:24,c:3,f:1.5,kcal:120,u:"scoop",whole:true,max:2,slot:"am",t:1,k:"dairy",a:["dairy"],src:"Label: Optimum Nutrition Gold Standard 100% Whey, 1 scoop (30.4g), optimumnutrition.com"},
     {n:"plant protein powder",g:21,p:21,c:15,f:4,kcal:150,u:"serving",whole:true,max:2,slot:"am",t:1,k:"plant",src:"Label: Orgain Organic Protein, 1 serving = 2 scoops (46g), orgain.com; varies by brand"},
+    {n:"96% ground beef",g:8.3,p:8.3,c:0.0,f:2.2,kcal:55,u:"oz",max:8,slot:"pm",t:1,k:"meat",sub:"redmeat",src:"USDA FDC 174028 \u00b7 1 oz cooked crumbles (USDA's leanest record is 95/5)"},
+    {n:"eye of round steak",g:8.5,p:8.5,c:0.0,f:1.1,kcal:46,u:"oz",max:9,slot:"pm",t:1,k:"meat",sub:"redmeat",src:"USDA FDC 170633 \u00b7 1 oz cooked, lean only"},
+    {n:"deli turkey",g:4.2,p:4.2,c:0.6,f:1.1,kcal:30,u:"oz",max:8,slot:"any",t:1,k:"meat",src:"USDA FDC 172941 \u00b7 1 oz sliced, prepackaged"},
     /* Tier 2 - good, watch the portion */
     {n:"salmon",g:6.3,p:6.3,c:0,f:3.5,kcal:58,u:"oz",max:8,slot:"pm",t:2,k:"fish",a:["fish"],src:"USDA FDC 175168 \u00b7 1 oz cooked, farmed Atlantic"},
     {n:"sirloin steak",g:8.7,p:8.7,c:0,f:1.6,kcal:52,u:"oz",max:9,slot:"pm",t:2,k:"meat",sub:"redmeat",src:"USDA FDC 168634 \u00b7 1 oz cooked, lean only"},
@@ -297,9 +300,19 @@ var FOOD_DB={
     {n:"tempeh",g:5.6,p:5.6,c:2.2,f:3.2,kcal:55,u:"oz",max:6,slot:"pm",t:2,k:"plant",a:["soy"],src:"USDA FDC 172467 \u00b7 1 oz cooked"},
     {n:"seitan",g:9,p:9,c:2.5,f:0.3,kcal:45,u:"oz",max:6,slot:"pm",t:2,k:"plant",a:["gluten"],src:"Label: Upton's Naturals Traditional Seitan, 2 oz (57g) = 90 kcal / 18g P, uptonsnaturals.com"},
     {n:"edamame",g:18.5,p:18.5,c:13.8,f:8.1,kcal:188,u:"cup",frac:true,max:1.5,slot:"pm",t:2,k:"plant",a:["soy"],src:"USDA FDC 168411 \u00b7 1 cup shelled, prepared"},
+    {n:"90% ground beef",g:8.1,p:8.1,c:0.0,f:3.4,kcal:65,u:"oz",max:8,slot:"pm",t:2,k:"meat",sub:"redmeat",src:"USDA FDC 171794 \u00b7 1 oz cooked crumbles"},
+    {n:"flank steak",g:7.9,p:7.9,c:0.0,f:2.1,kcal:53,u:"oz",max:9,slot:"pm",t:2,k:"meat",sub:"redmeat",src:"USDA FDC 174774 \u00b7 1 oz cooked, lean only"},
+    {n:"filet mignon",g:8.2,p:8.2,c:0.0,f:2.2,kcal:55,u:"oz",max:9,slot:"pm",t:2,k:"meat",sub:"redmeat",src:"USDA FDC 174043 \u00b7 1 oz cooked tenderloin, lean only"},
+    {n:"NY strip steak",g:8.3,p:8.3,c:0.0,f:2.0,kcal:54,u:"oz",max:9,slot:"pm",t:2,k:"meat",sub:"redmeat",src:"USDA FDC 171813 \u00b7 1 oz cooked top loin, lean only"},
+    {n:"ground bison",g:7.2,p:7.2,c:0.0,f:2.4,kcal:51,u:"oz",max:8,slot:"pm",t:2,k:"meat",sub:"redmeat",src:"USDA FDC 173847 \u00b7 1 oz cooked"},
+    {n:"ground chicken",g:6.6,p:6.6,c:0.0,f:3.1,kcal:54,u:"oz",max:8,slot:"pm",t:2,k:"meat",src:"USDA FDC 171117 \u00b7 1 oz cooked crumbles"},
+    {n:"pork chop",g:8.5,p:8.5,c:0.0,f:1.3,kcal:46,u:"oz",max:8,slot:"pm",t:2,k:"meat",sub:"pork",src:"USDA FDC 168285 \u00b7 1 oz cooked boneless center loin, lean only"},
+    {n:"canned chicken",g:6.2,p:6.2,c:0.0,f:2.3,kcal:47,u:"oz",max:8,slot:"pm",t:2,k:"meat",src:"USDA FDC 171099 \u00b7 1 oz drained"},
+    {n:"2% Greek yogurt",g:22.5,p:22.5,c:8.9,f:4.3,kcal:166,u:"cup",frac:true,max:1.5,slot:"am",t:2,k:"dairy",a:["dairy"],src:"USDA FDC 170903 \u00b7 1 cup (227 g), plain lowfat"},
     /* Tier 3 - higher-fat cuts, offset with leaner carbs and fats */
     {n:"ribeye",g:6.8,p:6.8,c:0,f:6,kcal:81,u:"oz",max:8,slot:"pm",t:3,k:"meat",sub:"redmeat",src:"USDA FDC 172165 \u00b7 1 oz cooked, lean and fat"},
-    {n:"80/20 ground beef",g:7.7,p:7.7,c:0,f:4.9,kcal:77,u:"oz",max:6,slot:"pm",t:3,k:"meat",sub:"redmeat",src:"USDA FDC 171799 \u00b7 1 oz cooked crumbles"}],
+    {n:"80/20 ground beef",g:7.7,p:7.7,c:0,f:4.9,kcal:77,u:"oz",max:6,slot:"pm",t:3,k:"meat",sub:"redmeat",src:"USDA FDC 171799 \u00b7 1 oz cooked crumbles"},
+    {n:"beef jerky",g:9.4,p:9.4,c:3.1,f:7.3,kcal:116,u:"oz",max:3,slot:"any",t:3,k:"meat",sub:"redmeat",src:"USDA FDC 167536 \u00b7 1 oz"}],
   carb:[
     /* Tier 1 */
     {n:"potatoes",g:31.2,p:2.7,c:31.2,f:0.2,kcal:134,u:"cup",frac:true,max:2,slot:"pm",t:1,k:"plant",src:"USDA FDC 170440 \u00b7 1 cup boiled"},
@@ -310,10 +323,11 @@ var FOOD_DB={
     {n:"chickpeas",g:45,p:14.5,c:45,f:4.2,kcal:269,u:"cup",frac:true,max:1.5,slot:"pm",t:1,k:"plant",src:"USDA FDC 173757 \u00b7 1 cup cooked"},
     {n:"green peas",g:22.8,p:8.2,c:22.8,f:0.4,kcal:125,u:"cup",frac:true,max:2,slot:"pm",t:1,k:"plant",src:"USDA FDC 170017 \u00b7 1 cup cooked"},
     {n:"butternut squash",g:21.5,p:1.8,c:21.5,f:0.2,kcal:82,u:"cup",frac:true,max:2,slot:"pm",t:1,k:"plant",src:"USDA FDC 169296 \u00b7 1 cup cubes baked"},
-    {n:"berries",g:16.6,p:1.1,c:16.6,f:0.5,kcal:67,u:"cup",frac:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 171711+167762 \u00b7 1 cup (avg blueberries/strawberries)"},
-    {n:"banana",g:27,p:1.3,c:27,f:0.4,kcal:105,u:"",whole:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 173944 \u00b7 1 medium"},
-    {n:"apple",g:25.1,p:0.5,c:25.1,f:0.3,kcal:95,u:"",whole:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 171688 \u00b7 1 medium"},
     {n:"corn",g:31.3,p:5.1,c:31.3,f:2.2,kcal:143,u:"cup",frac:true,max:1.5,slot:"pm",t:1,k:"plant",a:["corn"],src:"USDA FDC 169999 \u00b7 1 cup cooked kernels"},
+    {n:"pinto beans",g:44.8,p:15.4,c:44.8,f:1.2,kcal:245,u:"cup",frac:true,max:1.5,slot:"pm",t:1,k:"plant",src:"USDA FDC 175200 \u00b7 1 cup cooked"},
+    {n:"kidney beans",g:40.4,p:15.4,c:40.4,f:0.9,kcal:225,u:"cup",frac:true,max:1.5,slot:"pm",t:1,k:"plant",src:"USDA FDC 175194 \u00b7 1 cup cooked"},
+    {n:"barley",g:44.3,p:3.6,c:44.3,f:0.6,kcal:193,u:"cup",frac:true,max:2,slot:"pm",t:1,k:"plant",a:["gluten"],src:"USDA FDC 170285 \u00b7 1 cup cooked, pearled"},
+    {n:"popcorn",g:6.2,p:1.0,c:6.2,f:0.4,kcal:31,u:"cup",frac:true,max:4,slot:"any",t:1,k:"plant",a:["corn"],src:"USDA FDC 167959 \u00b7 1 cup air-popped"},
     /* Tier 2 */
     {n:"white rice",g:44.5,p:4.3,c:44.5,f:0.4,kcal:205,u:"cup",frac:true,max:2,slot:"pm",t:2,k:"plant",src:"USDA FDC 168878 \u00b7 1 cup cooked"},
     {n:"brown rice",g:51.7,p:5.5,c:51.7,f:2,kcal:248,u:"cup",frac:true,max:2,slot:"pm",t:2,k:"plant",src:"USDA FDC 169704 \u00b7 1 cup cooked"},
@@ -321,9 +335,16 @@ var FOOD_DB={
     {n:"sourdough",g:22.3,p:4.6,c:22.3,f:1,kcal:117,u:"slice",whole:true,max:3,slot:"any",t:2,k:"plant",a:["gluten"],src:"USDA FDC 172675 \u00b7 1 sandwich slice (43g)"},
     {n:"whole-wheat pasta",g:42.1,p:8.4,c:42.1,f:2.4,kcal:209,u:"cup",frac:true,max:2,slot:"pm",t:2,k:"plant",a:["gluten"],src:"USDA FDC 168910 \u00b7 1 cup cooked"},
     {n:"corn tortilla",g:10.7,p:1.4,c:10.7,f:0.7,kcal:52,u:"tortilla",whole:true,max:4,slot:"any",t:2,k:"plant",a:["corn"],src:"USDA FDC 175036 \u00b7 1 tortilla"},
+    {n:"whole-wheat bread",g:13.7,p:4.0,c:13.7,f:1.1,kcal:81,u:"slice",whole:true,max:3,slot:"any",t:2,k:"plant",a:["gluten"],src:"USDA FDC 172688 \u00b7 1 slice"},
+    {n:"English muffin",g:28.6,p:4.0,c:28.6,f:1.0,kcal:140,u:"",whole:true,max:2,slot:"am",t:2,k:"plant",a:["gluten"],src:"USDA FDC 174093 \u00b7 1 muffin, whole grain white"},
+    {n:"rice cakes",g:7.3,p:0.7,c:7.3,f:0.3,kcal:35,u:"cake",whole:true,max:4,slot:"any",t:2,k:"plant",src:"USDA FDC 170250 \u00b7 1 cake, brown rice"},
+    {n:"cream of rice",g:28.1,p:2.2,c:28.1,f:0.2,kcal:127,u:"cup",frac:true,max:2,slot:"am",t:2,k:"plant",src:"USDA FDC 173914 \u00b7 1 cup cooked"},
+    {n:"couscous",g:36.4,p:6.0,c:36.4,f:0.3,kcal:176,u:"cup",frac:true,max:2,slot:"pm",t:2,k:"plant",a:["gluten"],src:"USDA FDC 169700 \u00b7 1 cup cooked"},
     /* Tier 3 */
     {n:"white pasta",g:43.2,p:8.1,c:43.2,f:1.3,kcal:221,u:"cup",frac:true,max:2,slot:"pm",t:3,k:"plant",a:["gluten"],src:"USDA FDC 169737 \u00b7 1 cup cooked"},
-    {n:"bagel",g:55,p:11.1,c:55,f:1.4,kcal:277,u:"",whole:true,max:1,slot:"am",t:3,k:"plant",a:["gluten"],src:"USDA FDC 174899 \u00b7 1 medium"}],
+    {n:"bagel",g:55,p:11.1,c:55,f:1.4,kcal:277,u:"",whole:true,max:1,slot:"am",t:3,k:"plant",a:["gluten"],src:"USDA FDC 174899 \u00b7 1 medium"},
+    {n:"flour tortilla",g:24.2,p:3.9,c:24.2,f:3.7,kcal:146,u:"tortilla",whole:true,max:2,slot:"any",t:3,k:"plant",a:["gluten"],src:"USDA FDC 167535 \u00b7 1 tortilla"},
+    {n:"granola",g:65.8,p:16.7,c:65.8,f:29.6,kcal:597,u:"cup",frac:true,max:0.5,slot:"am",t:3,k:"plant",a:["gluten","nut"],src:"USDA FDC 171646 \u00b7 1 cup"}],
   fat:[
     /* Tier 1 */
     {n:"avocado",g:21,p:2.7,c:11.8,f:21,kcal:227,u:"",frac:true,max:1,slot:"any",t:1,k:"plant",src:"USDA FDC 171706 \u00b7 1 fruit"},
@@ -340,11 +361,45 @@ var FOOD_DB={
     {n:"pumpkin seeds",g:4,p:2.4,c:0.9,f:4,kcal:45,u:"tbsp",frac:true,max:3,slot:"any",t:2,k:"plant",src:"USDA FDC 170556 \u00b7 1 tbsp"},
     {n:"hummus",g:2.7,p:1.2,c:2.2,f:2.7,kcal:36,u:"tbsp",frac:true,max:6,slot:"pm",t:2,k:"plant",a:["sesame"],src:"USDA FDC 174289 \u00b7 1 tbsp"},
     {n:"cheese",g:9.6,p:6.6,c:0.7,f:9.6,kcal:116,u:"oz",frac:true,max:3,slot:"any",t:2,k:"dairy",a:["dairy"],src:"USDA FDC 328637 \u00b7 1 oz cheddar"},
+    {n:"sunflower seeds",g:4.0,p:1.5,c:1.9,f:4.0,kcal:47,u:"tbsp",frac:true,max:3,slot:"any",t:2,k:"plant",src:"USDA FDC 170563 \u00b7 1 tbsp dry roasted"},
+    {n:"cashews",g:4.0,p:1.3,c:2.8,f:4.0,kcal:49,u:"tbsp",frac:true,max:3,slot:"any",t:2,k:"plant",a:["nut"],src:"USDA FDC 170571 \u00b7 1 tbsp dry roasted"},
+    {n:"pistachios",g:3.5,p:1.6,c:2.2,f:3.5,kcal:44,u:"tbsp",frac:true,max:3,slot:"any",t:2,k:"plant",a:["nut"],src:"USDA FDC 170185 \u00b7 1 tbsp dry roasted"},
+    {n:"pecans",g:4.9,p:0.6,c:0.9,f:4.9,kcal:47,u:"tbsp",frac:true,max:3,slot:"am",t:2,k:"plant",a:["nut"],src:"USDA FDC 170182 \u00b7 1 tbsp chopped"},
     /* Tier 3 - cooking fats, deliberately last */
     {n:"olive oil",g:1,p:0,c:0,f:1,kcal:8.84,u:"g",max:27,slot:"pm",t:3,k:"plant",src:"USDA FDC 171413 \u00b7 1 tbsp"},
-    {n:"butter",g:11.5,p:0.1,c:0,f:11.5,kcal:102,u:"tbsp",frac:true,max:2,slot:"any",t:3,k:"dairy",a:["dairy"],src:"USDA FDC 173410 \u00b7 1 tbsp"}],
+    {n:"butter",g:11.5,p:0.1,c:0,f:11.5,kcal:102,u:"tbsp",frac:true,max:2,slot:"any",t:3,k:"dairy",a:["dairy"],src:"USDA FDC 173410 \u00b7 1 tbsp"},
+    {n:"avocado oil",g:1.0,p:0.0,c:0.0,f:1.0,kcal:8.84,u:"g",max:27,slot:"pm",t:3,k:"plant",src:"USDA FDC 173573 \u00b7 1 g"},
+    {n:"coconut oil",g:1.0,p:0.0,c:0.0,f:1.0,kcal:8.92,u:"g",max:27,slot:"any",t:3,k:"plant",src:"USDA FDC 171412 \u00b7 1 g"},
+    {n:"dark chocolate",g:12.1,p:2.2,c:13.0,f:12.1,kcal:170,u:"oz",frac:true,max:1,slot:"any",t:3,k:"plant",src:"USDA FDC 170273 \u00b7 1 oz, 70 to 85% cacao"}],
   /* Vegetables stay plain strings: client.html and index.html consume FOOD_DB.veg directly.
      They are eaten freely and not calorie-counted, per the Power Food System. */
+  /* FRUIT (Jayme 2026-09-18): its own list to pick from. The engine still counts fruit as a carb when
+     it builds meals. Tier 1 = most fiber and nutrients for the calories; tier 3 = lower fiber, more
+     sugar and calories. */
+  fruit:[
+    /* Tier 1 - high fiber, nutrient dense */
+    {n:"berries",g:16.6,p:1.1,c:16.6,f:0.5,kcal:67,u:"cup",frac:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 171711+167762 \u00b7 1 cup (avg blueberries/strawberries)"},
+    {n:"apple",g:25.1,p:0.5,c:25.1,f:0.3,kcal:95,u:"",whole:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 171688 \u00b7 1 medium"},
+    {n:"raspberries",g:14.6,p:1.5,c:14.6,f:0.9,kcal:64,u:"cup",frac:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 167755 \u00b7 1 cup"},
+    {n:"blackberries",g:13.8,p:2.0,c:13.8,f:0.7,kcal:62,u:"cup",frac:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 173946 \u00b7 1 cup"},
+    {n:"strawberries",g:11.1,p:1.0,c:11.1,f:0.4,kcal:46,u:"cup",frac:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 167762 \u00b7 1 cup whole"},
+    {n:"blueberries",g:21.5,p:1.0,c:21.5,f:0.4,kcal:84,u:"cup",frac:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 171711 \u00b7 1 cup"},
+    {n:"pear",g:27.1,p:0.7,c:27.1,f:0.2,kcal:101,u:"",whole:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 169118 \u00b7 1 medium"},
+    {n:"orange",g:15.5,p:1.2,c:15.5,f:0.1,kcal:62,u:"",whole:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 169097 \u00b7 1 fruit"},
+    {n:"kiwi",g:10.1,p:0.8,c:10.1,f:0.3,kcal:42,u:"",whole:true,max:3,slot:"am",t:1,k:"plant",src:"USDA FDC 168153 \u00b7 1 fruit"},
+    {n:"grapefruit",g:13.2,p:1.0,c:13.2,f:0.1,kcal:52,u:"half",whole:true,max:2,slot:"am",t:1,k:"plant",src:"USDA FDC 174673 \u00b7 1/2 fruit"},
+    /* Tier 2 */
+    {n:"banana",g:27,p:1.3,c:27,f:0.4,kcal:105,u:"",whole:true,max:2,slot:"am",t:2,k:"plant",src:"USDA FDC 173944 \u00b7 1 medium"},
+    {n:"peach",g:14.2,p:1.4,c:14.2,f:0.3,kcal:58,u:"",whole:true,max:2,slot:"am",t:2,k:"plant",src:"USDA FDC 169928 \u00b7 1 medium"},
+    {n:"cherries",g:24.6,p:1.7,c:24.6,f:0.3,kcal:97,u:"cup",frac:true,max:1.5,slot:"am",t:2,k:"plant",src:"USDA FDC 171719 \u00b7 1 cup, pitted"},
+    {n:"pineapple",g:21.6,p:0.8,c:21.6,f:0.2,kcal:82,u:"cup",frac:true,max:1.5,slot:"am",t:2,k:"plant",src:"USDA FDC 169124 \u00b7 1 cup chunks"},
+    {n:"mango",g:24.8,p:1.3,c:24.8,f:0.7,kcal:99,u:"cup",frac:true,max:1.5,slot:"am",t:2,k:"plant",src:"USDA FDC 169910 \u00b7 1 cup pieces"},
+    {n:"cantaloupe",g:13.1,p:1.3,c:13.1,f:0.3,kcal:54,u:"cup",frac:true,max:2,slot:"am",t:2,k:"plant",src:"USDA FDC 169092 \u00b7 1 cup cubes"},
+    {n:"watermelon",g:11.4,p:0.9,c:11.4,f:0.2,kcal:46,u:"cup",frac:true,max:2,slot:"am",t:2,k:"plant",src:"USDA FDC 167765 \u00b7 1 cup diced"},
+    /* Tier 3 - lower fiber, more sugar and calories */
+    {n:"grapes",g:27.3,p:1.1,c:27.3,f:0.3,kcal:104,u:"cup",frac:true,max:1.5,slot:"am",t:3,k:"plant",src:"USDA FDC 174683 \u00b7 1 cup"},
+    {n:"raisins",g:11.1,p:0.5,c:11.1,f:0.0,kcal:42,u:"box",whole:true,max:2,slot:"am",t:3,k:"plant",src:"USDA FDC 168165 \u00b7 1 mini box (14 g)"},
+    {n:"dates",g:18.0,p:0.4,c:18.0,f:0.0,kcal:66,u:"",whole:true,max:3,slot:"am",t:3,k:"plant",src:"USDA FDC 168191 \u00b7 1 medjool date, pitted"}],
   veg:["broccoli","spinach","peppers","zucchini","green beans","asparagus","salad greens",
        "cauliflower","mushrooms","cucumber","tomatoes","cabbage","brussels sprouts","carrots"]
 };
@@ -368,7 +423,8 @@ var MEAL_NICE={'chicken breast':'Chicken','turkey breast':'Turkey','93% ground t
   'whole-wheat pasta':'Pasta','white pasta':'Pasta','corn tortilla':'Taco','bagel':'Bagel',
   'broccoli':'Broccoli','spinach':'Spinach','peppers':'Peppers','zucchini':'Zucchini','green beans':'Green Beans',
   'asparagus':'Asparagus','salad greens':'Greens','cauliflower':'Cauliflower','mushrooms':'Mushrooms',
-  'cucumber':'Cucumber','tomatoes':'Tomatoes','cabbage':'Cabbage','brussels sprouts':'Brussels Sprouts','carrots':'Carrots'};
+  'cucumber':'Cucumber','tomatoes':'Tomatoes','cabbage':'Cabbage','brussels sprouts':'Brussels Sprouts','carrots':'Carrots',
+  '96% ground beef':'Lean Ground Beef','90% ground beef':'Ground Beef','ground bison':'Bison','ground chicken':'Ground Chicken','flank steak':'Flank Steak','filet mignon':'Filet','NY strip steak':'Strip Steak','eye of round steak':'Steak','pork chop':'Pork Chop','deli turkey':'Turkey','canned chicken':'Chicken','2% Greek yogurt':'Greek Yogurt'};
 function mealNice(n){ return MEAL_NICE[n] || (n ? n.charAt(0).toUpperCase()+n.slice(1) : ''); }
 var MEAL_TEMPLATES=[
   /* breakfast */
@@ -388,24 +444,24 @@ var MEAL_TEMPLATES=[
   {id:'tofuscramble', slot:'am', veg:true, protein:['extra-firm tofu'], carb:['potatoes','sourdough','sweet potato'],
    fat:['avocado','hemp seeds'], name:function(r){ return 'Tofu Scramble with '+mealNice(r.c||'potatoes'); }},
   /* lunch and dinner */
-  {id:'bowl', slot:'pm', veg:true, protein:['chicken breast','chicken thighs','93% ground turkey','sirloin steak','salmon','shrimp','pork tenderloin','extra-firm tofu','tempeh','seitan'],
+  {id:'bowl', slot:'pm', veg:true, protein:['chicken breast','chicken thighs','93% ground turkey','sirloin steak','flank steak','96% ground beef','ground bison','ground chicken','salmon','shrimp','pork tenderloin','extra-firm tofu','tempeh','seitan'],
    carb:['white rice','brown rice','quinoa'], fat:['avocado','olive oil','tahini'],
    name:function(r){ return mealNice(r.p)+', '+mealNice(r.c)+' and '+mealNice(r.v||'broccoli')+' Bowl'; }},
-  {id:'sheetpan', slot:'pm', veg:true, protein:['salmon','white fish (cod or tilapia)','sirloin steak','chicken breast','pork tenderloin','chicken thighs','turkey breast','ribeye'],
+  {id:'sheetpan', slot:'pm', veg:true, protein:['salmon','white fish (cod or tilapia)','sirloin steak','NY strip steak','filet mignon','eye of round steak','chicken breast','pork tenderloin','pork chop','chicken thighs','turkey breast','ribeye'],
    carb:['potatoes','sweet potato','butternut squash'], fat:['olive oil','butter'],
    name:function(r){ return mealNice(r.p)+' with Roasted '+mealNice(r.c)+' and '+mealNice(r.v||'green beans'); }},
-  {id:'tacos', slot:'pm', veg:true, protein:['93% ground turkey','93% ground beef','chicken breast','shrimp','white fish (cod or tilapia)','80/20 ground beef'],
+  {id:'tacos', slot:'pm', veg:true, protein:['93% ground turkey','96% ground beef','93% ground beef','90% ground beef','ground chicken','chicken breast','shrimp','white fish (cod or tilapia)','80/20 ground beef'],
    carb:['corn tortilla','black beans'], fat:['avocado','cheese'], name:function(r){ return mealNice(r.p)+' Tacos'; }, needs:['corn tortilla'], carbs:2},
-  {id:'burrito', slot:'pm', veg:true, protein:['chicken breast','93% ground beef','93% ground turkey','sirloin steak','extra-firm tofu'],
+  {id:'burrito', slot:'pm', veg:true, protein:['chicken breast','96% ground beef','93% ground beef','93% ground turkey','sirloin steak','flank steak','extra-firm tofu'],
    carb:['white rice','brown rice','black beans'], fat:['avocado','cheese'], vegs:['peppers','onions','salad greens','tomatoes'], carbs:1, name:function(r){ return mealNice(r.p)+' Burrito Bowl'; }},
   {id:'pasta', slot:'pm', veg:true, protein:['93% ground beef','93% ground turkey','chicken breast','shrimp'],
    carb:['whole-wheat pasta','white pasta'], fat:['olive oil','cheese'], name:function(r){ return mealNice(r.p)+' Pasta with '+mealNice(r.v||'spinach'); }},
-  {id:'stirfry', slot:'pm', veg:true, protein:['chicken breast','shrimp','sirloin steak','pork tenderloin','extra-firm tofu','tempeh','edamame'],
+  {id:'stirfry', slot:'pm', veg:true, protein:['chicken breast','shrimp','sirloin steak','flank steak','pork tenderloin','extra-firm tofu','tempeh','edamame'],
    carb:['white rice','brown rice','quinoa'], fat:['olive oil'], vegs:['broccoli','peppers','zucchini','green beans','asparagus','snap peas','mushrooms','onions'], name:function(r){ return mealNice(r.p)+' Stir-Fry'; }},
   {id:'salad', slot:'pm', veg:true, protein:['chicken breast','salmon','canned tuna','shrimp','turkey breast','whole eggs','edamame'],
    carb:['chickpeas','quinoa','sweet potato','sourdough'], fat:['avocado','olives','olive oil','walnuts','cheese','hummus'],
    vegs:['salad greens','spinach','peppers','tomatoes','cucumber'], name:function(r){ return mealNice(r.p)+' Power Salad'; }},
-  {id:'sandwich', slot:'pm', veg:true, protein:['turkey breast','canned tuna','chicken breast'], carb:['sourdough','bagel'],
+  {id:'sandwich', slot:'pm', veg:true, protein:['turkey breast','deli turkey','canned tuna','canned chicken','chicken breast'], carb:['sourdough','whole-wheat bread','bagel'],
    fat:['avocado','hummus','cheese'], name:function(r){ return mealNice(r.p)+' and '+mealNice(r.f||'avocado')+' Sandwich'; }},
   {id:'grainbowl', slot:'pm', veg:true, protein:['extra-firm tofu','tempeh','seitan','edamame'], carb:['lentils','chickpeas','quinoa','black beans'],
    fat:['tahini','hummus','avocado'], name:function(r){ return mealNice(r.p)+' and '+mealNice(r.c)+' Bowl'; }}
@@ -426,7 +482,7 @@ function mealName(tpl, opt){
 /* A plain, honest name for a meal that did not come from a template: lead protein, carb, vegetable. */
 function plainMealName(opt){
   var ps=opt.parts||[], P=ps.filter(function(x){ return !x.veg && (FOOD_DB.protein||[]).some(function(f){ return f.n===x.n; }); }),
-      C=ps.filter(function(x){ return !x.veg && (FOOD_DB.carb||[]).some(function(f){ return f.n===x.n; }); }), V=ps.filter(function(x){ return x.veg; });
+      C=ps.filter(function(x){ return !x.veg && (FOOD_DB.carb||[]).concat(FOOD_DB.fruit||[]).some(function(f){ return f.n===x.n; }); }), V=ps.filter(function(x){ return x.veg; });
   if(P[0] && /protein powder/.test(P[0].n)) return 'Protein Shake'+(C[0]?' with '+(C[0].n==='berries'?'Berries':mealNice(C[0].n)):'');
   if(P[0] && /yogurt|cottage/.test(P[0].n)) return mealNice(P[0].n)+(C[0]?' and '+(C[0].n==='berries'?'Berry':mealNice(C[0].n)):'')+' Bowl';
   if(P[0] && C.some(function(x){ return x.n==='oats'; })) return 'Oatmeal with '+mealNice(P[0].n)+' on the Side';
@@ -495,6 +551,12 @@ function recipeLine(q, u, name){
 }
 function recipeOption(r, target, sel, slot){
   var ing=recipeIngredients(r, sel); if(!ing) return null;
+  var fam=proteinFamily(r.lead), mine=(sel.protein||[]).filter(function(n){ return proteinFamily(n)===fam; });
+  if(mine.length && /ground beef|steak|chicken|turkey/.test(fam) && mine.indexOf(r.lead)<0){
+    /* She picked a different cut from the same family (96% ground beef for a lean ground beef recipe):
+       name her cut. The macro difference between cuts in one family is small. */
+    ing=ing.map(function(g){ return (g[3]==='mf' && proteinFamily(g[2])===fam && !/bacon|prosciutto/.test(g[2])) ? [g[0], g[1], mine[0], g[3]] : g; });
+  }
   var tCal=target.protein*4+target.carbs*4+target.fat*9, tP=target.protein;
   var s=tP/r.m[1];
   if(r.m[0]*s > tCal*1.08) s=Math.max(s*0.95, tCal*1.06/r.m[0]);   // a rich recipe gives a little protein back
@@ -527,14 +589,29 @@ function recipeOption(r, target, sel, slot){
   return {items:items, parts:parts, cal:Math.round(tot.kcal), protein:Math.round(tot.p), carbs:Math.round(tot.c), fat:Math.round(tot.f),
           name:r.name, tier:1, recipe:{id:r.id, how:r.how, scale:Math.round(s*100)/100}};
 }
+/* Protein families, so a recipe built on "lean ground beef" counts for someone who picked 96% ground
+   beef, and a sirloin recipe counts for someone who picked flank steak. */
+var PROTEIN_FAMILY=[
+  ['ground beef', /ground beef|lean ground beef/],
+  ['steak', /steak|sirloin|filet|ribeye|eye of round/],
+  ['chicken', /chicken/],
+  ['turkey', /turkey/],
+  ['white fish', /white fish|cod|tilapia|halibut/],
+  ['salmon', /salmon/], ['tuna', /tuna/], ['shrimp', /shrimp/], ['pork', /pork/],
+  ['yogurt', /greek yogurt|yogurt/], ['cottage cheese', /cottage/], ['eggs', /egg/],
+  ['protein powder', /protein powder/], ['tofu', /tofu/], ['bison', /bison/]
+];
+function proteinFamily(n){ n=String(n||'').toLowerCase(); for(var i=0;i<PROTEIN_FAMILY.length;i++){ if(PROTEIN_FAMILY[i][1].test(n)) return PROTEIN_FAMILY[i][0]; } return n; }
 /* Order the recipes for a slot: her starred and picked lead proteins first, then a rotation. */
 function recipeCandidates(slotKind, sel, k, used, slotName){
   if(typeof RECIPE_LIBRARY==='undefined') return [];
   var star=(sel.starred||{}).protein||[], picks=sel.protein||[];
+  var fams=picks.map(proteinFamily);
   return RECIPE_LIBRARY.map(function(r, i){ return {r:r, i:i}; })
     .filter(function(x){ return x.r.slot===slotKind; })
+    .filter(function(x){ return !picks.length || fams.indexOf(proteinFamily(x.r.lead))>=0; })   // only proteins she eats
     .map(function(x){
-      var pref=star.indexOf(x.r.lead)>=0 ? 0 : (!picks.length || picks.indexOf(x.r.lead)>=0 ? 1 : 3);
+      var pref=star.some(function(n){ return proteinFamily(n)===proteinFamily(x.r.lead); }) ? 0 : 1;
       /* Dinner should read like dinner: a cooked meal beats a cold salad at the end of the day. */
       var heat=(slotName==='Dinner') ? (x.r.hot?0:40) : (slotName==='Lunch' && x.r.hot ? 8 : 0);
       return {r:x.r, score:pref*100 + heat + (used[x.r.id]?50:0) + ((x.i*7 + k*11) % 37)};
@@ -580,9 +657,10 @@ function allowsFood(f, style, allergies){
 /* The safe list for one macro category. Never returns empty: if the filters wipe everything out,
    it hands back the plant-only foods so the caller shows food rather than a blank plan. */
 function safeFoods(cat, style, allergies){
-  var list=(FOOD_DB[cat]||[]).filter(function(f){ return allowsFood(f, style, allergies); });
+  var base=(cat==='carb') ? (FOOD_DB.carb||[]).concat(FOOD_DB.fruit||[]) : (FOOD_DB[cat]||[]);   // fruit is picked separately, eaten as a carb
+  var list=base.filter(function(f){ return allowsFood(f, style, allergies); });
   if(list.length) return list;
-  return (FOOD_DB[cat]||[]).filter(function(f){ return (f.k||'plant')==='plant'; });
+  return base.filter(function(f){ return (f.k||'plant')==='plant'; });
 }
 
 /* Units that never take an "s" (abbreviations), and pluralising only the FIRST word so
@@ -784,7 +862,18 @@ var MEAL_SPLIT=[
   [{pro:.27,e:.24},{pro:.25,e:.26},{pro:.30,e:.34},{pro:.18,e:.16}],
   [{pro:.22,e:.20},{pro:.20,e:.21},{pro:.26,e:.29},{pro:.16,e:.15},{pro:.16,e:.15}]
 ];
+/* Fruit is its own pick list (sel.fruit) but it is eaten as a carb, so the builders see one carb list. */
+function withFruit(sel){
+  sel=sel||{};
+  if(!sel.fruit || !sel.fruit.length) return sel;
+  var out={}; for(var k in sel) out[k]=sel[k];
+  out.carb=(sel.carb||[]).concat(sel.fruit.filter(function(n){ return (sel.carb||[]).indexOf(n)<0; }));
+  if(sel.starred && sel.starred.fruit){ out.starred={}; for(var k2 in sel.starred) out.starred[k2]=sel.starred[k2];
+    out.starred.carb=(sel.starred.carb||[]).concat(sel.starred.fruit); }
+  return out;
+}
 function generateMealPlan(it, sel, days, name){
+  sel=withFruit(sel);
   var p=it.pfs;
   sel=sel||{};
   /* Frequency drives how many meals get built and whether a shake is carved out first.
@@ -931,7 +1020,7 @@ function buildOption(P, C, F, V, target, slot, seed, vegIndex, tierMax, star, ch
    part of a meal for something portable. That is the honest job they do. */
 var COMPANION_PROTEIN=20;        // grams, the useful size of a protein top-up
 function generateCompanions(sel, count, name){
-  sel=sel||{};
+  sel=withFruit(sel||{});
   var want=count||COMPANIONS_PER_PLAN, mine=[].concat(sel.protein||[], sel.carb||[], sel.fat||[]);
   var boost=PROTEIN_BOOSTERS.map(function(b, idx){
     var foods=b.parts.map(function(pt){ return {f:foodByName(pt[0]), u:pt[1]}; });
@@ -985,7 +1074,7 @@ function generateCompanions(sel, count, name){
    it = {pfs:{calories,protein,carbs,fat}}
    sel = {protein:[],carb:[],fat:[],veg:[], style, allergies, frequency, shakeGrams} */
 function generateMealOptions(it, sel, name){
-  var p=it.pfs; sel=sel||{};
+  var p=it.pfs; sel=withFruit(sel||{});
   var S=mealSplit(p, sel.frequency, sel.shakeGrams);
   /* Meals are built from what is LEFT after the shake is reserved. */
   var base={calories:Math.max(0,p.calories-(S.shake?S.shake.calories:0)),
@@ -1029,7 +1118,7 @@ function generateMealOptions(it, sel, name){
        (and starred) foods it uses, rotated per slot so lunch and dinner do not open on the same meal. */
     /* RECIPES FIRST: the licensed library, portioned to this slot's numbers. */
     var rc=recipeCandidates(slot, sel, k, usedRecipes, nm);
-    rc.filter(function(r){ return !usedRecipes[r.id]; }).concat(rc.filter(function(r){ return usedRecipes[r.id]; })).forEach(function(r){
+    rc.filter(function(r){ return !usedRecipes[r.id] || (sel.protein||[]).length===0 && rc.length<=n; }).forEach(function(r){   // no recipe twice in a day; her own foods fill the gap
       if(options.length>=n) return;
       var ro=recipeOption(r, target, sel, slot);
       if(!ro) return;
@@ -1084,6 +1173,11 @@ function generateMealOptions(it, sel, name){
     for(var tier=1; tier<=3 && options.length<n; tier++){
       for(var seed=0; seed<12 && options.length<n; seed++){
         var opt=buildOption(P,C,F,V,target,slot,seed,k+options.length,tier,star,chose);
+        if(slot==='am' && (opt.parts||[]).some(function(x){ return /protein powder|yogurt|cottage/.test(x.n); })){
+          /* A shake or yogurt breakfast does not get a handful of broccoli on the side. */
+          opt.parts=(opt.parts||[]).filter(function(x){ return !x.veg; });
+          opt.items=opt.items.filter(function(x){ return !/^a (big )?handful of /.test(x); });
+        }
         var key=opt.items.join('|');
         if(seen[key]) continue;
         seen[key]=1; opt.tier=tier; opt.name=plainMealName(opt); options.push(opt);
@@ -1380,10 +1474,10 @@ function restaurantChains(){ return (typeof RESTAURANT_DB!=='undefined')? Object
 var SWAP_ANCHOR={protein:'p', carb:'c', fat:'f'};
 var SWAP_MACRO_NAME={p:'protein', c:'carbs', f:'fat'};
 function swapFind(name){
-  var cats=['protein','carb','fat'];
+  var cats=['protein','carb','fat','fruit'];
   for(var i=0;i<cats.length;i++){
     var list=FOOD_DB[cats[i]]||[];
-    for(var j=0;j<list.length;j++){ if(list[j].n===name) return {cat:cats[i], food:list[j]}; }
+    for(var j=0;j<list.length;j++){ if(list[j].n===name) return {cat:(cats[i]==='fruit'?'carb':cats[i]), food:list[j]}; }
   }
   return null;
 }
@@ -1533,6 +1627,30 @@ var SHOP_INFO=(function(){
     'berries':          {sec:'Fruit', buy:function(c){ return n(c/2)+' pint'+(n(c/2)>1?'s':'')+' (or frozen)'; }, cook:'Wash and portion.'},
     'banana':           {sec:'Fruit', buy:function(x){ return x+(x===1?' banana':' bananas'); }},
     'apple':            {sec:'Fruit', buy:function(x){ return x+(x===1?' apple':' apples'); }},
+    '96% ground beef':  {sec:'Meat and fish', buy:rawMeat, cook:'Brown in a skillet and drain.', temp:'160°F'},
+    '90% ground beef':  {sec:'Meat and fish', buy:rawMeat, cook:'Brown in a skillet and drain.', temp:'160°F'},
+    'ground bison':     {sec:'Meat and fish', buy:rawMeat, cook:'Brown in a skillet, breaking it up as it cooks.', temp:'160°F'},
+    'ground chicken':   {sec:'Meat and fish', buy:rawMeat, cook:'Brown in a skillet, breaking it up as it cooks.', temp:'165°F'},
+    'eye of round steak':{sec:'Meat and fish', buy:rawMeat, cook:'Sear hot and fast, rest 3 minutes, slice thin against the grain.', temp:'145°F'},
+    'flank steak':      {sec:'Meat and fish', buy:rawMeat, cook:'Grill or sear, rest 5 minutes, slice thin against the grain.', temp:'145°F'},
+    'filet mignon':     {sec:'Meat and fish', buy:rawMeat, cook:'Sear, finish in a 400°F oven, rest 5 minutes.', temp:'145°F'},
+    'NY strip steak':   {sec:'Meat and fish', buy:rawMeat, cook:'Sear or grill, then rest 3 minutes.', temp:'145°F'},
+    'pork chop':        {sec:'Meat and fish', buy:rawMeat, cook:'Sear 4 to 5 minutes a side, rest 3 minutes.', temp:'145°F'},
+    'canned chicken':   {sec:'Meat and fish', buy:function(oz){ return n(oz/4)+' cans (5 oz)'; }, cook:'No cooking. Drain and portion.'},
+    'deli turkey':      {sec:'Meat and fish', buy:function(oz){ return n(oz/8)+' package'+(n(oz/8)>1?'s':'')+' (8 oz)'; }, cook:'No cooking. Portion into containers.'},
+    'beef jerky':       {sec:'Meat and fish', buy:function(oz){ return n(oz/3)+' bag'+(n(oz/3)>1?'s':'')+' (about 3 oz)'; }},
+    '2% Greek yogurt':  {sec:'Eggs and dairy', buy:function(c){ return n(c/4)+' tub'+(n(c/4)>1?'s':'')+' (32 oz)'; }, cook:'No cooking. Portion into containers.'},
+    'pinto beans':      {sec:'Carbs and grains', buy:function(c){ return n(c/1.5)+' can'+(n(c/1.5)>1?'s':'')+' (15 oz)'; }, cook:'Rinse and drain.'},
+    'kidney beans':     {sec:'Carbs and grains', buy:function(c){ return n(c/1.5)+' can'+(n(c/1.5)>1?'s':'')+' (15 oz)'; }, cook:'Rinse and drain.'},
+    'barley':           {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c/3*4)/4+' cups dry'; }, cook:'1 cup dry to 3 cups water. Simmer covered 40 to 45 minutes.'},
+    'couscous':         {sec:'Carbs and grains', buy:function(c){ return Math.ceil(c/3*4)/4+' cups dry'; }, cook:'Pour boiling water over, cover 5 minutes, fluff.'},
+    'cream of rice':    {sec:'Carbs and grains', buy:function(){ return 'one box covers it'; }, cook:'Cook fresh each morning, about 1 minute.'},
+    'popcorn':          {sec:'Carbs and grains', buy:function(){ return 'one bag of kernels covers it'; }},
+    'whole-wheat bread':{sec:'Carbs and grains', buy:function(x){ return x+' slices (about '+n(x/18)+' loaf)'; }},
+    'English muffin':   {sec:'Carbs and grains', buy:function(x){ return x+(x===1?' muffin':' muffins'); }},
+    'rice cakes':       {sec:'Carbs and grains', buy:function(){ return 'one sleeve covers it'; }},
+    'flour tortilla':   {sec:'Carbs and grains', buy:function(x){ return x+(x===1?' tortilla':' tortillas'); }},
+    'granola':          {sec:'Carbs and grains', buy:function(){ return 'one bag covers it'; }},
     'avocado':          {sec:'Fats, nuts and extras', buy:function(x){ return n(x)+(n(x)===1?' avocado':' avocados'); }, cook:'Cut fresh each day so it stays green.'},
     'olive oil':        {sec:'Fats, nuts and extras', buy:function(){ return 'from your pantry'; }}
   };
@@ -1540,6 +1658,12 @@ var SHOP_INFO=(function(){
 var VEG_SOLD={cucumber:{oz:8,each:'cucumbers'}, tomatoes:{oz:5,each:'tomatoes'}, peppers:{oz:6,each:'bell peppers'}};
 var VEG_RAW={spinach:1,'salad greens':1,cucumber:1,tomatoes:1,cabbage:1};   // eaten raw, just wash and chop
 
+function foodSection(name){
+  var cats={protein:null, carb:'Carbs and grains', fat:'Fats, nuts and extras', fruit:'Fruit'};
+  for(var c in cats){ var f=(FOOD_DB[c]||[]).filter(function(x){ return x.n===name; })[0];
+    if(f){ if(c!=='protein') return cats[c]; return f.k==='plant' ? 'Plant protein' : (f.k==='dairy'||f.k==='egg') ? 'Eggs and dairy' : 'Meat and fish'; } }
+  return '';
+}
 function shopRound(x, u){
   if(u==='g') return Math.ceil(x);
   if(u==='oz') return Math.ceil(x*2)/2;
@@ -1617,7 +1741,7 @@ function shoppingList(deck, opts){
       need=Math.ceil(t.qty)+' cups';
       buy=VEG_SOLD[name] ? Math.ceil(oz/VEG_SOLD[name].oz)+' '+VEG_SOLD[name].each : 'about '+Math.max(0.5, Math.ceil(oz/16*2)/2)+' lb (fresh or frozen)';
     } else {
-      sec=info.sec||t.sec||'Fats, nuts and extras';
+      sec=info.sec||t.sec||foodSection(name)||'Fats, nuts and extras';
       var q=(t.whole||t.shake) ? Math.ceil(t.qty) : shopRound(t.qty, t.u);
       need=shopAmount(name, t);
       var dbf=foodByName(name), sameUnit=!dbf || (dbf.u||'')===(t.u||'');
