@@ -1016,6 +1016,21 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <p class="tkey hidden" id="tj-key"><span><b style="background:var(--gold)"></b><span id="tj-k1">Fat</span></span><span><b style="background:#6b6459"></b><span id="tj-k2">Muscle and everything else</span></span></p>
         <div class="note" id="tj-note"></div>
       </div>
+
+      <!-- THE SEASON PLAN. The three variables of deficit planning (the work, the timeline, the
+           intensity) computed from her numbers by seasonPlan() in the engine. It doubles as the
+           honest case for the CNS: a bigger goal is several seasons at several numbers. -->
+      <div class="panel hidden" id="sp-panel">
+        <h4>Your season plan</h4>
+        <p class="muted" style="color:#b8b3aa;margin:6px 0 0">Every fat-loss plan is built from three things: how much, how long, and how hard.</p>
+        <div class="tiles" id="sp-tiles">
+          <div class="tile"><div class="v" id="sp-work">-</div><div class="l">The work</div></div>
+          <div class="tile"><div class="v" id="sp-time">-</div><div class="l">Weeks of fat loss</div></div>
+          <div class="tile"><div class="v" id="sp-seasons">-</div><div class="l" id="sp-seasons-l">Lean seasons</div></div>
+          <div class="tile"><div class="v" id="sp-int">×13</div><div class="l">The intensity</div></div>
+        </div>
+        <div class="note" id="sp-note"></div>
+      </div>
     </div>
   </div>
 
@@ -1502,7 +1517,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <div class="tile"><div class="v" id="rv-pro">-</div><div class="l">Protein</div></div>
         <div class="tile"><div class="v" id="rv-carb">-</div><div class="l">Carbs</div></div>
         <div class="tile"><div class="v" id="rv-fat">-</div><div class="l">Fat</div></div>
-        <div class="tile wide"><div class="v" id="rv-maint">-</div><div class="l">Estimated maintenance</div></div>
+        <div class="tile wide"><div class="v" id="rv-maint">-</div><div class="l">Upper limit (goal weight × 15)</div></div>
       </div>
       <div class="note" id="rv-note"></div>
     </div>
@@ -1664,7 +1679,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 <!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=31"></script>
+<script src="../nutrition-engine.js?v=32"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK =================== */
 const CONFIG = {
@@ -1709,6 +1724,7 @@ const S = {
 const MAX_STARS = 3;
 let CALC = null;    // last computed targets
 let PLAN = null;    // last computed phase decision
+let SEASON = null;  // last season plan shown (the three variables of deficit planning)
 
 /* ===================== HELPERS ===================== */
 const $  = id => document.getElementById(id);
@@ -2100,15 +2116,15 @@ function targetNote(t, dec, F){
   }
   if (dec.forced){
     return 'Your target is set at maintenance on purpose, not below it. Based on what you told me about '
-         + 'your health, a deficit is the wrong tool right now. Your estimated maintenance is around '
-         + '<strong>' + t.tdee.toLocaleString() + '</strong> calories, roughly ' + maintRange(S.sex) + ' times your current weight.';
+         + 'your health, a deficit is the wrong tool right now. Your upper limit is '
+         + '<strong>' + t.tdee.toLocaleString() + '</strong> calories, your goal weight × 15.';
   }
   if (t.delta < 0){
-    return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories, roughly ' + maintRange(S.sex) + ' times your current weight. '
+    return 'Your upper limit is <strong>' + t.tdee.toLocaleString() + '</strong> calories, your goal weight × 15. '
          + 'Your target sits about ' + Math.abs(t.delta).toLocaleString() + ' below it. That gap is the work, '
          + 'and it is deliberately not larger than that.';
   }
-  return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories, roughly ' + maintRange(S.sex) + ' times your current weight. '
+  return 'Your upper limit is <strong>' + t.tdee.toLocaleString() + '</strong> calories, your goal weight × 15. '
        + 'Your target sits at or above it on purpose. This phase is not about eating less.';
 }
 
@@ -2257,14 +2273,14 @@ const TJ = {
 function renderTrajectory(){
   const step = $('traj-step'); if (!step) return;
   const F = (typeof statusFlags === 'function') ? statusFlags() : {};
-  if (F.suppressNumbers){ step.classList.add('hidden'); return; }
+  if (F.suppressNumbers){ step.classList.add('hidden'); renderSeasonPlan(null); return; }
   step.classList.remove('hidden');
 
   const cw = inRange('cw'), gw = inRange('gw');
   const ready = !!(cw && cw > 0) && !(num('gw') != null && gw == null);
   $('traj-empty').classList.toggle('hidden', ready);
   $('traj-data').classList.toggle('hidden', !ready);
-  if (!ready) return;
+  if (!ready){ renderSeasonPlan(null); return; }
 
   const wks = parseInt(S.horizon || '12', 10) || 12;
   /* Training toggle is seeded from what she told me in the training question, then hers to flip.
@@ -2305,6 +2321,7 @@ function renderTrajectory(){
       + 'Sustain is the hinge of this whole system, not the end of it. It is where the engine gets '
       + 'rebuilt so that the next phase has somewhere to go.'
       + (F.noDeficit ? ' Your answers in the health section are why this is not a deficit. That is deliberate.' : '');
+    renderSeasonPlan(null);
     return;
   }
   if (phase === 'Reverse Diet'){
@@ -2318,6 +2335,7 @@ function renderTrajectory(){
       + 'That is what happens when a metabolism that adapted down gets fed again. You did not stop '
       + 'losing because you got lazy. You ate less and did more until your body adapted, and nobody '
       + 'taught you the way back out. This is the way back out.';
+    renderSeasonPlan('Reverse Diet', cw, gw);
     return;
   }
 
@@ -2413,6 +2431,71 @@ function renderTrajectory(){
   if (capped) note += '<br><br><strong>At this pace you reach your goal weight inside this window.</strong> '
     + 'Which is where the real question starts: what you do next so it stays off.';
   $('tj-note').innerHTML = note;
+  if (phase === 'Lean') renderSeasonPlan('Lean', cw, gw, stepKcal); else renderSeasonPlan(null);
+}
+
+/* ===================== THE SEASON PLAN =====================
+   The three variables of deficit planning, from her numbers: THE WORK (lb to lose), THE TIMELINE
+   (weeks of fat loss at the same honest pace the projection above uses, so the two never disagree)
+   and THE INTENSITY (goal weight x13, one step to x12, never deeper). The rule it teaches: the
+   intensity has a ceiling, so when the math does not fit, the timeline moves, not the deficit.
+   The season count is the honest case for the CNS: every season runs at a different number.
+   Math lives in seasonPlan() in the engine. Hidden for Strong, Sustain and the ED flag. */
+function renderSeasonPlan(phase, cw, gw, extraKcal){
+  const panel = $('sp-panel'); if (!panel) return;
+  if (!phase || !(gw > 0) || !(cw > gw) || typeof seasonPlan !== 'function'){
+    panel.classList.add('hidden'); SEASON = null; return;
+  }
+  const work = Math.round(cw - gw);
+  panel.classList.remove('hidden');
+
+  if (phase === 'Reverse Diet'){
+    $('sp-tiles').classList.add('hidden');
+    SEASON = { phase:'Reverse Diet', work:work };
+    $('sp-note').innerHTML = '<strong>Your first season is not a diet.</strong> It is the reverse, back up to '
+      + 'maintenance, because you cannot subtract from a number you do not have. Your ' + work + ' lb of fat '
+      + 'loss runs in Lean seasons that start from there, each one at its own number.'
+      + '<br><br><strong>That is why the Complete Nutrition System rebuilds your plan at every step.</strong> '
+      + 'A meal plan built for one number gets you through one season. You have several ahead of you.';
+    return;
+  }
+
+  const w = { weight:cw, goalweight:gw, height:num('height'), age:num('age'), sex:S.sex, activity:S.activity };
+  const sp = seasonPlan(w, extraKcal);
+  if (!sp){ panel.classList.add('hidden'); SEASON = null; return; }
+  $('sp-tiles').classList.remove('hidden');
+  const span = (a, b) => a === b ? String(a) : a + ' to ' + b;
+  const cal = n => Math.round(n).toLocaleString();
+
+  $('sp-work').textContent    = sp.work + ' lb';
+  $('sp-time').textContent    = span(sp.weeksLo, sp.weeksHi);
+  $('sp-seasons').textContent = span(sp.seasonsLo, sp.seasonsHi);
+  $('sp-seasons-l').textContent = sp.seasonsHi === 1 ? 'Lean season' : 'Lean seasons';
+  $('sp-int').textContent     = '×' + sp.leanMult[0];
+  SEASON = { phase:'Lean', work:sp.work, weeks:span(sp.weeksLo, sp.weeksHi), seasons:span(sp.seasonsLo, sp.seasonsHi) };
+
+  let note = '<strong>The work is fixed, so the timeline and the intensity trade.</strong> Go faster and the '
+    + 'deficit has to go deeper, and a deeper deficit gets paid for outside the kitchen: hungrier, a shorter '
+    + 'fuse, worse sleep, weaker lifts. That is where most diets break. Not willpower. A timeline your life '
+    + 'could not afford.'
+    + '<br><br><strong>Your intensity has a ceiling.</strong> Goal weight times ' + sp.leanMult[0]
+    + ', about ' + cal(sp.cal1) + ' calories, which is roughly ' + sp.rate1 + ' lb a week for you. It only ever '
+    + 'goes one step deeper, to times ' + sp.leanMult[1] + ' (about ' + cal(sp.cal2) + ', roughly ' + sp.rate2
+    + ' lb a week), and only when the scale stops setting new lows for 10 to 14 days. So when the math does not '
+    + 'fit, <strong>the timeline moves, not the deficit.</strong> The honest way to speed it up is the step slider above.';
+
+  if (sp.seasonsHi === 1){
+    note += '<br><br><strong>This fits in one Lean season.</strong> Then Sustain holds it, at a different number, '
+      + 'and a different number needs a different plan. A meal plan gets you to one goal. The Complete Nutrition '
+      + 'System rebuilds yours for every season after it, for life.';
+  } else {
+    note += '<br><br><strong>This is ' + span(sp.seasonsLo, sp.seasonsHi) + ' Lean seasons, not one long diet.</strong> '
+      + 'Nobody should diet more than 12 to 16 weeks at a time, so there is a stretch at maintenance between each '
+      + 'one. Lean, Sustain, Lean again, and every one of those runs at its own number. A meal plan built for one '
+      + 'number gets you through one season. <strong>The Complete Nutrition System rebuilds yours for every season, '
+      + 'as many times as it takes, for $497 once.</strong>';
+  }
+  $('sp-note').innerHTML = note;
 }
 
 /* The speed slider: five notches of TOTAL daily steps, evenly spaced for thumbs.
@@ -2420,8 +2503,8 @@ function renderTrajectory(){
    that answer until she drags it herself. The projection only counts the DIFFERENCE from where she
    is now, so a woman already at 10,000 steps does not get credit for walking she already does. */
 const STEP_NOTCH = [5000, 7500, 10000, 12000, 15000];
-const STEP_BASE  = { 'Sedentary':5000, 'Lightly active':7500, 'Active':10000, 'Very active':12000 };
-function stepBase(){ return STEP_BASE[S.activity] || 7500; }
+const STEP_BY_ACTIVITY = { 'Sedentary':5000, 'Lightly active':7500, 'Active':10000, 'Very active':12000 };
+function stepBase(){ return STEP_BY_ACTIVITY[S.activity] || 7500; }
 function paintSpeed(){
   const r = document.getElementById('speed-range'); if (!r) return;
   const i = parseInt(r.value, 10) || 0, total = STEP_NOTCH[i], diff = total - stepBase();
@@ -2838,6 +2921,9 @@ function payload(status){
     obstacle:S.obstacle, why:S.why, whyNote:val('whytext'), work:val('work'),
     /* trajectory read they were shown before committing */
     horizon:S.horizon, liftingAndProtein:S.protect,
+    seasonPlan: SEASON ? (SEASON.phase === 'Lean'
+      ? SEASON.work + ' lb · ' + SEASON.weeks + ' wks fat loss · ' + SEASON.seasons + ' Lean season(s)'
+      : SEASON.work + ' lb · reverse first') : '',
     /* computed targets */
     calories:t.calories, protein:t.protein, carbs:t.carbs, fat:t.fat,
     tdee:t.tdee, produce:t.produce, multiplier:t.multiplier,

@@ -16,15 +16,19 @@ function macrosFrom(cal, protein, sex){
 }
 
 /* Estimated maintenance (TDEE) from a client's numbers — the "use maintenance" option's source. */
-/* MAINTENANCE (Jayme 2026-09-18): a rough estimate from CURRENT bodyweight, no activity in it.
-   Women about x13 to 14, men about x14 to 15. Single-number tiles use the low end (13 women, 14 men);
-   explanations say the range. Fat-loss STARTING targets stay goal weight x 13 for everyone.
-   Steps are layered on top only for the speed estimates (goalTimeline), never into maintenance. */
-function maintMult(sex){ return /^m/i.test(String(sex||'')) ? 14 : 13; }
-function maintRange(sex){ return /^m/i.test(String(sex||'')) ? '14 to 15' : '13 to 14'; }
+/* THE CALORIE RANGE (Jayme 2026-09-18). Everyone, men and women:
+   upper limit  = IDEAL body weight x 15 (theoretical maintenance, "who you are called to be")
+   fat-loss     = IDEAL body weight x 13
+   Real maintenance sits somewhere between ideal x 15 and current x 15, depending on activity, food
+   quality and more. We do not chase it. We start in the range, check in weekly, and the data adjusts.
+   Steps are layered on top only for the speed estimates (goalTimeline). */
+function maintMult(){ return 15; }
+function maintRange(){ return 'between your ideal weight × 15 and your current weight × 15'; }
 function computeTDEE(w){
-  var wt=+w.weight; if(!(wt>0)) return 0;
-  return Math.round(wt*maintMult(w.sex));
+  var g=+w.goalweight;
+  if(!(g>0) && typeof estimateGoalWeight==='function') g=estimateGoalWeight(w);
+  if(!(g>0)) g=+w.weight;
+  return (g>0) ? Math.round(g*15) : 0;
 }
 
 /* Daily macro targets from a client's numbers + track (the formula DEFAULT, before any override).
@@ -117,6 +121,34 @@ function computePFS(w, track, phaseNum){
   base.tdee=tdee; base.delta=base.calories-tdee;
   base.phase=track; base.phaseNum=n; base.multiplier=mult; base.goalweight=gbw;
   return base;
+}
+
+/* ===== THE SEASON PLAN — the three variables of deficit planning (added 2026-09-18) =====
+   Every deficit is built from three things: THE WORK (lb to lose), THE TIMELINE (how long it
+   honestly takes) and THE INTENSITY (how deep the deficit runs). The work is fixed, so timeline and
+   intensity trade against each other. LP's rule: the intensity has a ceiling (Lean x13, one step to
+   x12), so when the math does not fit, the TIMELINE moves, never the deficit.
+   Rate = the method in legacy-nutrition-system CALCULATION_ENGINE s14, per phase:
+     weekly lb = (TDEE - that phase's target + extraKcal) x 7 / 3500,  weeks = work / weekly lb
+   clamped to the weekly-review band (nutrition-system-manager ADJUSTMENT_TREE): under 0.3 lb/wk is a
+   stall, over 1.5 lb/wk is too fast and gets eased. extraKcal = extra daily burn (e.g. added steps).
+   No single diet runs past DIET_PHASE_CAP_WKS (brand_engine 6.4b: 12-16 wk), so a bigger goal is
+   split into Lean seasons with Sustain between. The LENGTH of those Sustain stretches is not locked,
+   so this deliberately does not quote one. Always an estimate. */
+var DIET_PHASE_CAP_WKS=16, LEAN_RATE_MIN=0.3, LEAN_RATE_MAX=1.5;
+function seasonPlan(w, extraKcal, capWks){
+  var cw=+w.weight, gw=+w.goalweight;
+  if(!(cw>0)||!(gw>0)||gw>=cw) return null;
+  var p1=computePFS(w,'Lean',1), p2=computePFS(w,'Lean',2);
+  if(!p1||!p2||!(p1.tdee>0)) return null;
+  var ex=+extraKcal||0, cap=+capWks||DIET_PHASE_CAP_WKS, work=cw-gw;
+  var rate=function(p){ var r=(p.tdee-p.calories+ex)*7/3500;
+    return Math.round(Math.min(LEAN_RATE_MAX,Math.max(LEAN_RATE_MIN,r))*100)/100; };
+  var r1=rate(p1), r2=Math.max(rate(p2),r1);
+  var slow=Math.ceil(work/r1), fast=Math.ceil(work/r2);
+  return {work:Math.round(work), rate1:r1, rate2:r2, weeksLo:fast, weeksHi:slow, capWks:cap,
+          seasonsLo:Math.max(1,Math.ceil(fast/cap)), seasonsHi:Math.max(1,Math.ceil(slow/cap)),
+          leanMult:[p1.multiplier,p2.multiplier], cal1:p1.calories, cal2:p2.calories};
 }
 
 /* ===== MEAL FREQUENCY (LOCKED 2026-09-01) =====
@@ -1690,7 +1722,7 @@ function stepLevel(steps){
 function paceRun(weight, goal, calories, mult, steps){
   var x=+weight, g=+goal, c=+calories, n=0, first=0, last=0;
   while(x>g+0.01 && n<260){
-    var burn=x*mult + 0.25*x*Math.max(0,steps-STEP_BASE)/1000;
+    var burn=g*15 + 0.25*x*Math.max(0,steps-STEP_BASE)/1000;          // upper limit (ideal x15) plus what extra steps add
     var lb=Math.min(Math.max(0, burn-c)*7/3500, x*GOAL_PACE.maxPct, GOAL_PACE.maxLb);
     if(lb<=0.02) break;
     if(!n) first=lb;
@@ -1706,15 +1738,15 @@ function goalTimeline(weight, goalweight, phase, opts){
   var out={start:Math.round(w), goal:Math.round(g), change:Math.round(Math.abs(w-g)), phase:ph};
   var cal=+opts.calories||0;
   if(ph!=='Lean' || w<=g || !cal){ out.weeks=null; return out; }
-  var mult=maintMult(opts.sex), steps=+opts.steps || ACTIVITY_STEPS[opts.activity] || 7500, L=stepLevel(steps);
+  var mult=15, steps=+opts.steps || ACTIVITY_STEPS[opts.activity] || 7500, L=stepLevel(steps);
   var run=paceRun(w, g, cal, mult, L.steps);
-  out.multiplier=mult; out.range=maintRange(opts.sex);
-  out.maintenance=Math.round(w*mult); out.calories=cal; out.deficit=Math.round(w*mult-cal);
+  out.multiplier=15; out.upper=Math.round(g*15);
+  out.maintenance=out.upper; out.calories=cal; out.deficit=Math.round(g*15-cal);
   out.steps=L.steps; out.stepLabel=L.label; out.stepCalories=stepBurn(w, L.steps);
   out.weeks=run.weeks; out.paceNow=run.first; out.paceLater=run.last;
   out.bySteps=STEP_LEVELS.map(function(x){
     var r=paceRun(w, g, cal, mult, x.steps);
-    return {steps:x.steps, label:x.label, burn:Math.round(w*mult)+stepBurn(w, x.steps), extra:stepBurn(w, x.steps), pace:r.first, weeks:r.weeks, mine:x.steps===L.steps};
+    return {steps:x.steps, label:x.label, gap:Math.round(g*15-cal)+stepBurn(w, x.steps), extra:stepBurn(w, x.steps), pace:r.first, weeks:r.weeks, mine:x.steps===L.steps};
   });
   out.lifting={fatShare:92, withoutShare:74};
   return out;

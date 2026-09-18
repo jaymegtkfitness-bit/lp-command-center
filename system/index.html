@@ -302,7 +302,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=31"></script>
+<script src="../nutrition-engine.js?v=32"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -338,17 +338,17 @@ function startBlock(){
   var lose = tl.start > tl.goal;
   var time = tl.weeks ? '<div class="tile num start"><b>' + tl.weeks + ' wks</b><span>Time to goal</span></div>' : '';
   var note = tl.weeks
-    ? 'Your maintenance today is roughly ' + tl.range + ' times your current weight, about ' + tl.maintenance.toLocaleString() + ' calories. Your plan starts at your goal weight × 13, ' + tl.calories.toLocaleString() + ' calories, about ' + tl.deficit + ' under. At ' + esc(tl.stepLabel.toLowerCase()) + ' a day that is roughly ' + tl.paceNow + ' lb a week to start, easing as you get lighter and your calories step down with each phase. About ' + tl.weeks + ' weeks to ' + tl.goal + ' lb. These are estimates: your first few check-ins show your real number, and the plan adjusts to it.'
+    ? 'Your calories live in one range: your fat-loss number (goal weight × 13) up to your upper limit (goal weight × 15, about ' + tl.upper.toLocaleString() + '). We build from who you are becoming, not who you are today. Your plan starts at ' + tl.calories.toLocaleString() + '. At ' + esc(tl.stepLabel.toLowerCase()) + ' a day that is roughly ' + tl.paceNow + ' lb a week to start, and about ' + tl.weeks + ' weeks to ' + tl.goal + ' lb. These are estimates. Check in weekly: no new low in 7 to 10 days means add steps or move down a multiplier.'
     : (IN.phase === 'Strong' ? 'This is a Strong phase: the goal is building muscle, so the scale is not the main measure.'
       : IN.phase === 'Reverse Diet' ? 'This is a Reverse Diet: calories come up first, so the scale mostly holds while your metabolism recovers.'
       : 'This is a Sustain phase: the goal is holding your weight steady while your habits settle in.');
   /* Rows, not a <table>: a table inside the flex cover breaks Chrome's print pagination. */
   var steps = (tl.bySteps || []).map(function(r){
     return '<div class="srow' + (r.mine ? ' mine' : '') + '"><span><b>' + esc(r.label) + '</b>' + (r.mine ? ' <i class="tag">yours</i>' : '') + '</span>' +
-      '<span>' + r.burn.toLocaleString() + ' cal' + (r.extra ? ' (+' + r.extra + ')' : '') + '</span><span>' + r.pace + ' lb a week</span><span>' + (r.weeks ? r.weeks + ' weeks to goal' : 'not from food alone') + '</span></div>';
+      '<span>' + r.gap.toLocaleString() + ' cal a day' + (r.extra ? ' (+' + r.extra + ' from steps)' : '') + '</span><span>' + r.pace + ' lb a week</span><span>' + (r.weeks ? r.weeks + ' weeks to goal' : 'not from food alone') + '</span></div>';
   }).join('');
   var levers = tl.weeks
-    ? '<div class="steptbl"><div class="srow head"><span>If you walk</span><span>You burn about</span><span>You lose about</span><span>You get there in</span></div>' + steps + '</div>' +
+    ? '<div class="steptbl"><div class="srow head"><span>If you walk</span><span>Your daily gap</span><span>You lose about</span><span>You get there in</span></div>' + steps + '</div>' +
       '<p class="startnote">Walking is the fastest lever you own, and it costs you nothing. Lifting is the other one: with resistance training and your protein floor, about ' + tl.lifting.fatShare + '% of what you lose is fat. Without them, closer to ' + tl.lifting.withoutShare + '%, and the rest is muscle you spent years building.</p>' +
       '<ul class="rules" style="margin-top:6px">' +
         '<li><b>Walk 10 minutes after each meal.</b> Three meals is 30 minutes without finding 30 minutes. It also settles digestion and steadies your energy instead of the afternoon crash.</li>' +
@@ -359,11 +359,11 @@ function startBlock(){
     : '';
   window.STEPS_BLOCK = levers;
   return '<span class="eyebrow" style="margin-top:26px">Your starting point</span>' +
-    '<div class="nums' + (tl.maintenance && tl.weeks ? '' : ' four') + '">' +
+    '<div class="nums' + (tl.upper && tl.weeks ? '' : ' four') + '">' +
       '<div class="tile num start"><b>' + tl.start + ' lb</b><span>Starting weight</span></div>' +
       '<div class="tile num start"><b>' + tl.goal + ' lb</b><span>Goal weight</span></div>' +
       '<div class="tile num start"><b>' + tl.change + ' lb</b><span>' + (lose ? 'To lose' : 'To gain') + '</span></div>' +
-      (tl.maintenance ? '<div class="tile num start"><b>' + tl.maintenance.toLocaleString() + '</b><span>Maintenance (×' + tl.multiplier + ')</span></div>' : '') + time +
+      (tl.upper ? '<div class="tile num start"><b>' + tl.upper.toLocaleString() + '</b><span>Upper limit (×15)</span></div>' : '') + time +
     '</div><p class="startnote">' + note + '</p>' +
     '<span class="eyebrow" style="margin-top:20px">Your daily numbers</span>';
 }

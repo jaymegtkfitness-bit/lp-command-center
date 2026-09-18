@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=31"></script>
+<script src="nutrition-engine.js?v=32"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3044,6 +3044,15 @@ function weeklyVerdict(it){
   var cons=cv.length?Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length):null;
   var progressing = dir===0 ? Math.abs(delta)<=NOISE : (dir>0 ? delta>NOISE : delta<-NOISE);
   var stalled     = dir===0 ? false      : (Math.abs(delta)<=NOISE || (dir>0 ? delta<-NOISE : delta>NOISE));
+  if(dir<0 && n>=3){
+    /* Fat loss (Jayme 2026-09-18): the read is "any new low in the last 7 to 10 days?". No new low
+       while consistent = time to act (add steps or move down a multiplier). A new low = keep going. */
+    var cut=Date.now()-10*86400000, recentW=W.filter(function(x){ return x.ts && x.ts>=cut; }), olderW=W.filter(function(x){ return !x.ts || x.ts<cut; });
+    if(!recentW.length) recentW=W.slice(-1), olderW=W.slice(0,-1);
+    var lowBefore=Math.min.apply(null, olderW.map(function(x){ return x.weight; }));
+    var newLow=recentW.some(function(x){ return x.weight < lowBefore - 0.1; });
+    progressing=newLow; stalled=!newLow;
+  }
   var state;
   if(cons!=null && cons<85) state="hold";
   else if(dir===0)          state="steady";
@@ -3054,6 +3063,8 @@ function weeklyVerdict(it){
   if(state==="steady"){ drift=sustainDrift(M.checkins); if(cons!=null&&cons>=85&&drift!=null){ if(drift>=1)state="sustain-drop"; else if(drift<=-1)state="sustain-add"; } }
   return {state:state, cons:cons, delta:Math.round(delta*10)/10, rAvg:Math.round(rAvg*10)/10, weeks:n, drift:drift};
 }
+function dirLean(it){ return it && (it.track==='Lean' || !it.track); }
+function nextMult(it){ var L=LADDER_MULT[it.track]||[13,12,11], i=Math.min((it.phaseIdx||0)+1, L.length-1); return L[i]; }
 function verdictHTML(it){
   var v=weeklyVerdict(it), c=esc(CONFIG.coachName), tone, tag="Your move this week", title, body;
   if(v.reverse){
@@ -3082,8 +3093,10 @@ function verdictHTML(it){
     tone="good"; title="It"+String.fromCharCode(8217)+"s working — stay the course";
     body="Your two-week average is moving the right way at "+v.cons+"% consistency. Don"+String.fromCharCode(8217)+"t touch the plan — we change nothing while it"+String.fromCharCode(8217)+"s working. Momentum is the point.";
   } else {
-    tone="accent"; title="You"+String.fromCharCode(8217)+"ve earned a phase change";
-    body="You"+String.fromCharCode(8217)+"ve held 85%+ consistency and the scale has been flat for two weeks — that"+String.fromCharCode(8217)+"s exactly the signal we wait for, not a failure. "+c+" will confirm your next phase, then your targets update here. Nothing changes until "+c+" signs off.";
+    tone="accent"; title="No new low in 10 days. Time for one move";
+    body=(dirLean(it)
+      ? "You"+String.fromCharCode(8217)+"ve been 85%+ consistent and there is no new low weight in the last 7 to 10 days. That is the signal, not a failure. Pick one: add about 2,000 steps a day, or move down a multiplier (goal weight × "+nextMult(it)+"). Then rebuild your system so your meals match."
+      : "You"+String.fromCharCode(8217)+"ve held 85%+ consistency and the scale has been flat for two weeks. That is exactly the signal we wait for, not a failure. "+c+" will confirm your next phase, then your targets update here.");
   }
   return '<div class="verdict v-'+tone+'"><div class="v-tag">'+esc(tag)+'</div><div class="v-title">'+title+'</div><div class="v-body">'+body+'</div></div>';
 }
@@ -3379,8 +3392,8 @@ function roadmapHTML(it){
   var deficit=p.tdee-first.calories, dir=(it.track==="Strong"||it.track==="Reverse Diet")?"surplus":"deficit";
   var pace=Math.min(Math.abs(deficit*7/3500), 1.5, (+curW||+it.weight||200)*0.01).toFixed(1);   // never quote past 1.5 lb or 1% of bodyweight a week
   var snap='<div class="lp-sub">Where you are now</div>'
-    +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Maintenance (×"+maintMult(it.sex)+")")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
-    +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Your maintenance is a rough estimate: about '+maintRange(it.sex)+' times your current weight. Phase 1 is your goal weight × 13, about '+Math.abs(deficit)+' cal/day '+(deficit>=0?"below":"above")+' that, roughly '+pace+' lb a week before steps. Your check-ins show your real number within a few weeks. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
+    +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Upper limit (×15)")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
+    +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Your calories live between your fat-loss number (goal weight × 13) and your upper limit (goal weight × 15). We build from who you are becoming, not who you are today. Phase 1 sits about '+Math.abs(deficit)+' cal/day under your upper limit, roughly '+pace+' lb a week before steps. Your weekly check-ins do the fine-tuning. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
   var targets='<div class="lp-sub">Your targets</div>'
     +'<p class="wiz-hint" style="margin:0"><b style="color:var(--accent)">Protein '+p.protein+'g</b> — fixed in every phase, the anchor of every meal. Phase 1 starts at <b>'+first.calories+' cal</b> ('+first.carbs+'g carbs · '+first.fat+'g fat). ~'+produceTarget(first.calories,it.track)+'g produce and ~'+Math.round((curW||it.weight)/2)+' oz water a day.</p>';
   var rows=ladder.map(function(ph){
@@ -3392,7 +3405,7 @@ function roadmapHTML(it){
     +'<p class="wiz-hint" style="margin-top:6px">'+phaseNote+'</p>';
   var rules='<div class="lp-sub">The rules of progress</div>'
     +'<div class="rm-rules"><div><span>1</span> Under 85% consistent → we hold and build consistency.</div>'
-    +'<div><span>2</span> 85%+ for two weeks AND stalled two weeks → we move a phase.</div>'
+    +'<div><span>2</span> 85%+ and no new low in 7 to 10 days → add steps or move down a multiplier.</div>'
     +'<div><span>3</span> 85%+ and still progressing → we stay the course.</div></div>'
     +'<p class="wiz-hint" style="margin-top:6px">A stall while you\'re consistent is the signal we\'re waiting for, not failure.</p>';
   var faqs='<div class="lp-sub">Common questions</div>'+faqsFor(it.track).map(function(q){
@@ -3663,6 +3676,7 @@ function ffBuild(){
 /* Her whole Complete Nutrition System as one document she can rebuild and download any time:
    meals, shopping lists, prep guides, swap guide and restaurant orders (system/index.html). */
 function openMySystem(){
+  try{ localStorage.setItem('lp_system_built', String(Date.now())); }catch(e){}
   var it=M.intake||{}, p=it.pfs||{}, f=loadFoods(), c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
   var list=function(v){ return Array.isArray(v)?v:String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
   var alias={"Panera":"Panera Bread","Outback":"Outback Steakhouse","Tropical Smoothie":"Tropical Smoothie Cafe","Moe's":"Moe's Southwest Grill","Sonic":"Sonic Drive-In","In-N-Out":"In-N-Out Burger"};
@@ -3692,7 +3706,16 @@ function renderMealPlan(){
   box.innerHTML=(mp.note?'<p class="wiz-hint" style="margin:0 0 10px">'+esc(mp.note)+'</p>':'')
     +'<div class="mp-days">'+chips+'</div>'
     +'<div id="mpDayBox">'+mpDayHTML(mp.days[MP_DAY])+'</div>'
+    +rebuildPrompt()
     +'<div class="actions no-print"><button class="btn btn-primary" onclick="openMySystem()">⬇ My full system (PDF)</button> <button class="btn btn-ghost" onclick="showMealBuilder()">🍳 Edit my foods & regenerate</button></div>';
+}
+/* Two weeks of check-ins since her last build: prompt a fresh system so the PDF carries every adjustment. */
+function rebuildPrompt(){
+  var last=0; try{ last=+localStorage.getItem('lp_system_built')||0; }catch(e){}
+  var since=(M.checkins||[]).filter(function(c){ return c.ts && c.ts>last; }).length;
+  if(since<2) return '';
+  return '<div class="verdict v-accent" style="margin:12px 0"><div class="v-tag">Two weeks of data</div><div class="v-title">Rebuild your nutrition system</div>'
+    +'<div class="v-body">You have '+since+' check-ins since your last build. Rebuild it now and your new PDF carries every adjustment: your numbers, your meals, your shopping list.</div></div>';
 }
 /* ---- Swap guide (CNS). Trade any food for another and land on the same numbers. Math lives in the
    shared engine: foodSwaps() matches the anchor macro, swapChart() lists one meal's worth of each. ---- */
