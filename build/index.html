@@ -1664,7 +1664,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 <!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=30"></script>
+<script src="../nutrition-engine.js?v=31"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK =================== */
 const CONFIG = {
@@ -2101,14 +2101,14 @@ function targetNote(t, dec, F){
   if (dec.forced){
     return 'Your target is set at maintenance on purpose, not below it. Based on what you told me about '
          + 'your health, a deficit is the wrong tool right now. Your estimated maintenance is around '
-         + '<strong>' + t.tdee.toLocaleString() + '</strong> calories.';
+         + '<strong>' + t.tdee.toLocaleString() + '</strong> calories, roughly ' + maintRange(S.sex) + ' times your current weight.';
   }
   if (t.delta < 0){
-    return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories. '
+    return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories, roughly ' + maintRange(S.sex) + ' times your current weight. '
          + 'Your target sits about ' + Math.abs(t.delta).toLocaleString() + ' below it. That gap is the work, '
          + 'and it is deliberately not larger than that.';
   }
-  return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories. '
+  return 'Your estimated maintenance is around <strong>' + t.tdee.toLocaleString() + '</strong> calories, roughly ' + maintRange(S.sex) + ' times your current weight. '
        + 'Your target sits at or above it on purpose. This phase is not about eating less.';
 }
 

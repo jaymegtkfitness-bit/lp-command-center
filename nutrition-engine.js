@@ -16,14 +16,15 @@ function macrosFrom(cal, protein, sex){
 }
 
 /* Estimated maintenance (TDEE) from a client's numbers — the "use maintenance" option's source. */
-/* Maintenance = CURRENT bodyweight x a multiplier set by how much she moves (Jayme 2026-09-17):
-   about 5,000 steps x13, 7,500 x14, 10,000 x15, 12,000+ x16. The same gauge the system document
-   uses for her pace, so every surface quotes the same maintenance. (Was Mifflin-St Jeor x activity,
-   which read Rachel at 2,030 against a 1,950 target: an 80 calorie "deficit".) */
-var MAINT_MULT={"Sedentary":13,"Lightly active":14,"Active":15,"Very active":16,"Athlete":17};
+/* MAINTENANCE (Jayme 2026-09-18): a rough estimate from CURRENT bodyweight, no activity in it.
+   Women about x13 to 14, men about x14 to 15. Single-number tiles use the low end (13 women, 14 men);
+   explanations say the range. Fat-loss STARTING targets stay goal weight x 13 for everyone.
+   Steps are layered on top only for the speed estimates (goalTimeline), never into maintenance. */
+function maintMult(sex){ return /^m/i.test(String(sex||'')) ? 14 : 13; }
+function maintRange(sex){ return /^m/i.test(String(sex||'')) ? '14 to 15' : '13 to 14'; }
 function computeTDEE(w){
   var wt=+w.weight; if(!(wt>0)) return 0;
-  return Math.round(wt*(MAINT_MULT[w.activity]||14));
+  return Math.round(wt*maintMult(w.sex));
 }
 
 /* Daily macro targets from a client's numbers + track (the formula DEFAULT, before any override).
@@ -1676,20 +1677,21 @@ function freedomPlan(pfs, freeMeals, sex){
    No week is quoted above 1% of bodyweight, the line past which muscle starts going with the fat. */
 var GOAL_PACE={maxPct:0.01, maxLb:1.5};   // never quote faster than 1.5 lb a week, or 1% of bodyweight
 var PHASE_WEEKS=16;
-var STEP_LEVELS=[{steps:5000, label:'5,000 steps', mult:13},
-                 {steps:7500, label:'7,500 steps', mult:14},
-                 {steps:10000, label:'10,000 steps', mult:15},
-                 {steps:12000, label:'12,000 steps', mult:16}];
+var STEP_LEVELS=[{steps:5000, label:'5,000 steps'}, {steps:7500, label:'7,500 steps'},
+                 {steps:10000, label:'10,000 steps'}, {steps:12000, label:'12,000 steps'}];
 var ACTIVITY_STEPS={'Sedentary':5000, 'Lightly active':7500, 'Active':10000, 'Very active':12000};
+var STEP_BASE=5000;                     // the maintenance multiplier already covers about 5,000 steps of daily life
+function stepBurn(weight, steps){ return Math.round(0.25*(+weight)*Math.max(0,(+steps||0)-STEP_BASE)/1000); }
 function stepLevel(steps){
-  var want=+steps||7500, hit=STEP_LEVELS[1];
+  var want=+steps||7500, hit=STEP_LEVELS[0];
   STEP_LEVELS.forEach(function(L){ if(want>=L.steps) hit=L; });
   return hit;
 }
-function paceRun(weight, goal, calories, mult){
+function paceRun(weight, goal, calories, mult, steps){
   var x=+weight, g=+goal, c=+calories, n=0, first=0, last=0;
   while(x>g+0.01 && n<260){
-    var maint=x*mult, lb=Math.min(Math.max(0, maint-c)*7/3500, x*GOAL_PACE.maxPct, GOAL_PACE.maxLb);
+    var burn=x*mult + 0.25*x*Math.max(0,steps-STEP_BASE)/1000;
+    var lb=Math.min(Math.max(0, burn-c)*7/3500, x*GOAL_PACE.maxPct, GOAL_PACE.maxLb);
     if(lb<=0.02) break;
     if(!n) first=lb;
     last=lb; x-=lb; n++;
@@ -1704,14 +1706,15 @@ function goalTimeline(weight, goalweight, phase, opts){
   var out={start:Math.round(w), goal:Math.round(g), change:Math.round(Math.abs(w-g)), phase:ph};
   var cal=+opts.calories||0;
   if(ph!=='Lean' || w<=g || !cal){ out.weeks=null; return out; }
-  var steps=+opts.steps || ACTIVITY_STEPS[opts.activity] || 7500, L=stepLevel(steps);
-  var run=paceRun(w, g, cal, L.mult);
-  out.steps=L.steps; out.stepLabel=L.label; out.multiplier=L.mult;
-  out.maintenance=Math.round(w*L.mult); out.calories=cal; out.deficit=Math.round(w*L.mult-cal);
+  var mult=maintMult(opts.sex), steps=+opts.steps || ACTIVITY_STEPS[opts.activity] || 7500, L=stepLevel(steps);
+  var run=paceRun(w, g, cal, mult, L.steps);
+  out.multiplier=mult; out.range=maintRange(opts.sex);
+  out.maintenance=Math.round(w*mult); out.calories=cal; out.deficit=Math.round(w*mult-cal);
+  out.steps=L.steps; out.stepLabel=L.label; out.stepCalories=stepBurn(w, L.steps);
   out.weeks=run.weeks; out.paceNow=run.first; out.paceLater=run.last;
   out.bySteps=STEP_LEVELS.map(function(x){
-    var r=paceRun(w, g, cal, x.mult);
-    return {steps:x.steps, label:x.label, maintenance:Math.round(w*x.mult), pace:r.first, weeks:r.weeks, mine:x.steps===L.steps};
+    var r=paceRun(w, g, cal, mult, x.steps);
+    return {steps:x.steps, label:x.label, burn:Math.round(w*mult)+stepBurn(w, x.steps), extra:stepBurn(w, x.steps), pace:r.first, weeks:r.weeks, mine:x.steps===L.steps};
   });
   out.lifting={fatShare:92, withoutShare:74};
   return out;

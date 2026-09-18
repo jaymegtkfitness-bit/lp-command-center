@@ -267,6 +267,7 @@ td b{color:#fff}
       <div class="bld">
         <div class="grid4">
           <div class="f"><label for="in-name">First name</label><input id="in-name" type="text" autocomplete="off"></div>
+          <div class="f"><label for="in-sex">Sex</label><select id="in-sex"><option value="female">Woman</option><option value="male">Man</option></select></div>
           <div class="f"><label for="in-weight">Starting weight (lb)</label><input id="in-weight" type="number" inputmode="numeric" min="80" max="600"></div>
           <div class="f"><label for="in-goal">Goal weight (lb)</label><input id="in-goal" type="number" inputmode="numeric" min="80" max="600"></div>
           <div class="f"><label for="in-activity">Daily steps</label>
@@ -301,11 +302,11 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=30"></script>
+<script src="../nutrition-engine.js?v=31"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
-var EXAMPLE = {name:'Rachel', weight:182, goalweight:150, activity:'Active', cal:1950, pro:150, carbG:203, fatG:60, phase:'Lean', freq:'3 + shake', shake:30,
+var EXAMPLE = {name:'Rachel', sex:'female', weight:182, goalweight:150, activity:'Active', cal:1950, pro:150, carbG:203, fatG:60, phase:'Lean', freq:'3 + shake', shake:30,
   style:'', allergies:[],
   protein:['chicken breast','93% ground turkey','salmon','shrimp','nonfat Greek yogurt','whole eggs','egg whites','canned tuna','low-fat cottage cheese','sirloin steak'],
   carb:['white rice','potatoes','sweet potato','oats','berries','banana','sourdough','quinoa','black beans'],
@@ -332,19 +333,19 @@ var $ = function(id){ return document.getElementById(id); };
 function esc(s){ return String(s == null ? '' : s).replace(/[&<>"]/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
 function startBlock(){
   var tl = (typeof goalTimeline === 'function')
-    ? goalTimeline(IN.weight, IN.goalweight, IN.phase || 'Lean', {calories:+(window.DAILY_CAL || IN.cal), activity:IN.activity, steps:IN.steps}) : null;
+    ? goalTimeline(IN.weight, IN.goalweight, IN.phase || 'Lean', {calories:+(window.DAILY_CAL || IN.cal), activity:IN.activity, steps:IN.steps, sex:IN.sex}) : null;
   if (!tl) return '';
   var lose = tl.start > tl.goal;
   var time = tl.weeks ? '<div class="tile num start"><b>' + tl.weeks + ' wks</b><span>Time to goal</span></div>' : '';
   var note = tl.weeks
-    ? 'At ' + esc(tl.stepLabel.toLowerCase()) + ' a day you burn about ' + tl.maintenance.toLocaleString() + ' calories, and your plan feeds you ' + tl.calories.toLocaleString() + '. That gap of about ' + tl.deficit + ' calories a day is roughly ' + tl.paceNow + ' lb a week to start, easing to about ' + tl.paceLater + ' lb as you get lighter and your calories step down with each phase. About ' + tl.weeks + ' weeks to ' + tl.goal + ' lb, with maintenance breaks built in along the way.'
+    ? 'Your maintenance today is roughly ' + tl.range + ' times your current weight, about ' + tl.maintenance.toLocaleString() + ' calories. Your plan starts at your goal weight × 13, ' + tl.calories.toLocaleString() + ' calories, about ' + tl.deficit + ' under. At ' + esc(tl.stepLabel.toLowerCase()) + ' a day that is roughly ' + tl.paceNow + ' lb a week to start, easing as you get lighter and your calories step down with each phase. About ' + tl.weeks + ' weeks to ' + tl.goal + ' lb. These are estimates: your first few check-ins show your real number, and the plan adjusts to it.'
     : (IN.phase === 'Strong' ? 'This is a Strong phase: the goal is building muscle, so the scale is not the main measure.'
       : IN.phase === 'Reverse Diet' ? 'This is a Reverse Diet: calories come up first, so the scale mostly holds while your metabolism recovers.'
       : 'This is a Sustain phase: the goal is holding your weight steady while your habits settle in.');
   /* Rows, not a <table>: a table inside the flex cover breaks Chrome's print pagination. */
   var steps = (tl.bySteps || []).map(function(r){
     return '<div class="srow' + (r.mine ? ' mine' : '') + '"><span><b>' + esc(r.label) + '</b>' + (r.mine ? ' <i class="tag">yours</i>' : '') + '</span>' +
-      '<span>' + r.maintenance.toLocaleString() + ' cal out</span><span>' + r.pace + ' lb a week</span><span>' + (r.weeks ? r.weeks + ' weeks to goal' : 'not from food alone') + '</span></div>';
+      '<span>' + r.burn.toLocaleString() + ' cal' + (r.extra ? ' (+' + r.extra + ')' : '') + '</span><span>' + r.pace + ' lb a week</span><span>' + (r.weeks ? r.weeks + ' weeks to goal' : 'not from food alone') + '</span></div>';
   }).join('');
   var levers = tl.weeks
     ? '<div class="steptbl"><div class="srow head"><span>If you walk</span><span>You burn about</span><span>You lose about</span><span>You get there in</span></div>' + steps + '</div>' +
@@ -358,10 +359,11 @@ function startBlock(){
     : '';
   window.STEPS_BLOCK = levers;
   return '<span class="eyebrow" style="margin-top:26px">Your starting point</span>' +
-    '<div class="nums four">' +
+    '<div class="nums' + (tl.maintenance && tl.weeks ? '' : ' four') + '">' +
       '<div class="tile num start"><b>' + tl.start + ' lb</b><span>Starting weight</span></div>' +
       '<div class="tile num start"><b>' + tl.goal + ' lb</b><span>Goal weight</span></div>' +
-      '<div class="tile num start"><b>' + tl.change + ' lb</b><span>' + (lose ? 'To lose' : 'To gain') + '</span></div>' + time +
+      '<div class="tile num start"><b>' + tl.change + ' lb</b><span>' + (lose ? 'To lose' : 'To gain') + '</span></div>' +
+      (tl.maintenance ? '<div class="tile num start"><b>' + tl.maintenance.toLocaleString() + '</b><span>Maintenance (×' + tl.multiplier + ')</span></div>' : '') + time +
     '</div><p class="startnote">' + note + '</p>' +
     '<span class="eyebrow" style="margin-top:20px">Your daily numbers</span>';
 }
@@ -585,6 +587,7 @@ function pills(el, list, key, labelFn){
 }
 function fillBuilder(){
   $('in-free').value = String(IN.free || 2);
+  $('in-sex').value = IN.sex || 'female';
   $('in-weight').value = IN.weight || ''; $('in-goal').value = IN.goalweight || ''; $('in-activity').value = IN.activity || 'Lightly active';
   $('in-name').value = IN.name || ''; $('in-cal').value = IN.cal || ''; $('in-pro').value = IN.pro || '';
   $('in-carb').value = IN.carbG || ''; $('in-fat').value = IN.fatG || ''; $('in-phase').value = IN.phase || 'Lean';
@@ -604,6 +607,7 @@ document.addEventListener('click', function(e){
 });
 $('btn-build').addEventListener('click', function(){
   IN.free = +$('in-free').value || 2;
+  IN.sex = $('in-sex').value;
   IN.weight = +$('in-weight').value || ''; IN.goalweight = +$('in-goal').value || ''; IN.activity = $('in-activity').value;
   IN.name = $('in-name').value.trim(); IN.cal = +$('in-cal').value; IN.pro = +$('in-pro').value;
   IN.carbG = +$('in-carb').value; IN.fatG = +$('in-fat').value; IN.phase = $('in-phase').value;

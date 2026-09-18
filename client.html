@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=30"></script>
+<script src="nutrition-engine.js?v=31"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3379,8 +3379,8 @@ function roadmapHTML(it){
   var deficit=p.tdee-first.calories, dir=(it.track==="Strong"||it.track==="Reverse Diet")?"surplus":"deficit";
   var pace=Math.min(Math.abs(deficit*7/3500), 1.5, (+curW||+it.weight||200)*0.01).toFixed(1);   // never quote past 1.5 lb or 1% of bodyweight a week
   var snap='<div class="lp-sub">Where you are now</div>'
-    +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Maintenance")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
-    +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Phase 1 sits about '+Math.abs(deficit)+' cal/day '+(deficit>=0?"below":"above")+' your estimated maintenance, roughly '+pace+' lb a week. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
+    +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Maintenance (×"+maintMult(it.sex)+")")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
+    +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Your maintenance is a rough estimate: about '+maintRange(it.sex)+' times your current weight. Phase 1 is your goal weight × 13, about '+Math.abs(deficit)+' cal/day '+(deficit>=0?"below":"above")+' that, roughly '+pace+' lb a week before steps. Your check-ins show your real number within a few weeks. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
   var targets='<div class="lp-sub">Your targets</div>'
     +'<p class="wiz-hint" style="margin:0"><b style="color:var(--accent)">Protein '+p.protein+'g</b> — fixed in every phase, the anchor of every meal. Phase 1 starts at <b>'+first.calories+' cal</b> ('+first.carbs+'g carbs · '+first.fat+'g fat). ~'+produceTarget(first.calories,it.track)+'g produce and ~'+Math.round((curW||it.weight)/2)+' oz water a day.</p>';
   var rows=ladder.map(function(ph){
@@ -3666,7 +3666,7 @@ function openMySystem(){
   var it=M.intake||{}, p=it.pfs||{}, f=loadFoods(), c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
   var list=function(v){ return Array.isArray(v)?v:String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
   var alias={"Panera":"Panera Bread","Outback":"Outback Steakhouse","Tropical Smoothie":"Tropical Smoothie Cafe","Moe's":"Moe's Southwest Grill","Sonic":"Sonic Drive-In","In-N-Out":"In-N-Out Burger"};
-  var inp={name:(ID&&ID.name)||'', weight:+it.weight||'', goalweight:+it.goalweight||'', activity:it.activity||'', cal:Math.round(p.calories||0), pro:Math.round(p.protein||0), carbG:Math.round(p.carbs||0), fatG:Math.round(p.fat||0),
+  var inp={name:(ID&&ID.name)||'', sex:it.sex||'', weight:+it.weight||'', goalweight:+it.goalweight||'', activity:it.activity||'', cal:Math.round(p.calories||0), pro:Math.round(p.protein||0), carbG:Math.round(p.carbs||0), fatG:Math.round(p.fat||0),
     phase:(it.track==='Long'?'Sustain':(it.track||'Lean')), freq:it.meals||it.frequency||'3', shake:it.shakeGrams||30,
     style:c['Eating style']||'', allergies:list(c['Allergen keys']),
     protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
