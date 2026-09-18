@@ -302,7 +302,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=4"></script>
-<script src="../nutrition-engine.js?v=33"></script>
+<script src="../nutrition-engine.js?v=34"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -338,7 +338,7 @@ function startBlock(){
   var lose = tl.start > tl.goal;
   var time = tl.weeks ? '<div class="tile num start"><b>' + tl.weeks + ' wks</b><span>Time to goal</span></div>' : '';
   var note = tl.weeks
-    ? 'Your calories live in one range: your fat-loss number (goal weight × 13) up to your upper limit (goal weight × 15, about ' + tl.upper.toLocaleString() + '). We build from who you are becoming, not who you are today. Your plan starts at ' + tl.calories.toLocaleString() + '. At ' + esc(tl.stepLabel.toLowerCase()) + ' a day that is roughly ' + tl.paceNow + ' lb a week to start, and about ' + tl.weeks + ' weeks to ' + tl.goal + ' lb. These are estimates. Check in weekly: no new low in 7 to 10 days means add steps or move down a multiplier.'
+    ? 'Your calories live in one range: your fat-loss number (goal weight × 13) up to your upper limit (goal weight × 15, about ' + tl.upper.toLocaleString() + '). We build from who you are becoming, not who you are today. Your plan starts at ' + tl.calories.toLocaleString() + '. At ' + esc(tl.stepLabel.toLowerCase()) + ' a day that is roughly ' + tl.paceNow + ' lb a week to start, and about ' + tl.weeks + ' weeks to ' + tl.goal + ' lb. These are estimates. Check in weekly: at 85% consistency or better, no new low in 7 to 10 days means add steps or move down a multiplier.'
     : (IN.phase === 'Strong' ? 'This is a Strong phase: the goal is building muscle, so the scale is not the main measure.'
       : IN.phase === 'Reverse Diet' ? 'This is a Reverse Diet: calories come up first, so the scale mostly holds while your metabolism recovers.'
       : 'This is a Sustain phase: the goal is holding your weight steady while your habits settle in.');
@@ -561,6 +561,9 @@ function build(){
       '<div class="tile pr"><b>Stick to the portions</b><p>The numbers are already inside the meals. Consistency with the portions beats perfection every time.</p></div>' +
       '<div class="tile pr"><b>We perfect it together</b><p>Your first 30 days are the tuning period. If something is not working, we adjust it.</p></div>' +
     '</div>' +
+    '<div class="panel storage" style="margin-top:16px"><b>The 85% standard.</b> ' + esc(CONSISTENCY_STANDARD.headline) + ' ' + esc(CONSISTENCY_STANDARD.subline) +
+      '<ul class="rules" style="margin-top:6px">' + CONSISTENCY_STANDARD.looksLike.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
+      '<span>' + esc(CONSISTENCY_STANDARD.under) + '</span></div>' +
     '<h3 style="margin:22px 0 4px;font-size:.95rem">Your next steps</h3>' +
     '<div class="nextlinks">' +
       nextLink('Read the Didache', 'Free with your purchase. The whole Legacy Performance system in one read: the phases, the pillars and why it works.', 'Download free', NEXT_LINKS.didache) +

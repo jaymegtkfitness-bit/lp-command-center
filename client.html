@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=33"></script>
+<script src="nutrition-engine.js?v=34"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3079,7 +3079,7 @@ function verdictHTML(it){
     body="I read your two-week trend, not single days. Log this week"+String.fromCharCode(8217)+"s check-in — after two weeks, your move shows up right here, automatically.";
   } else if(v.state==="hold"){
     tone="watch"; title="Hold here — consistency first";
-    body="Your consistency is running "+v.cons+"%. Before we change a single number, we lock in the plan you"+String.fromCharCode(8217)+"ve got. Aim for 85%+ this week and the trend tells us the rest.";
+    body="Your consistency is running "+v.cons+"%. We only adjust your numbers at 85% or better, so this week is about hitting them: calories within about 100, protein within 5 to 10 grams, steps within about 1,000, training done, and every meal tracked. 100% effort, 85% on the numbers.";
   } else if(v.state==="steady"){
     tone="good"; title="Hold steady — that"+String.fromCharCode(8217)+"s the win";
     body="You"+String.fromCharCode(8217)+"re on maintenance. Staying level through real life is the hardest skill in nutrition. Keep protein anchored and keep showing up.";
@@ -3407,7 +3407,11 @@ function roadmapHTML(it){
     +'<div class="rm-rules"><div><span>1</span> Under 85% consistent → we hold and build consistency.</div>'
     +'<div><span>2</span> 85%+ and no new low in 7 to 10 days → add steps or move down a multiplier.</div>'
     +'<div><span>3</span> 85%+ and still progressing → we stay the course.</div></div>'
-    +'<p class="wiz-hint" style="margin-top:6px">A stall while you\'re consistent is the signal we\'re waiting for, not failure.</p>';
+    +'<p class="wiz-hint" style="margin-top:6px">A stall while you\'re consistent is the signal we\'re waiting for, not failure.</p>'
+    +(typeof CONSISTENCY_STANDARD!=='undefined' ? '<div class="lp-sub" style="margin-top:14px">What 85% consistent looks like</div>'
+      +'<p class="wiz-hint" style="margin:0 0 6px"><b>'+esc(CONSISTENCY_STANDARD.subline)+'</b> '+esc(CONSISTENCY_STANDARD.headline)+'</p>'
+      +'<ul class="wiz-hint" style="margin:0 0 6px 18px">'+CONSISTENCY_STANDARD.looksLike.map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'
+      +'<p class="wiz-hint" style="margin:0">'+esc(CONSISTENCY_STANDARD.under)+'</p>' : '');
   var faqs='<div class="lp-sub">Common questions</div>'+faqsFor(it.track).map(function(q){
     return '<div class="rm-faq"><b>'+esc(q[0])+'</b><span>'+esc(q[1])+'</span></div>';
   }).join("");

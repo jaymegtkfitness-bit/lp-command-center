@@ -1688,6 +1688,21 @@ function prepGuide(deck, opts){
    for that week, and the plan is rebuilt at the lower number, so the portions come down with it.
    On a free meal the only target is 600 to 800 calories. Protein and produce still count that day. */
 var MACRO_FREEDOM={included:2, cutPerExtra:100, mealCal:[600,800], max:6};
+/* THE 85% STANDARD (Jayme 2026-09-18). Numbers only change when she is at least 85% consistent.
+   100% consistent in effort, 85% consistent in hitting the numbers. One shared wording, used by the
+   system document and the dashboard so they never disagree. */
+var CONSISTENCY_STANDARD={
+  pct:85,
+  headline:'We only adjust your numbers when you are at least 85% consistent.',
+  subline:'100% consistent in effort. 85% consistent in hitting your numbers.',
+  looksLike:['Every meal tracked, including the free meals and the misses.',
+             'Your meals on plan: three meals a day plus your two free meals is about 90%.',
+             'Calories within about 100 of your target.',
+             'Protein within 5 to 10 grams of your target, every day.',
+             'Steps within about 1,000 of your goal.',
+             'Your training sessions done.'],
+  under:'Under 85%, we hold your numbers and build consistency first. The plan is not the problem yet.'
+};
 function freedomPlan(pfs, freeMeals, sex){
   var n=Math.max(MACRO_FREEDOM.included, Math.min(MACRO_FREEDOM.max, +freeMeals||MACRO_FREEDOM.included));
   var extra=n-MACRO_FREEDOM.included, cut=extra*MACRO_FREEDOM.cutPerExtra;
