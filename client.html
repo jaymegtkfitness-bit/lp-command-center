@@ -1050,8 +1050,8 @@ select.input{appearance:none}
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — ONE source, also used by the Command Center. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
-<script src="recipe-data.js?v=4"></script>
-<script src="nutrition-engine.js?v=35"></script>
+<script src="recipe-data.js?v=5"></script>
+<script src="nutrition-engine.js?v=36"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3181,7 +3181,7 @@ function nutritionHTML(it){
     +'<p class="wiz-hint" style="margin:0">≈ '+chkOz+' oz raw chicken breast · '+riceG+'g cooked rice · '+oilG+'g olive oil over a mountain of veg. Swap any protein / carb / fat from your lists to the same targets.</p>'
     +(MS.shake
         ? '<p class="wiz-hint">Your '+MS.shake.protein+'g protein shake (~'+MS.shake.calories+' cal) is reserved out of the day first, so the meal numbers above are what is left after it. One day is noise; two weeks is a trend.</p>'
-        : '<p class="wiz-hint">A protein shake counts toward your protein anytime. Standard is '+SHAKE_PROTEIN_DEFAULT+'g, about one heaping scoop. One day is noise; two weeks is a trend.</p>');
+        : '<p class="wiz-hint">A protein shake counts toward your protein anytime. Standard is '+SHAKE_PROTEIN_DEFAULT+'g of protein. One day is noise; two weeks is a trend.</p>');
 }
 /* ---- Your Journey — where they are in the arc + Genetic Blueprint status ---- */
 var JOURNEY_STAGES=[

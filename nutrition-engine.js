@@ -403,6 +403,33 @@ var FOOD_DB={
   veg:["broccoli","spinach","peppers","zucchini","green beans","asparagus","salad greens",
        "cauliflower","mushrooms","cucumber","tomatoes","cabbage","brussels sprouts","carrots"]
 };
+/* WEIGHED, NOT MEASURED (Jayme 2026-09-19): every portion prints in ounces (meat, fish, tofu) or grams
+   (everything else), because weighing is what the tracking course teaches. Cups, tablespoons, scoops
+   and slices are gone. Each food keeps its USDA-sourced macros: GRAMS_PER_UNIT is the gram weight of
+   the old serving, derived from the same USDA record (kcal per serving / kcal per 100 g), or the label
+   for protein powders. Whole eggs stay a count: a large egg is a standard weight. */
+var COUNTABLE={'banana':'medium','apple':'medium','pear':'medium','orange':'medium','kiwi':'','peach':'medium','grapefruit':'',
+  'avocado':'','bagel':'medium','English muffin':'','sourdough':'','whole-wheat bread':'','corn tortilla':'','flour tortilla':'',
+  'rice cakes':'','dates':'medjool','raisins':'mini box','egg whites':'large'};
+var GRAMS_PER_UNIT={"egg whites": 32.7, "nonfat Greek yogurt": 226.2, "low-fat cottage cheese": 226.4, "whey protein powder": 30.4, "plant protein powder": 46, "edamame": 155.4, "2% Greek yogurt": 227.4, "potatoes": 155.8, "sweet potato": 200.0, "oats": 81.0, "lentils": 198.3, "black beans": 172.0, "chickpeas": 164.0, "green peas": 160.3, "butternut squash": 205.0, "corn": 149.0, "pinto beans": 171.3, "kidney beans": 177.2, "barley": 156.9, "popcorn": 8.0, "white rice": 157.7, "brown rice": 201.6, "quinoa": 185.0, "sourdough": 43.0, "whole-wheat pasta": 140.3, "corn tortilla": 23.9, "whole-wheat bread": 32.1, "English muffin": 57.1, "rice cakes": 9.0, "cream of rice": 244.2, "couscous": 157.1, "white pasta": 139.9, "bagel": 104.9, "flour tortilla": 49.2, "granola": 122.1, "avocado": 135.9, "chia seeds": 11.9, "ground flaxseed": 6.9, "hemp seeds": 9.9, "walnuts": 7.3, "olives": 8.6, "almonds": 9.0, "almond butter": 16.0, "peanut butter": 16.1, "tahini": 15.0, "pumpkin seeds": 8.1, "hummus": 15.2, "sunflower seeds": 8.1, "cashews": 8.5, "pistachios": 7.7, "pecans": 6.8, "butter": 14.2, "berries": 150.6, "apple": 182.7, "raspberries": 123.1, "blackberries": 144.2, "strawberries": 143.8, "blueberries": 147.4, "pear": 177.2, "orange": 131.9, "kiwi": 68.9, "grapefruit": 123.8, "banana": 118.0, "peach": 148.7, "cherries": 154.0, "pineapple": 164.0, "mango": 165.0, "cantaloupe": 158.8, "watermelon": 153.3, "grapes": 150.7, "raisins": 14.0, "dates": 23.8, "cheese": 28.35, "dark chocolate": 28.35};
+(function(){
+  ['protein','carb','fat','fruit'].forEach(function(cat){
+    (FOOD_DB[cat]||[]).forEach(function(f){
+      f.cat=cat;
+      var g=GRAMS_PER_UNIT[f.n]; if(!g) return;
+      f.gpu=g; f.unitWas=f.u;
+      /* Countable foods read better as a thing plus its weight: "1 medium banana (118 g)". */
+      if(Object.prototype.hasOwnProperty.call(COUNTABLE, f.n)){ f.desc=COUNTABLE[f.n]; return; }
+      f.g=f.g/g; f.p=f.p/g; f.c=f.c/g; f.f=f.f/g; f.kcal=f.kcal/g;
+      f.max=Math.round((f.max||1)*g); f.u='g'; f.whole=false; f.frac=false;
+    });
+  });
+})();
+/* Vegetables print by weight too. Grams in one cup, USDA household weights. */
+var VEG_G={broccoli:91, spinach:30, peppers:92, zucchini:124, 'green beans':110, asparagus:134, 'salad greens':47,
+  cauliflower:107, mushrooms:70, cucumber:119, tomatoes:180, cabbage:89, 'brussels sprouts':88, carrots:128};
+function vegGrams(n, cups){ return Math.max(25, Math.round((VEG_G[n]||90)*(cups||1)/5)*5); }
+
 
 
 /* ===== NAMED MEALS (LP's own) =====
@@ -518,11 +545,48 @@ function recipeIngredients(r, sel){
       if(left.some(function(t){ return blocked.indexOf(t)>=0; })) return null;
       name=sw.to;
     }
-    var q0=g[0], u0=g[1];
-    if(/\boil\b/.test(name) && (u0==='tbsp'||u0==='tsp')){ q0=q0*(u0==='tbsp'?13.5:4.5); u0='g'; }   // oils in grams
-    out.push([q0, u0, name, g[4]]);
+    var w=recipeWeigh(g[0], g[1], name, g[4]);
+    out.push([w[0], w[1], w[2], g[4], w[3]||0]);
   }
   return out;
+}
+
+/* RECIPE WEIGHTS. Recipes were written in cups, spoons and pieces; they print in ounces (meat, fish)
+   and grams (everything else). Gram weights are USDA household measures. Seasonings with no real
+   calories print by name only; the recipe's own macros never change. */
+var RECIPE_UNIT_G={
+  cup:{'brewed coffee, cooled':240,'coconut milk':226,'cottage cheese':226,'milk':244,'unsweetened almond milk':240,'unsweetened oat milk':240,'vegetable stock':240},
+  tbsp:{'almond butter':16,'sunflower seed butter':16,'blueberries':9,'butter':14,'chia seeds':12,'chickpeas':10,'cilantro':1,'coconut oil':13.6,'olive oil':13.5,
+        'crumbled feta':9,'dairy-free cheese':7,'dried blueberries':10,'flour':8,'gluten-free flour':8,'grated Parmesan':5,'green onion':6,'maple syrup':20,'mayonnaise':14,'mint':2,
+        'nonfat Greek yogurt':17,'dairy-free Greek-style yogurt':17,'parsley':4,'peanut butter':16,'red bell pepper':9,'red onion':10,'ricotta':15,'rolled oats':5,
+        'certified gluten-free oats':5,'shredded cheddar':7,'unsweetened almond milk':15,'unsweetened oat milk':15},
+  tsp:{'chia seeds':4,'chives':1,'coconut oil':4.5,'olive oil':4.5,'hemp seeds':3,'maple syrup':7,'red pesto':5,'cacao nibs':2.5,'balsamic glaze':7},
+  each:{'avocado':136,'banana':118,'basil leaves':0.5,'bell pepper':119,'black olives':4.4,'celery stick':40,'cherry tomatoes':17,'corn cob':90,
+        'cucumber':300,'green onion':15,'kalamata olives':4,'kiwi':69,'leek':89,'onion':110,'radishes':4.5,'red bell pepper':119,'red onion':110,
+        'shallot':44,'small onion':70,'small red onion':70,'sun-dried tomatoes':2,'tomato':123,'zucchini':196,'egg whites':33},
+  slice:{'bacon':8,'bacon medallions':12,'turkey bacon':15,'prosciutto':14},
+  scoop:30, handful:30
+};
+var RECIPE_EACH_OZ={'salmon fillet':6,'chicken thigh':4,'shrimp':0.35,'can tuna in water':4};
+var RECIPE_EACH_RENAME={'corn cob':'corn kernels','egg whites':'liquid egg whites','chicken thigh':'chicken thigh (raw)','can tuna in water':'canned tuna'};
+var RECIPE_CALORIC_PS=/maple syrup|balsamic glaze|cacao nibs|curry paste|brewed coffee|lemon juice/;
+function recipeWeigh(q, u, name, sec){
+  if(sec==='ps' && !RECIPE_CALORIC_PS.test(name)) return [0, 'taste', name];
+  if(u==='oz') return sec==='mf' ? [q, 'oz', name] : [q*28.35, 'g', name];
+  if(u==='g') return [q, 'g', name];
+  if(!u){
+    if(/whole eggs/.test(name)) return [q, '', name];
+    if(/^lemon$|^lime$/.test(name)) return [q*(name==='lemon'?48:30), 'g', name+' juice'];
+    if(RECIPE_EACH_OZ[name]) return [q*RECIPE_EACH_OZ[name], 'oz', RECIPE_EACH_RENAME[name]||name];
+    var e=RECIPE_UNIT_G.each[name];
+    if(e && name==='corn cob') return [q, 'ea', 'ear of corn', e];
+    return e ? [q, 'ea', name, e] : [q, '', name];               // counted produce: "1/2 medium onion (55 g)" 
+  }
+  if(u==='slice'){ var sl=RECIPE_UNIT_G.slice[name]||15; return [q*sl, 'g', name]; }
+  if(u==='scoop'||u==='handful') return [q*RECIPE_UNIT_G[u], 'g', name];
+  if(u==='clove') return [q*3, 'g', name];
+  var t=RECIPE_UNIT_G[u]; if(t) return [q*(t[name]||(u==='cup'?240:u==='tbsp'?15:5)), 'g', name];
+  return [q, u, name];
 }
 var FRAC={0.25:'¼', 0.33:'⅓', 0.5:'½', 0.67:'⅔', 0.75:'¾', 0.13:'⅛'};
 function fracText(q){
@@ -531,7 +595,9 @@ function fracText(q){
   return ((w? String(w):'')+f) || '0';
 }
 function recipeQty(q, u, name){
-  if(u==='g') return Math.max(1, Math.round(q));
+  if(u==='taste') return 0;
+  if(u==='ea') u='';
+  if(u==='g') return q<20 ? Math.max(1, Math.round(q)) : Math.round(q/5)*5;
   if(u==='oz') return q<2 ? Math.max(0.25, Math.round(q*4)/4) : Math.round(q*2)/2;
   if(u==='cup'||u==='tsp') return Math.max(0.25, Math.round(q*4)/4);
   if(u==='tbsp'||u==='scoop'||u==='handful') return Math.max(0.5, Math.round(q*2)/2);
@@ -539,7 +605,16 @@ function recipeQty(q, u, name){
   if(/egg|shrimp|tomatoes|olives|radishes|basil|kiwi|chicken thigh|fillet|can tuna|green onion/.test(name)) return Math.max(1, Math.round(q));
   return Math.max(0.25, Math.round(q*4)/4);
 }
-function recipeLine(q, u, name){
+var RECIPE_DESC={banana:'medium', onion:'medium', 'red onion':'medium', tomato:'medium', 'bell pepper':'medium', 'red bell pepper':'medium',
+  zucchini:'medium', cucumber:'medium', leek:'medium', shallot:'medium', avocado:'', kiwi:'', 'egg whites':'large'};
+function recipeLine(q, u, name, gpe){
+  if(u==='taste') return name;
+  if(u==='ea'){
+    var wt=Math.round(q*(gpe||0)), d=RECIPE_DESC[name]!=null ? RECIPE_DESC[name] : '', nm=name;
+    if(q>1 && !/s$/.test(nm)) nm = nm==='ear of corn' ? 'ears of corn' : /ch$|sh$/.test(nm) ? nm+'es' : nm+'s';
+    return fracText(q)+' '+(d?d+' ':'')+nm+(wt?' ('+wt+' g)':'');
+  }
+  if(u==='g') return q+' g '+name;
   var t=fracText(q), many=q>1;
   if(!u && /^can /.test(name)) return t+' '+(many?'cans ':'can ')+name.slice(4);
   if(!u && !many && /eggs$/.test(name)) return t+' '+name.replace(/eggs$/,'egg');
@@ -566,8 +641,8 @@ function recipeOption(r, target, sel, slot){
   ing.forEach(function(g){
     var sc=(g[3]==='ps') ? Math.min(s, 1.5) : s;
     var q=recipeQty(g[0]*sc, g[1], g[2]);
-    if(g[3]!=='ps') items.push(recipeLine(q, g[1], g[2]));
-    parts.push({n:g[2], units:q, u:g[1], whole:!g[1], sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id});
+    if(g[1]!=='taste') items.push(recipeLine(q, g[1], g[2], g[4]));
+    parts.push({n:g[2], units:q, u:g[1], gpe:g[4]||0, whole:!g[1]||g[1]==='ea', sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id});
   });
   var gap=tCal-tot.kcal;
   if(gap > tCal*0.05 && r.sides && r.sides.length){
@@ -688,7 +763,7 @@ function displayUnits(f, units){
   /* Whole items (scoops, eggs, bananas) round down unless they are at least three-quarters of the way
      to the next one. Pure floor turned 1.9 scoops of protein into 1 and left vegan breakfasts ~35% short. */
   if(f.whole) return Math.max(1, Math.floor(units+0.25+1e-9));
-  if(f.u==="g") return Math.max(1, Math.round(units));                  // oils are weighed in grams (Jayme 2026-09-17)
+  if(f.u==="g") return units<20 ? Math.max(1, Math.round(units)) : Math.round(units/5)*5;   // grams: to the gram when small, else to 5
   if(f.u==="oz") return Math.max(0.5, Math.floor(units*10+1e-9)/10);
   return Math.max(0.25, Math.floor(units*4+1e-9)/4);
 }
@@ -696,7 +771,13 @@ function displayUnits(f, units){
    seeds": a fragment like that is rounding noise, not a portion anyone plates (Jayme, 2026-09-16). */
 function minPortion(f){
   var u=f.u||'';
-  if(u==='g') return 5;
+  if(u==='g'){
+    if(f.cat==='fat') return /oil|butter/.test(f.n) ? 5 : 10;
+    if(/protein powder/.test(f.n)) return 25;
+    if(f.cat==='protein') return 100;                              // yogurt, cottage cheese, egg whites
+    if(f.cat==='fruit') return 50;
+    return 40;                                                     // carbs
+  }
   if(u==='oz') return (f.n==='cheese') ? 1 : 3;
   if(u==='cup') return 0.5;
   if(u==='cup dry') return 0.25;
@@ -719,12 +800,21 @@ function fmtQty(f, targetG, unitsOverride){
      portion must be the same number or the card is lying. */
   var units=(unitsOverride!=null)?unitsOverride:unitsFor(f,targetG);
   var q=displayUnits(f, units);
-  if(f.whole){
+  if(f.desc!=null && f.gpu){                                   // "1 medium banana (118 g)"
+    var wt=Math.round(q*f.gpu);
+    if(f.n==='grapefruit') return fracText(q/2)+' grapefruit ('+wt+' g)';
+    if(f.n==='raisins') return fracText(q)+' mini box'+(q>1?'es':'')+' of raisins ('+wt+' g)';
+    var unitWord = f.u && !/^(half|box)$/.test(f.u) && f.n.toLowerCase().indexOf(f.u)<0 ? ' '+pluralUnit(f.u,q) : '';
+    var nm = f.n; if(q>1 && !unitWord && !/s$/.test(nm)) nm = /ch$|sh$/.test(nm) ? nm+'es' : nm+'s';
+    return fracText(q)+unitWord+' '+(f.desc ? f.desc+' ' : '')+nm+' ('+wt+' g)';
+  }  if(f.whole){
     if(f.u && f.n.toLowerCase().indexOf(f.u.toLowerCase())>=0) return q+' '+(q!==1?f.n+'s':f.n);   // "2 corn tortillas", never "2 tortillas corn tortilla"
     if(f.u) return q+' '+pluralUnit(f.u,q)+' '+f.n;
     return q+' '+((q!==1 && !/s$/i.test(f.n)) ? f.n+'s' : f.n);   // "2 bananas", never "2 whole eggss"
   }
   if(f.u==="oz"){ return q+' oz '+f.n; }
+  if(f.u==="g"){ return q+' g '+f.n; }
+
   return f.u? (q+' '+pluralUnit(f.u,q)+' '+f.n) : (q+' '+f.n);
 }
 
@@ -1001,8 +1091,9 @@ function buildOption(P, C, F, V, target, slot, seed, vegIndex, tierMax, star, ch
   var items=rPro.items.concat(rCarb.items, rFat.items);
   var parts=(rPro.parts||[]).concat(rCarb.parts||[], rFat.parts||[]);
   if(V && V.length){
-    items.push((slot==='am'?'a handful of ':'a big handful of ')+V[vegIndex%V.length]);
-    parts.push({n:V[vegIndex%V.length], veg:true, cups:(slot==='am'?1:1.5)});
+    var vn=V[vegIndex%V.length], vc=(slot==='am'?1:1.5), vg=vegGrams(vn, vc);
+    items.push(vg+' g '+vn);
+    parts.push({n:vn, veg:true, cups:vc, grams:vg});
   }
   /* Calories are now SUMMED FROM REAL PER-FOOD VALUES, not inferred as 4/4/9 from the anchor
      macros. Protein foods carry fat, carb foods carry protein, and that is now counted. */
@@ -1023,15 +1114,15 @@ function generateCompanions(sel, count, name){
   sel=withFruit(sel||{});
   var want=count||COMPANIONS_PER_PLAN, mine=[].concat(sel.protein||[], sel.carb||[], sel.fat||[]);
   var boost=PROTEIN_BOOSTERS.map(function(b, idx){
-    var foods=b.parts.map(function(pt){ return {f:foodByName(pt[0]), u:pt[1]}; });
+    var foods=b.parts.map(function(pt){ var f=foodByName(pt[0]); return {f:f, u:pt[1]*((f&&f.gpu)||1)}; });   // booster portions are written in the old serving units
     if(foods.some(function(x){ return !x.f || !allowsFood(x.f, sel.style, sel.allergies); })) return null;
     var score=idx - 5*foods.filter(function(x){ return mine.indexOf(x.f.n)>=0; }).length;
     return {b:b, foods:foods, score:score};
   }).filter(Boolean).sort(function(a,b){ return a.score-b.score; }).slice(0, want);
   var recipeSnacks=(typeof RECIPE_LIBRARY==='undefined'?[]:RECIPE_LIBRARY).filter(function(r){ return r.slot==='snack'; }).map(function(r){
     var ing=recipeIngredients(r, sel); if(!ing) return null;
-    return {name:r.name, items:ing.filter(function(g){ return g[3]!=='ps'; }).map(function(g){ return recipeLine(recipeQty(g[0], g[1], g[2]), g[1], g[2]); }),
-            parts:ing.map(function(g){ return {n:g[2], units:recipeQty(g[0], g[1], g[2]), u:g[1], whole:!g[1], sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id}; }),
+    return {name:r.name, items:ing.filter(function(g){ return g[1]!=='taste'; }).map(function(g){ return recipeLine(recipeQty(g[0], g[1], g[2]), g[1], g[2], g[4]); }),
+            parts:ing.map(function(g){ return {n:g[2], units:recipeQty(g[0], g[1], g[2]), u:g[1], gpe:g[4]||0, whole:!g[1]||g[1]==='ea', sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id}; }),
             cal:r.m[0], protein:r.m[1], carbs:r.m[2], fat:r.m[3], recipe:{id:r.id, how:r.how, scale:1}};
   }).filter(Boolean);
   if(recipeSnacks.length + boost.length >= Math.min(2, want)){
@@ -1159,7 +1250,7 @@ function generateMealOptions(it, sel, name){
         if(t.needs && !t.needs.every(function(nd){ return got.indexOf(nd)>=0; })) continue;
         if(t.lead && !t.lead.some(function(nd){ return got.indexOf(nd)>=0; })) continue;
         if(t.needsAny && !t.needsAny.some(function(nd){ return got.indexOf(nd)>=0; })) continue;
-        if(t.minUnits && (opt.parts||[]).some(function(x){ return t.minUnits[x.n]!=null && x.units < t.minUnits[x.n]-1e-9; })) continue;
+        if(t.minUnits && (opt.parts||[]).some(function(x){ var fx=foodByName(x.n); return t.minUnits[x.n]!=null && x.units < t.minUnits[x.n]*((fx&&fx.gpu)||1)-1e-9; })) continue;
         var leadPart=(opt.parts||[]).filter(function(x){ return x.n===lead.n; })[0];
         if(!leadPart || (lead.p||0)*leadPart.units < opt.protein*0.55) continue;   // the named protein has to carry the meal
         if(opt.protein < target.protein*gate[0] || Math.abs(opt.cal-tCalT) > tCalT*gate[1]) continue;   // a named meal that misses the numbers is not offered
@@ -1175,8 +1266,9 @@ function generateMealOptions(it, sel, name){
         var opt=buildOption(P,C,F,V,target,slot,seed,k+options.length,tier,star,chose);
         if(slot==='am' && (opt.parts||[]).some(function(x){ return /protein powder|yogurt|cottage/.test(x.n); })){
           /* A shake or yogurt breakfast does not get a handful of broccoli on the side. */
+          var vegItems=(opt.parts||[]).filter(function(x){ return x.veg; }).map(function(x){ return x.grams+' g '+x.n; });
           opt.parts=(opt.parts||[]).filter(function(x){ return !x.veg; });
-          opt.items=opt.items.filter(function(x){ return !/^a (big )?handful of /.test(x); });
+          opt.items=opt.items.filter(function(x){ return vegItems.indexOf(x)<0; });
         }
         var key=opt.items.join('|');
         if(seen[key]) continue;
@@ -1655,6 +1747,37 @@ var SHOP_INFO=(function(){
     'olive oil':        {sec:'Fats, nuts and extras', buy:function(){ return 'from your pantry'; }}
   };
 })();
+/* Buying amounts for foods weighed in grams. Cooked grains convert back to dry with the usual
+   cooked-to-dry ratios (white rice about 2.6x, pasta 2.5x). Package sizes are the common US ones. */
+(function(){
+  var n=function(x){ return Math.max(1, Math.ceil(x)); }, lb=function(g){ return Math.max(0.25, Math.ceil(g/453.6*4)/4); };
+  var pk=function(size, word){ return function(g){ var k=n(g/size); return k+' '+word.replace('#', k>1?'s':''); }; };
+  var dry=function(ratio){ return function(g){ return 'about '+Math.ceil(g/ratio/10)*10+' g dry'; }; };
+  var G={
+    'potatoes':function(g){ return 'about '+lb(g)+' lb'; }, 'sweet potato':function(g){ return 'about '+lb(g)+' lb'; },
+    'butternut squash':function(g){ return n(g/700)+' medium squash'; },
+    'oats':function(g){ return g<=1100 ? 'one canister covers it' : n(g/1100)+' canisters'; },
+    'lentils':dry(2.6), 'white rice':dry(2.6), 'brown rice':dry(3.2), 'quinoa':dry(3.3), 'couscous':dry(2.7), 'barley':dry(2.75),
+    'whole-wheat pasta':dry(2.5), 'white pasta':dry(2.5),
+    'black beans':pk(240,'can# (15 oz)'), 'pinto beans':pk(240,'can# (15 oz)'), 'kidney beans':pk(240,'can# (15 oz)'), 'chickpeas':pk(240,'can# (15 oz)'),
+    'green peas':pk(340,'frozen bag# (12 oz)'), 'corn':pk(340,'frozen bag# (12 oz)'), 'edamame':pk(340,'frozen bag# (12 oz)'),
+    'nonfat Greek yogurt':pk(907,'tub# (32 oz)'), '2% Greek yogurt':pk(907,'tub# (32 oz)'), 'low-fat cottage cheese':pk(680,'tub# (24 oz)'),
+    'cheese':pk(227,'block# (8 oz)'),
+    'whey protein powder':function(g){ return Math.ceil(g)+' g (check your tub)'; }, 'plant protein powder':function(g){ return Math.ceil(g)+' g (check your tub)'; },
+    'berries':pk(340,'pint# (or a frozen bag)'), 'raspberries':pk(170,'container# (6 oz)'), 'blackberries':pk(170,'container# (6 oz)'),
+    'strawberries':pk(454,'container# (1 lb)'), 'blueberries':pk(340,'pint#')
+  };
+  Object.keys(GRAMS_PER_UNIT).forEach(function(name){
+    if(Object.prototype.hasOwnProperty.call(COUNTABLE, name)) return;   // counted foods keep their count-based buying line
+    var info=SHOP_INFO[name]||(SHOP_INFO[name]={});
+    if(G[name]) info.buy=G[name];
+    else { var f=foodByName(name)||{};
+      info.buy = /butter$|oil$/.test(name) && !/nut|seed|peanut|almond/.test(name) ? function(){ return 'from your pantry'; } : f.cat==='fat' ? function(){ return 'one jar or bag covers it'; } : function(g){ return g>=150 ? 'about '+lb(g)+' lb' : ''; }; }
+  });
+  var cook={'white rice':'1 part dry rice to 2 parts water. Simmer covered 18 minutes.', 'brown rice':'1 part dry rice to 2.5 parts water. Simmer covered 45 minutes.',
+    'quinoa':'Rinse. 1 part dry to 2 parts water. Simmer 15 minutes.', 'barley':'1 part dry to 3 parts water. Simmer covered 40 to 45 minutes.'};
+  Object.keys(cook).forEach(function(k){ if(SHOP_INFO[k]) SHOP_INFO[k].cook=cook[k]; });
+})();
 var VEG_SOLD={cucumber:{oz:8,each:'cucumbers'}, tomatoes:{oz:5,each:'tomatoes'}, peppers:{oz:6,each:'bell peppers'}};
 var VEG_RAW={spinach:1,'salad greens':1,cucumber:1,tomatoes:1,cabbage:1};   // eaten raw, just wash and chop
 
@@ -1665,7 +1788,7 @@ function foodSection(name){
   return '';
 }
 function shopRound(x, u){
-  if(u==='g') return Math.ceil(x);
+  if(u==='g') return Math.ceil(x/5)*5;
   if(u==='oz') return Math.ceil(x*2)/2;
   if(u==='tbsp') return Math.ceil(x);
   if(!u) return Math.ceil(x*4)/4;
@@ -1689,16 +1812,18 @@ function batchTotals(deck, option, days, withSnack, into){
   return {totals:totals, meals:meals};
 }
 function addPart(totals, pt, days){
+  if(pt.u==='ea') pt={n:pt.n, units:pt.units, u:'', whole:true, sec:pt.sec, recipe:pt.recipe, gpe:pt.gpe};
   var k=pt.n;
   if(totals[k] && !pt.veg && !pt.shake && (totals[k].u||'')!==(pt.u||'')){
     var each=/cherry tomato/.test(pt.n)?0.6:(/olives/.test(pt.n)?0.14:0), tb=/green onion/.test(pt.n)?2:0;
-    var conv={'>oz':each, 'oz>':each?1/each:0, '>tbsp':tb, 'tbsp>':tb?1/tb:0, 'tsp>tbsp':1/3, 'tbsp>tsp':3, 'tbsp>oz':0.5, 'oz>tbsp':2, 'cup>oz':8, 'oz>cup':0.125};
+    var eg=(typeof RECIPE_UNIT_G!=='undefined' && RECIPE_UNIT_G.each[pt.n]) || 0;   // a counted vegetable weighed elsewhere
+    var conv={'g>':eg?1/eg:0, '>g':eg, '>oz':each, 'oz>':each?1/each:0, '>tbsp':tb, 'tbsp>':tb?1/tb:0, 'tsp>tbsp':1/3, 'tbsp>tsp':3, 'tbsp>oz':0.5, 'oz>tbsp':2, 'cup>oz':8, 'oz>cup':0.125};
     var r=conv[(pt.u||'')+'>'+(totals[k].u||'')];
     if(r && !(pt.u==='cup' && /oil|milk/.test(pt.n))){ pt={n:pt.n, units:(pt.units||0)*r, u:totals[k].u, whole:pt.whole, sec:pt.sec, recipe:pt.recipe}; }
   }
   if(totals[k] && !pt.veg && !pt.shake && (totals[k].u||'')!==(pt.u||'')) k=pt.n+' ('+(pt.u||'each')+')';
   var t=totals[k]||(totals[k]={qty:0, u:pt.u||'', whole:!!pt.whole, veg:!!pt.veg, shake:!!pt.shake, sec:pt.sec||'', recipe:pt.recipe||''});
-  if(pt.veg) t.qty+=(pt.cups||1)*days;
+  if(pt.veg) t.qty+=(pt.grams||vegGrams(pt.n, pt.cups))*days;
   else if(pt.shake) t.qty+=days;
   else t.qty+=(pt.units||0)*days;
 }
@@ -1712,6 +1837,9 @@ function shopAmount(name, t){
   }
   if(t.u==='tsp' && t.qty>=3) return (Math.ceil(t.qty/3*2)/2)+' tbsp';
   var v=shopRound(t.qty, t.u);
+  if(t.u==='taste') return 'to taste';
+  if(t.u==='ea') return Math.ceil(t.qty*4)/4+'';
+  if(t.u==='g') return v+' g'+(v>=454 ? ' (about '+(Math.ceil(v/453.6*4)/4)+' lb)' : '');
   if(t.u==='oz' && t.recipe) return v+' oz'+(v>=16 ? ' (about '+(Math.ceil(v/16*4)/4)+' lb)' : '');
   if(t.u==='oz') return v+' oz'+(info.sec==='Meat and fish'?' cooked':'');
   return v+' '+pluralUnit(t.u, v);
@@ -1737,8 +1865,8 @@ function shoppingList(deck, opts){
     var t=bt.totals[name], info=SHOP_INFO[name]||{}, sec, need, buy='';
     if(t.veg){
       sec='Vegetables';
-      var oz=t.qty*3;                                          // about 3 oz of chopped vegetables per cup
-      need=Math.ceil(t.qty)+' cups';
+      var oz=t.qty/28.35;
+      need=Math.ceil(t.qty/5)*5+' g';
       buy=VEG_SOLD[name] ? Math.ceil(oz/VEG_SOLD[name].oz)+' '+VEG_SOLD[name].each : 'about '+Math.max(0.5, Math.ceil(oz/16*2)/2)+' lb (fresh or frozen)';
     } else {
       sec=info.sec||t.sec||foodSection(name)||'Fats, nuts and extras';
@@ -1900,10 +2028,13 @@ function mealIngredientLines(opt){
   var out=[];
   (opt.parts||[]).forEach(function(pt){
     if(pt.shake){ out.push((pt.grams||30)+' g protein powder'); return; }
-    if(pt.veg){ out.push(cronNum(pt.cups||1)+' cup '+pt.n); return; }
+    if(pt.veg){ out.push((pt.grams||vegGrams(pt.n, pt.cups))+' g '+pt.n); return; }
+    if(pt.u==='taste') return;                                      // seasonings: no weight to log
     var n=pt.n.replace(/\s*\((raw)\)/,', raw').replace(/\s*\((dry)\)/,', dry');
     var u=pt.u||'';
-    if(u==='handful'){ out.push(cronNum(pt.units)+' cup '+n); return; }
+    var fdb=foodByName(pt.n);
+    if(fdb && fdb.desc!=null && fdb.gpu){ out.push(Math.round(pt.units*fdb.gpu)+' g '+n); return; }
+    if(u==='ea' && pt.gpe){ out.push(Math.round(pt.units*pt.gpe)+' g '+n); return; }
     if(!u){ out.push(cronNum(pt.units)+' '+(/^can /.test(n)? n : n)); return; }
     out.push(cronNum(pt.units)+' '+u+' '+n);
   });
