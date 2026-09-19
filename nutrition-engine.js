@@ -1999,6 +1999,42 @@ var CONSISTENCY_STANDARD={
              'Your training sessions done.'],
   under:'Under 85%, we hold your numbers and build consistency first. The plan is not the problem yet.'
 };
+/* YOUR OWN FOOD (Jayme 2026-09-19). Any food she likes can go in a meal, even a packaged one like
+   breaded chicken tenders, by following one order: protein first, subtract, fill the rest.
+   ownFoodFit() is the math, OWN_FOOD the shared teaching (system document + dashboard), and
+   diaryLabels() the Cronometer diary-group names that carry each meal's numbers. */
+var OWN_FOOD={
+  steps:['Know the meal\'s numbers. They are on your diary group label (below).',
+         'Protein first. Log enough of your food to hit the meal\'s protein, within 5 to 10 grams.',
+         'Subtract. Take that food\'s calories away from the meal\'s calories.',
+         'Fill the rest. Use carbs, fat and vegetables from your swap guide until the meal lands within about 50 calories.'],
+  proteinCheck:'The protein check: a lean protein gives you at least 10 grams of protein for every 100 calories. Breaded, fried and packaged proteins usually give less, so the breading counts as part of your carbs and leaves less room for everything else. If your food falls under 10, let it cover about half the meal\'s protein and close the gap with a lean protein like Greek yogurt, egg whites or a shake.',
+  cronometer:['Rename your diary groups with each meal\'s numbers, like the labels above. In Cronometer on the web that is under More, then Display. On your phone it is Settings, then Diary.',
+              'Log the meal from your plan with the Log it in Cronometer link.',
+              'To swap, delete the protein and add yours. Scan the barcode, or add it as a custom food straight from the label.',
+              'Change the amount until the group\'s protein matches its label. Then adjust the carbs and fat until the calories do too.',
+              'When your plan changes, you only rename the labels. Everything else stays the same.'],
+  gold:'Diary groups come with Cronometer Gold. On the free version, save each meal as a custom meal with its numbers in the name instead.'
+};
+function ownFoodFit(meal, food){
+  /* meal {calories, protein}; food {cal, protein} per serving. How much hits the protein and what is left. */
+  var mc=+meal.calories||0, mp=+meal.protein||0, fc=+food.cal||0, fp=+food.protein||0;
+  if(!(fc>0) || !(fp>0) || !(mp>0)) return null;
+  var servings=Math.round(mp/fp*4)/4, cal=Math.round(servings*fc), pro=Math.round(servings*fp);
+  var density=fp/fc*100, heavy=density<10;
+  var r={servings:servings, calories:cal, protein:pro, left:Math.round(mc-cal), density:Math.round(density*10)/10, lean:density>=10, heavy:heavy};
+  if(heavy){ /* half the meal's protein from this food, the rest from a lean booster */
+    var hs=Math.max(0.5, Math.round(mp*0.5/fp*4)/4), hp=Math.round(hs*fp), gap=Math.max(0, mp-hp);
+    var yog=Math.round(gap/0.103/5)*5; /* nonfat Greek yogurt, USDA 10.3 g protein per 100 g, 59 cal */
+    r.half={servings:hs, calories:Math.round(hs*fc), protein:hp, gap:gap, yogurtG:yog, yogurtCal:Math.round(yog*0.59), left:Math.round(mc-hs*fc-yog*0.59)};
+  }
+  return r;
+}
+function diaryLabels(split){
+  var s=split||{}, pm=s.perMeal||{}, out=(s.names||[]).map(function(n){ return n+' · '+pm.calories+' cal · '+pm.protein+' g protein'; });
+  if(s.shake) out.push('Protein Shake · '+s.shake.calories+' cal · '+s.shake.protein+' g protein');
+  return out;
+}
 function freedomPlan(pfs, freeMeals, sex){
   var n=Math.max(MACRO_FREEDOM.included, Math.min(MACRO_FREEDOM.max, +freeMeals||MACRO_FREEDOM.included));
   var extra=n-MACRO_FREEDOM.included, cut=extra*MACRO_FREEDOM.cutPerExtra;

@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=37"></script>
+<script src="nutrition-engine.js?v=38"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3755,8 +3755,33 @@ function renderSwaps(){
     +colHTML("Protein", ch.protein, "any one = "+ch.protein.grams+"g protein")
     +colHTML("Carbs", ch.carb, "any one = "+ch.carb.grams+"g carbs")
     +colHTML("Added fat", ch.fat, "any one = "+ch.fat.grams+"g fat")
-    +'<p class="wiz-hint">Every portion comes from USDA data or the brand label. Vegetables stay unlimited.</p></details>';
-  swRun();
+    +'<p class="wiz-hint">Every portion comes from USDA data or the brand label. Vegetables stay unlimited.</p></details>'
+    +(typeof ownFoodFit==="function"?ownFoodHTML(it):'');
+  swRun(); ofRun();
+}
+/* Your own food (OWN_FOOD in the engine): type the label, get the portion that hits the meal's
+   protein and the calories left for everything else. Plus her Cronometer diary-group labels. */
+var OF_PM=null;
+function ownFoodHTML(it){
+  var sp=mealSplit(it.pfs, it.meals||it.frequency, it.shakeGrams); OF_PM=sp.perMeal;
+  return '<details style="margin-top:12px"><summary style="cursor:pointer;font-weight:600">Use your own food (even one from a box)</summary>'
+    +'<p class="wiz-hint" style="margin:8px 0">Each meal is <b>'+OF_PM.calories+' cal</b> and <b>'+OF_PM.protein+'g protein</b>. '+esc(OWN_FOOD.steps.map(function(x,i){ return (i+1)+'. '+x; }).join(' '))+'</p>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap"><div class="field" style="flex:1;min-width:120px"><label>Calories per serving</label><input class="input" id="of_cal" type="number" min="1" placeholder="from the label" oninput="ofRun()"/></div>'
+    +'<div class="field" style="flex:1;min-width:120px"><label>Protein per serving (g)</label><input class="input" id="of_pro" type="number" min="1" placeholder="from the label" oninput="ofRun()"/></div></div>'
+    +'<div id="of_out"></div>'
+    +'<p class="wiz-hint">'+esc(OWN_FOOD.proteinCheck)+'</p>'
+    +'<div class="lp-sub" style="margin:10px 0 4px">Label your Cronometer diary groups</div><ul class="mp-items">'+diaryLabels(sp).map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('')+'</ul>'
+    +'<ol class="wiz-hint" style="padding-left:18px">'+OWN_FOOD.cronometer.map(function(x){ return '<li style="margin:3px 0">'+esc(x)+'</li>'; }).join('')+'</ol>'
+    +'<p class="wiz-hint">'+esc(OWN_FOOD.gold)+'</p></details>';
+}
+function ofRun(){
+  var box=g("of_out"); if(!box||!OF_PM) return;
+  var r=ownFoodFit(OF_PM, {cal:+(g("of_cal")||{}).value, protein:+(g("of_pro")||{}).value});
+  if(!r){ box.innerHTML=''; return; }
+  var sv=function(n){ return n+' serving'+(n===1?'':'s'); };
+  box.innerHTML=r.heavy&&r.half
+    ? '<p class="wiz-hint" style="margin:6px 0"><b>'+r.density+'g protein per 100 cal</b>, under the 10 line. All '+OF_PM.protein+'g from this food would take '+sv(r.servings)+' and '+r.calories+' cal. Instead: <b>'+sv(r.half.servings)+'</b> ('+r.half.calories+' cal, '+r.half.protein+'g protein) plus <b>'+r.half.yogurtG+'g nonfat Greek yogurt</b> or another lean protein for the other '+r.half.gap+'g. That leaves <b>'+r.half.left+' cal</b> for carbs, fat and vegetables.</p>'
+    : '<p class="wiz-hint" style="margin:6px 0"><b>'+r.density+'g protein per 100 cal</b>, a lean protein. Eat <b>'+sv(r.servings)+'</b>: '+r.protein+'g protein for '+r.calories+' cal. That leaves <b>'+r.left+' cal</b> for carbs, fat and vegetables.</p>';
 }
 function renderRoadmap(){
   var card=g("roadmapCard"), box=g("roadmapBox"), it=M.intake;

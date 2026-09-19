@@ -148,6 +148,7 @@ td b{color:#fff}
 .shopitem span{display:block;color:var(--soft);font-size:.78rem}
 .note{font-size:.8rem;color:var(--soft);margin-top:8px}
 .steps{display:grid;gap:12px;counter-reset:st}
+.steps4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
 .step{padding:14px 16px;break-inside:avoid}
 .step h3{font-size:.9rem;font-weight:800;margin-bottom:6px}
 .step h3:before{counter-increment:st;content:counter(st) ". ";color:var(--gold)}
@@ -303,7 +304,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=37"></script>
+<script src="../nutrition-engine.js?v=38"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -516,6 +517,25 @@ function build(){
     '<div class="swapgrid">' + col('Protein', ch.protein, ch.protein.grams + 'g protein') + col('Carbs', ch.carb, ch.carb.grams + 'g carbs') + col('Added fat', ch.fat, ch.fat.grams + 'g fat') + '</div>' +
     '<p class="note">Vegetables stay unlimited. Every portion comes from USDA data or the brand label.</p>' + foot(8) + '</section>');
 
+  /* 6b. your own food: protein first, subtract, fill the rest (OWN_FOOD in the engine) */
+  if (typeof OWN_FOOD !== 'undefined') {
+    var sp = mealSplit(it.pfs, sel.frequency, sel.shakeGrams), mealN = sp.names[Math.min(1, sp.names.length-1)];
+    var ex = {cal:230, protein:14}, fit = ownFoodFit(perMeal, ex), lean = ownFoodFit(perMeal, {cal:170, protein:20});
+    var exHTML = fit && fit.half ?
+      '<div class="tile pr"><b>Example: breaded chicken tenders at ' + esc(mealN.toLowerCase()) + '</b><p>Your ' + esc(mealN.toLowerCase()) + ' is ' + perMeal.calories + ' cal and ' + perMeal.protein + 'g protein. Say the label reads 3 pieces: 230 calories and 14g protein. That is about 6g of protein per 100 calories, under the 10 line.</p>' +
+      '<p>Hitting all ' + perMeal.protein + 'g from tenders alone takes ' + fit.servings + ' servings and ' + fit.calories + ' calories, which is ' + (fit.left < 0 ? 'more than the whole meal' : 'almost the whole meal') + '. So let them cover half: ' + fit.half.servings + ' servings, ' + fit.half.calories + ' cal and ' + fit.half.protein + 'g protein. Add ' + fit.half.yogurtG + 'g nonfat Greek yogurt for the other ' + fit.half.gap + 'g (' + fit.half.yogurtCal + ' cal). That leaves ' + fit.half.left + ' calories for vegetables and a small carb.</p></div>' : '';
+    var leanHTML = lean ? '<div class="tile pr"><b>Same meal, a lean protein</b><p>A label that reads 170 calories and 20g protein clears the line. ' + lean.servings + ' servings hits ' + lean.protein + 'g for ' + lean.calories + ' cal, and you still have ' + lean.left + ' calories for carbs, fat and vegetables.</p></div>' : '';
+    doc.push('<section class="sheet"><span class="label">Make it yours</span><h2>Your food, <span class="gold">your numbers.</span></h2>' +
+      '<p class="intro">Any food you love can go in a meal, even one from a box. Follow the same order every time.</p>' +
+      '<div class="steps4">' + OWN_FOOD.steps.map(function(x, i){ return '<div class="tile pr"><b>' + (i+1) + '. ' + esc(x.slice(0, x.indexOf('. '))) + '</b><p>' + esc(x.slice(x.indexOf('. ')+2)) + '</p></div>'; }).join('') + '</div>' +
+      '<p class="note"><b>' + esc(OWN_FOOD.proteinCheck.split(': ')[0]) + ':</b> ' + esc(OWN_FOOD.proteinCheck.split(': ').slice(1).join(': ')) + '</p>' +
+      exHTML + leanHTML +
+      '<h3 style="margin-top:14px">Set up Cronometer once</h3>' +
+      '<div class="tile pr"><b>Your diary group labels</b>' + diaryLabels(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('') + '</div>' +
+      '<ol style="padding-left:18px;margin:8px 0">' + OWN_FOOD.cronometer.map(function(x){ return '<li style="margin:3px 0">' + esc(x) + '</li>'; }).join('') + '</ol>' +
+      '<p class="note">' + esc(OWN_FOOD.gold) + '</p>' + foot(9) + '</section>');
+  }
+
   /* 7. restaurants: her places in full, then a wider list so she is covered anywhere */
   var mine = (IN.restaurants||[]);
   var rests = mine.map(function(name){
@@ -548,12 +568,12 @@ function build(){
   doc.push('<section class="sheet"><span class="label">Eating out</span><h2>No more guessing at <span class="gold">restaurants.</span></h2>' +
     '<p class="intro">Real orders, sized to one of your meals (about ' + Math.round(lunchCal) + ' calories and ' + lunch.target.protein + 'g protein), from each restaurant\'s own published nutrition.</p>' +
     (rests ? '<h3 style="margin:14px 0 8px;font-size:.95rem">The places you told me you go</h3>' + rests : '<p class="note">No restaurants picked yet. Add the places you go and rebuild.</p>') +
-    foot(9) + '</section>');
+    foot(10) + '</section>');
   doc.push('<section class="sheet"><span class="label">Eating out · everywhere else</span><h2>Covered <span class="gold">anywhere you end up.</span></h2>' +
     '<p class="intro">One order that works at ' + (more.match(/mrow/g)||[]).length + ' more places, sized to the same meal. Someone else picks the restaurant, you already know what you are having.</p>' +
     '<div class="mlist">' + more + '</div>' +
     '<h3 style="margin:14px 0 6px;font-size:.95rem">The rules that work anywhere</h3><ul class="rules">' +
-    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot(10) + '</section>');
+    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot(11) + '</section>');
 
   /* 8. next steps */
   doc.push('<section class="sheet"><span class="label">From here</span><h2>Your system <span class="gold">keeps up with you.</span></h2>' +
@@ -573,7 +593,7 @@ function build(){
       nextLink('Apply for Built 4 More', 'Want a coach in your corner? Apply for 1:1 coaching. The $497 you invested in this system comes off the top.', 'Apply now', NEXT_LINKS.apply) +
     '</div>' +
     '<p class="note" style="margin-top:22px">Educational coaching guidance, not medical advice. Individual results vary. Consult your physician before changing your diet, especially with a medical condition.</p>' +
-    foot(11) + '</section>');
+    foot(12) + '</section>');
 
   $('doc').innerHTML = doc.join('');
   $('status').innerHTML = IN.example
