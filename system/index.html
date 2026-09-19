@@ -437,7 +437,7 @@ function build(){
     '<p class="intro">You do not have to count anything. The numbers are already inside the meals. Your job is to eat the portions, check in weekly, and rebuild when life changes.</p>' +
     '<div class="principles">' +
       '<div class="tile pr"><b>Protein on autopilot</b><p>Every meal is built around your protein, about ' + perMeal.protein + 'g a meal, so you hit ' + IN.pro + 'g without thinking about it.</p></div>' +
-      '<div class="tile pr"><b>Nourishment made simple</b><p>' + (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '') + (deck.glp1 ? 'That covers your fiber and micronutrients. On your GLP-1 the vegetables are already portioned smaller, so eat what the meal lists and do not force extra.' : 'That covers your fiber and micronutrients. Vegetables are unlimited.') + '</p></div>' +
+      '<div class="tile pr"><b>Nourishment made simple</b><p>' + (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '') + (deck.glp1 ? 'That covers your fiber and micronutrients. Your vegetables are already portioned smaller for your appetite, so eat what the meal lists and do not force extra.' : 'That covers your fiber and micronutrients. Vegetables are unlimited.') + '</p></div>' +
       '<div class="tile pr"><b>Carbs and fats, done for you</b><p>Every option is already balanced. All you do is stick to the portions.</p></div>' +
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
@@ -456,8 +456,8 @@ function build(){
       (x.add.length ? '<p><b>Easy adds:</b> ' + esc(x.add.join(', ')) + '.</p>' : '') +
       '<p><b>Supplement option:</b> ' + esc(x.supp) + '</p></div>'; }).join('') + '</div>' +
     '<p class="note">' + esc(NUTRIENT_NOTE.huel) + ' ' + esc(NUTRIENT_NOTE.provider) + '</p>' + foot() + '</section>');
-  if (deck.glp1 && typeof GLP1 !== 'undefined') doc.push('<section class="sheet"><span class="label">Built around your GLP-1</span><h2>Same numbers. <span class="gold">Easier to finish.</span></h2>' +
-    '<p class="intro">You told us you are on a GLP-1. Your appetite is smaller, so volume becomes the limit, and this system is built for that. Your calories and protein have not changed. What changed is how the food is put together, so you can actually eat it.</p>' +
+  if (deck.glp1 && typeof GLP1 !== 'undefined') doc.push('<section class="sheet"><span class="label">Built for a smaller appetite</span><h2>Same numbers. <span class="gold">Easier to finish.</span></h2>' +
+    '<p class="intro">You told us your supplementation has made your appetite smaller. That makes volume the limit, and this system is built for that. Your calories and protein have not changed. What changed is how the food is put together, so you can actually eat it.</p>' +
     '<div class="steps4">' + GLP1.changes.map(function(x){ return '<div class="tile pr"><b>' + esc(x[0]) + '</b><p>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>' +
     '<div class="tile pr"><b>What this changes in your system</b><p>Every vegetable portion in your meals is already 20% smaller. Oats, whole wheat and beans have been moved to the back or swapped for rice, potatoes and sourdough' + (/vegan|vegetarian/i.test(sel.style||'') ? ' (you keep your beans, lentils and chickpeas, because for you they carry protein)' : '') + '. Your shopping list, prep guide and swap guide are built from the same adjusted meals.</p></div>' +
     '<p class="note">' + esc(GLP1.provider) + '</p>' + foot() + '</section>');
@@ -496,7 +496,7 @@ function build(){
     return '<div class="tile opt"><span class="on">' + esc(c.name) + '</span><ul>' + c.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(c) + cronLink(c) + '</div>';
   }).join('');
   doc.push('<section class="sheet"><span class="label">Your meals</span><h2>Meal plans for <span class="gold">every goal.</span></h2>' +
-    '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day.' + (deck.glp1 ? ' <b>Adjusted for your GLP-1:</b> smaller vegetable portions and easier carbs, same calories and protein.' : '') + ' Every meal has at least one <b>No cooking</b> option: raw vegetables, fruit you can hold and store-bought basics, put together in five minutes. Every snack is no-cook too.</p>' + slotsHTML +
+    '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day.' + (deck.glp1 ? ' <b>Adjusted for your appetite:</b> smaller vegetable portions and easier carbs, same calories and protein.' : '') + ' Every meal has at least one <b>No cooking</b> option: raw vegetables, fruit you can hold and store-bought basics, put together in five minutes. Every snack is no-cook too.</p>' + slotsHTML +
     (snacks ? '<div class="slot"><div class="slot-h"><h3>Snacks and protein boosters</h3><span>for the days you come up short</span></div><div class="opts">' + snacks + '</div></div>' : '') +
     foot() + '</section>');
 
@@ -534,7 +534,7 @@ function build(){
   doc.push('<section class="sheet"><span class="label">Swap guide</span><h2>Tired of a food? <span class="gold">Trade it.</span></h2>' +
     '<p class="intro">Each column is one meal\'s worth. Swap protein for protein, carbs for carbs, fat for fat, and the meal still hits your numbers.</p>' +
     '<div class="swapgrid">' + col('Protein', ch.protein, ch.protein.grams + 'g protein') + col('Carbs', ch.carb, ch.carb.grams + 'g carbs') + col('Added fat', ch.fat, ch.fat.grams + 'g fat') + '</div>' +
-    '<p class="note">' + (deck.glp1 ? 'Vegetables are portioned for your GLP-1. ' : 'Vegetables stay unlimited. ') + 'Every portion comes from USDA data or the brand label.</p>' + foot() + '</section>');
+    '<p class="note">' + (deck.glp1 ? 'Vegetables are portioned for your appetite. ' : 'Vegetables stay unlimited. ') + 'Every portion comes from USDA data or the brand label.</p>' + foot() + '</section>');
 
   /* 6b. your own food: protein first, subtract, fill the rest (OWN_FOOD in the engine) */
   if (typeof OWN_FOOD !== 'undefined') {
