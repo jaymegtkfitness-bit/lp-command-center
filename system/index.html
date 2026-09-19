@@ -289,6 +289,7 @@ td b{color:#fff}
             <select id="in-glp1"><option value="">Not on one</option><option value="on">On a GLP-1 now</option></select></div>
         </div>
         <div class="pickgroup"><div class="glabel">Allergies</div><div class="pills" id="pk-allergies"></div></div>
+        <div class="pickgroup"><div class="glabel">Flagged low on labs or genetics</div><div class="pills" id="pk-lownut"></div></div>
         <div class="pickgroup"><div class="glabel">Proteins she likes</div><div class="pills" id="pk-protein"></div></div>
         <div class="pickgroup"><div class="glabel">Carbs she likes</div><div class="pills" id="pk-carb"></div></div>
         <div class="pickgroup"><div class="glabel">Fruit she likes</div><div class="pills" id="pk-fruit"></div></div>
@@ -306,7 +307,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=39"></script>
+<script src="../nutrition-engine.js?v=40"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -447,6 +448,14 @@ function build(){
     foot() + '</section>');
 
   /* 2b. the macro freedom framework */
+  var NF = (typeof nutrientFocus === 'function') ? nutrientFocus(IN.lowNutrients || [], deck, sel) : [];
+  if (NF.length) doc.push('<section class="sheet"><span class="label">Your nutrient focus</span><h2>Food first. <span class="gold">Then supplements.</span></h2>' +
+    '<p class="intro">' + esc(NUTRIENT_NOTE.how) + ' Your labs or genetic report flagged ' + esc(NF.map(function(x){ return x.key; }).join(', ').replace(/, ([^,]*)$/, ' and $1')) + '. Here is how your system covers ' + (NF.length > 1 ? 'them' : 'it') + '.</p>' +
+    '<div class="steps4">' + NF.map(function(x){ return '<div class="tile pr"><b>' + esc(cap(x.key)) + '</b><p>' + esc(x.food) + '</p>' +
+      (x.inPlan.length ? '<p><b>Already in your meals:</b> ' + esc(x.inPlan.join(', ')) + '.</p>' : '') +
+      (x.add.length ? '<p><b>Easy adds:</b> ' + esc(x.add.join(', ')) + '.</p>' : '') +
+      '<p><b>Supplement option:</b> ' + esc(x.supp) + '</p></div>'; }).join('') + '</div>' +
+    '<p class="note">' + esc(NUTRIENT_NOTE.huel) + ' ' + esc(NUTRIENT_NOTE.provider) + '</p>' + foot() + '</section>');
   if (deck.glp1 && typeof GLP1 !== 'undefined') doc.push('<section class="sheet"><span class="label">Built around your GLP-1</span><h2>Same numbers. <span class="gold">Easier to finish.</span></h2>' +
     '<p class="intro">You told us you are on a GLP-1. Your appetite is smaller, so volume becomes the limit, and this system is built for that. Your calories and protein have not changed. What changed is how the food is put together, so you can actually eat it.</p>' +
     '<div class="steps4">' + GLP1.changes.map(function(x){ return '<div class="tile pr"><b>' + esc(x[0]) + '</b><p>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>' +
@@ -596,6 +605,7 @@ function build(){
     '<div class="panel storage" style="margin-top:16px"><b>The 85% standard.</b> ' + esc(CONSISTENCY_STANDARD.headline) + ' ' + esc(CONSISTENCY_STANDARD.subline) +
       '<ul class="rules" style="margin-top:6px">' + CONSISTENCY_STANDARD.looksLike.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' +
       '<span>' + esc(CONSISTENCY_STANDARD.under) + '</span></div>' +
+    (NF.length ? '' : '<p class="note" style="margin-top:10px"><b>Sharpen it with labs and genetics.</b> ' + esc(NUTRIENT_NOTE.how) + ' Share your bloodwork or a genetic report and your next build adds a nutrient focus page.</p>') +
     '<h3 style="margin:22px 0 4px;font-size:.95rem">Your next steps</h3>' +
     '<div class="nextlinks">' +
       nextLink('Read the Didache', 'Free with your purchase. The whole Legacy Performance system in one read: the phases, the pillars and why it works.', 'Download free', NEXT_LINKS.didache) +
@@ -633,6 +643,7 @@ function fillBuilder(){
   pills('pk-fat', FOOD_DB.fat.map(function(f){ return f.n; }), 'fat');
   pills('pk-veg', FOOD_DB.veg, 'veg');
   pills('pk-allergies', ['dairy','egg','fish','shellfish','soy','gluten','nut','peanut','sesame'], 'allergies', cap);
+  if (typeof NUTRIENT_GUIDE !== 'undefined') pills('pk-lownut', Object.keys(NUTRIENT_GUIDE), 'lowNutrients', cap);
   pills('pk-rest', restaurantChains(), 'restaurants');
 }
 document.addEventListener('click', function(e){

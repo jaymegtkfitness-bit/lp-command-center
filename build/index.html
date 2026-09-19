@@ -1189,6 +1189,23 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <input type="text" id="glp1when" placeholder="e.g. eight months on, or came off three months ago">
       </div></div>
 
+    <div class="medq"><p class="q">Have you had bloodwork or a genetic test?</p>
+      <p class="why">Optional, and it makes your build sharper. Your genetics show what you tend toward. Your bloodwork shows where you are right now. Together they tell us which vitamins and minerals to build into your food on purpose.</p>
+      <div class="opts" data-single="labs" style="margin:4px 0 0">
+        <label class="opt on" data-v="none"><span class="dot"></span><span><span class="t">Not yet</span></span></label>
+        <label class="opt" data-v="bloodwork"><span class="dot"></span><span><span class="t">Bloodwork in the last 6 months</span></span></label>
+        <label class="opt" data-v="genetics"><span class="dot"></span><span><span class="t">A genetic test</span></span></label>
+        <label class="opt" data-v="both"><span class="dot"></span><span><span class="t">Both</span></span></label>
+        <label class="opt" data-v="interested"><span class="dot"></span><span><span class="t">Not yet, but I would like to</span>
+          <span class="d">We offer both. Bring it up on your call.</span></span></label>
+      </div>
+      <p class="q" style="margin-top:14px;font-size:.95em">Did anything come back low? Check any that apply.</p>
+      <div class="pills" data-multi="lownut">
+        <span class="pill">Vitamin D</span><span class="pill">Vitamin B12</span><span class="pill">Iron</span><span class="pill">Folate</span>
+        <span class="pill">Magnesium</span><span class="pill">Omega-3</span><span class="pill">Calcium</span><span class="pill">Zinc</span>
+      </div>
+      <div class="warn ok show" style="margin-top:12px">Anything you check gets its own page in your system: the foods that cover it, which of your meals already carry it, and a supplement option if food alone will not get you there. Your provider reads your labs and sets any dose.</div></div>
+
     <div class="medq"><p class="q">Have you had an eating disorder in the past five years?</p>
       <p class="why">You can absolutely have a plan. The question is what it is allowed to show you.</p>
       <div class="yn" data-med="ed"><button type="button" data-v="no">No</button><button type="button" data-v="yes">Yes</button></div>
@@ -1686,7 +1703,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 <!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=39"></script>
+<script src="../nutrition-engine.js?v=40"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK =================== */
 const CONFIG = {
@@ -1902,7 +1919,7 @@ function wireSingle(box, key){
 /* ===================== GLP-1 ===================== */
 const GLP1_COPY = {
   on:  'Then the plan gets built around appetite, not willpower. Protein first and highest priority, '
-     + 'smaller volume per meal, and easier-to-tolerate foods, because the risk on a GLP-1 is not '
+     + 'smaller volume per meal: vegetables portioned 20% smaller, and rice and potatoes ahead of oats, whole wheat and beans, because the risk on a GLP-1 is not '
      + 'overeating. It is under-eating protein and losing muscle alongside the fat. That is the thing '
      + 'your plan has to prevent.',
   off: 'This is the part almost nobody gets taught, and it is where most of the weight comes back. '
@@ -1992,7 +2009,7 @@ renderObstacles();
 /* ===================== GLP-1 ===================== */
 const GLP1_COPY = {
   on:  'Then the plan gets built around appetite, not willpower. Protein first and highest priority, '
-     + 'smaller volume per meal, and easier-to-tolerate foods, because the risk on a GLP-1 is not '
+     + 'smaller volume per meal: vegetables portioned 20% smaller, and rice and potatoes ahead of oats, whole wheat and beans, because the risk on a GLP-1 is not '
      + 'overeating. It is under-eating protein and losing muscle alongside the fat. That is the thing '
      + 'your plan has to prevent.',
   off: 'This is the part almost nobody gets taught, and it is where most of the weight comes back. '
@@ -2962,7 +2979,12 @@ function payload(status){
     medicalFlags:medYes, medicalNote:val('meds'),
     glp1:S.glp1, glp1Detail:val('glp1when'), menopause:(S.med.meno === 'yes'),
     cuisines:(M.cuisines||[]).join(', '),
-    notes:val('extra'), signature:val('sig'),
+    labs:S.labs||'none', lowNutrients:(S.multi.lownut||[]).join(', '),
+    notes:[val('extra'),
+      (S.glp1 && S.glp1!=='no') ? 'GLP-1: '+S.glp1+(val('glp1when')?' ('+val('glp1when')+')':'') : '',
+      (S.labs && S.labs!=='none') ? 'Labs/genetics: '+S.labs : '',
+      (S.multi.lownut||[]).length ? 'Flagged low: '+S.multi.lownut.join(', ') : ''].filter(Boolean).join(' | '),
+    signature:val('sig'),
     source:'nutrition-plan', ref:location.search || ''
   };
 }

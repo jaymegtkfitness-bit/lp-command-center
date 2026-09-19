@@ -1198,6 +1198,7 @@ var GLP1={vegFactor:0.8,
   provider:'Anything about your medication, including your dose, goes to your prescribing provider. This plan is the food side.'};
 /* Read the GLP-1 answer from an intake row, whatever the column is called ('on', 'On one now', 'Yes'). */
 function glp1FromIntake(row){ row=row||{}; var v=row.glp1||row['GLP-1']||row['GLP1']||row['Glp1']||row['GLP-1 status']||'';
+  if(!v){ var m=String(row.Notes||row.notes||'').match(/GLP-1:\s*(\w+)/i); if(m) v=m[1]; }
   return /^(on|yes|true|1|on one now|currently)/i.test(String(v).trim()) ? 'on' : ''; }
 function glp1On(sel){ var v=String((sel||{}).glp1||'').toLowerCase(); return v==='on' || v==='yes' || v==='true' || v==='1'; }
 function glp1Order(list, first, later){
@@ -2080,6 +2081,70 @@ function diaryLabels(split){
   var s=split||{}, pm=s.perMeal||{}, out=(s.names||[]).map(function(n){ return n+' · '+pm.calories+' cal · '+pm.protein+' g protein'; });
   if(s.shake) out.push('Protein Shake · '+s.shake.calories+' cal · '+s.shake.protein+' g protein');
   return out;
+}
+/* NUTRIENT FOCUS (Jayme 2026-09-19). When her bloodwork or genetic report flags a nutrient, the system
+   meets it with food first and names a supplement option second. General wellness education only:
+   we never read labs or set doses, her provider does. Supplement options follow brand_engine 6.6b
+   (Thorne by product, Huel as the all-in-one). DRAFT content for Jayme's review; the Lumyn genetic
+   report will map onto these same keys. */
+var NUTRIENT_GUIDE={
+  'vitamin D':{foods:['salmon','whole eggs','sardines','canned tuna','mushrooms'],
+    food:'Salmon, eggs and sardines carry the most. Food alone rarely covers a low vitamin D, so sunlight and a supplement usually do the heavy lifting.',
+    supp:'Vitamin D3, often paired with K2 (Thorne D/K2).'},
+  'vitamin B12':{foods:['sirloin steak','96% ground beef','salmon','canned tuna','whole eggs','nonfat Greek yogurt','low-fat cottage cheese','shrimp'],
+    food:'B12 comes almost entirely from animal foods: beef, fish, eggs and dairy. Plant-based eaters need a supplement or fortified foods.',
+    supp:'Vitamin B12 as methylcobalamin (Thorne B12).'},
+  'iron':{foods:['sirloin steak','96% ground beef','ground bison','flank steak','lentils','black beans','chickpeas','spinach'],
+    food:'Red meat carries the iron your body absorbs best. Beans, lentils and spinach help more when you eat them with vitamin C, like berries, peppers or an orange. Keep coffee and tea an hour away from those meals.',
+    supp:'Iron only when your provider confirms you are low, because iron can build up. A gentle form like iron bisglycinate (Thorne Iron Bisglycinate).'},
+  'folate':{foods:['spinach','lentils','black beans','chickpeas','asparagus','avocado','orange','broccoli'],
+    food:'Leafy greens, beans, lentils, asparagus and avocado are the richest sources.',
+    supp:'Methylfolate, the active form, especially if your genetics show you convert folate slowly (Thorne 5-MTHF, or a multivitamin that uses methylfolate).'},
+  'magnesium':{foods:['pumpkin seeds','almonds','cashews','spinach','black beans','dark chocolate','edamame','avocado'],
+    food:'Pumpkin seeds, almonds, cashews, spinach and beans carry the most. A square of dark chocolate counts.',
+    supp:'Magnesium glycinate, the gentle form, often taken in the evening (Thorne Magnesium Bisglycinate).'},
+  'omega-3':{foods:['salmon','sardines','chia seeds','walnuts','flaxseed','hemp seeds'],
+    food:'Two fish meals a week, salmon or sardines, plus chia, flax or walnuts on the other days.',
+    supp:'Fish oil (Thorne), already part of the Foundations bundle.'},
+  'calcium':{foods:['nonfat Greek yogurt','2% Greek yogurt','low-fat cottage cheese','cheese','milk','extra-firm tofu','sardines'],
+    food:'Greek yogurt, cottage cheese, cheese and calcium-set tofu. Two dairy servings a day covers most people.',
+    supp:'Food first. If you cannot get there with food, your provider can suggest a calcium supplement and how much.'},
+  'zinc':{foods:['sirloin steak','96% ground beef','ground bison','pumpkin seeds','cashews','chickpeas','whole eggs','shrimp'],
+    food:'Beef and bison lead, then pumpkin seeds, cashews and chickpeas.',
+    supp:'Zinc picolinate (Thorne Zinc Picolinate). Long-term zinc is best taken with your provider in the loop.'}
+};
+var NUTRIENT_NOTE={
+  how:'Your genetics show what you tend toward. Your bloodwork shows where you are right now. Together they tell us which nutrients to build into your food on purpose, and when a supplement makes sense.',
+  provider:'This is general education, not medical advice. Your provider reads your labs and sets any dose. Legacy Performance may earn from partner links (Thorne, Huel, Equip).',
+  huel:'On Huel every day? It carries 27 vitamins and minerals, so skip a separate multivitamin. Huel or a multi, not both.'
+};
+/* Flagged nutrients from an intake row: its own column if the sheet has one, else the Notes line. */
+function nutrientsFromIntake(row){ row=row||{}; var v=row.lowNutrients||row['Low nutrients']||row['Flagged low']||'';
+  if(!v){ var m=String(row.Notes||row.notes||'').match(/Flagged low:\s*([^|]+)/i); if(m) v=m[1]; }
+  return nutrientKeys(v); }
+function nutrientKeys(list){
+  var map={'vitamin d':'vitamin D','d':'vitamin D','b12':'vitamin B12','vitamin b12':'vitamin B12','iron':'iron','ferritin':'iron','iron/ferritin':'iron',
+    'folate':'folate','folic acid':'folate','mthfr':'folate','magnesium':'magnesium','omega-3':'omega-3','omega 3':'omega-3','calcium':'calcium','zinc':'zinc'};
+  return (Array.isArray(list)?list:String(list||'').split(/[,|;]/)).map(function(x){ return map[String(x).trim().toLowerCase()]; })
+    .filter(function(k, i, a){ return k && a.indexOf(k)===i; });
+}
+function nutrientFocus(list, deck, sel){
+  sel=sel||{};
+  var ok=function(f){
+    var all=['protein','carb','fat','fruit'].reduce(function(a,c){ return a.concat((FOOD_DB[c]||[]).map(function(x){ return x.n; })); }, []);
+    if(all.indexOf(f)>=0){ return ['protein','carb','fat','fruit'].some(function(c){ return safeFoods(c, sel.style, sel.allergies).some(function(x){ return x.n===f; }); }); }
+    if(/vegan|vegetarian/i.test(sel.style||'') && /sardine|salmon|tuna|shrimp|beef|bison|steak/.test(f)) return false;
+    if(/vegan/i.test(sel.style||'') && /egg|yogurt|cheese|milk/.test(f)) return false;
+    return true; };
+  /* which flagged nutrients, the foods already in her plan that carry each, and what else to add */
+  var inPlan={};
+  ((deck&&deck.slots)||[]).concat((deck&&deck.companions)?[{options:deck.companions}]:[]).forEach(function(sl){
+    (sl.options||[]).forEach(function(o){ (o.parts||[]).forEach(function(pt){ inPlan[String(pt.n).toLowerCase()]=1; }); });
+  });
+  return nutrientKeys(list).map(function(k){
+    var g=NUTRIENT_GUIDE[k], has=g.foods.filter(function(f){ return inPlan[f.toLowerCase()] || Object.keys(inPlan).some(function(n){ return n.indexOf(f.toLowerCase())>=0; }); });
+    return {key:k, food:g.food, supp:g.supp, inPlan:has, add:g.foods.filter(function(f){ return has.indexOf(f)<0 && ok(f); }).slice(0,4)};
+  });
 }
 function freedomPlan(pfs, freeMeals, sex){
   var n=Math.max(MACRO_FREEDOM.included, Math.min(MACRO_FREEDOM.max, +freeMeals||MACRO_FREEDOM.included));

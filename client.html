@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=39"></script>
+<script src="nutrition-engine.js?v=40"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3689,6 +3689,7 @@ function openMySystem(){
     style:c['Eating style']||'', allergies:list(c['Allergen keys']),
     protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fruit:list(f.fruit||c['Fruits']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
     restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
+  inp.lowNutrients=(typeof nutrientsFromIntake==='function') ? nutrientsFromIntake(c) : [];
   inp.glp1=(typeof glp1FromIntake==='function') ? (glp1FromIntake(c) || glp1FromIntake(it) || ((typeof DEEP!=='undefined' && DEEP && DEEP.glp1==='On one now') ? 'on' : '')) : '';
   window.open(systemLink(inp,'system/'),'_blank');
 }
@@ -3757,11 +3758,24 @@ function renderSwaps(){
     +colHTML("Carbs", ch.carb, "any one = "+ch.carb.grams+"g carbs")
     +colHTML("Added fat", ch.fat, "any one = "+ch.fat.grams+"g fat")
     +'<p class="wiz-hint">Every portion comes from USDA data or the brand label. Vegetables stay unlimited.</p></details>'
-    +(typeof ownFoodFit==="function"?ownFoodHTML(it):'');
+    +(typeof ownFoodFit==="function"?ownFoodHTML(it):'')
+    +(typeof nutrientFocus==="function"?nutrientHTML():'');
   swRun(); ofRun();
 }
 /* Your own food (OWN_FOOD in the engine): type the label, get the portion that hits the meal's
    protein and the calories left for everything else. Plus her Cronometer diary-group labels. */
+/* Nutrient focus: what her labs or genetics flagged, food first, then a supplement option (engine NUTRIENT_GUIDE). */
+function nutrientHTML(){
+  var c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
+  var NF=nutrientFocus(nutrientsFromIntake(c), null, {style:c['Eating style']||'', allergies:String(c['Allergen keys']||'').split(',').map(function(x){return x.trim();}).filter(Boolean)});
+  if(!NF.length) return '<p class="wiz-hint" style="margin-top:12px"><b>Sharpen it with labs and genetics.</b> '+esc(NUTRIENT_NOTE.how)+' Share your bloodwork or a genetic report and your next build adds a nutrient focus.</p>';
+  return '<details style="margin-top:12px" open><summary style="cursor:pointer;font-weight:600">Your nutrient focus: '+esc(NF.map(function(x){return x.key;}).join(', '))+'</summary>'
+    +NF.map(function(x){ return '<div style="margin:10px 0"><div class="lp-sub">'+esc(x.key.charAt(0).toUpperCase()+x.key.slice(1))+'</div>'
+      +'<p class="wiz-hint" style="margin:4px 0">'+esc(x.food)+'</p>'
+      +(x.add.length?'<p class="wiz-hint" style="margin:4px 0"><b>Foods to lean on:</b> '+esc(x.add.join(', '))+'.</p>':'')
+      +'<p class="wiz-hint" style="margin:4px 0"><b>Supplement option:</b> '+esc(x.supp)+'</p></div>'; }).join('')
+    +'<p class="wiz-hint">'+esc(NUTRIENT_NOTE.huel)+' '+esc(NUTRIENT_NOTE.provider)+'</p></details>';
+}
 var OF_PM=null;
 function ownFoodHTML(it){
   var sp=mealSplit(it.pfs, it.meals||it.frequency, it.shakeGrams); OF_PM=sp.perMeal;
