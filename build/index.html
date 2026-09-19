@@ -2940,7 +2940,10 @@ function payload(status){
       ? SEASON.work + ' lb · ' + SEASON.weeks + ' wks fat loss · ' + SEASON.seasons + ' Lean season(s)'
       : SEASON.work + ' lb · reverse first') : '',
     /* computed targets */
-    calories:t.calories, protein:t.protein, carbs:t.carbs, fat:t.fat,
+    /* 'carbs' is the carb FOOD list: the sheet's Carbs column is foods, like Proteins and Fats.
+       The gram target travels as carbTarget (it used to overwrite her carb picks with a number). */
+    calories:t.calories, protein:t.protein, carbTarget:t.carbs, fat:t.fat,
+    carbs:(M.carbs||[]).concat(M.fruits||[]).join(', '),
     tdee:t.tdee, produce:t.produce, multiplier:t.multiplier,
     /* status flags: how the build must differ */
     statusFlags:(F.list||[]).map(x => x.k).join(', '),
