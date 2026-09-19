@@ -499,7 +499,7 @@ var MEAL_TEMPLATES=[
    fat:['avocado','hummus','cheese'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Wrap'; }, needs:['flour tortilla']},
   {id:'nc_plate', slot:'pm', nocook:true, veg:true, protein:['canned tuna','canned chicken','deli turkey'], carb:['chickpeas','rice cakes','whole-wheat bread'],
    fat:['hummus','avocado','olives'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' and '+mealNice(r.f||'hummus')+' Plate'; }},
-  {id:'nc_plant', slot:'pm', nocook:true, veg:true, protein:['edamame','extra-firm tofu','plant protein powder','2% Greek yogurt','low-fat cottage cheese'], carb:['chickpeas','black beans','whole-wheat bread'],
+  {id:'nc_plant', slot:'pm', nocook:true, veg:true, protein:['edamame','extra-firm tofu','plant protein powder','2% Greek yogurt','low-fat cottage cheese'], carb:['chickpeas','black beans','whole-wheat bread','sourdough','rice cakes'],
    fat:['hummus','avocado'], vegs:RAW_VEG, lead:['edamame','extra-firm tofu'], boost:['plant protein powder'],
    name:function(r){ return mealNice(r.p)+' and '+mealNice(r.c||'chickpeas')+' Salad'; }},
   {id:'grainbowl', slot:'pm', veg:true, protein:['extra-firm tofu','tempeh','seitan','edamame'], carb:['lentils','chickpeas','quinoa','black beans'],
@@ -652,6 +652,7 @@ function recipeOption(r, target, sel, slot){
   var items=[], parts=[];
   ing.forEach(function(g){
     var sc=(g[3]==='ps') ? Math.min(s, 1.5) : s;
+    if(g[3]==='vg' && glp1On(sel)) sc*=GLP1.vegFactor;   /* GLP-1: vegetables 20% smaller */
     var q=recipeQty(g[0]*sc, g[1], g[2]);
     if(g[1]!=='taste') items.push(recipeLine(q, g[1], g[2], g[4]));
     parts.push({n:g[2], units:q, u:g[1], gpe:g[4]||0, whole:!g[1]||g[1]==='ea', sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id});
@@ -659,8 +660,9 @@ function recipeOption(r, target, sel, slot){
   var gap=tCal-tot.kcal;
   if(gap > tCal*0.05 && r.sides && r.sides.length){
     var carbs=safeFoods('carb', sel.style, sel.allergies), picks=sel.carb||[];
+    var later=function(f){ return glp1On(sel) && GLP1.carbLater.indexOf(f.n)>=0 && !/vegan|vegetarian/i.test(sel.style||'') ? 2 : 0; };  /* GLP-1: easier sides first */
     var sides=r.sides.map(function(n){ return carbs.filter(function(f){ return f.n===n; })[0]; }).filter(Boolean)
-      .sort(function(a,b){ return (picks.indexOf(a.n)>=0?0:1)-(picks.indexOf(b.n)>=0?0:1); });
+      .sort(function(a,b){ return (later(a)+(picks.indexOf(a.n)>=0?0:1))-(later(b)+(picks.indexOf(b.n)>=0?0:1)); });
     var sf=sides[0];
     if(sf){
       var mm=macrosOf(sf, Math.min(sf.max||2, gap/sf.kcal));
@@ -701,7 +703,8 @@ function recipeCandidates(slotKind, sel, k, used, slotName){
       var pref=star.some(function(n){ return proteinFamily(n)===proteinFamily(x.r.lead); }) ? 0 : 1;
       /* Dinner should read like dinner: a cooked meal beats a cold salad at the end of the day. */
       var heat=(slotName==='Dinner') ? (x.r.hot?0:40) : (slotName==='Lunch' && x.r.hot ? 8 : 0);
-      return {r:x.r, score:pref*100 + heat + (used[x.r.id]?50:0) + ((x.i*7 + k*11) % 37)};
+      var bulk=glp1On(sel) && (x.r.ing||[]).some(function(g){ return /oat|bean|lentil|chickpea|whole.wheat|barley|quinoa|bran/.test(g[2]); }) ? 60 : 0;
+      return {r:x.r, score:pref*100 + bulk + heat + (used[x.r.id]?50:0) + ((x.i*7 + k*11) % 37)};
     }).sort(function(a,b){ return a.score-b.score; }).map(function(x){ return x.r; });
 }
 
@@ -1103,7 +1106,7 @@ function buildOption(P, C, F, V, target, slot, seed, vegIndex, tierMax, star, ch
   var items=rPro.items.concat(rCarb.items, rFat.items);
   var parts=(rPro.parts||[]).concat(rCarb.parts||[], rFat.parts||[]);
   if(V && V.length){
-    var vn=V[vegIndex%V.length], vc=(slot==='am'?1:1.5), vg=vegGrams(vn, vc);
+    var vn=V[vegIndex%V.length], vc=(slot==='am'?1:1.5)*(V.scale||1), vg=vegGrams(vn, vc);
     items.push(vg+' g '+vn);
     parts.push({n:vn, veg:true, cups:vc, grams:vg});
   }
@@ -1176,8 +1179,43 @@ function generateCompanions(sel, count, name){
 /* THE deliverable. Returns a 7-day plan expressed as a deck of options.
    it = {pfs:{calories,protein,carbs,fat}}
    sel = {protein:[],carb:[],fat:[],veg:[], style, allergies, frequency, shakeGrams} */
+/* GLP-1 SWITCH (Jayme 2026-09-19). On a GLP-1 the appetite is small, so volume becomes the limit.
+   The plan keeps protein exactly where it is and makes the rest easier to finish:
+   vegetables down 20% and the lower-fiber ones first; carbs lean to rice and potatoes, away from
+   oats, whole wheat and beans. Same calories, same protein. Clinical questions go to her provider. */
+var GLP1={vegFactor:0.8,
+  vegFirst:['zucchini','spinach','green beans','carrots','cucumber','peppers','mushrooms','tomatoes','asparagus'],
+  vegLater:['broccoli','cauliflower','cabbage','brussels sprouts','salad greens'],
+  carbFirst:['white rice','potatoes','cream of rice','sweet potato','sourdough','bagel','English muffin','rice cakes','couscous','white pasta','corn tortilla','flour tortilla','butternut squash'],
+  carbLater:['oats','whole-wheat bread','whole-wheat pasta','barley','lentils','black beans','pinto beans','kidney beans','chickpeas','green peas','quinoa','brown rice','granola','popcorn','corn'],
+  changes:[['Protein stays where it is','It is the most important number in your plan, so every meal starts with it.'],
+    ['Vegetables 20% smaller','The easier ones come first: zucchini, spinach, green beans, carrots, cucumber and peppers ahead of broccoli, cauliflower, cabbage and brussels sprouts.'],
+    ['Easier carbs','White rice, potatoes, cream of rice and sourdough ahead of oats, whole wheat and beans. Same calories, less bulk.'],
+    ['Protein first on the plate','Eat the protein first, then the rest. If you cannot finish a meal, the protein is the part that matters.'],
+    ['Smaller meals are fine','If a meal is too much, split it in two and eat the second half an hour or two later.'],
+    ['Your shake counts','On a low-appetite day, drinking protein is easier than chewing it.'],
+    ['Water through the day','Sip it between meals, not only at them.']],
+  provider:'Anything about your medication, including your dose, goes to your prescribing provider. This plan is the food side.'};
+/* Read the GLP-1 answer from an intake row, whatever the column is called ('on', 'On one now', 'Yes'). */
+function glp1FromIntake(row){ row=row||{}; var v=row.glp1||row['GLP-1']||row['GLP1']||row['Glp1']||row['GLP-1 status']||'';
+  return /^(on|yes|true|1|on one now|currently)/i.test(String(v).trim()) ? 'on' : ''; }
+function glp1On(sel){ var v=String((sel||{}).glp1||'').toLowerCase(); return v==='on' || v==='yes' || v==='true' || v==='1'; }
+function glp1Order(list, first, later){
+  var f=function(n){ var a=first.indexOf(n), b=later.indexOf(n); return a>=0 ? a : (b>=0 ? 100+b : 50); };
+  return list.slice().sort(function(x,y){ return f(x)-f(y); });
+}
 function generateMealOptions(it, sel, name){
   var p=it.pfs; sel=withFruit(sel||{});
+  var GLP=glp1On(sel);
+  /* Plant-based eaters keep beans, lentils and chickpeas: for them those are protein, not bulk. */
+  var LATER=/vegan|vegetarian/i.test(sel.style||'') ? GLP1.carbLater.filter(function(n){ return !/beans|lentils|chickpeas|green peas/.test(n); }) : GLP1.carbLater;
+  if(GLP){
+    /* her carbs, the easier ones first; the high-fiber ones only if nothing else is left */
+    var fruitN=(FOOD_DB.fruit||[]).map(function(f){ return f.n; });
+    var cp=(sel.carb||[]), keep=cp.filter(function(n){ return LATER.indexOf(n)<0; });
+    if(keep.filter(function(n){ return fruitN.indexOf(n)<0; }).length<2) keep=keep.concat(['white rice','potatoes'].filter(function(n){ return keep.indexOf(n)<0; }));
+    sel=Object.assign({}, sel, {carb:glp1Order(cp.length?keep:[], GLP1.carbFirst, LATER)});
+  }
   var S=mealSplit(p, sel.frequency, sel.shakeGrams);
   /* Meals are built from what is LEFT after the shake is reserved. */
   var base={calories:Math.max(0,p.calories-(S.shake?S.shake.calories:0)),
@@ -1199,6 +1237,9 @@ function generateMealOptions(it, sel, name){
     return fits.concat(topUp);                                 // their picks first, then sensible fills
   }
   var V=(sel.veg&&sel.veg.length)?sel.veg:FOOD_DB.veg;
+  function glpPool(pool){ if(!GLP) return pool; var easy=pool.filter(function(f){ return LATER.indexOf(f.n)<0; }); return easy.length>=2 ? easy : pool; }
+  if(GLP){ V=V.map(function(v){ return v.n||v; }); var easy=V.filter(function(n){ return GLP1.vegLater.indexOf(n)<0; });
+    V=glp1Order(easy.length>=2 ? easy : V, GLP1.vegFirst, GLP1.vegLater); V.scale=GLP1.vegFactor; }
   var split=MEAL_SPLIT[Math.min(S.meals,5)-1]||MEAL_SPLIT[2];
   var n=sel.optionsPerSlot||OPTIONS_PER_SLOT;
 
@@ -1212,9 +1253,10 @@ function generateMealOptions(it, sel, name){
     /* Options inside a slot must be genuinely DIFFERENT or the deck is a lie. Re-roll the seed
        until the item list is one we have not already produced for this slot. */
     var P=poolFor('protein', sel.protein, slot),
-        C=poolFor('carb',    sel.carb,    slot),
+        C=glpPool(poolFor('carb',    sel.carb,    slot)),
         F=poolFor('fat',     sel.fat,     slot);
     var star=sel.starred||{};
+    if(GLP) star=Object.assign({}, star, {carb:glp1Order(sel.carb||[], GLP1.carbFirst, LATER)});
     var chose={protein:sel.protein, carb:sel.carb, fat:sel.fat};
     var options=[], seen={};
     /* NAMED MEALS FIRST. Every template her pools can actually make, ranked by how many of her own
@@ -1272,6 +1314,7 @@ function generateMealOptions(it, sel, name){
         if(!Cp.length) Cp=cd.tc.slice(0,1);
         var Vt=t.veg ? (t.vegs ? V.filter(function(v){ return t.vegs.indexOf(typeof v==='string'?v:v.n)>=0; }) : V) : [];
         if(t.veg && !Vt.length) Vt=V;
+        if(V.scale) Vt.scale=V.scale;
         var opt=buildOption(Pp, Cp, cd.tf, Vt, target, slot, ci+li, k+ci+li, 3, star, chose);
         var key=opt.items.join('|');
         if(seen[key] || !opt.items.length) continue;
@@ -1289,7 +1332,9 @@ function generateMealOptions(it, sel, name){
     }); }); }
     if(!hasNoCook()){
       /* The no-cook seat draws on every ready-to-eat food her style and allergies allow, her own picks first. */
-      var Pa=safeFoods('protein', sel.style, sel.allergies), Ca=safeFoods('carb', sel.style, sel.allergies), Fa=safeFoods('fat', sel.style, sel.allergies);
+      var Pa=safeFoods('protein', sel.style, sel.allergies), CaAll=safeFoods('carb', sel.style, sel.allergies), Fa=safeFoods('fat', sel.style, sel.allergies);
+      /* GLP-1: try the easier carbs first; if no no-cook meal comes out of them, use the full list. */
+      [glpPool(CaAll), CaAll].forEach(function(Ca, pass){ if(pass && (!GLP || hasNoCook())) return;
       var rawV=(V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }).length ? V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }) : RAW_VEG);
       var ncands=MEAL_TEMPLATES.filter(function(t){ return t.slot===kind && t.nocook; }).map(function(t, ti){
         var tp=tplPool(Pa, t.protein, sel.protein, star.protein), tc=tplPool(Ca, t.carb, sel.carb, star.carb), tf=tplPool(Fa, t.fat||[], sel.fat, star.fat);
@@ -1300,6 +1345,7 @@ function generateMealOptions(it, sel, name){
         return {t:(t.veg ? Object.assign({}, t, {vegs:rawV}) : t), tp:tp, tc:tc, tf:tf, score:-mine*10 + ((ti + k*3) % 5)};
       }).filter(Boolean).sort(function(a,b){ return a.score-b.score; });
       runTemplates(ncands, [[0.95,0.12,1],[0.9,0.15,1],[0.85,0.15,1]], options.length+1);
+      });
     }
     runTemplates(cands, [[0.95,0.12,1],[0.95,0.12,2]], n);
     /* Option 1 is pure Tier 1. If the tier-1 pool cannot yield three DIFFERENT meals, later
@@ -1331,7 +1377,7 @@ function generateMealOptions(it, sel, name){
   var nm=name?(String(name).split(' ')[0]+"'s"):'Your';
   var addedAll=[];
   Object.keys(addedFoods).forEach(function(k2){ addedAll=addedAll.concat(addedFoods[k2]); });
-  return {title:nm+' nutrition system', days:PLAN_DAYS,
+  return {title:nm+' nutrition system', days:PLAN_DAYS, glp1:GLP,
     frequency:S.frequency, label:S.label, optionsPerSlot:n,
     added:[...new Set(addedAll)],
     slots:slots, companions:generateCompanions(sel, COMPANIONS_PER_PLAN, name),

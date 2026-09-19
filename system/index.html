@@ -285,6 +285,8 @@ td b{color:#fff}
             <select id="in-freq"><option value="2 + shake">2 + shake</option><option value="3">3</option><option value="3 + shake">3 + shake</option><option value="4">4</option></select></div>
           <div class="f"><label for="in-style">Eating style</label>
             <select id="in-style"><option value="">No restrictions</option><option value="vegetarian">Vegetarian</option><option value="vegan">Vegan</option><option value="pescatarian">Pescatarian</option><option value="no red meat">No red meat</option><option value="no pork">No pork</option></select></div>
+          <div class="f"><label for="in-glp1">GLP-1 medication</label>
+            <select id="in-glp1"><option value="">Not on one</option><option value="on">On a GLP-1 now</option></select></div>
         </div>
         <div class="pickgroup"><div class="glabel">Allergies</div><div class="pills" id="pk-allergies"></div></div>
         <div class="pickgroup"><div class="glabel">Proteins she likes</div><div class="pills" id="pk-protein"></div></div>
@@ -304,7 +306,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=38"></script>
+<script src="../nutrition-engine.js?v=39"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -384,7 +386,8 @@ function cap(s){ s = String(s||''); return s.charAt(0).toUpperCase() + s.slice(1
 function fmtDate(){ return new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'}); }
 function firstName(){ return (IN.name||'').trim().split(' ')[0] || 'Your'; }
 function owner(){ var f = firstName(); return f === 'Your' ? 'Your' : f + "'s"; }
-function foot(n){ return '<div class="sheet-foot"><span>Legacy Performance · Complete Nutrition System</span><span>' + esc(owner()) + ' system · ' + n + '</span></div>'; }
+var PG = 1;
+function foot(){ var n = ++PG; return '<div class="sheet-foot"><span>Legacy Performance · Complete Nutrition System</span><span>' + esc(owner()) + ' system · ' + n + '</span></div>'; }
 function macros(o){ return '<div class="macros"><span><b>' + Math.round(o.cal) + '</b> cal</span><span><b>' + Math.round(o.protein) + 'g</b> protein</span>' +
   (o.carbs != null ? '<span><b>' + Math.round(o.carbs) + 'g</b> carbs</span>' : '') + (o.fat != null ? '<span><b>' + Math.round(o.fat) + 'g</b> fat</span>' : '') + '</div>'; }
 
@@ -393,13 +396,15 @@ function build(){
   var FREE = (typeof freedomPlan === 'function') ? freedomPlan({calories:+IN.cal, protein:+IN.pro}, IN.free || 2) : null;
   var DAILY = (FREE && FREE.extra) ? FREE.pfs : {calories:+IN.cal, protein:+IN.pro, carbs:+IN.carbG, fat:+IN.fatG};
   var it = {pfs:{calories:DAILY.calories, protein:DAILY.protein, carbs:DAILY.carbs, fat:DAILY.fat}};
-  var sel = {protein:IN.protein||[], carb:IN.carb||[], fruit:IN.fruit||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[],
+  PG = 1;
+  var sel = {protein:IN.protein||[], carb:IN.carb||[], fruit:IN.fruit||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[], glp1:IN.glp1||'',
              frequency:IN.freq||'3', shakeGrams:+IN.shake||30};
   var deck = generateMealOptions(it, sel, IN.name||'');
   var shop = [shoppingList(deck, {week:true})];
   var prep = PREP_SESSIONS.map(function(x, i){ return prepGuide(deck, {session:i}); });
   var week = exampleWeek(deck);
   var produce = (typeof produceTarget === 'function') ? produceTarget(DAILY.calories, IN.phase === 'Reverse Diet' ? 'Reverse Diet' : IN.phase) : null;
+  if (produce && deck.glp1) produce = Math.round(produce * GLP1.vegFactor / 50) * 50;
   var lunch = deck.slots.filter(function(s){ return s.name === 'Lunch'; })[0] || deck.slots[0];
   var lunchCal = lunch.target.protein*4 + lunch.target.carbs*4 + lunch.target.fat*9;
   var perMeal = mealSplit(it.pfs, sel.frequency, sel.shakeGrams).perMeal;
@@ -431,7 +436,7 @@ function build(){
     '<p class="intro">You do not have to count anything. The numbers are already inside the meals. Your job is to eat the portions, check in weekly, and rebuild when life changes.</p>' +
     '<div class="principles">' +
       '<div class="tile pr"><b>Protein on autopilot</b><p>Every meal is built around your protein, about ' + perMeal.protein + 'g a meal, so you hit ' + IN.pro + 'g without thinking about it.</p></div>' +
-      '<div class="tile pr"><b>Nourishment made simple</b><p>' + (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '') + 'That covers your fiber and micronutrients. Vegetables are unlimited.</p></div>' +
+      '<div class="tile pr"><b>Nourishment made simple</b><p>' + (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '') + (deck.glp1 ? 'That covers your fiber and micronutrients. On your GLP-1 the vegetables are already portioned smaller, so eat what the meal lists and do not force extra.' : 'That covers your fiber and micronutrients. Vegetables are unlimited.') + '</p></div>' +
       '<div class="tile pr"><b>Carbs and fats, done for you</b><p>Every option is already balanced. All you do is stick to the portions.</p></div>' +
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
@@ -439,9 +444,14 @@ function build(){
     '<h3 style="margin:22px 0 8px;font-size:.95rem">An example week</h3>' +
     '<div class="tablewrap"><table class="weektbl"><thead><tr><th>Day</th>' + mealSlots.map(function(n){ return '<th>' + esc(n) + '</th>'; }).join('') + '</tr></thead><tbody>' + rot + '</tbody></table></div>' +
     '<p class="note">This is one easy way to eat through your meals. Any option works on any day. Meal prep made easy, later in this system, shows two simple ways to prep it.</p>' +
-    foot(2) + '</section>');
+    foot() + '</section>');
 
   /* 2b. the macro freedom framework */
+  if (deck.glp1 && typeof GLP1 !== 'undefined') doc.push('<section class="sheet"><span class="label">Built around your GLP-1</span><h2>Same numbers. <span class="gold">Easier to finish.</span></h2>' +
+    '<p class="intro">You told us you are on a GLP-1. Your appetite is smaller, so volume becomes the limit, and this system is built for that. Your calories and protein have not changed. What changed is how the food is put together, so you can actually eat it.</p>' +
+    '<div class="steps4">' + GLP1.changes.map(function(x){ return '<div class="tile pr"><b>' + esc(x[0]) + '</b><p>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>' +
+    '<div class="tile pr"><b>What this changes in your system</b><p>Every vegetable portion in your meals is already 20% smaller. Oats, whole wheat and beans have been moved to the back or swapped for rice, potatoes and sourdough' + (/vegan|vegetarian/i.test(sel.style||'') ? ' (you keep your beans, lentils and chickpeas, because for you they carry protein)' : '') + '. Your shopping list, prep guide and swap guide are built from the same adjusted meals.</p></div>' +
+    '<p class="note">' + esc(GLP1.provider) + '</p>' + foot() + '</section>');
   if (FREE) doc.push('<section class="sheet"><span class="label">The Macro Freedom Framework</span>' +
     '<h2>Structure you can keep. <span class="gold">Freedom you can use.</span></h2>' +
     '<p class="intro">Most plans break because they leave no room for real life, so the first birthday dinner turns into a lost month. This is the room, and it is built into your numbers instead of bolted on after you feel guilty.</p>' +
@@ -464,7 +474,7 @@ function build(){
       '<li><b>It trains the skill you actually need.</b> Structure most of the time, freedom on purpose, and you learn what a normal portion feels like instead of guessing forever.</li>' +
     '</ul>' +
     '<p class="note" style="margin-top:14px">Free meals are free meals, not cheat meals. Nothing to cheat on and nothing to feel bad about. Enjoy it, then go back to the plan at the next meal, not next Monday.</p>' +
-    foot(3) + '</section>');
+    foot() + '</section>');
 
   /* 3. meals */
   var slotsHTML = deck.slots.map(function(sl){
@@ -477,9 +487,9 @@ function build(){
     return '<div class="tile opt"><span class="on">' + esc(c.name) + '</span><ul>' + c.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(c) + cronLink(c) + '</div>';
   }).join('');
   doc.push('<section class="sheet"><span class="label">Your meals</span><h2>Meal plans for <span class="gold">every goal.</span></h2>' +
-    '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day. Every meal has at least one <b>No cooking</b> option: raw vegetables, fruit you can hold and store-bought basics, put together in five minutes. Every snack is no-cook too.</p>' + slotsHTML +
+    '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day.' + (deck.glp1 ? ' <b>Adjusted for your GLP-1:</b> smaller vegetable portions and easier carbs, same calories and protein.' : '') + ' Every meal has at least one <b>No cooking</b> option: raw vegetables, fruit you can hold and store-bought basics, put together in five minutes. Every snack is no-cook too.</p>' + slotsHTML +
     (snacks ? '<div class="slot"><div class="slot-h"><h3>Snacks and protein boosters</h3><span>for the days you come up short</span></div><div class="opts">' + snacks + '</div></div>' : '') +
-    foot(4) + '</section>');
+    foot() + '</section>');
 
   /* 4. shopping lists */
   shop.forEach(function(sh, idx){
@@ -492,7 +502,7 @@ function build(){
     doc.push('<section class="sheet"><span class="label">Shopping list · the whole week</span><h2>One list. <span class="gold">One trip.</span></h2>' +
       '<p class="intro">Everything for the example week: all three options of every meal and one snack a day. Shop once. Check it off as you shop.</p>' +
       '<p class="intro forms">' + byBatch + '</p>' +
-      '<div class="shopcols">' + secs + '</div><p class="note">' + esc(sh.note) + '</p>' + foot(5) + '</section>');
+      '<div class="shopcols">' + secs + '</div><p class="note">' + esc(sh.note) + '</p>' + foot() + '</section>');
   });
 
   /* 5. prep guides */
@@ -505,7 +515,7 @@ function build(){
         : '<h2>Halfway there. <span class="gold">Prep once more.</span></h2><p class="intro">About an hour. Start the oven first, then work through the steps in order.</p>') +
       '<div class="steps">' + steps + '</div>' +
       '<div class="panel storage"><b>Storage.</b> ' + pg.storage.map(esc).join(' ') + '</div>' +
-      '<p class="note">' + esc(pg.source) + '</p>' + foot(6 + idx) + '</section>');
+      '<p class="note">' + esc(pg.source) + '</p>' + foot() + '</section>');
   });
 
   /* 6. swap guide */
@@ -515,7 +525,7 @@ function build(){
   doc.push('<section class="sheet"><span class="label">Swap guide</span><h2>Tired of a food? <span class="gold">Trade it.</span></h2>' +
     '<p class="intro">Each column is one meal\'s worth. Swap protein for protein, carbs for carbs, fat for fat, and the meal still hits your numbers.</p>' +
     '<div class="swapgrid">' + col('Protein', ch.protein, ch.protein.grams + 'g protein') + col('Carbs', ch.carb, ch.carb.grams + 'g carbs') + col('Added fat', ch.fat, ch.fat.grams + 'g fat') + '</div>' +
-    '<p class="note">Vegetables stay unlimited. Every portion comes from USDA data or the brand label.</p>' + foot(8) + '</section>');
+    '<p class="note">' + (deck.glp1 ? 'Vegetables are portioned for your GLP-1. ' : 'Vegetables stay unlimited. ') + 'Every portion comes from USDA data or the brand label.</p>' + foot() + '</section>');
 
   /* 6b. your own food: protein first, subtract, fill the rest (OWN_FOOD in the engine) */
   if (typeof OWN_FOOD !== 'undefined') {
@@ -533,7 +543,7 @@ function build(){
       '<h3 style="margin-top:14px">Set up Cronometer once</h3>' +
       '<div class="tile pr"><b>Your diary group labels</b>' + diaryLabels(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('') + '</div>' +
       '<ol style="padding-left:18px;margin:8px 0">' + OWN_FOOD.cronometer.map(function(x){ return '<li style="margin:3px 0">' + esc(x) + '</li>'; }).join('') + '</ol>' +
-      '<p class="note">' + esc(OWN_FOOD.gold) + '</p>' + foot(9) + '</section>');
+      '<p class="note">' + esc(OWN_FOOD.gold) + '</p>' + foot() + '</section>');
   }
 
   /* 7. restaurants: her places in full, then a wider list so she is covered anywhere */
@@ -568,12 +578,12 @@ function build(){
   doc.push('<section class="sheet"><span class="label">Eating out</span><h2>No more guessing at <span class="gold">restaurants.</span></h2>' +
     '<p class="intro">Real orders, sized to one of your meals (about ' + Math.round(lunchCal) + ' calories and ' + lunch.target.protein + 'g protein), from each restaurant\'s own published nutrition.</p>' +
     (rests ? '<h3 style="margin:14px 0 8px;font-size:.95rem">The places you told me you go</h3>' + rests : '<p class="note">No restaurants picked yet. Add the places you go and rebuild.</p>') +
-    foot(10) + '</section>');
+    foot() + '</section>');
   doc.push('<section class="sheet"><span class="label">Eating out · everywhere else</span><h2>Covered <span class="gold">anywhere you end up.</span></h2>' +
     '<p class="intro">One order that works at ' + (more.match(/mrow/g)||[]).length + ' more places, sized to the same meal. Someone else picks the restaurant, you already know what you are having.</p>' +
     '<div class="mlist">' + more + '</div>' +
     '<h3 style="margin:14px 0 6px;font-size:.95rem">The rules that work anywhere</h3><ul class="rules">' +
-    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot(11) + '</section>');
+    RESTAURANT_RULES.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + foot() + '</section>');
 
   /* 8. next steps */
   doc.push('<section class="sheet"><span class="label">From here</span><h2>Your system <span class="gold">keeps up with you.</span></h2>' +
@@ -593,7 +603,7 @@ function build(){
       nextLink('Apply for Built 4 More', 'Want a coach in your corner? Apply for 1:1 coaching. The $497 you invested in this system comes off the top.', 'Apply now', NEXT_LINKS.apply) +
     '</div>' +
     '<p class="note" style="margin-top:22px">Educational coaching guidance, not medical advice. Individual results vary. Consult your physician before changing your diet, especially with a medical condition.</p>' +
-    foot(12) + '</section>');
+    foot() + '</section>');
 
   $('doc').innerHTML = doc.join('');
   $('status').innerHTML = IN.example
@@ -616,7 +626,7 @@ function fillBuilder(){
   $('in-weight').value = IN.weight || ''; $('in-goal').value = IN.goalweight || ''; $('in-activity').value = IN.activity || 'Lightly active';
   $('in-name').value = IN.name || ''; $('in-cal').value = IN.cal || ''; $('in-pro').value = IN.pro || '';
   $('in-carb').value = IN.carbG || ''; $('in-fat').value = IN.fatG || ''; $('in-phase').value = IN.phase || 'Lean';
-  $('in-freq').value = IN.freq || '3'; $('in-style').value = IN.style || '';
+  $('in-freq').value = IN.freq || '3'; $('in-style').value = IN.style || ''; $('in-glp1').value = IN.glp1 === 'on' ? 'on' : '';
   pills('pk-protein', FOOD_DB.protein.map(function(f){ return f.n; }), 'protein');
   pills('pk-carb', FOOD_DB.carb.map(function(f){ return f.n; }), 'carb');
   pills('pk-fruit', (FOOD_DB.fruit||[]).map(function(f){ return f.n; }), 'fruit');
@@ -637,7 +647,7 @@ $('btn-build').addEventListener('click', function(){
   IN.weight = +$('in-weight').value || ''; IN.goalweight = +$('in-goal').value || ''; IN.activity = $('in-activity').value;
   IN.name = $('in-name').value.trim(); IN.cal = +$('in-cal').value; IN.pro = +$('in-pro').value;
   IN.carbG = +$('in-carb').value; IN.fatG = +$('in-fat').value; IN.phase = $('in-phase').value;
-  IN.freq = $('in-freq').value; IN.style = $('in-style').value; IN.example = false;
+  IN.freq = $('in-freq').value; IN.style = $('in-style').value; IN.glp1 = $('in-glp1').value; IN.example = false;
   if (!(IN.cal > 0 && IN.pro > 0 && IN.carbG > 0 && IN.fatG > 0)){ $('status').innerHTML = '<b>Add calories, protein, carbs and fat</b> to build the system.'; return; }
   try { localStorage.setItem(LS_KEY, JSON.stringify(IN)); } catch(e){}
   build(); window.scrollTo({top: $('doc').offsetTop - 10, behavior:'smooth'});

@@ -1051,7 +1051,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=38"></script>
+<script src="nutrition-engine.js?v=39"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3689,6 +3689,7 @@ function openMySystem(){
     style:c['Eating style']||'', allergies:list(c['Allergen keys']),
     protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fruit:list(f.fruit||c['Fruits']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
     restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
+  inp.glp1=(typeof glp1FromIntake==='function') ? (glp1FromIntake(c) || glp1FromIntake(it) || ((typeof DEEP!=='undefined' && DEEP && DEEP.glp1==='On one now') ? 'on' : '')) : '';
   window.open(systemLink(inp,'system/'),'_blank');
 }
 function renderMealPlan(){
