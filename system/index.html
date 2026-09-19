@@ -302,8 +302,8 @@ td b{color:#fff}
 </div>
 
 <script src="../restaurant-data.js?v=1"></script>
-<script src="../recipe-data.js?v=5"></script>
-<script src="../nutrition-engine.js?v=36"></script>
+<script src="../recipe-data.js?v=6"></script>
+<script src="../nutrition-engine.js?v=37"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -468,7 +468,7 @@ function build(){
   /* 3. meals */
   var slotsHTML = deck.slots.map(function(sl){
     var opts = sl.options.map(function(o, i){
-      return '<div class="tile opt"><span class="on">Option ' + (i+1) + '</span>' + (o.name ? '<h4 class="mname">' + esc(o.name) + '</h4>' : '') + '<ul>' + o.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(o) + cronLink(o) + '</div>';
+      return '<div class="tile opt"><span class="on">Option ' + (i+1) + (o.nocook ? '<i class="tag">No cooking</i>' : '') + '</span>' + (o.name ? '<h4 class="mname">' + esc(o.name) + '</h4>' : '') + '<ul>' + o.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(o) + cronLink(o) + '</div>';
     }).join('');
     return '<div class="slot"><div class="slot-h"><h3>' + esc(sl.name) + '</h3><span>every option ≈ ' + (sl.target.protein||0) + 'g protein</span></div><div class="opts">' + opts + '</div></div>';
   }).join('');
@@ -476,7 +476,7 @@ function build(){
     return '<div class="tile opt"><span class="on">' + esc(c.name) + '</span><ul>' + c.items.map(function(x){ return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' + macros(c) + cronLink(c) + '</div>';
   }).join('');
   doc.push('<section class="sheet"><span class="label">Your meals</span><h2>Meal plans for <span class="gold">every goal.</span></h2>' +
-    '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day.</p>' + slotsHTML +
+    '<p class="intro">Three options for every meal. Each option hits the same numbers, so eat any option on any day. Every meal has at least one <b>No cooking</b> option: raw vegetables, fruit you can hold and store-bought basics, put together in five minutes. Every snack is no-cook too.</p>' + slotsHTML +
     (snacks ? '<div class="slot"><div class="slot-h"><h3>Snacks and protein boosters</h3><span>for the days you come up short</span></div><div class="opts">' + snacks + '</div></div>' : '') +
     foot(4) + '</section>');
 
