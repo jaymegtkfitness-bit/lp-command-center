@@ -149,6 +149,12 @@ td b{color:#fff}
 .note{font-size:.8rem;color:var(--soft);margin-top:8px}
 .steps{display:grid;gap:12px;counter-reset:st}
 .steps4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0}
+.foodgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:10px 0}
+.fcol{padding:10px 12px}
+.fcol h3{font-size:.76rem;font-weight:800;margin:0 0 2px}
+.fcol .sub{display:block;font-size:.54rem;letter-spacing:.05em;text-transform:uppercase;color:var(--olive-lt);margin:6px 0 2px}
+.fcol ul{margin:0;padding:0;list-style:none}
+.fcol li{font-size:.63rem;line-height:1.35;color:var(--body)}
 .step{padding:14px 16px;break-inside:avoid}
 .step h3{font-size:.9rem;font-weight:800;margin-bottom:6px}
 .step h3:before{counter-increment:st;content:counter(st) ". ";color:var(--gold)}
@@ -437,7 +443,7 @@ function build(){
     '<p class="intro">You do not have to count anything. The numbers are already inside the meals. Your job is to eat the portions, check in weekly, and rebuild when life changes.</p>' +
     '<div class="principles">' +
       '<div class="tile pr"><b>Protein on autopilot</b><p>Every meal is built around your protein, about ' + perMeal.protein + 'g a meal, so you hit ' + IN.pro + 'g without thinking about it.</p></div>' +
-      '<div class="tile pr"><b>Nourishment made simple</b><p>' + (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '') + (deck.glp1 ? 'That covers your fiber and micronutrients. On your GLP-1 the vegetables are already portioned smaller, so eat what the meal lists and do not force extra.' : 'That covers your fiber and micronutrients. Vegetables are unlimited.') + '</p></div>' +
+      '<div class="tile pr"><b>Nourishment made simple</b><p>' + (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '') + (deck.glp1 ? 'That covers your fiber and micronutrients. On your GLP-1 the vegetables are already portioned smaller, so eat what the meal lists and do not force extra.' : 'That covers your fiber and micronutrients. Vegetables are unlimited.') + (IN.weight ? ' Drink about ' + Math.round(+IN.weight/2) + ' oz of water a day, sipped through the day.' : '') + '</p></div>' +
       '<div class="tile pr"><b>Carbs and fats, done for you</b><p>Every option is already balanced. All you do is stick to the portions.</p></div>' +
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
@@ -484,6 +490,27 @@ function build(){
     '</ul>' +
     '<p class="note" style="margin-top:14px">Free meals are free meals, not cheat meals. Nothing to cheat on and nothing to feel bad about. Enjoy it, then go back to the plan at the next meal, not next Monday.</p>' +
     foot() + '</section>');
+
+  /* 2b. how the numbers change: the whole adjustment method, so the PDF stands alone */
+  var LAD = (typeof PHASE_MULT !== 'undefined') ? (PHASE_MULT[IN.phase || 'Lean'] || PHASE_MULT.Lean) : [13,12,11];
+  var GW = +IN.goalweight || 0;
+  var rungs = GW ? LAD.map(function(m, i){
+    var cal = Math.round(GW * m), pro = Math.round(GW * ((typeof PROTEIN_PER_LB !== 'undefined' ? PROTEIN_PER_LB[IN.phase || 'Lean'] : 1) || 1));
+    return {n:i+1, m:m, cal:cal, pro:pro};
+  }) : [];
+  doc.push('<section class="sheet"><span class="label">Your weekly read</span><h2>How your numbers <span class="gold">change.</span></h2>' +
+    '<p class="intro">Nothing in this system changes on a feeling. It changes on data, and there are only two moves: more steps, or one step down the ladder. This page is the whole method, so you never have to guess.</p>' +
+    '<div class="steps4">' +
+      '<div class="tile pr"><b>1. Weigh three days a week</b><p>Same three days, first thing, after the bathroom, before food or coffee. You are reading the trend across weeks, never one morning and never one week on its own. The scale is a tool, not a verdict.</p></div>' +
+      '<div class="tile pr"><b>2. Earn the adjustment</b><p>Numbers only move when you are at least 85% consistent. Under that, the plan is not the problem yet. The full standard is on your last page.</p></div>' +
+      '<div class="tile pr"><b>3. Look for a new low</b><p>Have you hit a new low weight in the last 10 to 14 days? If yes, change nothing. It is working. If no, and you were 85% consistent, make one move.</p></div>' +
+      '<div class="tile pr"><b>4. Make one move, not two</b><p>Add steps first, about 2,000 more a day, because more walking beats less food. Only if that does not move it in another 10 to 14 days, drop one rung on the ladder below.</p></div>' +
+    '</div>' +
+    (rungs.length ? '<h3 style="margin:14px 0 4px;font-size:.95rem">Your ladder</h3><div class="steptbl"><div class="srow head"><span>Rung</span><span>Calories</span><span>Protein</span><span>When</span></div>' +
+      rungs.map(function(r, i){ return '<div class="srow' + (i === 0 ? ' mine' : '') + '"><span>Rung ' + r.n + (i === 0 ? ' · where you start' : '') + '</span><span>' + r.cal.toLocaleString() + ' cal</span><span>' + r.pro + 'g protein</span><span>' + (i === 0 ? 'Start here' : 'Only after a stall') + '</span></div>'; }).join('') +
+      '</div><p class="note">Your goal weight times ' + LAD.join(', then ') + '. Protein never moves. You never go below the last rung: past that the answer is more movement or a break at maintenance, not less food.</p>' : '') +
+    '<div class="tile pr" style="margin-top:10px"><b>Rebuild instead of white-knuckling it</b><p>When your weight has dropped about 10 lb, when you drop a rung, or when you are bored of the food, build a new system from your dashboard and download a fresh copy of this document. Portions are sized to the numbers you had the day it was built, so a new number means a new build.</p></div>' +
+    '<p class="note">The one thing that lives only in your dashboard is the weekly check-in. Everything else you need is in this document.</p>' + foot() + '</section>');
 
   /* 3. meals */
   var slotsHTML = deck.slots.map(function(sl){
@@ -535,6 +562,24 @@ function build(){
     '<p class="intro">Each column is one meal\'s worth. Swap protein for protein, carbs for carbs, fat for fat, and the meal still hits your numbers.</p>' +
     '<div class="swapgrid">' + col('Protein', ch.protein, ch.protein.grams + 'g protein') + col('Carbs', ch.carb, ch.carb.grams + 'g carbs') + col('Added fat', ch.fat, ch.fat.grams + 'g fat') + '</div>' +
     '<p class="note">' + (deck.glp1 ? 'Vegetables are portioned for your GLP-1. ' : 'Vegetables stay unlimited. ') + 'Every portion comes from USDA data or the brand label.</p>' + foot() + '</section>');
+
+  /* 6c. her full food lists by tier, so she can build any meal without the dashboard */
+  if (typeof safeFoods === 'function') {
+    var TIER_NOTE = {1:'Tier 1 · most fiber and nutrients for the calories', 2:'Tier 2 · still real food, a little more calorie dense', 3:'Tier 3 · lower fiber, more sugar or fat, smallest portions'};
+    var mineAll = [].concat(IN.protein || [], IN.carb || [], IN.fruit || [], IN.fat || []);
+    var listCol = function(title, cat) {
+      var fruitN = (FOOD_DB.fruit || []).map(function(f){ return f.n; });
+      var foods = safeFoods(cat, sel.style, sel.allergies).filter(function(f){ return cat === 'carb' ? fruitN.indexOf(f.n) < 0 : true; }), byTier = {};
+      foods.forEach(function(f){ (byTier[f.t || 1] = byTier[f.t || 1] || []).push(f); });
+      return '<div class="tile fcol"><h3>' + title + '</h3>' + [1,2,3].filter(function(t){ return byTier[t]; }).map(function(t){
+        return '<span class="sub">' + esc(TIER_NOTE[t]) + '</span><ul>' + byTier[t].map(function(f){
+          return '<li>' + (mineAll.indexOf(f.n) >= 0 ? '<b>' + esc(f.n) + '</b>' : esc(f.n)) + '</li>'; }).join('') + '</ul>'; }).join('') + '</div>';
+    };
+    doc.push('<section class="sheet"><span class="label">Your food lists</span><h2>Every food you can <span class="gold">build from.</span></h2>' +
+      '<p class="intro">Your meals are built from these. The ones in bold are the foods you picked. Tier 1 first, then 2, then 3: the lower the tier, the more food you get for the same calories. Build any meal as protein, then a carb, then a fat, then vegetables, and use the swap guide for the portions.</p>' +
+      '<div class="foodgrid">' + listCol('Protein', 'protein') + listCol('Carbs', 'carb') + listCol('Fruit', 'fruit') + listCol('Added fat', 'fat') + '</div>' +
+      '<p class="note">Vegetables: ' + esc(((IN.veg && IN.veg.length) ? IN.veg : (FOOD_DB.veg || []).map(function(v){ return v.n || v; })).join(', ')) + '. ' + (deck.glp1 ? 'Portioned for your GLP-1 rather than unlimited.' : 'Unlimited, and the more colors the better.') + '</p>' + foot() + '</section>');
+  }
 
   /* 6b. your own food: protein first, subtract, fill the rest (OWN_FOOD in the engine) */
   if (typeof OWN_FOOD !== 'undefined') {
