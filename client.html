@@ -708,6 +708,9 @@ select.input{appearance:none}
     <div class="ctab-panel" id="ctab-home">
       <!-- The #1 CTA for a new member: book the Readiness Consultation (48h). Shown until booked. -->
       <div class="card book-banner" id="bookBanner" style="display:none"></div>
+      <!-- Always-visible home card for CNS owners: the PDF is the product, one click from Home. -->
+      <div class="card" id="cnsHomeCard" style="display:none"></div>
+      <div class="card" id="offlineCard" style="display:none"></div>
       <!-- LITE (free tier) banner + upsell — hidden unless #home has class .lite -->
       <div id="cnsBanner"><b>Your Complete Nutrition System is active.</b> Your meal plan, restaurant playbook and weekly trend check-in are all unlocked.</div>
       <div id="liteBanner">You're on the free plan. <a id="liteBannerLink" href="#" target="_blank" rel="noopener">Unlock your full dashboard →</a></div>
@@ -1264,17 +1267,40 @@ function showLocked(){
 /* ============================ SCOPED READ (JSONP) ============================ */
 /* Reads THIS client's own rows from the doorway. Same cross-origin JSONP the
    Command Center uses for tasks. Falls back to local data if unavailable. */
-function loadClientData(cb){
-  if(!CONFIG.writeUrl){ cb(null); return; }
-  var q = TOKEN ? ("token="+encodeURIComponent(TOKEN)) : (ID&&ID.email ? ("email="+encodeURIComponent(ID.email)) : null);
-  if(!q){ cb(null); return; }
-  var done=false, name="__cd"+Date.now();
+/* Her whole dashboard comes from one Google call. It is occasionally slow or down, and when that
+   happened she lost the Complete Nutrition System until the next good load. So every good response is
+   cached on her device, the call is retried once, and a failure falls back to the cached copy rather
+   than to an empty dashboard. LS_CACHE holds the last good payload. */
+var LS_CACHE="lp_client_cache", usingCache=false;
+function cacheSave(data){ try{ localStorage.setItem(LS_CACHE, JSON.stringify({ts:Date.now(), data:data})); }catch(e){} }
+function cacheLoad(){
+  try{ var c=JSON.parse(localStorage.getItem(LS_CACHE)||"null");
+    if(c && c.data && (Date.now()-(c.ts||0)) < 60*24*3600*1000) return c.data;   // 60 days
+  }catch(e){}
+  return null;
+}
+function fetchClientData(q, ms, cb){
+  var done=false, name="__cd"+Date.now()+Math.floor(Math.random()*1000);
   var s=document.createElement("script");
   window[name]=function(data){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(data); };
-  s.onerror=function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } };
+  s.onerror=function(){ if(!done){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(null); } };
   s.src=CONFIG.writeUrl+"?action=clientData&"+q+"&callback="+name;
   document.body.appendChild(s);
-  setTimeout(function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } }, 8000);
+  setTimeout(function(){ if(!done){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(null); } }, ms);
+}
+function loadClientData(cb){
+  if(!CONFIG.writeUrl){ cb(cacheLoad()); return; }
+  var q = TOKEN ? ("token="+encodeURIComponent(TOKEN)) : (ID&&ID.email ? ("email="+encodeURIComponent(ID.email)) : null);
+  if(!q){ cb(cacheLoad()); return; }
+  fetchClientData(q, 10000, function(data){
+    if(data && data.ok!==false){ usingCache=false; cacheSave(data); cb(data); return; }
+    fetchClientData(q, 15000, function(retry){          // one retry: a cold Apps Script is often just slow
+      if(retry && retry.ok!==false){ usingCache=false; cacheSave(retry); cb(retry); return; }
+      var cached=cacheLoad();
+      usingCache=!!cached;
+      cb(cached || retry || data || null);
+    });
+  });
 }
 
 /* Build the merged model from server rows (authoritative) + local (instant). */
@@ -1409,6 +1435,7 @@ function buildModel(server){
 /* ============================ RENDER ============================ */
 function renderHome(){
   g("greeting").textContent="Welcome back, "+ID.name.split(" ")[0];
+  renderCnsHome(); renderOffline();
   var h=M.checkins, first=h[0], last=h[h.length-1];
   g("stWeight").textContent = (last&&last.weight!=null) ? last.weight : ((M.intake&&M.intake.weight) ? M.intake.weight : "—");
   g("stTotal").textContent = h.length;
@@ -3693,6 +3720,26 @@ function openMySystem(){
   inp.glp1=(typeof glp1FromIntake==='function') ? (glp1FromIntake(c) || glp1FromIntake(it) || ((typeof DEEP!=='undefined' && DEEP && DEEP.glp1==='On one now') ? 'on' : '')) : '';
   window.open(systemLink(inp,'system/'),'_blank');
 }
+/* The PDF is the product. It gets its own card on Home so it is never more than one tap away, and
+   so a slow or failed load never hides it. */
+function renderCnsHome(){
+  var c=g("cnsHomeCard"); if(!c) return;
+  if(!hasCNS()){ c.style.display="none"; return; }
+  c.style.display="";
+  c.innerHTML='<div class="sec-h"><h2>Your Complete Nutrition System</h2></div>'
+    +'<p class="empty" style="margin:0 0 10px">Everything is in the download: your meals and options, shopping list, prep guide, swap guide, food lists, restaurant orders and how your numbers change. Save it to your phone once and you always have it.</p>'
+    +'<div class="actions no-print"><button class="btn btn-primary" onclick="openMySystem()">⬇ Download my system (PDF)</button> '
+    +'<button class="btn btn-ghost" onclick="showClientTab(\'nutrition\')">Open my nutrition tab</button></div>';
+}
+/* When the Google load fails we now show her last saved copy instead of an empty dashboard. Say so. */
+function renderOffline(){
+  var c=g("offlineCard"); if(!c) return;
+  if(!usingCache){ c.style.display="none"; return; }
+  c.style.display="";
+  c.innerHTML='<div class="sec-h"><h2>Showing your last saved copy</h2></div>'
+    +'<p class="empty" style="margin:0 0 10px">We could not reach the server just now, so this is everything as of your last good load. Nothing is lost. Your check-in will send as soon as the connection is back.</p>'
+    +'<div class="actions no-print"><button class="btn btn-ghost" onclick="location.reload()">Try again</button></div>';
+}
 function renderMealPlan(){
   var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
   if(!hasCNS()){ card.style.display="none"; return; }
@@ -4162,7 +4209,7 @@ function boot(){
       if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
       buildModel(server);
       if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
-    }
+    } else { showHome(); }   // nothing came back and nothing cached: still show what is on the device
   });
 }
 /* ============================ PREVIEW BENCH (?preview=1) ============================
@@ -4303,6 +4350,7 @@ function demoBoot(){
         buildModel(server);
         if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
       } else if(ID && ID.email){ boot(); }
+      else if(server){ buildModel(server); showHome(); }   // cached copy without an email row
       else { show("onboard"); }
     });
   }
