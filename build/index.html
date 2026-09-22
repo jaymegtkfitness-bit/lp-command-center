@@ -584,6 +584,23 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 .gn-list{margin:10px 0 12px 20px;display:grid;gap:8px}
 .gn-list li{line-height:1.5}
 </style>
+<style>
+.cnsshots{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.cnsstrip{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin:26px auto 0;max-width:760px}
+.cnsstrip figure{margin:0}
+.cnsstrip img{width:100%;display:block;border-radius:8px;border:1px solid rgba(193,173,114,.3);background:#111;cursor:zoom-in;aspect-ratio:3/4;object-fit:cover;object-position:left top;transition:transform .15s ease,border-color .15s ease}
+.cnsstrip img:hover{transform:translateY(-2px);border-color:#C1AD72}
+.cnsstrip figcaption{font-size:.72rem;letter-spacing:.02em;color:rgba(242,237,228,.6);margin-top:5px;text-align:center}
+.stripnote{font-size:.82rem;color:rgba(242,237,228,.62);text-align:center;margin:12px auto 0;max-width:640px}
+@media (max-width:700px){.cnsstrip{grid-template-columns:repeat(2,1fr)}}
+.cnsshots figure{margin:0}
+.cnsshots img{width:100%;display:block;border-radius:10px;border:1px solid rgba(193,173,114,.34);background:#111;cursor:zoom-in;transition:transform .15s ease,border-color .15s ease}
+.cnsshots img:hover{transform:translateY(-2px);border-color:var(--gold,#C1AD72)}
+.cnsshots figcaption{font-size:.78rem;color:rgba(242,237,228,.68);margin-top:6px;line-height:1.3}
+@media (max-width:900px){.cnsshots{grid-template-columns:repeat(2,1fr)}}
+#shotbox{position:fixed;inset:0;background:rgba(10,10,10,.94);display:none;align-items:center;justify-content:center;z-index:9999;padding:18px;cursor:zoom-out}
+#shotbox img{max-width:min(980px,96vw);max-height:94vh;border-radius:10px;border:1px solid rgba(193,173,114,.4)}
+</style>
 </head>
 <body>
 
@@ -631,6 +648,15 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
       <span class="chip">Every plan built by hand</span>
       <span class="chip">30-day rebuild or refund</span>
     </div>
+
+    <!-- Proof up front: four real pages from a real build, so she can see the thing before she answers. -->
+    <div class="cnsstrip">
+      <figure><img src="../img/cns/cover.jpg" alt="The cover page of a finished system: her weight, goal and daily numbers" loading="lazy"><figcaption>Your numbers</figcaption></figure>
+      <figure><img src="../img/cns/meals.jpg" alt="A meals page with three portioned options per meal" loading="lazy"><figcaption>Three options a meal</figcaption></figure>
+      <figure><img src="../img/cns/shopping.jpg" alt="The shopping list grouped by aisle" loading="lazy"><figcaption>One shopping list</figcaption></figure>
+      <figure><img src="../img/cns/restaurants.jpg" alt="Restaurant orders sized to her meal" loading="lazy"><figcaption>48 restaurants</figcaption></figure>
+    </div>
+    <p class="stripnote">Real pages from a real build, not mockups. Tap any page to read it. Yours is built from your numbers and your food.</p>
   </div>
 </section>
 
@@ -1594,7 +1620,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
     <div class="lever"><span class="n">2</span><div>
       <h3 style="color:var(--parchment)">How often do I look at it?</h3>
       <p class="vs">Your budget: once a week. &nbsp;A diet: whenever you work up the nerve to step on the scale.</p>
-      <p>One read on your trend every week, and a Sunday forecast for the week ahead with the dinner out and the glass of wine already in it. A forecast, not a daily verdict.</p></div></div>
+      <p>You read your trend once a week instead of flinching at it every morning, and you forecast the week ahead with the dinner out and the glass of wine already in it. A forecast, not a daily verdict.</p></div></div>
     <div class="lever"><span class="n">3</span><div>
       <h3 style="color:var(--parchment)">What do I do when it is off?</h3>
       <p class="vs">Your budget: move a line item. &nbsp;A diet: try harder.</p>
@@ -1608,6 +1634,23 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
     <p>Every answer is one you run yourself.</p>
     <p>You do not need me standing over it, and I do not want you to.</p>
     <p>That is the difference between a plan somebody hands you and a system that is yours.</p>
+
+
+    <!-- REAL PAGES from a real build (rendered from the example system, not mockups). -->
+    <p class="eyebrow" style="margin-top:34px">What it looks like</p>
+    <h2 style="font-size:clamp(1.3rem,4vw,1.7rem);margin:0 0 6px">Real pages from a real build.</h2>
+    <p style="margin:0 0 16px">This is an actual system, built for a 44 year old woman at 1,950 calories and 150g of protein, three meals and a shake. Yours is built the same way, from your numbers and your food. Tap any page to see it full size.</p>
+    <div class="cnsshots">
+      <figure><img src="../img/cns/cover.jpg" alt="The cover page: her starting weight, goal weight and daily numbers" loading="lazy"><figcaption>Your numbers, your starting point</figcaption></figure>
+      <figure><img src="../img/cns/meals.jpg" alt="A meals page: three portioned options for each meal" loading="lazy"><figcaption>Three options for every meal</figcaption></figure>
+      <figure><img src="../img/cns/shopping.jpg" alt="The shopping list, grouped by aisle" loading="lazy"><figcaption>One shopping list for the week</figcaption></figure>
+      <figure><img src="../img/cns/prep.jpg" alt="The meal prep guide" loading="lazy"><figcaption>Prep made easy, two short days</figcaption></figure>
+      <figure><img src="../img/cns/swaps.jpg" alt="The swap guide: trade any food for another" loading="lazy"><figcaption>Swap any food, same numbers</figcaption></figure>
+      <figure><img src="../img/cns/restaurants.jpg" alt="Restaurant orders sized to her meal" loading="lazy"><figcaption>Real orders at 48 restaurants</figcaption></figure>
+      <figure><img src="../img/cns/foods.jpg" alt="Her full food lists by tier" loading="lazy"><figcaption>Every food you can build from</figcaption></figure>
+      <figure><img src="../img/cns/weekly.jpg" alt="The weekly read: when and how the numbers change" loading="lazy"><figcaption>When your numbers change, and why</figcaption></figure>
+    </div>
+    <p class="note" style="margin-top:14px">It arrives as one PDF you download and keep, and it lives in your dashboard so you can rebuild it any time.</p>
 
     <div class="note" style="margin-top:26px">
       <strong>Where this sits.</strong> The free <strong>Power Food System</strong> teaches you the food
@@ -1633,7 +1676,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <div><span class="ck"></span><span><strong>Shop and prep made easy.</strong> One shopping list for the week and a meal prep guide. Two short prep days, done.</span></div>
         <div><span class="ck"></span><span><strong>Swap anything, any time.</strong> Tired of a food? Trade it and still hit your numbers.</span></div>
         <div><span class="ck"></span><span><strong>No more guessing at restaurants.</strong> Meals that get you to your goal at 48 restaurants, sized to your needs.</span></div>
-        <div><span class="ck"></span><span><strong>A check-in that gets smarter.</strong> The more you check in, the smarter the LP Coach gets, and the more guidance you get on your progress.</span></div>
+        <div><span class="ck"></span><span><strong>Your starting read from the LP Coach.</strong> Your own numbers, read back to you, with the phase to start in and why. Ongoing weekly reads and progress tracking live in the membership.</span></div>
         <div><span class="ck"></span><span><strong>The full system, done for you.</strong> Fill out the intake and I build your complete system. Then we perfect it together over 30 days.</span></div>
         <div><span class="ck"></span><span><strong>30-day guarantee.</strong> If it isn't working, I rebuild it or refund you.</span></div>
       </div>
@@ -3159,6 +3202,18 @@ if (CONFIG.metaPixelId){
 qsa('.starnote').forEach(n => n.textContent = STAR_HELP);
 renderFoodPills();
 recalc();
+</script>
+<div id="shotbox" onclick="this.style.display='none'"><img id="shotbox-img" alt=""></div>
+<script>
+/* Tap a sample page to read it full size. */
+document.addEventListener('click', function(e){
+  var img = e.target.closest && e.target.closest('.cnsshots img, .cnsstrip img');
+  if(!img) return;
+  document.getElementById('shotbox-img').src = img.src;
+  document.getElementById('shotbox-img').alt = img.alt || '';
+  document.getElementById('shotbox').style.display = 'flex';
+});
+document.addEventListener('keydown', function(e){ if(e.key === 'Escape'){ var b=document.getElementById('shotbox'); if(b) b.style.display='none'; } });
 </script>
 </body>
 </html>
