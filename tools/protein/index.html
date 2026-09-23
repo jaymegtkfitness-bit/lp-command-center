@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy Performance Free Tools: protein. Static SEO page, ungated result.
+     ALL math comes from ../../nutrition-engine.js (bump ?v= there when the engine changes).
+     Shared look + helpers: ../tools.css and ../tools.js (CONFIG + track() live in tools.js). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<title>Protein Calculator: Grams a Day by Phase + Per Meal | Legacy Performance</title>
+<meta name="description" content="Free protein calculator. Get your daily protein in grams from your goal weight for fat loss, building muscle or maintenance, split into the meals you actually eat.">
+<link rel="canonical" href="https://dashboard.legacyperformance.co/tools/protein/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Legacy Performance">
+<meta property="og:title" content="Protein Calculator | Legacy Performance">
+<meta property="og:description" content="Free protein calculator. Get your daily protein in grams from your goal weight for fat loss, building muscle or maintenance, split into the meals you actually eat.">
+<meta property="og:url" content="https://dashboard.legacyperformance.co/tools/protein/">
+<meta property="og:image" content="https://dashboard.legacyperformance.co/logo-white-gold.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<link rel="stylesheet" href="../tools.css?v=2">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "How much protein do I need a day?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "We use your goal weight: 1 gram per pound in a fat-loss (Lean) phase, 0.9 in Sustain and 0.8 in a muscle-building (Strong) phase. A woman with a 145 pound goal eats 145 grams a day in Lean."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Should I use my current weight or my goal weight?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Your goal weight. Extra body fat does not need extra protein, and a number built on current weight is often too high to hit. Goal weight feeds the body you are building."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How much protein should I eat per meal?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Divide what is left after any protein shake by the number of meals you eat. On 145 grams with three meals and a 30 gram shake, that is about 38 grams per meal."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Is a protein shake necessary?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "No. A shake is a convenient way to close the gap, not a requirement. If you use one, we reserve its protein before splitting the rest so your meals stay properly sized."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Can I eat too much protein?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "For healthy adults, the ranges here are well within what research supports. If you have kidney disease or your provider has limited your protein, follow their guidance instead."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body data-tool="protein">
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../../shield-white-gold.png" alt="">
+
+<main class="wrap">
+  <div class="head">
+    <a class="logo" href="../"><img src="../../logo-white-gold.png" alt="Legacy Performance"></a>
+    <a class="tag" href="../">Free<br>Tools</a>
+  </div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../">Free tools</a> / Protein</nav>
+
+  <section class="hero">
+    <div class="eyebrow">Free tool</div>
+    <h1>Your <span>protein</span></h1>
+    <p class="lead">How much protein you need each day, built from your goal weight and the phase you are in, then split into the meals you actually eat.</p>
+  </section>
+  <div class="rule"></div>
+
+  <section class="tile calc" aria-label="Calculator">
+    <div class="fields">
+      <div class="field"><span class="fl">Sex</span><div class="seg" data-name="sex"><button data-v="f" aria-pressed="true">Female</button><button data-v="m">Male</button></div></div>
+      <div class="field"><label class="fl" for="ft">Height</label><div class="inp"><input id="ft" type="number" inputmode="numeric" min="4" max="7" placeholder="5"><span class="unit">ft</span><input id="in" type="number" inputmode="decimal" min="0" max="11.9" placeholder="5" aria-label="Height, inches"><span class="unit">in</span></div></div>
+      <div class="field"><label class="fl" for="weight">Current weight</label><div class="inp"><input id="weight" type="number" inputmode="decimal" min="0" placeholder="180"><span class="unit">lb</span></div></div>
+      <div class="field"><label class="fl" for="goal">Goal weight</label><div class="inp"><input id="goal" type="number" inputmode="decimal" min="0" placeholder="145"><span class="unit">lb</span></div><small>Blank? We estimate it from your height.</small></div>
+      <div class="field full"><span class="fl">Phase</span><div class="seg" data-name="phase"><button data-v="Lean" aria-pressed="true">Lean</button><button data-v="Strong">Strong</button><button data-v="Sustain">Sustain</button><button data-v="Reverse Diet">Reverse</button></div><small>Lean = fat loss. Strong = building muscle. Sustain = holding. Reverse = climbing out of under-eating.</small></div>
+      <div class="field full"><span class="fl">How you eat</span><div class="seg" data-name="freq"><button data-v="2 + shake">2 meals + shake</button><button data-v="3" aria-pressed="true">3 meals</button><button data-v="3 + shake">3 meals + shake</button><button data-v="4">4 meals</button></div></div>
+      <div class="field" id="shakeField"><label class="fl" for="shake">Shake size</label><select id="shake"><option value="25">25 g</option><option value="30" selected>30 g</option><option value="40">40 g</option><option value="50">50 g</option></select><small>30 g is one heaping scoop.</small></div>
+    </div>
+    <div class="result" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="bridge">
+    <img src="../../shield-white-gold.png" alt="">
+    <div>
+      <b class="t">Protein is one of four</b>
+      <p>Protein is the anchor of your nutrition, but it is one pillar in a bigger system. The Legacy Score looks at your sleep, stress, training and fuel together and names the one thing to fix first.</p>
+      <div class="ctas">
+        <a class="btn" href="../../score/" data-href="score" data-track="bridge_score">Get your Legacy Score</a>
+        <a class="btn ghost" href="../../find-your-phase/" data-href="phase" data-track="bridge_phase">Find your phase</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="related">
+    <h3 class="label">Related tools</h3>
+    <div class="grid2">
+    <a class="tile tool" href="../calories/" data-track="related_calories"><span class="card-title">Maintenance &amp; Calorie Calculator</span><p>Your maintenance range and your calories for every phase, anchored to your goal weight.</p><span class="go">Open the tool</span></a>
+    <a class="tile tool" href="../water/" data-track="related_water"><span class="card-title">Water Intake Calculator</span><p>Half your body weight in ounces, plus the morning start that makes it easy.</p><span class="go">Open the tool</span></a>
+    </div>
+  </section>
+
+  <article class="edu">
+    <h2>Why protein is the anchor</h2>
+    <p>If you only track one number, make it protein. It is the nutrient that protects your muscle when you are losing fat, the one that builds it when you are training, and the one that keeps you full on fewer calories. It also costs your body the most energy to digest, so eating enough of it quietly raises what you burn.</p>
+    <p>Most people we work with are not eating too much. They are eating too little protein and too much of everything that fills the gap. Fix the protein and a lot of the hunger, the cravings and the afternoon crash fixes itself.</p>
+    <h2>Why goal weight, not current weight</h2>
+    <p>Your protein is built from your <strong>goal weight</strong>. Extra body fat does not need extra protein, so using your current weight can push the number so high it becomes unrealistic. Anchoring to your goal feeds the body you are building, and the number stays steady as you get there.</p>
+    <h2>How much by phase</h2>
+    <ul>
+      <li><strong>Lean: 1 gram per pound of goal weight.</strong> A deficit is when muscle is most at risk, so protein goes highest.</li>
+      <li><strong>Sustain: 0.9 grams per pound.</strong> Holding what you built.</li>
+      <li><strong>Strong: 0.8 grams per pound.</strong> You are eating more calories overall, which also protects muscle, so the rate can come down a little.</li>
+      <li><strong>Reverse: 1 gram per pound.</strong> Protein leads the climb, and calories rise as a result.</li>
+    </ul>
+    <h2>Split it across your meals</h2>
+    <p>A daily number is easier to hit when every meal carries its share. Pick how you actually eat: two meals and a shake, three meals, three and a shake, or four. If you use a shake, its protein comes out first and the rest is split evenly across your meals. Aim to land each meal within 5 to 10 grams. You do not need to be perfect. You need to be close, most days.</p>
+    <p>Start by watching what you eat now for a week without changing anything. Then close the gap one meal at a time. Breakfast is usually the biggest opportunity.</p>
+  </article>
+
+  <section class="faq">
+    <h3 class="label">Questions people ask</h3>
+    <details><summary>How much protein do I need a day?</summary><p>We use your goal weight: 1 gram per pound in a fat-loss (Lean) phase, 0.9 in Sustain and 0.8 in a muscle-building (Strong) phase. A woman with a 145 pound goal eats 145 grams a day in Lean.</p></details>
+    <details><summary>Should I use my current weight or my goal weight?</summary><p>Your goal weight. Extra body fat does not need extra protein, and a number built on current weight is often too high to hit. Goal weight feeds the body you are building.</p></details>
+    <details><summary>How much protein should I eat per meal?</summary><p>Divide what is left after any protein shake by the number of meals you eat. On 145 grams with three meals and a 30 gram shake, that is about 38 grams per meal.</p></details>
+    <details><summary>Is a protein shake necessary?</summary><p>No. A shake is a convenient way to close the gap, not a requirement. If you use one, we reserve its protein before splitting the rest so your meals stay properly sized.</p></details>
+    <details><summary>Can I eat too much protein?</summary><p>For healthy adults, the ranges here are well within what research supports. If you have kidney disease or your provider has limited your protein, follow their guidance instead.</p></details>
+  </section>
+
+  <footer class="foot">
+    <p class="tagline">Build health that lasts a lifetime.</p>
+    <p><a href="../">All free tools</a> &nbsp;·&nbsp; <a href="../../score/">The Legacy Score</a> &nbsp;·&nbsp; <a href="../../find-your-phase/">Find Your Phase</a></p>
+    <p>Free education, not medical advice. These tools do not diagnose or treat any condition. If you have a medical condition, are pregnant, or take medication, talk with your provider before changing how you eat or train.</p>
+    <p>© <span id="yr">2026</span> Legacy Performance</p>
+  </footer>
+</main>
+
+<script src="../../nutrition-engine.js?v=41"></script>
+<script src="../tools.js?v=2"></script>
+<script>
+/* ===== protein TOOL ===== every number below comes from a nutrition-engine.js function */
+var PNAME={'Lean':'Lean','Strong':'Strong','Sustain':'Sustain','Reverse Diet':'Reverse'};
+LPT.bind(function(){
+  var out=LPT.$('out');
+  var sex=LPT.seg('sex')==='m'?'male':'female', h=LPT.heightIn('ft','in'), cw=LPT.num('weight'), gw=LPT.num('goal'),
+      ph=LPT.seg('phase')||'Lean', fq=LPT.seg('freq')||'3', sg=+LPT.$('shake').value||30;
+  LPT.$('shakeField').style.display=freqOf(fq).shake?'':'none';
+  if(!(gw>0) && !(h>0)){ out.innerHTML='<p class="empty">Enter your goal weight, or your height and we estimate it. Your protein shows up here instantly.</p>'; return false; }
+  var w={sex:sex, weight:cw>0?cw:undefined, height:h>0?h:undefined, goalweight:gw>0?gw:undefined};
+  var t=computePFS(w, ph, 1); if(!t){ out.innerHTML='<p class="empty">Check your numbers and try again.</p>'; return false; }
+  var s=mealSplit(t, fq, sg);
+  var tiles=s.names.map(function(n){ return '<div class="stat"><div class="k">'+n+'</div><div class="v">'+s.perMeal.protein+' <small>g</small></div></div>'; }).join('');
+  if(s.shake) tiles+='<div class="stat"><div class="k">Protein shake</div><div class="v">'+s.shake.protein+' <small>g</small></div><div class="d">Set aside first</div></div>';
+  var html='<div class="label">Daily protein, '+PNAME[ph]+'</div><div class="big"><b>'+t.protein+'</b><em>grams a day</em></div>'+
+    '<p class="sub">'+PROTEIN_PER_LB[ph]+' g per pound of goal weight × '+t.goalweight+' lb.</p>';
+  if(!(gw>0)) html+='<p class="note">No goal weight entered, so we estimated one from your height: <b>'+t.goalweight+' lb</b>.</p>';
+  html+='<div class="stats">'+tiles+'</div>';
+  html+='<p class="note">'+(s.shake?'The shake is reserved before the meals are split, so your meals stay properly sized. ':'')+'Hit each meal within 5 to 10 grams and the day takes care of itself.</p>';
+  var all=['Lean','Strong','Sustain','Reverse Diet'].map(function(p){ var x=computePFS(w,p,1);
+    return '<tr'+(p===ph?' class="on"':'')+'><td>'+PNAME[p]+'</td><td class="n">'+PROTEIN_PER_LB[p]+' g/lb</td><td class="n">'+x.protein+'<small> g</small></td></tr>'; }).join('');
+  html+='<table class="t"><thead><tr><th>Phase</th><th>Rate</th><th>Daily</th></tr></thead><tbody>'+all+'</tbody></table>';
+  if(cw>0 && t.goalweight<cw) html+='<p class="note">Built from your goal weight, not your current '+Math.round(cw)+' lb. Extra body fat does not need extra protein. Muscle does.</p>';
+  out.innerHTML=html; return true;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy Performance Free Tools: body-comp. Static SEO page, ungated result.
+     ALL math comes from ../../nutrition-engine.js (bump ?v= there when the engine changes).
+     Shared look + helpers: ../tools.css and ../tools.js (CONFIG + track() live in tools.js). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<title>Body Fat Calculator (Navy Method) + Ideal Weight | Legacy Performance</title>
+<meta name="description" content="Free body fat calculator using the US Navy tape-measure method, plus your ideal body weight. BMI shown for context only, because your waist tells you more than the scale.">
+<link rel="canonical" href="https://dashboard.legacyperformance.co/tools/body-comp/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Legacy Performance">
+<meta property="og:title" content="Body Fat & Ideal Weight Calculator | Legacy Performance">
+<meta property="og:description" content="Free body fat calculator using the US Navy tape-measure method, plus your ideal body weight. BMI shown for context only, because your waist tells you more than the scale.">
+<meta property="og:url" content="https://dashboard.legacyperformance.co/tools/body-comp/">
+<meta property="og:image" content="https://dashboard.legacyperformance.co/logo-white-gold.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<link rel="stylesheet" href="../tools.css?v=2">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "How accurate is the Navy body fat method?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "For most people it lands within about 3 to 4 percentage points of a lab scan like DEXA. It is best used to track your own trend over time with the same tape, spots and time of day."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Where do I measure my waist?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "At the navel, standing relaxed, after a normal breath out. For the neck, just below the voice box. For hips, at the widest point."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What is a healthy body fat percentage?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Common reference charts put fitness ranges around 21 to 24 percent for women and 14 to 17 percent for men, with average ranges a little above that. Treat them as context. Your trend matters more than any one reading."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Is BMI useful?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "As context only. BMI cannot tell muscle from fat, so it misreads a lot of strong people. Your waist measurement and your trend over time tell you more."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What ideal weight formula do you use?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "The Hamwi formula: 100 pounds for the first 5 feet plus 5 pounds per inch for women, and 106 plus 6 per inch for men. It is a starting point for a goal, not a rule."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body data-tool="body-comp">
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../../shield-white-gold.png" alt="">
+
+<main class="wrap">
+  <div class="head">
+    <a class="logo" href="../"><img src="../../logo-white-gold.png" alt="Legacy Performance"></a>
+    <a class="tag" href="../">Free<br>Tools</a>
+  </div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../">Free tools</a> / Body composition</nav>
+
+  <section class="hero">
+    <div class="eyebrow">Free tool</div>
+    <h1>Body fat &amp; <span>ideal weight</span></h1>
+    <p class="lead">Estimate your body fat with a tape measure, see a reasonable ideal weight for your height, and learn why your waist tells you more than the scale ever will.</p>
+  </section>
+  <div class="rule"></div>
+
+  <section class="tile calc" aria-label="Calculator">
+    <div class="fields">
+      <div class="field"><span class="fl">Sex</span><div class="seg" data-name="sex"><button data-v="f" aria-pressed="true">Female</button><button data-v="m">Male</button></div></div>
+      <div class="field"><label class="fl" for="ft">Height</label><div class="inp"><input id="ft" type="number" inputmode="numeric" min="4" max="7" placeholder="5"><span class="unit">ft</span><input id="in" type="number" inputmode="decimal" min="0" max="11.9" placeholder="5" aria-label="Height, inches"><span class="unit">in</span></div></div>
+      <div class="field"><label class="fl" for="neck">Neck</label><div class="inp"><input id="neck" type="number" inputmode="decimal" min="0" placeholder="13.5"><span class="unit">in</span></div><small>Just below the voice box.</small></div>
+      <div class="field"><label class="fl" for="waist">Waist</label><div class="inp"><input id="waist" type="number" inputmode="decimal" min="0" placeholder="36"><span class="unit">in</span></div><small>At the navel, relaxed.</small></div>
+      <div class="field" id="hipField"><label class="fl" for="hip">Hips</label><div class="inp"><input id="hip" type="number" inputmode="decimal" min="0" placeholder="42"><span class="unit">in</span></div><small>At the widest point.</small></div>
+      <div class="field"><label class="fl" for="weight">Weight (optional)</label><div class="inp"><input id="weight" type="number" inputmode="decimal" min="0" placeholder="180"><span class="unit">lb</span></div><small>Adds fat and lean mass.</small></div>
+    </div>
+    <div class="result" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="bridge">
+    <img src="../../shield-white-gold.png" alt="">
+    <div>
+      <b class="t">A measurement, not a verdict</b>
+      <p>Body composition is one piece of the picture. The Legacy Score looks at how you fuel, train, recover and feel, and names the one thing to work on first. Find Your Phase shows where to start.</p>
+      <div class="ctas">
+        <a class="btn" href="../../score/" data-href="score" data-track="bridge_score">Get your Legacy Score</a>
+        <a class="btn ghost" href="../../find-your-phase/" data-href="phase" data-track="bridge_phase">Find your phase</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="related">
+    <h3 class="label">Related tools</h3>
+    <div class="grid2">
+    <a class="tile tool" href="../goal-date/" data-track="related_goal-date"><span class="card-title">Goal Date Calculator</span><p>How many weeks your goal honestly takes, how many Lean seasons, and when you land.</p><span class="go">Open the tool</span></a>
+    <a class="tile tool" href="../training-volume/" data-track="related_training-volume"><span class="card-title">Training Volume Calculator</span><p>Weekly hard sets per muscle group for your experience, plus the split that fits your week.</p><span class="go">Open the tool</span></a>
+    </div>
+  </section>
+
+  <article class="edu">
+    <h2>How the Navy tape method works</h2>
+    <p>The US Navy method estimates body fat from a few tape measurements and your height. For men it uses neck and waist. For women it adds the hips. It was built by Hodgdon and Beckett for military fitness testing, and for most people it lands within about 3 to 4 percentage points of a lab scan. That is plenty accurate to track a trend, which is what actually matters.</p>
+    <p>Measure in the morning, relaxed, tape snug but not pressing into the skin. Neck just below the voice box. Waist at the navel. Hips at the widest point. Same spots, same time of day, every time.</p>
+    <h2>The scale is a tool, not a verdict</h2>
+    <p>The number on the scale is a measurement. It is not your worth, and it is not even a direct read on fat. Water, salt, a hard training day and your cycle all move it. That is why we read the scale as a two-week trend and never as a single morning.</p>
+    <p>If you would rather not weigh at all, that is okay. Replace the data instead of removing it: measure your waist, arm, thigh and neck once a month. Just know what skipping the scale costs you, which is time. Fewer data points means it takes longer to tell whether something is working.</p>
+    <h2>Why your waist is the read</h2>
+    <p>Of all the measurements, your <strong>waist at the navel is the fat signal</strong>. If it is coming down, you are losing fat. Arms and thighs are mixed tissue, and they can hold steady or even grow as you build muscle. Waist down with arms and thighs holding is recomposition: losing fat and building muscle at the same time. It is the best outcome there is, and it is the one the scale is worst at showing.</p>
+    <h2>Ideal weight and BMI, in context</h2>
+    <p>Your ideal weight here uses the Hamwi formula, a simple estimate from height. It is a reasonable place to set a first goal, and you can move it as you learn your body. BMI is shown only as context. It divides weight by height and cannot tell muscle from fat, so a strong, muscular person can read as overweight. Use it as one more data point, never as a verdict.</p>
+  </article>
+
+  <section class="faq">
+    <h3 class="label">Questions people ask</h3>
+    <details><summary>How accurate is the Navy body fat method?</summary><p>For most people it lands within about 3 to 4 percentage points of a lab scan like DEXA. It is best used to track your own trend over time with the same tape, spots and time of day.</p></details>
+    <details><summary>Where do I measure my waist?</summary><p>At the navel, standing relaxed, after a normal breath out. For the neck, just below the voice box. For hips, at the widest point.</p></details>
+    <details><summary>What is a healthy body fat percentage?</summary><p>Common reference charts put fitness ranges around 21 to 24 percent for women and 14 to 17 percent for men, with average ranges a little above that. Treat them as context. Your trend matters more than any one reading.</p></details>
+    <details><summary>Is BMI useful?</summary><p>As context only. BMI cannot tell muscle from fat, so it misreads a lot of strong people. Your waist measurement and your trend over time tell you more.</p></details>
+    <details><summary>What ideal weight formula do you use?</summary><p>The Hamwi formula: 100 pounds for the first 5 feet plus 5 pounds per inch for women, and 106 plus 6 per inch for men. It is a starting point for a goal, not a rule.</p></details>
+  </section>
+
+  <footer class="foot">
+    <p class="tagline">Build health that lasts a lifetime.</p>
+    <p><a href="../">All free tools</a> &nbsp;·&nbsp; <a href="../../score/">The Legacy Score</a> &nbsp;·&nbsp; <a href="../../find-your-phase/">Find Your Phase</a></p>
+    <p>Free education, not medical advice. These tools do not diagnose or treat any condition. If you have a medical condition, are pregnant, or take medication, talk with your provider before changing how you eat or train.</p>
+    <p>© <span id="yr">2026</span> Legacy Performance</p>
+  </footer>
+</main>
+
+<script src="../../nutrition-engine.js?v=41"></script>
+<script src="../tools.js?v=2"></script>
+<script>
+/* ===== body-comp TOOL ===== every number below comes from a nutrition-engine.js function */
+LPT.bind(function(){
+  var out=LPT.$('out'), f=LPT.seg('sex')!=='m', sex=f?'female':'male', h=LPT.heightIn('ft','in'),
+      neck=LPT.num('neck'), waist=LPT.num('waist'), hip=LPT.num('hip'), wt=LPT.num('weight');
+  LPT.$('hipField').style.display=f?'':'none';
+  if(!(h>0)){ out.innerHTML='<p class="empty">Enter your height and tape measurements. Your results show up here instantly.</p>'; return false; }
+  var ibw=estimateGoalWeight({sex:sex, height:h}), bf=navyBodyFat({sex:sex, height:h, neck:neck, waist:waist, hip:hip}), html='';
+  if(bf!=null){
+    html+='<div class="label">Estimated body fat</div><div class="big"><b>'+bf+'%</b><em>Navy tape method</em></div>'+
+      '<p class="sub">For reference, that sits in the <b style="color:var(--gold)">'+bodyFatRange(bf,sex)+'</b> range on common reference charts (adapted from ACE). Tape methods usually land within 3 to 4 points of a lab scan.</p>';
+  } else if(neck>0 && waist>0 && (!f || hip>0)){
+    html+='<p class="empty">Those measurements do not give a usable estimate. Check that your waist is larger than your neck and try again.</p>';
+  } else {
+    html+='<p class="empty">Add your neck, waist'+(f?' and hips':'')+' to estimate body fat.</p>';
+  }
+  var tiles='<div class="stat"><div class="k">Ideal weight (Hamwi)</div><div class="v">'+ibw+' <small>lb</small></div><div class="d">A starting point for a goal, not a rule.</div></div>';
+  if(bf!=null && wt>0){ var fm=Math.round(wt*bf/100);
+    tiles+='<div class="stat"><div class="k">Fat mass</div><div class="v">'+fm+' <small>lb</small></div></div><div class="stat"><div class="k">Lean mass</div><div class="v">'+Math.round(wt-fm)+' <small>lb</small></div></div>'; }
+  var b=(wt>0)?bmi(wt,h):null;
+  if(b!=null) tiles+='<div class="stat"><div class="k">BMI (context only)</div><div class="v">'+b+'</div><div class="d">Cannot tell muscle from fat.</div></div>';
+  html+='<div class="stats">'+tiles+'</div>';
+  html+='<p class="note"><b>The scale and BMI are tools, not verdicts.</b> Your waist is the fat-loss read. Measure it at the navel once a month, and if it is coming down, you are losing fat, whatever the scale says this week.</p>';
+  if(wt>0 && wt>ibw+2) html+='<p class="note"><a href="../goal-date/?weight='+Math.round(wt)+'&goal='+ibw+'">See how long '+Math.round(wt)+' to '+ibw+' lb honestly takes</a></p>';
+  out.innerHTML=html; return true;
+});
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy Performance Free Tools: calories. Static SEO page, ungated result.
+     ALL math comes from ../../nutrition-engine.js (bump ?v= there when the engine changes).
+     Shared look + helpers: ../tools.css and ../tools.js (CONFIG + track() live in tools.js). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<title>Maintenance Calorie Calculator: Your Range + Phase Targets | Legacy Performance</title>
+<meta name="description" content="Free maintenance calorie calculator. Find your maintenance range anchored to your goal weight, plus calorie and protein targets for Reverse, Lean, Strong and Sustain.">
+<link rel="canonical" href="https://dashboard.legacyperformance.co/tools/calories/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Legacy Performance">
+<meta property="og:title" content="Maintenance & Calorie Calculator | Legacy Performance">
+<meta property="og:description" content="Free maintenance calorie calculator. Find your maintenance range anchored to your goal weight, plus calorie and protein targets for Reverse, Lean, Strong and Sustain.">
+<meta property="og:url" content="https://dashboard.legacyperformance.co/tools/calories/">
+<meta property="og:image" content="https://dashboard.legacyperformance.co/logo-white-gold.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<link rel="stylesheet" href="../tools.css?v=2">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "How many calories do I need to maintain my weight?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "A simple, reliable starting point is your goal weight times 15. Your true maintenance usually falls between goal weight times 15 and current weight times 15, depending on activity and muscle. Start in that range, weigh in three times a week, and adjust from your own trend."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Why use goal weight instead of current weight?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Because you eat for the body you are building. Anchoring to goal weight means that when you get there, you are already eating maintenance for that body, so there is no hard switch at the end."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What if I do not know my goal weight?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Leave it blank. We estimate an ideal weight from your height and sex using the Hamwi formula, which is a reasonable place to start. You can change it any time."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How is this different from Mifflin-St Jeor or a TDEE calculator?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Those estimate the calories your current body burns. We show that number as a compare line, but build your targets from your goal weight with a multiplier for each phase, and then let weekly check-ins adjust it."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "When do I move from Lean step 1 to step 2?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Only when the scale stops setting new lows for about two weeks (about 10 days if you weigh daily) and you have been at least 85 percent consistent. A flat week is not a stall. A trend is."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body data-tool="calories">
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../../shield-white-gold.png" alt="">
+
+<main class="wrap">
+  <div class="head">
+    <a class="logo" href="../"><img src="../../logo-white-gold.png" alt="Legacy Performance"></a>
+    <a class="tag" href="../">Free<br>Tools</a>
+  </div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../">Free tools</a> / Calories</nav>
+
+  <section class="hero">
+    <div class="eyebrow">Free tool</div>
+    <h1>Maintenance <span>calories</span></h1>
+    <p class="lead">Find your maintenance range and your calories for every phase. We anchor the math to your goal weight, so you eat like the person you are becoming, not the one you are leaving behind.</p>
+  </section>
+  <div class="rule"></div>
+
+  <section class="tile calc" aria-label="Calculator">
+    <div class="fields">
+      <div class="field"><span class="fl">Sex</span><div class="seg" data-name="sex"><button data-v="f" aria-pressed="true">Female</button><button data-v="m">Male</button></div></div>
+      <div class="field"><label class="fl" for="age">Age</label><div class="inp"><input id="age" type="number" inputmode="numeric" min="0" placeholder="40"><span class="unit">yrs</span></div></div>
+      <div class="field"><label class="fl" for="ft">Height</label><div class="inp"><input id="ft" type="number" inputmode="numeric" min="4" max="7" placeholder="5"><span class="unit">ft</span><input id="in" type="number" inputmode="decimal" min="0" max="11.9" placeholder="5" aria-label="Height, inches"><span class="unit">in</span></div></div>
+      <div class="field"><label class="fl" for="weight">Current weight</label><div class="inp"><input id="weight" type="number" inputmode="decimal" min="0" placeholder="180"><span class="unit">lb</span></div></div>
+      <div class="field"><label class="fl" for="goal">Goal weight</label><div class="inp"><input id="goal" type="number" inputmode="decimal" min="0" placeholder="145"><span class="unit">lb</span></div><small>Not sure? Leave it blank and we estimate it from your height.</small></div>
+      <div class="field"><label class="fl" for="act">Activity</label><select id="act"><option value="sedentary">Mostly sitting</option><option value="light" selected>Light exercise 1 to 3 days</option><option value="moderate">Exercise 3 to 5 days</option><option value="very">Hard exercise 6 to 7 days</option><option value="extra">Physical job or twice a day</option></select><small>Only used for the textbook compare.</small></div>
+      <div class="field"><span class="fl">Phase step</span><div class="seg" data-name="step"><button data-v="1" aria-pressed="true">Step 1</button><button data-v="2">Step 2</button><button data-v="3">Step 3</button></div><small>Everyone starts at step 1.</small></div>
+      <div class="field"><label class="fl" for="now">What you eat now (optional)</label><div class="inp"><input id="now" type="number" inputmode="decimal" min="0" placeholder="1,400"><span class="unit">cal/day</span></div><small>Tells you if you are already in reverse territory.</small></div>
+    </div>
+    <div class="result" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="bridge">
+    <img src="../../shield-white-gold.png" alt="">
+    <div>
+      <b class="t">Your number is a starting point, not the plan</b>
+      <p>Calories only work when the rest of the system works with them: sleep, stress, training and how consistent you can actually be. The Legacy Score shows which of those is holding you back, and Find Your Phase tells you where to start.</p>
+      <div class="ctas">
+        <a class="btn" href="../../score/" data-href="score" data-track="bridge_score">Get your Legacy Score</a>
+        <a class="btn ghost" href="../../find-your-phase/" data-href="phase" data-track="bridge_phase">Find your phase</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="related">
+    <h3 class="label">Related tools</h3>
+    <div class="grid2">
+    <a class="tile tool" href="../protein/" data-track="related_protein"><span class="card-title">Protein Calculator</span><p>Your daily protein by phase, split into the meals you actually eat.</p><span class="go">Open the tool</span></a>
+    <a class="tile tool" href="../goal-date/" data-track="related_goal-date"><span class="card-title">Goal Date Calculator</span><p>How many weeks your goal honestly takes, how many Lean seasons, and when you land.</p><span class="go">Open the tool</span></a>
+    </div>
+  </section>
+
+  <article class="edu">
+    <h2>Why we anchor to your goal weight</h2>
+    <p>Most calorie calculators start with the body you have right now. They take your current weight, run it through a formula, and hand you a number to eat less than. That works for a few weeks. Then the number that was built for a heavier body stops fitting, and nobody tells you what to do next.</p>
+    <p>We flip it. Your calories are built from your <strong>goal weight</strong>, the body you are working toward. Goal weight times 15 is maintenance for that body. So when you arrive, you are already eating like the person who lives there. There is no scary moment where the plan ends and you have to figure out maintenance on your own. You have been practicing it the whole time.</p>
+    <h2>Maintenance is a range, not a number</h2>
+    <p>Your real maintenance sits somewhere between your goal weight times 15 and your current weight times 15. Where you land depends on how much you move, how much muscle you carry, the quality of your food and a dozen other things no formula can see. We do not chase the exact number. We start inside the range, check in weekly, and let your own data move it.</p>
+    <h2>The four phases</h2>
+    <ul>
+      <li><strong>Lean (×13, then 12, then 11).</strong> Fat loss. You only step down when the scale has stopped setting new lows for long enough that it is not noise.</li>
+      <li><strong>Strong (×15, then 16, then 17).</strong> Building muscle. You eat at or above maintenance so training has something to build with.</li>
+      <li><strong>Sustain (×15).</strong> The hinge. Holding, recovering, and letting your body settle before the next season.</li>
+      <li><strong>Reverse (×10, then 12, then 13).</strong> For anyone already eating at or under ten times their goal weight. You do not cut from there. You climb first.</li>
+    </ul>
+    <h2>What about the textbook formula?</h2>
+    <p>Mifflin-St Jeor is a good formula, and we show it so you can compare. But it estimates your resting burn with an error of around ten percent, and the activity multiplier on top is mostly a guess. Two guesses stacked on the body you are trying to leave is not a better starting point. A simple anchor you can check against the scale every week is.</p>
+    <p>Whatever number you start with, it is a hypothesis. Protein first, consistency second, and two weeks of data before you change anything.</p>
+  </article>
+
+  <section class="faq">
+    <h3 class="label">Questions people ask</h3>
+    <details><summary>How many calories do I need to maintain my weight?</summary><p>A simple, reliable starting point is your goal weight times 15. Your true maintenance usually falls between goal weight times 15 and current weight times 15, depending on activity and muscle. Start in that range, weigh in three times a week, and adjust from your own trend.</p></details>
+    <details><summary>Why use goal weight instead of current weight?</summary><p>Because you eat for the body you are building. Anchoring to goal weight means that when you get there, you are already eating maintenance for that body, so there is no hard switch at the end.</p></details>
+    <details><summary>What if I do not know my goal weight?</summary><p>Leave it blank. We estimate an ideal weight from your height and sex using the Hamwi formula, which is a reasonable place to start. You can change it any time.</p></details>
+    <details><summary>How is this different from Mifflin-St Jeor or a TDEE calculator?</summary><p>Those estimate the calories your current body burns. We show that number as a compare line, but build your targets from your goal weight with a multiplier for each phase, and then let weekly check-ins adjust it.</p></details>
+    <details><summary>When do I move from Lean step 1 to step 2?</summary><p>Only when the scale stops setting new lows for about two weeks (about 10 days if you weigh daily) and you have been at least 85 percent consistent. A flat week is not a stall. A trend is.</p></details>
+  </section>
+
+  <footer class="foot">
+    <p class="tagline">Build health that lasts a lifetime.</p>
+    <p><a href="../">All free tools</a> &nbsp;·&nbsp; <a href="../../score/">The Legacy Score</a> &nbsp;·&nbsp; <a href="../../find-your-phase/">Find Your Phase</a></p>
+    <p>Free education, not medical advice. These tools do not diagnose or treat any condition. If you have a medical condition, are pregnant, or take medication, talk with your provider before changing how you eat or train.</p>
+    <p>© <span id="yr">2026</span> Legacy Performance</p>
+  </footer>
+</main>
+
+<script src="../../nutrition-engine.js?v=41"></script>
+<script src="../tools.js?v=2"></script>
+<script>
+/* ===== calories TOOL ===== every number below comes from a nutrition-engine.js function */
+var PHASES=[['Reverse Diet','Reverse','Climb out'],['Lean','Lean','Fat loss'],['Strong','Strong','Build'],['Sustain','Sustain','Hold']];
+LPT.bind(function(){
+  var out=LPT.$('out');
+  var sex=LPT.seg('sex')==='m'?'male':'female', h=LPT.heightIn('ft','in'), cw=LPT.num('weight'), gw=LPT.num('goal'),
+      age=LPT.num('age'), step=+LPT.seg('step')||1, now=LPT.num('now');
+  if(!(cw>0) || (!(gw>0) && !(h>0))){
+    out.innerHTML='<p class="empty">Enter your current weight, plus your goal weight or your height. Your numbers show up here instantly.</p>'; return false; }
+  var w={sex:sex, weight:cw, height:h>0?h:undefined, age:age>0?age:undefined, goalweight:gw>0?gw:undefined};
+  var r=maintenanceRange(w); if(!r){ out.innerHTML='<p class="empty">Check your numbers and try again.</p>'; return false; }
+  var g=r.goalweight, k=(now>0)?coefficientOf(now,g):null, rev=(now>0)&&needsReverse(now,g);
+  var rows=PHASES.map(function(p){
+    var t=computePFS(w,p[0],step), d=t.delta;
+    var vs=d===0?'At maintenance':(Math.abs(d).toLocaleString('en-US')+(d<0?' under':' over'));
+    return '<tr'+((rev&&p[0]==='Reverse Diet')?' class="on"':'')+'><td><b style="color:#fff">'+p[1]+'</b><br><small style="color:#9f998e">'+p[2]+'</small></td><td class="n">×'+t.multiplier+'</td><td class="n">'+LPT.fmt(t.calories)+'</td><td class="n">'+t.protein+'<small> g</small></td><td class="hide-sm">'+vs+'</td></tr>';
+  }).join('');
+  var html='<div class="label">Your maintenance</div><div class="big"><b>'+LPT.fmt(computeTDEE(w))+'</b><em>calories a day</em></div>'+
+    '<p class="sub">Your range: <b style="color:var(--gold)">'+LPT.fmt(r.low)+' to '+LPT.fmt(r.high)+'</b>. That is '+maintRange()+'.</p>';
+  if(!(gw>0)) html+='<p class="note">No goal weight entered, so we estimated one from your height: <b>'+g+' lb</b>. Change it any time.</p>';
+  html+='<table class="t"><thead><tr><th>Phase</th><th>×</th><th>Calories</th><th>Protein</th><th class="hide-sm">vs maintenance</th></tr></thead><tbody>'+rows+'</tbody></table>';
+  html+='<p class="note">Every target is your goal weight ('+g+' lb) × the phase multiplier. Step '+step+' shown. Lean steps down 13, 12, 11. Strong climbs 15, 16, 17. Reverse climbs 10, 12, 13.</p>';
+  if(k!=null){
+    if(rev) html+='<p class="note"><b>You eat about ×'+k+' of your goal weight.</b> That is at or under ×10, reverse territory. Cutting further from here usually stalls and costs muscle. The Reverse phase comes first.</p>';
+    else if(k<15) html+='<p class="note"><b>You eat about ×'+k+' of your goal weight.</b> That is already under maintenance, so your body has room to respond. Lean starts at ×13.</p>';
+    else html+='<p class="note"><b>You eat about ×'+k+' of your goal weight.</b> That is at or above maintenance for your goal body.</p>';
+  }
+  var tb=(h>0&&age>0)?textbookTDEE({sex:sex,weight:cw,height:h,age:age}, LPT.$('act').value):null;
+  html+= tb ? '<p class="compare">Textbook compare: Mifflin-St Jeor puts your resting burn at '+LPT.fmt(tb.bmr)+', times '+tb.factor+' for your activity = <b>'+LPT.fmt(tb.tdee)+'</b> a day. That formula estimates the body you have today. Ours feeds the body you are building.</p>'
+            : '<p class="compare">Add your age and height to see the textbook (Mifflin-St Jeor) compare.</p>';
+  out.innerHTML=html; return true;
+});
+</script>
+</body>
+</html>

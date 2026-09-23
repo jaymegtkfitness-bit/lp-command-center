@@ -2243,3 +2243,122 @@ function systemLink(inp, base){
   var b64=(typeof btoa==='function') ? btoa(unescape(encodeURIComponent(json))) : '';
   return (base||'system/')+'#d='+encodeURIComponent(b64);
 }
+
+/* ===== FREE TOOLS PACK (added 2026-09-22, engine v41) =====
+   Small PURE helpers for the free SEO calculators at dashboard/tools/. Nothing above this block was
+   changed. LP's own numbers still come from computeTDEE / computePFS / seasonPlan / mealSplit.
+   The textbook formulas here (Mifflin-St Jeor, Navy, BMI) are shown only as CONTEXT on those pages,
+   never as the plan. Units: pounds and inches in, pounds / kcal / ounces / percent out.
+   Returns null on missing or impossible input so a page never prints NaN. */
+
+/* Maintenance range: ideal (goal) weight x 15 up to current weight x 15. Both ends use computeTDEE,
+   so the x15 rule lives in one place. */
+function maintenanceRange(w){
+  w=w||{};
+  var low=computeTDEE(w);
+  var cw=+w.weight;
+  var high=(cw>0) ? computeTDEE({goalweight:cw}) : low;
+  if(!(low>0)) return null;
+  return {low:Math.min(low,high), high:Math.max(low,high), goalweight:(+w.goalweight>0)?+w.goalweight:estimateGoalWeight(w)};
+}
+
+/* Textbook compare line: Mifflin-St Jeor BMR x an activity factor. Context only, not the plan. */
+var ACTIVITY_FACTORS={
+  sedentary:{f:1.2,   label:'Mostly sitting'},
+  light:    {f:1.375, label:'Light exercise 1 to 3 days'},
+  moderate: {f:1.55,  label:'Exercise 3 to 5 days'},
+  very:     {f:1.725, label:'Hard exercise 6 to 7 days'},
+  extra:    {f:1.9,   label:'Physical job or twice a day'}
+};
+function mifflinBMR(w){
+  w=w||{};
+  var lb=+w.weight, inch=+w.height, age=+w.age;
+  if(!(lb>0)||!(inch>0)||!(age>0)) return null;
+  var kg=lb/2.20462, cm=inch*2.54;
+  return Math.round(10*kg + 6.25*cm - 5*age + (/^f/i.test(w.sex||'') ? -161 : 5));
+}
+function textbookTDEE(w, activity){
+  var b=mifflinBMR(w); if(b==null) return null;
+  var a=ACTIVITY_FACTORS[activity]||ACTIVITY_FACTORS.light;
+  return {bmr:b, factor:a.f, tdee:Math.round(b*a.f)};
+}
+
+/* BMI = 703 x lb / in^2. Shown as context only. The scale and BMI are tools, not verdicts. */
+function bmi(weightLb, heightIn){
+  var lb=+weightLb, h=+heightIn;
+  if(!(lb>0)||!(h>0)) return null;
+  return Math.round(703*lb/(h*h)*10)/10;
+}
+
+/* US Navy circumference method (Hodgdon & Beckett, 1984). Inches in, body fat percent out.
+   Men: neck, waist (at the navel), height. Women add hip (widest point). */
+function navyBodyFat(m){
+  m=m||{};
+  var h=+m.height, n=+m.neck, wa=+m.waist, hi=+m.hip, f=/^f/i.test(m.sex||'');
+  if(!(h>0)||!(n>0)||!(wa>0)) return null;
+  var bf;
+  if(f){
+    if(!(hi>0) || wa+hi-n<=0) return null;
+    bf=163.205*Math.log10(wa+hi-n) - 97.684*Math.log10(h) - 78.387;
+  } else {
+    if(wa-n<=0) return null;
+    bf=86.010*Math.log10(wa-n) - 70.041*Math.log10(h) + 36.76;
+  }
+  if(!isFinite(bf) || bf<2 || bf>60) return null;
+  return Math.round(bf*10)/10;
+}
+/* Reference ranges for context (American Council on Exercise chart), never a verdict. */
+function bodyFatRange(pct, sex){
+  var t=/^f/i.test(sex||'') ? [[14,'Essential'],[21,'Athletic'],[25,'Fitness'],[32,'Average'],[999,'Above average']]
+                            : [[6,'Essential'],[14,'Athletic'],[18,'Fitness'],[25,'Average'],[999,'Above average']];
+  var p=+pct; if(!isFinite(p)) return null;
+  for(var i=0;i<t.length;i++){ if(p<t[i][0]) return t[i][1]; }
+  return t[t.length-1][1];
+}
+
+/* Water: half body weight in ounces a day (brand_engine: a floor, not a ceiling). */
+var WATER_MORNING_OZ=[16,20];
+function waterOz(weightLb){
+  var lb=+weightLb;
+  if(!(lb>0)) return null;
+  var oz=Math.round(lb/2);
+  return {oz:oz, cups:Math.round(oz/8*10)/10, liters:Math.round(oz*0.0295735*10)/10,
+          bottles16:Math.round(oz/16*10)/10, morning:WATER_MORNING_OZ.slice(), restOfDay:Math.max(0, oz-WATER_MORNING_OZ[0])};
+}
+
+/* Weekly hard sets per muscle group. Generic, evidence-based ranges (sets taken within about 1 to 3
+   reps of failure): beginner about 10, intermediate 10 to 15, advanced 15 to 20. The big groups get the
+   target. Smaller groups that already get indirect work from the big lifts (shoulders, arms, calves,
+   core) sit around 60% of it, because a press or a row trains them too.
+   A fat-loss (Lean) phase holds volume at the low end: recovery is the budget in a deficit.
+   perSession estimates what you actually PROGRAM: big-group sets plus half the small-group sets,
+   since compound lifts cover the other half. Over 24 in a session = flag it. */
+var SET_RANGES={beginner:[8,12], intermediate:[10,15], advanced:[15,20]};
+var SET_GROUPS=[
+  {name:'Chest', big:true}, {name:'Back', big:true}, {name:'Quads', big:true}, {name:'Hamstrings and glutes', big:true},
+  {name:'Shoulders', big:false}, {name:'Biceps', big:false}, {name:'Triceps', big:false},
+  {name:'Calves', big:false}, {name:'Core', big:false}
+];
+var SPLIT_BY_DAYS={
+  2:{name:'Full body, twice a week', days:['Full body A','Full body B'], freq:2},
+  3:{name:'Full body, three times a week', days:['Full body A','Full body B','Full body C'], freq:3},
+  4:{name:'Upper / lower, twice through', days:['Upper','Lower','Upper','Lower'], freq:2},
+  5:{name:'Upper / lower plus a full body day', days:['Upper','Lower','Full body','Upper','Lower'], freq:2},
+  6:{name:'Push / pull / legs, twice through', days:['Push','Pull','Legs','Push','Pull','Legs'], freq:2}
+};
+function weeklySets(experience, days, fatLoss){
+  var key=SET_RANGES[experience]?experience:'beginner', r=SET_RANGES[key];
+  var d=Math.min(6, Math.max(2, Math.round(+days||3)));
+  var lo=r[0], hi=r[1];
+  var target=fatLoss ? lo : Math.floor((lo+hi)/2);
+  var small=function(x){ return Math.max(4, Math.round(x*0.6)); };
+  var groups=SET_GROUPS.map(function(g){
+    return {name:g.name, big:g.big, sets:g.big?target:small(target), range:g.big?[lo,hi]:[small(lo),small(hi)]};
+  });
+  var bigSum=0, smallSum=0;
+  groups.forEach(function(g){ if(g.big) bigSum+=g.sets; else smallSum+=g.sets; });
+  var programmed=Math.round(bigSum+smallSum/2);
+  var perSession=Math.round(programmed/d);
+  return {experience:key, days:d, range:[lo,hi], target:target, groups:groups, programmed:programmed,
+          perSession:perSession, split:SPLIT_BY_DAYS[d], rir:fatLoss?'2 to 3':'1 to 3', heavySession:perSession>24};
+}

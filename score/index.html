@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- THE LEGACY SCORE: the flagship free assessment, served at dashboard.legacyperformance.co/score/.
+     One number (0-100) for how well your health is built to last, scored on the Awareness Circle
+     (Signals, Fuel, Output, Recovery), with optional wearable + lab layers. Score + domain bars are
+     free; The Read (weakest domain + one thing + the age you're living at) is behind first name + email,
+     which POSTs type:'lead' to the Apps Script doorway (Sheet 'Leads' + GHL tags).
+     Math is in the SCORING section below. It is not nutrition math, so it does not live in the engine;
+     the engine is loaded only for estimateGoalWeight(). Plan: competitor-intel/optml/LP-REPLICATION-PLAN.md -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<title>The Legacy Score | Legacy Performance</title>
+<meta name="description" content="A free 3-minute health score. One number for how well your health is built to last, across sleep, energy, fuel, training and recovery, plus the one thing to fix first.">
+<link rel="canonical" href="https://dashboard.legacyperformance.co/score/">
+<meta property="og:type" content="website">
+<meta property="og:title" content="The Legacy Score: is your health built to last?">
+<meta property="og:description" content="3 minutes. One number. The one thing to fix first. Free.">
+<meta property="og:url" content="https://dashboard.legacyperformance.co/score/">
+<meta property="og:image" content="https://dashboard.legacyperformance.co/logo-white-gold.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8;--warn:#d9a066;--low:#c9796a}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
+  -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;background:#1a1a1a}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:fixed;left:0;top:0;right:0;height:5px;z-index:3;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
+.mark{position:fixed;right:-160px;top:140px;width:560px;max-width:none;opacity:.05;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:44px 24px 40px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.head img{height:56px;width:auto;margin-left:-10px}
+.tag{font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:700;text-align:right;line-height:1.7}
+.hero{margin-top:48px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.85rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+h1{font-weight:900;font-size:clamp(3rem,12vw,5.2rem);line-height:.95;letter-spacing:-.01em;margin-top:8px;text-transform:uppercase}
+h1 span{color:var(--gold)}
+.lead{margin-top:16px;font-size:1.02rem;color:var(--body);max-width:560px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:30px 0 24px}
+.tile{background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:20px}
+.panel{background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:16px;padding:22px}
+.label{font-family:Cinzel,Georgia,serif;font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600}
+.btn{display:inline-block;border:0;cursor:pointer;font-family:inherit;white-space:nowrap;background:var(--gold);color:var(--ink);font-weight:800;font-size:.84rem;letter-spacing:.06em;
+  text-transform:uppercase;padding:14px 20px;border-radius:10px;text-decoration:none;text-align:center;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(193,173,114,.25)}
+.btn[disabled]{opacity:.4;cursor:default;transform:none;box-shadow:none}
+.ghost{background:transparent;color:var(--soft);border:1px solid rgba(255,255,255,.18)}
+.linkbtn{background:none;border:0;color:var(--soft);font-family:inherit;font-size:.82rem;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pillrow{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:22px;font-size:.8rem;color:var(--soft)}
+.pillrow b{color:var(--gold);font-family:Cinzel,Georgia,serif}
+.circle4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:26px}
+.circle4 div{text-align:center;padding:14px 6px}
+.circle4 b{display:block;font-size:.78rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+.circle4 span{display:block;font-size:.72rem;color:var(--soft);margin-top:3px;line-height:1.35}
+.hidden{display:none!important}
+
+/* ---------- quiz ---------- */
+.progress{height:6px;background:rgba(255,255,255,.08);border-radius:4px;overflow:hidden;margin-top:28px}
+.progress i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--olive-lt),var(--gold));transition:width .3s}
+.qmeta{display:flex;justify-content:space-between;margin-top:10px;font-size:.72rem;letter-spacing:.2em;text-transform:uppercase;color:var(--soft)}
+.qmeta b{color:var(--gold);font-weight:700}
+.q{margin-top:28px}
+.q h2{font-size:clamp(1.3rem,4.6vw,1.7rem);font-weight:800;line-height:1.25}
+.q .help{margin-top:8px;color:var(--soft);font-size:.9rem}
+.opts{display:grid;gap:10px;margin-top:22px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:inherit;font-size:.98rem;color:var(--parch);cursor:pointer;
+  background:linear-gradient(90deg,rgba(84,106,70,.13),rgba(255,255,255,.03));border:1px solid var(--olive-dim);border-radius:12px;padding:14px 16px;transition:border-color .15s,background .15s}
+.opt:hover{border-color:var(--olive-lt)}
+.opt.on{border-color:var(--gold);background:linear-gradient(90deg,rgba(193,173,114,.18),rgba(255,255,255,.04))}
+.opt .box{flex:none;width:18px;height:18px;border-radius:5px;border:2px solid var(--olive-lt)}
+.opt.on .box{background:var(--gold);border-color:var(--gold)}
+.scale{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:22px}
+.scale .opt{justify-content:center;font-family:Cinzel,Georgia,serif;font-weight:700;font-size:1.3rem;padding:16px 0}
+.scale-ends{display:flex;justify-content:space-between;font-size:.76rem;color:var(--soft);margin-top:8px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+.field label{display:block;font-size:.74rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);margin-bottom:6px;font-weight:600}
+.field input,.field select{width:100%;font-family:inherit;font-size:1rem;color:var(--parch);background:rgba(0,0,0,.28);border:1px solid var(--olive-dim);border-radius:10px;padding:12px 14px;outline:none}
+.field input:focus,.field select:focus{border-color:var(--gold)}
+.field.full{grid-column:1/-1}
+.seg{display:flex;gap:8px}
+.seg .opt{justify-content:center;padding:12px}
+.nav{display:flex;justify-content:space-between;align-items:center;margin-top:28px;gap:12px}
+.err{color:var(--warn);font-size:.85rem;margin-top:12px;min-height:1.2em}
+.layer{margin-top:14px}
+.layer summary{cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;font-weight:800;text-transform:uppercase;letter-spacing:.04em;font-size:.95rem}
+.layer summary::-webkit-details-marker{display:none}
+.layer summary em{font-style:normal;font-size:.72rem;color:var(--gold);letter-spacing:.14em}
+.layer p{color:var(--soft);font-size:.86rem;margin-top:6px}
+
+/* ---------- analyzing ---------- */
+.ritual{display:grid;gap:10px;margin-top:34px}
+.rrow{display:flex;align-items:center;gap:12px;color:#77726a;font-weight:600;transition:color .2s}
+.rrow i{width:10px;height:10px;border-radius:50%;background:#444;flex:none;transition:background .2s}
+.rrow.active{color:var(--parch)} .rrow.active i{background:var(--gold);box-shadow:0 0 12px var(--gold)}
+.rrow.done{color:var(--olive-lt)} .rrow.done i{background:var(--olive-lt)}
+
+/* ---------- result ---------- */
+.result-top{display:grid;grid-template-columns:220px 1fr;gap:26px;align-items:center;margin-top:30px}
+.ring{position:relative;width:220px;height:220px}
+.ring svg{width:100%;height:100%;transform:rotate(-90deg)}
+.ring .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ring .num b{font-family:Cinzel,Georgia,serif;font-size:4.2rem;color:var(--gold);line-height:1}
+.ring .num span{font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:var(--soft);margin-top:6px}
+.band{font-weight:900;text-transform:uppercase;font-size:clamp(1.8rem,6vw,2.5rem);line-height:1}
+.band-sub{color:var(--body);margin-top:10px;font-size:.98rem}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+.chip{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;padding:6px 10px;border-radius:999px;border:1px solid var(--olive-dim);color:var(--soft)}
+.chip b{color:var(--gold)}
+.bars{display:grid;gap:16px;margin-top:8px}
+.bar-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.bar-h b{font-weight:800;text-transform:uppercase;letter-spacing:.06em;font-size:.9rem}
+.bar-h span{font-family:Cinzel,Georgia,serif;color:var(--gold);font-weight:700}
+.bar-h small{font-size:.76rem;color:var(--soft);display:block;font-weight:500;text-transform:none;letter-spacing:0}
+.track{height:10px;border-radius:6px;background:rgba(255,255,255,.07);margin-top:6px;overflow:hidden}
+.track i{display:block;height:100%;border-radius:6px;width:0;transition:width 1s ease}
+.gate{margin-top:26px;position:relative}
+.gate h3,.read h3{font-weight:900;text-transform:uppercase;font-size:1.3rem;line-height:1.2}
+.gate p{color:var(--body);margin-top:8px}
+.gate .fields{margin-top:16px}
+.fine{font-size:.76rem;color:#8f8a80;margin-top:10px}
+.read{margin-top:26px;display:grid;gap:14px}
+.read .big{font-family:Cinzel,Georgia,serif;color:var(--gold);font-size:1.5rem;font-weight:700;line-height:1.25}
+.read p{color:var(--body)}
+.onething{border-left-color:var(--gold)}
+.onething .label{color:var(--gold)}
+.next{display:grid;gap:12px;margin-top:14px}
+.nextrow{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center}
+.nextrow h4{font-weight:800;text-transform:uppercase;font-size:.98rem;color:#fff}
+.nextrow p{font-size:.86rem;color:var(--soft);margin-top:3px}
+.sec{margin-top:40px}
+.history{display:flex;gap:6px;align-items:flex-end;height:70px;margin-top:12px}
+.history div{flex:1;background:linear-gradient(180deg,var(--gold),var(--olive));border-radius:4px 4px 0 0;min-height:4px;position:relative}
+.history div span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:.68rem;color:var(--soft)}
+.foot{margin-top:44px;font-size:.78rem;color:#8f8a80;text-align:center}
+.foot a{color:var(--gold);text-decoration:none;font-weight:600}
+.foot .tl{font-family:Cinzel,Georgia,serif;color:var(--gold);letter-spacing:.18em;text-transform:uppercase;font-size:.76rem;margin-bottom:10px}
+@media (max-width:640px){
+  .wrap{padding:36px 18px 32px}
+  .head img{height:46px}
+  .hero{margin-top:36px}
+  .circle4{grid-template-columns:1fr 1fr}
+  .result-top{grid-template-columns:1fr;justify-items:center;text-align:center}
+  .chips{justify-content:center}
+  .ring{width:190px;height:190px}
+  .fields{grid-template-columns:1fr 1fr}
+  .nextrow{grid-template-columns:1fr}
+  .nextrow .btn{justify-self:start}
+  .mark{width:380px;right:-150px;top:110px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../shield-white-gold.png" alt="">
+
+<main class="wrap">
+  <div class="head">
+    <a href="https://legacyperformance.co/"><img src="../logo-white-gold.png" alt="Legacy Performance"></a>
+    <div class="tag">The<br>Legacy Score</div>
+  </div>
+
+  <!-- ===================== INTRO ===================== -->
+  <section id="intro">
+    <div class="hero">
+      <div class="eyebrow">Free · about 3 minutes</div>
+      <h1>Is your health <span>built to last?</span></h1>
+      <p class="lead">One number for how well your health is built for the long haul. Not just your weight. Your sleep, your energy, how you fuel, how you train and how you recover. Then the one thing to fix first.</p>
+    </div>
+    <div class="rule"></div>
+    <div class="circle4">
+      <div class="tile"><b>Signals</b><span>What your body is telling you</span></div>
+      <div class="tile"><b>Fuel</b><span>What you put in</span></div>
+      <div class="tile"><b>Output</b><span>What you do with it</span></div>
+      <div class="tile"><b>Recovery</b><span>How you refill</span></div>
+    </div>
+    <div style="margin-top:28px;display:flex;gap:14px;flex-wrap:wrap;align-items:center">
+      <button class="btn" id="startBtn">Get my Legacy Score</button>
+      <span id="welcomeBack" class="fine hidden"></span>
+    </div>
+    <div class="pillrow"><span><b>22</b> quick questions</span><span><b>4</b> domains</span><span>Score shows <b>before</b> any email</span></div>
+  </section>
+
+  <!-- ===================== QUIZ ===================== -->
+  <section id="quiz" class="hidden">
+    <div class="progress"><i id="pbar"></i></div>
+    <div class="qmeta"><span id="qdomain"></span><span><b id="qn"></b> of <b id="qt"></b></span></div>
+    <div id="qbody" class="q"></div>
+    <div class="err" id="qerr"></div>
+    <div class="nav">
+      <button class="linkbtn" id="backBtn">Back</button>
+      <button class="btn" id="nextBtn">Next</button>
+    </div>
+  </section>
+
+  <!-- ===================== ANALYZING ===================== -->
+  <section id="analyzing" class="hidden">
+    <div class="hero"><div class="eyebrow">Reading your answers</div><h1>Building your <span>score.</span></h1></div>
+    <div class="ritual" id="ritual">
+      <div class="rrow"><i></i>Reading your Signals</div>
+      <div class="rrow"><i></i>Weighing your Fuel</div>
+      <div class="rrow"><i></i>Measuring your Output</div>
+      <div class="rrow"><i></i>Checking your Recovery</div>
+      <div class="rrow"><i></i>Finding your one constraint</div>
+    </div>
+  </section>
+
+  <!-- ===================== RESULT ===================== -->
+  <section id="result" class="hidden">
+    <div class="eyebrow" style="margin-top:36px">Your Legacy Score</div>
+    <div class="result-top">
+      <div class="ring">
+        <svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="10"/>
+          <circle id="ringArc" cx="60" cy="60" r="52" fill="none" stroke="url(#g)" stroke-width="10" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="326.7" style="transition:stroke-dashoffset 1.4s ease"/>
+          <defs><linearGradient id="g" x1="0" x2="1"><stop offset="0" stop-color="#8FA97A"/><stop offset="1" stop-color="#C1AD72"/></linearGradient></defs></svg>
+        <div class="num"><b id="scoreNum">0</b><span>out of 100</span></div>
+      </div>
+      <div>
+        <div class="band" id="bandName"></div>
+        <p class="band-sub" id="bandSub"></p>
+        <div class="chips" id="chips"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="label">Your four domains</div>
+      <div class="bars" id="bars" style="margin-top:16px"></div>
+    </div>
+
+    <!-- email gate -->
+    <div class="gate panel" id="gate">
+      <div class="label" style="color:var(--gold)">Your Read is ready</div>
+      <h3 style="margin-top:8px">Your #1 constraint, your one thing this week, and the age you're living at.</h3>
+      <p>Tell me where to send it and it opens right here. I'll also email you a copy so you can retake it in 30 days and see what moved.</p>
+      <form id="gateForm" class="fields" novalidate>
+        <div class="field"><label for="fname">First name</label><input id="fname" autocomplete="given-name" required></div>
+        <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="email" required></div>
+        <div class="field full"><button class="btn" type="submit" style="width:100%">Show my Read</button></div>
+      </form>
+      <p class="err" id="gateErr"></p>
+      <p class="fine">No spam. One email with your results, then short, useful notes you can unsubscribe from any time.</p>
+    </div>
+
+    <div class="read hidden" id="read"></div>
+
+    <div class="sec hidden" id="nextSec">
+      <div class="label">Your next step</div>
+      <div class="next" id="nextList"></div>
+    </div>
+
+    <div class="sec hidden" id="histSec">
+      <div class="label">Your scores over time</div>
+      <div class="history" id="history"></div>
+    </div>
+
+    <div class="sec" style="display:flex;gap:12px;flex-wrap:wrap">
+      <button class="btn ghost" id="shareBtn">Share my score</button>
+      <button class="btn ghost" id="retakeBtn">Retake</button>
+    </div>
+    <p class="fine" style="margin-top:18px">The Legacy Score is an educational self-assessment, not a medical test or diagnosis. Lab ranges shown are the optimal ranges functional health coaches use, which are tighter than standard lab ranges. Talk to your provider about any lab value or symptom.</p>
+  </section>
+
+  <div class="foot">
+    <div class="tl">Build health that lasts a lifetime.</div>
+    <p>Legacy Performance · <a href="../tools/">Free tools</a> · <a href="../find-your-phase/">Find your phase</a></p>
+  </div>
+</main>
+
+<script src="../nutrition-engine.js?v=41"></script>
+<script>
+/* =================== CONFIG — EDIT THIS BLOCK =================== */
+const CONFIG = {
+  /* Apps Script doorway (same as build/). "" -> page still works, saves on-device only. */
+  writeUrl: "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
+  links: {
+    phase:  "../find-your-phase/",
+    cns:    "https://dashboard.legacyperformance.co/build/",
+    skool:  "https://www.skool.com/legacy-performance/about",
+    call:   "https://legacyperformance.co/book-a-call",
+    tools:  "../tools/"
+  },
+  metaPixelId: ""
+};
+
+/* =================== HELPERS =================== */
+const $ = id => document.getElementById(id);
+const qsa = (s, r) => Array.from((r||document).querySelectorAll(s));
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lin = (x, x0, y0, x1, y1) => y0 + (clamp(x, Math.min(x0,x1), Math.max(x0,x1)) - x0) * (y1 - y0) / (x1 - x0);
+function track(ev, data){ try { if (window.fbq) fbq('track', ev, data||{}); } catch(e){} }
+function store(k, v){ try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} }
+function load(k){ try { return JSON.parse(localStorage.getItem(k)); } catch(e){ return null; } }
+
+/* =================== QUESTIONS ===================
+   Each scored question returns 0..1 via score(). domain = which quarter of the Awareness Circle.
+   Choices carry their own value v (0..1). Profile answers are unscored context. */
+const S5 = v => (v - 1) / 4;
+const QUESTIONS = [
+  { id:'profile', domain:'About you', type:'profile', title:'First, the basics.', help:'So we can score you against the right ranges.' },
+  { id:'goal', domain:'About you', type:'choice', title:'What matters most to you right now?',
+    opts:[['Lose body fat','fat'],['Build strength and muscle','muscle'],['More energy','energy'],['Feel like myself again (hormones, mood, sleep)','feel'],['Stay strong for the long haul','longevity']] },
+
+  /* ---- SIGNALS: what your body is telling you ---- */
+  { id:'morning', domain:'Signals', type:'scale', title:'How do you usually feel in the first hour after you wake up?', ends:['Dragging','Ready to go'] },
+  { id:'crash', domain:'Signals', type:'choice', title:'Do you hit an afternoon crash?',
+    opts:[['Hard, most days',0],['Pretty often',.4],['Now and then',.7],['Rarely or never',1]] },
+  { id:'focus', domain:'Signals', type:'scale', title:'How steady are your mood and focus through a normal day?', ends:['All over the place','Steady'] },
+  { id:'symptoms', domain:'Signals', type:'multi', title:'Anything you notice most weeks?', help:'Pick all that fit.',
+    opts:[['Bloating or gut trouble','gut'],['Achy joints','joints'],['Brain fog','fog'],['Cravings I can\'t shake','cravings'],['Low drive or libido','libido'],['Hot flashes or night sweats','flashes','F'],['Waking at 3am','wake'],['None of these','none']],
+    score:a => (!a||!a.length||a.includes('none')) ? 1 : 1 - Math.min(.13 * a.length, .85) },
+  { id:'waist', domain:'Signals', type:'number', title:'Your waist, at the belly button, in inches.', help:'Optional, but it\'s the best single body read we have. Skip if you don\'t know.', unit:'in', min:20, max:70, optional:true,
+    score:(v, P) => { if (!v || !P.height) return null; const r = v / P.height;
+      if (r <= .45) return 1; if (r <= .5) return lin(r,.45,1,.5,.8); if (r <= .6) return lin(r,.5,.8,.6,.3); return Math.max(.1, lin(r,.6,.3,.7,.1)); } },
+
+  /* ---- FUEL: what you put in ---- */
+  { id:'protein', domain:'Fuel', type:'choice', title:'How many times a day do you eat a palm-sized (or bigger) portion of protein?', help:'Meat, fish, eggs, Greek yogurt, cottage cheese, a protein shake.',
+    opts:[['0 to 1',25],['2',60],['3',95],['4',125],['5 or more',155]],
+    score:(g, P) => { const gw = P.goalWeight; if (!gw) return .5; return lin(g / gw, .3, .1, .9, 1); } },
+  { id:'produce', domain:'Fuel', type:'choice', title:'Fruits and vegetables, in fist-sized servings, on a normal day?',
+    opts:[['0 to 1',.15],['2 to 3',.5],['4 to 5',.8],['6 or more',1]] },
+  { id:'water', domain:'Fuel', type:'choice', title:'How much water do you actually drink?',
+    opts:[['Mostly coffee, soda or tea',.15],['A few glasses',.45],['Most of a big bottle',.75],['About half my body weight in ounces',1],['No idea',.4]] },
+  { id:'planned', domain:'Fuel', type:'choice', title:'How much of your eating is planned ahead?',
+    opts:[['Mostly grabbed on the go',.2],['About half',.55],['Mostly planned',.85],['Planned, and I know my numbers',1]] },
+  { id:'alcohol', domain:'Fuel', type:'choice', title:'Alcoholic drinks in a normal week?',
+    opts:[['None',1],['1 to 3',.9],['4 to 7',.7],['8 to 14',.45],['15 or more',.2]] },
+
+  /* ---- OUTPUT: what you do with it ---- */
+  { id:'strength', domain:'Output', type:'choice', title:'Strength training days in a normal week?',
+    opts:[['None',.1],['1',.4],['2',.7],['3 to 4',1],['5 or more',.9]] },
+  { id:'steps', domain:'Output', type:'choice', title:'Your daily steps, roughly?',
+    opts:[['Under 4,000',.2],['4,000 to 7,000',.55],['7,000 to 10,000',.85],['Over 10,000',1],['No idea, I sit most of the day',.25]] },
+  { id:'cardio', domain:'Output', type:'choice', title:'Days a week you get out of breath on purpose? (a run, a ride, intervals, a hard hike)',
+    opts:[['None',.25],['1',.6],['2 to 3',1],['4 or more',.9]] },
+  { id:'capacity', domain:'Output', type:'scale', title:'At the end of the day, do you have energy left for the people who count on you?', ends:['Nothing left','Plenty'] },
+
+  /* ---- RECOVERY: how you refill ---- */
+  { id:'sleep_h', domain:'Recovery', type:'choice', title:'Hours of sleep on a normal night?',
+    opts:[['Under 5',5-.5],['5 to 6',5.5],['6 to 7',6.5],['7 to 8',7.5],['8 to 9',8.5],['Over 9',9.5]],
+    score:h => (h >= 7 && h <= 9) ? 1 : Math.max(.05, 1 - .3 * (h < 7 ? 7 - h : h - 9)) },
+  { id:'sleep_q', domain:'Recovery', type:'scale', title:'How well do you sleep?', ends:['Restless','Deep, wake rested'] },
+  { id:'stress', domain:'Recovery', type:'scale', title:'How heavy is your stress load right now?', ends:['Crushing','Light'] },
+  { id:'rest', domain:'Recovery', type:'choice', title:'Do you have a day each week where you truly rest?',
+    opts:[['Never',.1],['Once in a while',.45],['Most weeks',.8],['Every week',1]] },
+  { id:'bounce', domain:'Recovery', type:'choice', title:'After a hard workout or a hard day, how fast do you bounce back?',
+    opts:[['Next morning',1],['A day or two',.65],['Several days',.3],['I avoid hard days so I don\'t find out',.45]] },
+
+  /* ---- OPTIONAL LAYERS ---- */
+  { id:'layers', domain:'Go deeper', type:'layers', title:'Want a sharper score?', help:'Optional. Add numbers from a watch or ring, or from recent bloodwork. Skip and you still get your score.' }
+];
+const DOMAINS = ['Signals','Fuel','Output','Recovery'];
+const DOMAIN_SUB = { Signals:'What your body is telling you', Fuel:'What you put in', Output:'What you do with it', Recovery:'How you refill' };
+
+/* Optimal ranges (functional-coaching ranges, educational). mode band/low/high like the plan spec. */
+const LABS = [
+  { id:'glucose', name:'Fasting glucose', unit:'mg/dL', min:65, max:110, lo:75, hi:90, mode:'band' },
+  { id:'a1c', name:'HbA1c', unit:'%', min:4, max:6.2, hi:5.3, mode:'low' },
+  { id:'tg', name:'Triglycerides', unit:'mg/dL', min:30, max:180, hi:90, mode:'low' },
+  { id:'hdl', name:'HDL', unit:'mg/dL', min:30, max:100, lo:55, mode:'high' },
+  { id:'crp', name:'hs-CRP', unit:'mg/L', min:0, max:3, hi:1, mode:'low' },
+  { id:'vitd', name:'Vitamin D', unit:'ng/mL', min:15, max:100, lo:40, hi:70, mode:'band' },
+  { id:'apob', name:'ApoB', unit:'mg/dL', min:40, max:130, hi:80, mode:'low' }
+];
+function labScore(L, v){
+  if (L.mode === 'band'){ if (v >= L.lo && v <= L.hi) return 1; return v < L.lo ? lin(v, L.min, 0, L.lo, 1) : lin(v, L.hi, 1, L.max, 0); }
+  if (L.mode === 'low')  return v <= L.hi ? 1 : lin(v, L.hi, 1, L.max, 0);
+  return v >= L.lo ? 1 : lin(v, L.min, 0, L.lo, 1);
+}
+
+/* =================== STATE =================== */
+let A = {}, P = {}, idx = 0, RESULT = null;
+const visibleQs = () => QUESTIONS.filter(q => true);
+
+/* =================== RENDER A QUESTION =================== */
+function renderQ(){
+  const qs = visibleQs(), q = qs[idx];
+  $('pbar').style.width = (idx / qs.length * 100) + '%';
+  $('qdomain').textContent = q.domain; $('qn').textContent = idx + 1; $('qt').textContent = qs.length;
+  $('qerr').textContent = '';
+  $('backBtn').style.visibility = idx ? 'visible' : 'hidden';
+  $('nextBtn').textContent = (idx === qs.length - 1) ? 'See my score' : 'Next';
+  let h = `<h2>${q.title}</h2>` + (q.help ? `<p class="help">${q.help}</p>` : '');
+  const cur = A[q.id];
+  if (q.type === 'choice'){
+    h += '<div class="opts">' + q.opts.map((o, i) => `<button class="opt${cur && cur.i === i ? ' on' : ''}" data-i="${i}"><span class="box"></span>${o[0]}</button>`).join('') + '</div>';
+  } else if (q.type === 'multi'){
+    const sel = (cur || []);
+    h += '<div class="opts">' + q.opts.filter(o => !o[2] || o[2] === P.sex).map(o => `<button class="opt${sel.includes(o[1]) ? ' on' : ''}" data-v="${o[1]}"><span class="box"></span>${o[0]}</button>`).join('') + '</div>';
+  } else if (q.type === 'scale'){
+    h += '<div class="scale">' + [1,2,3,4,5].map(n => `<button class="opt${cur === n ? ' on' : ''}" data-n="${n}">${n}</button>`).join('') + '</div>'
+       + `<div class="scale-ends"><span>1 · ${q.ends[0]}</span><span>5 · ${q.ends[1]}</span></div>`;
+  } else if (q.type === 'number'){
+    h += `<div class="fields"><div class="field"><label>${q.unit}</label><input id="numIn" type="number" inputmode="decimal" value="${cur || ''}"></div></div>`;
+  } else if (q.type === 'profile'){
+    h += `<div class="fields">
+      <div class="field full"><label>Sex</label><div class="seg">
+        <button class="opt${P.sex === 'F' ? ' on' : ''}" data-sex="F">Female</button><button class="opt${P.sex === 'M' ? ' on' : ''}" data-sex="M">Male</button></div></div>
+      <div class="field"><label for="age">Age</label><input id="age" type="number" inputmode="numeric" value="${P.age || ''}"></div>
+      <div class="field"><label for="weight">Weight (lb)</label><input id="weight" type="number" inputmode="decimal" value="${P.weight || ''}"></div>
+      <div class="field"><label for="hft">Height (ft)</label><input id="hft" type="number" inputmode="numeric" value="${P.hft || ''}"></div>
+      <div class="field"><label for="hin">Height (in)</label><input id="hin" type="number" inputmode="numeric" value="${P.hin ?? ''}"></div>
+      <div class="field"><label for="gw">Goal weight (lb)</label><input id="gw" type="number" inputmode="decimal" placeholder="optional" value="${P.gwIn || ''}"></div>
+      <div class="field"><label for="smoke">Smoke or vape?</label><select id="smoke"><option value="no"${P.smoke === 'yes' ? '' : ' selected'}>No</option><option value="yes"${P.smoke === 'yes' ? ' selected' : ''}>Yes</option></select></div>
+    </div>`;
+  } else if (q.type === 'layers'){
+    const W = A.wear || {}, Lb = A.labs || {};
+    h += `<details class="tile layer"${Object.keys(W).length ? ' open' : ''}><summary>From my watch or ring <em>+ accuracy</em></summary>
+      <p>Oura, WHOOP, Garmin or Apple Watch. Use your 30-day averages if you have them.</p>
+      <div class="fields">
+        <div class="field"><label for="w_vo2">VO2 max</label><input id="w_vo2" type="number" inputmode="decimal" value="${W.vo2 || ''}"></div>
+        <div class="field"><label for="w_rhr">Resting heart rate</label><input id="w_rhr" type="number" inputmode="numeric" value="${W.rhr || ''}"></div>
+        <div class="field"><label for="w_sleep">Avg sleep (hours)</label><input id="w_sleep" type="number" inputmode="decimal" step=".1" value="${W.sleep || ''}"></div>
+      </div></details>
+      <details class="tile layer"${Object.keys(Lb).length ? ' open' : ''}><summary>From my bloodwork <em>+ the most accuracy</em></summary>
+      <p>Enter any 3 or more. US units. Leave the rest blank.</p>
+      <div class="fields">${LABS.map(L => `<div class="field"><label for="l_${L.id}">${L.name} (${L.unit})</label><input id="l_${L.id}" type="number" inputmode="decimal" step="any" value="${Lb[L.id] ?? ''}"></div>`).join('')}</div></details>`;
+  }
+  $('qbody').innerHTML = h;
+  wireQ(q);
+}
+
+function wireQ(q){
+  const auto = () => setTimeout(next, 180);
+  if (q.type === 'choice') qsa('.opt', $('qbody')).forEach(b => b.onclick = () => { const i = +b.dataset.i; A[q.id] = { i, v:q.opts[i][1] }; renderQ(); auto(); });
+  if (q.type === 'scale')  qsa('.opt', $('qbody')).forEach(b => b.onclick = () => { A[q.id] = +b.dataset.n; renderQ(); auto(); });
+  if (q.type === 'multi')  qsa('.opt', $('qbody')).forEach(b => b.onclick = () => {
+    let s = (A[q.id] || []).slice(); const v = b.dataset.v;
+    if (v === 'none') s = s.includes('none') ? [] : ['none'];
+    else { s = s.filter(x => x !== 'none'); s = s.includes(v) ? s.filter(x => x !== v) : s.concat(v); }
+    A[q.id] = s; renderQ(); });
+  if (q.type === 'profile') qsa('[data-sex]', $('qbody')).forEach(b => b.onclick = () => { saveProfileFields(); P.sex = b.dataset.sex; renderQ(); });
+}
+
+function saveProfileFields(){
+  const g = id => { const e = $(id); return e ? e.value.trim() : ''; };
+  if (!$('age')) return;
+  P.age = +g('age') || ''; P.weight = +g('weight') || ''; P.hft = +g('hft') || ''; P.hin = g('hin') === '' ? '' : +g('hin');
+  P.gwIn = +g('gw') || ''; P.smoke = g('smoke');
+}
+
+/* validate + store the current screen, return an error string or '' */
+function commit(q){
+  if (q.type === 'profile'){
+    saveProfileFields();
+    if (!P.sex) return 'Pick female or male.';
+    if (!(P.age >= 18 && P.age <= 90)) return 'Age needs to be between 18 and 90.';
+    if (!(P.weight >= 80 && P.weight <= 600)) return 'Enter your weight in pounds.';
+    if (!(P.hft >= 4 && P.hft <= 7)) return 'Enter your height in feet and inches.';
+    P.height = P.hft * 12 + (+P.hin || 0);
+    const est = (typeof estimateGoalWeight === 'function') ? estimateGoalWeight({ height:P.height, sex:P.sex, weight:P.weight }) : null;
+    P.goalWeight = P.gwIn || Math.min(P.weight, est || P.weight);
+    return '';
+  }
+  if (q.type === 'choice' && !A[q.id]) return 'Pick one to keep going.';
+  if (q.type === 'scale' && !A[q.id]) return 'Pick a number from 1 to 5.';
+  if (q.type === 'multi' && !(A[q.id] || []).length) return 'Pick any that fit, or "None of these".';
+  if (q.type === 'number'){
+    const v = +($('numIn').value || 0);
+    if (!v){ A[q.id] = null; return ''; }
+    if (v < q.min || v > q.max) return `That looks off. Enter ${q.min} to ${q.max} ${q.unit}, or leave it blank.`;
+    A[q.id] = v; return '';
+  }
+  if (q.type === 'layers'){
+    const num = id => { const e = $(id); const v = e && e.value.trim() !== '' ? +e.value : null; return isFinite(v) ? v : null; };
+    const W = {}; const vo2 = num('w_vo2'), rhr = num('w_rhr'), sl = num('w_sleep');
+    if (vo2 != null){ if (vo2 < 10 || vo2 > 95) return 'VO2 max should be between 10 and 95.'; W.vo2 = vo2; }
+    if (rhr != null){ if (rhr < 30 || rhr > 120) return 'Resting heart rate should be between 30 and 120.'; W.rhr = rhr; }
+    if (sl != null){ if (sl < 2 || sl > 14) return 'Average sleep should be between 2 and 14 hours.'; W.sleep = sl; }
+    const Lb = {};
+    for (const L of LABS){ const v = num('l_' + L.id); if (v == null) continue;
+      if (v < 0 || v > L.max * 4) return `${L.name} looks off. Check the unit (${L.unit}).`; Lb[L.id] = v; }
+    A.wear = W; A.labs = Lb; return '';
+  }
+  return '';
+}
+
+function next(){
+  const qs = visibleQs(), q = qs[idx], err = commit(q);
+  if (err){ $('qerr').textContent = err; return; }
+  if (idx < qs.length - 1){ idx++; renderQ(); window.scrollTo({ top:0, behavior:'smooth' }); }
+  else finish();
+}
+
+/* =================== SCORING =================== */
+function answerScore(q){
+  const a = A[q.id];
+  if (q.type === 'scale') return a ? S5(a) : null;
+  if (q.type === 'multi') return q.score(a);
+  if (q.type === 'number') return q.score(a, P);
+  if (q.type === 'choice'){
+    if (!a) return null;
+    if (q.id === 'sleep_h' && A.wear && A.wear.sleep) return q.score(A.wear.sleep);   // measured beats remembered
+    return q.score ? q.score(a.v, P) : a.v;
+  }
+  return null;
+}
+
+function computeScore(){
+  const dom = {};
+  DOMAINS.forEach(d => {
+    const vals = QUESTIONS.filter(q => q.domain === d).map(answerScore).filter(v => v != null);
+    dom[d] = vals.length ? vals.reduce((s, v) => s + v, 0) / vals.length : .5;
+  });
+  const life = DOMAINS.reduce((s, d) => s + dom[d], 0) / 4;
+
+  /* wearables: VO2 vs age/sex norm, resting HR, measured sleep */
+  const W = A.wear || {}, wParts = [];
+  if (W.vo2){ const med = P.sex === 'M' ? 45 - .3 * (P.age - 25) : 38 - .27 * (P.age - 25), sd = P.sex === 'M' ? 7 : 6;
+    wParts.push([clamp(lin((W.vo2 - med) / sd, -2, .1, 1.3, 1), 0, 1), .5]); }
+  if (W.rhr){ const r = W.rhr; wParts.push([r <= 55 ? 1 : r <= 65 ? lin(r,55,1,65,.75) : r <= 75 ? lin(r,65,.75,75,.45) : Math.max(.1, lin(r,75,.45,90,.1)), .3]); }
+  if (W.sleep){ const h = W.sleep; wParts.push([(h >= 7 && h <= 9) ? 1 : Math.max(.05, 1 - .3 * (h < 7 ? 7 - h : h - 9)), .2]); }
+  const wW = wParts.reduce((s, p) => s + p[1], 0);
+  const wearAvg = wW ? wParts.reduce((s, p) => s + p[0] * p[1], 0) / wW : null;
+
+  /* labs: need 3+ to count */
+  const Lb = A.labs || {}, lVals = LABS.filter(L => Lb[L.id] != null).map(L => ({ L, v:Lb[L.id], s:labScore(L, Lb[L.id]) }));
+  const labAvg = lVals.length >= 3 ? lVals.reduce((s, x) => s + x.s, 0) / lVals.length : null;
+  const labCov = lVals.length / LABS.length;
+
+  const labW  = labAvg != null ? .5 * Math.min(1, labCov / .7) : 0;
+  const wearW = wearAvg != null ? (labW ? .15 : .25) * Math.min(1, wW / .8) : 0;
+  const lifeW = 1 - labW - wearW;
+  const blend = (l, lab, wear) => (l * lifeW + (lab ?? 0) * labW + (wear ?? 0) * wearW);
+
+  let score = clamp(Math.round(blend(life, labAvg, wearAvg) * 100), 12, 100);
+  const caps = [];
+  const alc = A.alcohol ? A.alcohol.v : 1;
+  if (alc <= .2){ score = Math.min(score, 76); caps.push('alcohol'); } else if (alc <= .45){ score = Math.min(score, 86); caps.push('alcohol'); }
+  if (P.smoke === 'yes'){ score = Math.min(Math.round(score * .85), 69); caps.push('smoking'); }
+  if (labAvg == null && score > 82){ score = 82; caps.push('labs'); }
+
+  /* potential: every domain to at least .92, labs at 1 */
+  const up = DOMAINS.reduce((s, d) => s + Math.max(dom[d], .92), 0) / 4;
+  const potential = Math.min(97, Math.max(score + 4, Math.round((up * (lifeW + labW) + (wearAvg != null ? Math.max(wearAvg, .9) : 0) * wearW) * 100 / (lifeW + labW + wearW))));
+
+  /* the age you're living at: an estimate from score vs a typical score for your age */
+  const typical = clamp(70 - .4 * (P.age - 22), 42, 70);
+  const livingAge = Math.round(clamp(P.age - (score - typical) / 1.5, P.age - 10, P.age + 12));
+
+  const conf = labAvg != null && wearAvg != null ? 'Highest' : labAvg != null ? 'High' : wearAvg != null ? 'Good' : 'Directional';
+  const weakest = DOMAINS.slice().sort((a, b) => dom[a] - dom[b])[0];
+  const strongest = DOMAINS.slice().sort((a, b) => dom[b] - dom[a])[0];
+  return { score, dom, life, wearAvg, labAvg, lVals, caps, potential, livingAge, conf, weakest, strongest, band:bandOf(score) };
+}
+
+function bandOf(s){
+  if (s >= 85) return { name:'Built to Last', slug:'built-to-last', sub:'Your foundation is strong. Now it\'s about protecting it and sharpening the edges.' };
+  if (s >= 70) return { name:'Building', slug:'building', sub:'A lot is working. One or two gaps are holding the rest back.' };
+  if (s >= 52) return { name:'Foundation Work', slug:'foundation-work', sub:'You have real upside. The fix is simpler than it feels: one thing at a time, in the right order.' };
+  return { name:'Time to Rebuild', slug:'time-to-rebuild', sub:'Your body is asking for a new system. Not a harder diet. A better order.' };
+}
+
+/* The Read: the one constraint, and the one thing for this week. */
+const READ = {
+  Signals:{ big:'Your body is talking. You are not reading it yet.',
+    why:'Energy dips, cravings, fog and waking at 3am are signals, not character flaws. Most people skip straight to changing food or training without learning what their body is already telling them.',
+    one:'For the next 7 days, rate your energy 1 to 10 at 10am and 3pm. Write it down. By day 7 you will see a pattern, and the pattern tells us where to start.' },
+  Fuel:{ big:'Your fuel is not matching your demand.',
+    why:'Not enough protein and produce, too much grabbed on the go. It is the most common constraint we see, and it drags down energy, recovery and body composition at the same time.',
+    one:'Get a palm-sized portion of protein at every meal this week. That is it. Nothing else changes yet.' },
+  Output:{ big:'You have more capacity than you are using.',
+    why:'Muscle is the organ of longevity, and movement is what keeps blood sugar, mood and sleep in line. Your output score says your body is under-asked.',
+    one:'Walk 10 minutes after your biggest meal, every day this week. Then we add strength.' },
+  Recovery:{ big:'You are spending more than you are recovering.',
+    why:'Short sleep, heavy stress and no real rest day. Recovery is where the work you do actually turns into results. Without it, more effort just digs the hole deeper.',
+    one:'Pick a lights-out time and keep it 6 nights out of 7. Protect that before you add anything else.' }
+};
+
+/* =================== FINISH / REVEAL =================== */
+async function finish(){
+  RESULT = computeScore();
+  show('analyzing');
+  const rows = qsa('.rrow', $('ritual')), sleep = ms => new Promise(r => setTimeout(r, ms));
+  rows.forEach(r => r.classList.remove('active','done'));
+  for (const r of rows){ r.classList.add('active'); await sleep(560); r.classList.remove('active'); r.classList.add('done'); await sleep(90); }
+  await sleep(200);
+  renderResult();
+  const hist = (load('lp_score_history') || []).concat({ t:Date.now(), s:RESULT.score });
+  store('lp_score_history', hist.slice(-12));
+  store('lp_score_last', { t:Date.now(), score:RESULT.score, band:RESULT.band.name, weakest:RESULT.weakest });
+  track('CompleteRegistration', { content_name:'legacy_score' });
+}
+
+function show(id){ ['intro','quiz','analyzing','result'].forEach(s => $(s).classList.toggle('hidden', s !== id)); window.scrollTo({ top:0 }); }
+
+function renderResult(){
+  const R = RESULT;
+  show('result');
+  $('bandName').textContent = R.band.name;
+  $('bandSub').textContent = R.band.sub;
+  const prev = (load('lp_score_history') || []).slice(-1)[0];
+  const chips = [`Confidence <b>${R.conf}</b>`, `Potential <b>${R.potential}</b>`];
+  if (prev && prev.s !== R.score) chips.push(`Last time <b>${prev.s}</b>`);
+  if (R.caps.includes('labs')) chips.push('Capped at <b>82</b> without labs');
+  $('chips').innerHTML = chips.map(c => `<span class="chip">${c}</span>`).join('');
+  /* count + ring */
+  const arc = $('ringArc'), C = 326.7;
+  requestAnimationFrame(() => arc.style.strokeDashoffset = C * (1 - R.score / 100));
+  let n = 0; const t = setInterval(() => { n = Math.min(R.score, n + 2); $('scoreNum').textContent = n; if (n >= R.score) clearInterval(t); }, 22);
+  /* bars */
+  const rows = DOMAINS.map(d => ({ name:d, sub:DOMAIN_SUB[d], v:Math.round(R.dom[d] * 100) }));
+  if (R.wearAvg != null) rows.push({ name:'Wearables', sub:'From your watch or ring', v:Math.round(R.wearAvg * 100) });
+  if (R.labAvg != null) rows.push({ name:'Labs', sub:`${R.lVals.length} markers vs optimal`, v:Math.round(R.labAvg * 100) });
+  $('bars').innerHTML = rows.map(r => `<div><div class="bar-h"><b>${r.name}${r.name === R.weakest ? ' · your constraint' : ''}<small>${r.sub}</small></b><span>${r.v}</span></div>
+    <div class="track"><i data-w="${r.v}" style="background:${r.v >= 75 ? 'linear-gradient(90deg,var(--olive-lt),var(--gold))' : r.v >= 55 ? 'linear-gradient(90deg,var(--olive),var(--olive-lt))' : 'linear-gradient(90deg,#7a4a3e,var(--warn))'}"></i></div></div>`).join('');
+  setTimeout(() => qsa('.track i', $('bars')).forEach(i => i.style.width = i.dataset.w + '%'), 60);
+  /* gate: returning lead skips it */
+  const lead = load('lp_lead');
+  if (lead && lead.email){ $('gate').classList.add('hidden'); openRead(); }
+  renderHistory();
+}
+
+function openRead(){
+  const R = RESULT, rd = READ[R.weakest];
+  const labFlags = R.lVals.filter(x => x.s < .75).map(x => `${x.L.name} (${x.v} ${x.L.unit})`);
+  $('read').innerHTML = `
+    <div class="panel"><div class="label" style="color:var(--gold)">Your constraint · ${R.weakest}</div>
+      <p class="big" style="margin-top:8px">${rd.big}</p><p style="margin-top:10px">${rd.why}</p></div>
+    <div class="tile onething"><div class="label">Your one thing this week</div><p style="margin-top:8px;color:#fff;font-weight:600">${rd.one}</p></div>
+    <div class="tile"><div class="label">The age you're living at</div>
+      <p style="margin-top:8px"><span class="big">${R.livingAge}</span> <span style="color:var(--soft)">vs. ${P.age} on your birth certificate</span></p>
+      <p style="margin-top:6px;font-size:.88rem;color:var(--soft)">An estimate from how your answers compare with what is typical for your age. ${R.livingAge > P.age ? 'The good news: this is the number that moves fastest when the right thing changes.' : 'You are ahead of the curve. Protect it.'}</p></div>
+    <div class="tile"><div class="label">Your strength</div><p style="margin-top:8px">${R.strongest} is your best domain. That is your foothold. We build from what is already working.</p></div>
+    ${labFlags.length ? `<div class="tile"><div class="label">Labs to look at</div><p style="margin-top:8px">${labFlags.join(', ')} ${labFlags.length > 1 ? 'are' : 'is'} outside the optimal range. Worth a conversation with your provider, and worth retesting in 12 weeks.</p></div>` : ''}
+    ${R.labAvg == null ? `<div class="tile"><div class="label">The last 18 points</div><p style="margin-top:8px">Without bloodwork your score tops out at 82, because a questionnaire can only see so much. Labs and genetics show what is actually happening underneath, and sharpen the plan instead of guessing.</p></div>` : ''}`;
+  $('read').classList.remove('hidden');
+  renderNext();
+}
+
+function renderNext(){
+  const R = RESULT, L = CONFIG.links, goal = A.goal ? A.goal.v : '';
+  const items = [];
+  items.push(['Find your phase', 'Your starting calories and protein, and whether you should be losing, building or rebuilding first. 60 seconds.', 'Find my phase', L.phase, 'phase']);
+  if (R.weakest === 'Fuel' || goal === 'fat')
+    items.push(['Have it built for you', 'Your Complete Nutrition System: meal plans, restaurant orders and numbers that move with you, built from your answers.', 'See the build', L.cns, 'cns']);
+  if (R.score >= 60 || R.labAvg != null || goal === 'feel' || goal === 'longevity')
+    items.push(['Talk it through', 'A free Readiness Consultation. We go over your score, your labs if you have them, and the best next step.', 'Book a call', L.call, 'call']);
+  items.push(['Join the Project, free', 'The Legacy Performance Project: weekly coaching call, the courses, and people doing the same work.', 'Join free', L.skool, 'skool']);
+  $('nextList').innerHTML = items.map((x, i) => `<div class="tile nextrow"${i === 0 ? ' style="border-left-color:var(--gold)"' : ''}><div><h4>${x[0]}</h4><p>${x[1]}</p></div>
+    <a class="btn${i ? ' ghost' : ''}" href="${x[3]}" data-cta="${x[4]}">${x[2]}</a></div>`).join('');
+  qsa('[data-cta]', $('nextList')).forEach(a => a.addEventListener('click', () => post({ type:'lead', status:'cta', source:'legacy-score', cta:a.dataset.cta, ...leadBase() }, true)));
+  $('nextSec').classList.remove('hidden');
+}
+
+function renderHistory(){
+  const h = load('lp_score_history') || [];
+  if (h.length < 2) return;
+  $('history').innerHTML = h.map(x => `<div style="height:${x.s}%"><span>${x.s}</span></div>`).join('');
+  $('histSec').classList.remove('hidden');
+}
+
+/* =================== LEAD CAPTURE =================== */
+function leadBase(){
+  const lead = load('lp_lead') || {};
+  const R = RESULT;
+  return { name:lead.name || '', email:lead.email || '', score:R.score, band:R.band.name, constraint:R.weakest };
+}
+async function post(p, beacon){
+  p.ts = new Date().toISOString(); p.ref = location.search || '';
+  try { localStorage.setItem('lp_score_post_' + Date.now(), JSON.stringify(p)); } catch(e){}
+  if (!CONFIG.writeUrl || !p.email) return;
+  const body = JSON.stringify(p);
+  if (beacon && navigator.sendBeacon){ navigator.sendBeacon(CONFIG.writeUrl, new Blob([body], { type:'text/plain;charset=utf-8' })); return; }
+  try { await fetch(CONFIG.writeUrl, { method:'POST', mode:'no-cors', headers:{ 'Content-Type':'text/plain;charset=utf-8' }, body }); } catch(e){}
+}
+
+$('gateForm').addEventListener('submit', e => {
+  e.preventDefault();
+  const name = $('fname').value.trim(), email = $('email').value.trim();
+  if (!name){ $('gateErr').textContent = 'Add your first name.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ $('gateErr').textContent = 'That email does not look right.'; return; }
+  store('lp_lead', { name, email });
+  const R = RESULT;
+  post({ type:'lead', source:'legacy-score', name, email, score:R.score, band:R.band.name, constraint:R.weakest,
+    details:{ domains:Object.fromEntries(DOMAINS.map(d => [d, Math.round(R.dom[d] * 100)])), sex:P.sex, age:P.age, weight:P.weight,
+      goalWeight:P.goalWeight, goal:A.goal ? A.goal.v : '', livingAge:R.livingAge, potential:R.potential, confidence:R.conf,
+      labs:A.labs || {}, wear:A.wear || {} },
+    tags:['score-' + R.band.slug, 'constraint-' + R.weakest.toLowerCase(), 'goal-' + (A.goal ? A.goal.v : 'unknown')] });
+  track('Lead', { content_name:'legacy_score' });
+  $('gate').classList.add('hidden');
+  openRead();
+  $('read').scrollIntoView({ behavior:'smooth', block:'start' });
+});
+
+/* =================== SHARE / RETAKE / START =================== */
+$('shareBtn').onclick = async () => {
+  const txt = `My Legacy Score is ${RESULT.score} (${RESULT.band.name}). Is your health built to last? Take it free:`;
+  const url = 'https://dashboard.legacyperformance.co/score/?ref=share';
+  try { if (navigator.share){ await navigator.share({ title:'The Legacy Score', text:txt, url }); return; } } catch(e){ return; }
+  try { await navigator.clipboard.writeText(txt + ' ' + url); $('shareBtn').textContent = 'Link copied'; } catch(e){}
+};
+$('retakeBtn').onclick = () => { A = {}; idx = 0; show('quiz'); renderQ(); };
+$('startBtn').onclick = () => { show('quiz'); renderQ(); track('ViewContent', { content_name:'legacy_score_start' }); };
+$('nextBtn').onclick = next;
+$('backBtn').onclick = () => { const q = visibleQs()[idx]; if (q.type === 'profile') saveProfileFields(); if (idx){ idx--; renderQ(); } };
+
+(function welcome(){
+  const last = load('lp_score_last'), lead = load('lp_lead');
+  if (last && last.score){
+    $('welcomeBack').textContent = `Welcome back${lead && lead.name ? ', ' + lead.name : ''}. Last score: ${last.score}. Retake to see what moved.`;
+    $('welcomeBack').classList.remove('hidden');
+  }
+})();
+
+if (CONFIG.metaPixelId){
+  !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+  n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;
+  n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;
+  t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}
+  (window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+  fbq('init', CONFIG.metaPixelId); fbq('track','PageView');
+}
+</script>
+</body>
+</html>

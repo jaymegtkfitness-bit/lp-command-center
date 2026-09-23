@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- FIND YOUR PHASE, served at dashboard.legacyperformance.co/find-your-phase/
+     Seven quick questions route a visitor to ONE phase (Reverse / Lean / Strong / Sustain) and ONE door
+     (free Legacy Performance Project / $497 CNS build / Built 4 More assessment call).
+     No email gate before the result. The optional "Email me my plan" form posts a type:'lead' row to
+     the Apps Script doorway (same writeUrl + no-cors text/plain pattern as build/index.html).
+     PHASE RULES are copied from decidePhase() in build/index.html so the two pages never disagree.
+     If you change the rules there, change them here (search "decidePhase"). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<title>Find Your Phase | Legacy Performance</title>
+<meta name="description" content="Seven quick questions. Find out whether you should be in a Reverse, Lean, Strong or Sustain phase right now, get your starting calories and protein, and see your best next step. Free, no email required.">
+<meta name="robots" content="index,follow">
+<link rel="canonical" href="https://dashboard.legacyperformance.co/find-your-phase/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Legacy Performance">
+<meta property="og:title" content="Find Your Phase | Legacy Performance">
+<meta property="og:description" content="Reverse, Lean, Strong or Sustain? Seven questions, your phase, your starting numbers, and your next step. No email required.">
+<meta property="og:url" content="https://dashboard.legacyperformance.co/find-your-phase/">
+<meta property="og:image" content="https://dashboard.legacyperformance.co/logo-white-gold.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Find Your Phase | Legacy Performance">
+<meta name="twitter:description" content="Reverse, Lean, Strong or Sustain? Seven questions, your phase, your starting numbers, and your next step.">
+<script type="application/ld+json">
+{"@context":"https://schema.org","@type":"WebApplication","name":"Find Your Phase","url":"https://dashboard.legacyperformance.co/find-your-phase/",
+ "applicationCategory":"HealthApplication","operatingSystem":"Any","offers":{"@type":"Offer","price":"0","priceCurrency":"USD"},
+ "publisher":{"@type":"Organization","name":"Legacy Performance","url":"https://legacyperformance.co"},
+ "description":"A free seven-question tool that tells you which nutrition phase to run right now (Reverse, Lean, Strong or Sustain) and your starting calories and protein."}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8;--warn:#e0b27a}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
+  -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;background:#1a1a1a}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:fixed;left:0;top:0;right:0;height:5px;z-index:3;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
+.mark{position:fixed;right:-160px;top:140px;width:560px;max-width:none;opacity:.05;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:720px;margin:0 auto;padding:44px 24px 40px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.head img{height:56px;width:auto;margin-left:-10px}
+.tag{font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:700;text-align:right;line-height:1.7}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.85rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+h1{font-weight:900;font-size:clamp(2.8rem,12vw,5rem);line-height:.95;letter-spacing:-.01em;margin-top:8px;text-transform:uppercase}
+h1 span{color:var(--gold)}
+.lead{margin-top:16px;font-size:1.02rem;color:var(--body);max-width:560px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:28px 0 24px}
+.hidden{display:none!important}
+.btn{display:inline-block;cursor:pointer;border:0;font-family:inherit;white-space:nowrap;background:var(--gold);color:var(--ink);font-weight:800;font-size:.82rem;letter-spacing:.06em;
+  text-transform:uppercase;padding:14px 20px;border-radius:10px;text-decoration:none;text-align:center;transition:transform .15s,box-shadow .15s,opacity .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(193,173,114,.25)}
+.btn:disabled{opacity:.35;cursor:default;transform:none;box-shadow:none}
+.ghost{background:transparent;color:var(--soft);border:1px solid rgba(255,255,255,.14);font-weight:700}
+.ghost:hover{box-shadow:none;color:var(--parch)}
+.link{background:none;border:0;color:var(--gold);font:inherit;font-weight:600;cursor:pointer;text-decoration:none}
+
+/* intro */
+.hero{margin-top:48px}
+.facts{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:22px;font-size:.8rem;color:var(--soft)}
+.facts b{color:var(--olive-lt);font-weight:700}
+.welcome{margin-top:26px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 16px;background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));
+  border:1px solid var(--olive-dim);border-radius:16px;padding:14px 18px;font-size:.9rem;color:var(--body)}
+.welcome b{color:var(--gold)}
+
+/* quiz */
+.quiz{margin-top:40px}
+.prog{display:flex;align-items:center;gap:14px}
+.bar{flex:1;height:6px;border-radius:4px;background:rgba(255,255,255,.08);overflow:hidden}
+.bar i{display:block;height:100%;width:0;border-radius:4px;background:linear-gradient(90deg,var(--olive-lt),var(--gold));transition:width .3s}
+.count{font-family:Cinzel,Georgia,serif;font-size:.8rem;letter-spacing:.2em;color:var(--gold);white-space:nowrap}
+.screen{margin-top:30px}
+.screen h2{font-size:clamp(1.35rem,5vw,1.8rem);font-weight:800;line-height:1.2;color:#fff}
+.help{margin-top:8px;font-size:.92rem;color:var(--soft)}
+.sub{margin-top:26px;font-family:Cinzel,Georgia,serif;font-size:.78rem;letter-spacing:.24em;text-transform:uppercase;color:var(--olive-lt)}
+.opts{display:grid;gap:10px;margin-top:14px}
+.opts.two{grid-template-columns:1fr 1fr}
+.opt{display:block;width:100%;text-align:left;cursor:pointer;font-family:inherit;color:var(--parch);
+  background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));
+  border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:14px;padding:14px 16px;transition:border-color .15s,background .15s}
+.opt:hover{border-color:rgba(193,173,114,.5)}
+.opt.on{border-color:var(--gold);border-left-color:var(--gold);background:linear-gradient(90deg,rgba(193,173,114,.18),rgba(255,255,255,.04))}
+.opt .t{display:block;font-weight:700;font-size:.95rem;color:#fff}
+.opt .d{display:block;font-size:.82rem;color:var(--soft);margin-top:2px}
+.fields{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:16px}
+.f label{display:block;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-bottom:6px}
+.f input,.f select{width:100%;font-family:inherit;font-size:1.05rem;color:#fff;background:rgba(255,255,255,.05);border:1px solid var(--olive-dim);
+  border-radius:10px;padding:12px 14px;outline:none;-webkit-appearance:none;appearance:none}
+.f select{background-image:linear-gradient(45deg,transparent 50%,var(--gold) 50%),linear-gradient(135deg,var(--gold) 50%,transparent 50%);
+  background-position:calc(100% - 18px) 55%,calc(100% - 13px) 55%;background-size:5px 5px;background-repeat:no-repeat}
+.f select option{color:#111}
+.f input:focus,.f select:focus{border-color:var(--gold)}
+.check{display:flex;gap:10px;align-items:center;margin-top:12px;font-size:.88rem;color:var(--body);cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--gold)}
+.err{min-height:1.3em;margin-top:12px;font-size:.84rem;color:var(--warn)}
+.nav{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-top:18px}
+
+/* result */
+.result{margin-top:44px}
+.ptitle{margin-top:6px;font-family:Cinzel,Georgia,serif;font-size:1rem;letter-spacing:.2em;text-transform:uppercase;color:var(--olive-lt)}
+.why{margin-top:14px;font-size:1.02rem;color:var(--body);max-width:580px}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:26px}
+.num{background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:16px 18px}
+.num small{display:block;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);font-weight:700}
+.num b{display:block;font-family:Cinzel,Georgia,serif;font-weight:700;font-size:2.3rem;color:var(--gold);line-height:1.15;margin-top:4px}
+.num span{font-size:.8rem;color:var(--soft)}
+.numnote{margin-top:12px;font-size:.86rem;color:var(--soft)}
+.numnote strong{color:var(--parch)}
+.sect{margin-top:36px;font-family:Cinzel,Georgia,serif;font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600}
+.cycle{display:flex;align-items:center;gap:6px;margin-top:14px;flex-wrap:wrap}
+.cycle .s{font-size:.72rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:7px 11px;border-radius:999px;border:1px solid var(--olive-dim);color:var(--soft)}
+.cycle .s.here{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.cycle .a{color:var(--olive-lt);font-size:.8rem}
+.cyclenote{margin-top:10px;font-size:.84rem;color:var(--soft)}
+.door{margin-top:14px;background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--gold);border-radius:16px;padding:20px}
+.door h3{font-size:1.05rem;font-weight:800;text-transform:uppercase;letter-spacing:.02em;color:#fff}
+.door p{margin-top:6px;font-size:.92rem;color:var(--body)}
+.door .btn{margin-top:14px}
+.also{margin-top:12px;display:grid;gap:10px}
+.alt{display:flex;justify-content:space-between;align-items:center;gap:14px;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px 16px;background:rgba(255,255,255,.025)}
+.alt b{display:block;font-size:.9rem;color:#fff}
+.alt span{display:block;font-size:.8rem;color:var(--soft)}
+.alt a{flex:none;font-size:.78rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);text-decoration:none;white-space:nowrap}
+.qual{margin-top:14px;font-size:.88rem;color:var(--body)}
+.qual ul{list-style:none;margin-top:8px;display:grid;gap:6px}
+.qual li{display:flex;gap:10px;align-items:baseline}
+.qual li i{font-style:normal;font-weight:800;width:16px;flex:none}
+.qual li.y i{color:var(--olive-lt)} .qual li.n i{color:#8f8a80}
+.form{margin-top:14px;background:rgba(255,255,255,.03);border:1px solid var(--olive-dim);border-radius:16px;padding:18px}
+.form p{font-size:.9rem;color:var(--body)}
+.form .fields{margin-top:12px}
+.form .btn{margin-top:14px}
+.ok{margin-top:10px;font-size:.88rem;color:var(--olive-lt)}
+.care{margin-top:30px;font-size:.8rem;color:#9f998e}
+.foot{margin-top:34px;text-align:center;font-size:.78rem;color:#8f8a80}
+.foot .line1{font-family:Cinzel,Georgia,serif;font-size:.9rem;letter-spacing:.14em;color:var(--gold);margin-bottom:6px}
+.foot a{color:var(--gold);text-decoration:none;font-weight:600}
+@media (max-width:640px){
+  .wrap{padding:36px 16px 32px}
+  .head img{height:46px}
+  .hero{margin-top:36px}
+  .fields{grid-template-columns:1fr}
+  .nums{grid-template-columns:1fr 1fr;gap:10px}
+  .num b{font-size:1.9rem}
+  .alt{flex-direction:column;align-items:flex-start}
+  .mark{width:380px;right:-150px;top:110px}
+  .door .btn,.form .btn{width:100%;white-space:normal}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../shield-white-gold.png" alt="">
+
+<main class="wrap">
+  <div class="head">
+    <a href="https://legacyperformance.co"><img src="../logo-white-gold.png" alt="Legacy Performance"></a>
+    <div class="tag">Find<br>Your Phase</div>
+  </div>
+
+  <!-- ============ INTRO ============ -->
+  <section id="intro" class="hero">
+    <div class="eyebrow">Free tool</div>
+    <h1>Find your <span>phase.</span></h1>
+    <p class="lead">Most people pick a diet. The better question is which phase your body is ready for right now: climbing out, leaning out, building, or holding. Seven quick questions and you will know, with your starting numbers.</p>
+    <div class="facts"><span><b>7</b> questions</span><span><b>About 2</b> minutes</span><span><b>No email</b> to see your result</span></div>
+    <div id="welcome" class="welcome hidden"></div>
+    <div class="rule"></div>
+    <button class="btn" id="startBtn" type="button">Find my phase</button>
+  </section>
+
+  <!-- ============ QUIZ ============ -->
+  <section id="quiz" class="quiz hidden" aria-live="polite">
+    <div class="prog"><div class="bar"><i id="barFill"></i></div><div class="count" id="count">1 / 7</div></div>
+
+    <!-- 1 GOAL -->
+    <div class="screen" data-step="goal">
+      <h2>What do you want most right now?</h2>
+      <p class="help">Pick the one that is truest today. Your answers after this can change where you land.</p>
+      <div class="opts" data-k="goal">
+        <button type="button" class="opt" data-v="lean"><span class="t">Lose fat</span><span class="d">You want the weight down and you want to keep the muscle you have.</span></button>
+        <button type="button" class="opt" data-v="strong"><span class="t">Build strength and muscle</span><span class="d">You want to get stronger without getting softer on the way there.</span></button>
+        <button type="button" class="opt" data-v="sustain"><span class="t">Hold what I have</span><span class="d">You like where you are and want to keep it without living in the gym.</span></button>
+        <button type="button" class="opt" data-v="reverse"><span class="t">I am eating very little and nothing moves</span><span class="d">Less food than ever, and the scale stopped listening.</span></button>
+        <button type="button" class="opt" data-v="unsure"><span class="t">Honestly, I am not sure</span><span class="d">That is a fine answer. Your numbers will point the way.</span></button>
+      </div>
+    </div>
+
+    <!-- 2 SEX + AGE -->
+    <div class="screen" data-step="about">
+      <h2>A little about you.</h2>
+      <p class="help">Used for the math only. Starting numbers differ between men and women.</p>
+      <div class="opts two" data-k="sex">
+        <button type="button" class="opt" data-v="female"><span class="t">Woman</span></button>
+        <button type="button" class="opt" data-v="male"><span class="t">Man</span></button>
+      </div>
+      <div class="fields"><div class="f"><label for="age">Age</label><input type="number" id="age" inputmode="numeric" min="16" max="90" placeholder="42"></div></div>
+    </div>
+
+    <!-- 3 BODY -->
+    <div class="screen" data-step="body">
+      <h2>Where you are, and where you want to be.</h2>
+      <p class="help">Your goal weight anchors your numbers, not your current weight. A best guess is fine.</p>
+      <div class="fields">
+        <div class="f"><label for="height">Height</label><select id="height"><option value="">Select</option></select></div>
+        <div class="f"><label for="cw">Current weight (lbs)</label><input type="number" id="cw" inputmode="decimal" min="80" max="600" placeholder="186"></div>
+        <div class="f"><label for="gw">Goal weight (lbs)</label><input type="number" id="gw" inputmode="decimal" min="80" max="600" placeholder="155"></div>
+      </div>
+      <label class="check"><input type="checkbox" id="gwUnsure"> Not sure. Estimate a goal weight from my height.</label>
+    </div>
+
+    <!-- 4 EATING -->
+    <div class="screen" data-step="eating">
+      <h2>On a normal day, roughly how much are you eating?</h2>
+      <p class="help">Most people have never really looked. A guess is a starting point, not a grade.</p>
+      <div class="fields"><div class="f"><label for="cal">Calories per day</label><input type="number" id="cal" inputmode="numeric" min="500" max="6000" placeholder="Your honest best guess"></div></div>
+      <label class="check"><input type="checkbox" id="calUnsure"> Not sure. I have no idea.</label>
+      <p class="sub">How long have you eaten about this way?</p>
+      <div class="opts two" data-k="dur">
+        <button type="button" class="opt" data-v="short"><span class="t">Under 6 months</span></button>
+        <button type="button" class="opt" data-v="mid"><span class="t">6 to 18 months</span></button>
+        <button type="button" class="opt" data-v="long"><span class="t">A couple of years</span></button>
+        <button type="button" class="opt" data-v="forever"><span class="t">Most of my adult life</span></button>
+      </div>
+    </div>
+
+    <!-- 5 DIETING HISTORY (+ the two-bucket question) -->
+    <div class="screen" data-step="history">
+      <h2>Your dieting history.</h2>
+      <p class="help">No judgment here. This one changes your whole answer.</p>
+      <p class="sub">Have you ever run a real diet on purpose?</p>
+      <div class="opts" data-k="diets">
+        <button type="button" class="opt" data-v="none"><span class="t">Not really</span><span class="d">I have never deliberately eaten less for any real stretch.</span></button>
+        <button type="button" class="opt" data-v="short"><span class="t">A few tries, none lasted</span><span class="d">A couple of weeks here and there.</span></button>
+        <button type="button" class="opt" data-v="months"><span class="t">Yes, for months at a time</span><span class="d">I have held a deficit for three months or more.</span></button>
+        <button type="button" class="opt" data-v="years"><span class="t">I have been dieting for years</span><span class="d">On and off, or pretty much always.</span></button>
+      </div>
+      <p class="sub">Have you ever eaten less and less, and still watched the scale refuse to move?</p>
+      <div class="opts" data-k="stall">
+        <button type="button" class="opt" data-v="yes"><span class="t">Yes, that is exactly what happens</span></button>
+        <button type="button" class="opt" data-v="no"><span class="t">No, when I stick to it, it moves</span></button>
+        <button type="button" class="opt" data-v="unsure"><span class="t">I honestly do not know</span></button>
+      </div>
+    </div>
+
+    <!-- 6 TRAINING -->
+    <div class="screen" data-step="training">
+      <h2>Are you lifting weights right now?</h2>
+      <p class="help">Resistance training. Walking counts for a lot, just not here.</p>
+      <div class="opts" data-k="training">
+        <button type="button" class="opt" data-v="none"><span class="t">Not yet</span></button>
+        <button type="button" class="opt" data-v="light"><span class="t">1 to 2 days a week</span><span class="d">On and off. Mostly inconsistent.</span></button>
+        <button type="button" class="opt" data-v="consistent"><span class="t">3 to 4 days a week</span><span class="d">Showing up consistently.</span></button>
+        <button type="button" class="opt" data-v="serious"><span class="t">5 or more days a week</span><span class="d">Training is already part of your life.</span></button>
+        <button type="button" class="opt" data-v="cardio"><span class="t">Mostly cardio or classes</span><span class="d">Running, cycling, spin, group fitness.</span></button>
+      </div>
+    </div>
+
+    <!-- 7 TRACKING -->
+    <div class="screen" data-step="tracking">
+      <h2>Have you ever weighed and tracked your food?</h2>
+      <p class="help">Last one.</p>
+      <div class="opts" data-k="tracking">
+        <button type="button" class="opt" data-v="never"><span class="t">Never</span><span class="d">I would not know where to start.</span></button>
+        <button type="button" class="opt" data-v="cage"><span class="t">Yes, and I cannot live like that</span><span class="d">I know how. It just turned into a cage.</span></button>
+        <button type="button" class="opt" data-v="current"><span class="t">Yes, I track now and I am fairly accurate</span></button>
+      </div>
+    </div>
+
+    <div class="err" id="err"></div>
+    <div class="nav">
+      <button type="button" class="btn ghost" id="backBtn">Back</button>
+      <button type="button" class="btn" id="nextBtn">Next</button>
+    </div>
+  </section>
+
+  <!-- ============ RESULT ============ -->
+  <section id="result" class="result hidden" aria-live="polite">
+    <div class="eyebrow">Your phase</div>
+    <h1 id="rPhase"></h1>
+    <div class="ptitle" id="rTitle"></div>
+    <p class="why" id="rWhy"></p>
+
+    <div id="rNumsWrap">
+      <div class="nums">
+        <div class="num"><small>Calories</small><b id="rCal"></b><span>per day, to start</span></div>
+        <div class="num"><small>Protein</small><b id="rPro"></b><span>grams per day</span></div>
+      </div>
+      <p class="numnote" id="rNote"></p>
+    </div>
+
+    <div class="sect">Where this sits in the season cycle</div>
+    <div class="cycle" id="rCycle"></div>
+    <p class="cyclenote">Nobody lives in one phase forever. You move through seasons, and every lap the floor gets higher.</p>
+
+    <div class="sect">Your best next step</div>
+    <div class="door" id="rDoor"></div>
+    <div class="qual" id="rQual"></div>
+    <div class="also" id="rAlso"></div>
+
+    <div class="sect">Want this in your inbox?</div>
+    <form class="form" id="leadForm" novalidate>
+      <p>Optional. I will send your phase and your starting numbers so you have them when you need them.</p>
+      <div class="fields">
+        <div class="f"><label for="fname">First name</label><input type="text" id="fname" autocomplete="given-name" maxlength="60"></div>
+        <div class="f"><label for="email">Email</label><input type="email" id="email" autocomplete="email" maxlength="120"></div>
+      </div>
+      <div class="err" id="formErr"></div>
+      <button class="btn" type="submit" id="sendBtn">Email me my plan</button>
+      <div class="ok hidden" id="formOk"></div>
+    </form>
+
+    <p class="care">These are starting numbers from what you told me, not a diagnosis or medical advice. If you are pregnant or nursing, in cancer treatment, managing a kidney condition, or recovering from an eating disorder, do not use them. Book a call and talk to your physician first.</p>
+    <p class="care"><button type="button" class="link" id="retakeBtn">Retake Find Your Phase</button></p>
+  </section>
+
+  <footer class="foot">
+    <div class="line1">Build health that lasts a lifetime.</div>
+    <div>Legacy Performance · <a href="https://legacyperformance.co">legacyperformance.co</a></div>
+  </footer>
+</main>
+
+<!-- The shared engine. Keep ?v= matched to build/index.html so both pages run the same math. -->
+<script src="../nutrition-engine.js?v=41"></script>
+<script>
+/* ===================== CONFIG ===================== */
+const CONFIG = {
+  writeUrl: "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",  // same doorway as build/index.html
+  skoolUrl: "https://www.skool.com/legacy-performance/about",
+  cnsUrl:   "https://dashboard.legacyperformance.co/build/",
+  callUrl:  "https://legacyperformance.co/book-a-call",
+  scoreUrl: "../score/",
+  storeKey: "lp_phase_result"
+};
+
+const $ = id => document.getElementById(id);
+const qsa = (s, r) => Array.from((r || document).querySelectorAll(s));
+const S = {};                                   // single-choice answers
+const STEPS = qsa('#quiz .screen').map(s => s.dataset.step);
+let I = 0, R = null;
+
+/* ---------- height select (4'8" to 7'0") ---------- */
+(function(){
+  const sel = $('height');
+  for (let h = 56; h <= 84; h++){
+    const o = document.createElement('option');
+    o.value = h; o.textContent = Math.floor(h/12) + "' " + (h%12) + '"';
+    sel.appendChild(o);
+  }
+})();
+
+/* ---------- option tiles ---------- */
+qsa('.opts').forEach(box => {
+  box.addEventListener('click', e => {
+    const b = e.target.closest('.opt'); if (!b) return;
+    qsa('.opt', box).forEach(x => x.classList.toggle('on', x === b));
+    S[box.dataset.k] = b.dataset.v;
+    $('err').textContent = '';
+    /* single-question screens advance on tap */
+    const scr = box.closest('.screen');
+    if (qsa('.opts', scr).length === 1 && !qsa('input,select', scr).length) setTimeout(next, 220);
+  });
+});
+$('gwUnsure').addEventListener('change', e => { $('gw').disabled = e.target.checked; if (e.target.checked) $('gw').value = ''; });
+$('calUnsure').addEventListener('change', e => { $('cal').disabled = e.target.checked; if (e.target.checked) $('cal').value = ''; });
+
+const num = id => { const v = parseFloat($(id).value); return isFinite(v) ? v : null; };
+
+/* ---------- validation per screen ---------- */
+function check(step){
+  if (step === 'goal') return S.goal ? '' : 'Pick the one that fits best.';
+  if (step === 'about'){
+    if (!S.sex) return 'Pick one to continue.';
+    const a = num('age'); if (!(a >= 16 && a <= 90)) return 'Add your age (16 to 90).';
+    return '';
+  }
+  if (step === 'body'){
+    if (!num('height')) return 'Pick your height.';
+    const c = num('cw'); if (!(c >= 80 && c <= 600)) return 'Add your current weight in pounds.';
+    if (!$('gwUnsure').checked){ const g = num('gw'); if (!(g >= 80 && g <= 600)) return 'Add a goal weight, or tick "not sure".'; }
+    return '';
+  }
+  if (step === 'eating'){
+    if (!$('calUnsure').checked){ const k = num('cal'); if (!(k >= 500 && k <= 6000)) return 'Add a rough daily number, or tick "not sure".'; }
+    return S.dur ? '' : 'Pick how long you have eaten this way.';
+  }
+  if (step === 'history'){
+    if (!S.diets) return 'Tell me about your dieting history.';
+    return S.stall ? '' : 'Answer the scale question too.';
+  }
+  if (step === 'training') return S.training ? '' : 'Pick one.';
+  if (step === 'tracking') return S.tracking ? '' : 'Pick one.';
+  return '';
+}
+
+function show(i){
+  I = i;
+  qsa('#quiz .screen').forEach((s, k) => s.classList.toggle('hidden', k !== i));
+  $('count').textContent = (i + 1) + ' / ' + STEPS.length;
+  $('barFill').style.width = ((i) / STEPS.length * 100) + '%';
+  $('backBtn').style.visibility = i === 0 ? 'hidden' : 'visible';
+  $('nextBtn').textContent = (i === STEPS.length - 1) ? 'See my phase' : 'Next';
+  $('err').textContent = '';
+}
+function next(){
+  const e = check(STEPS[I]);
+  if (e){ $('err').textContent = e; return; }
+  if (I < STEPS.length - 1){ show(I + 1); scrollTop(); }
+  else finish();
+}
+function scrollTop(){ window.scrollTo({top:0, behavior:'smooth'}); }
+$('nextBtn').addEventListener('click', next);
+$('backBtn').addEventListener('click', () => { if (I > 0) show(I - 1); });
+$('startBtn').addEventListener('click', () => { $('intro').classList.add('hidden'); $('quiz').classList.remove('hidden'); show(0); scrollTop(); });
+
+/* ===================== THE ROUTER ===================== */
+/* Goal when "not sure": let the weights decide. Down more than 3 lb = Lean, up = Strong, else Sustain. */
+function inferGoal(cw, gw){
+  if (S.goal !== 'unsure') return S.goal;
+  if (gw < cw - 3) return 'lean';
+  if (gw > cw + 3) return 'strong';
+  return 'sustain';
+}
+
+/* decidePhase: SAME RULES as decidePhase() in build/index.html (the two-bucket diagnostic).
+   Reverse fires on either signal when the goal is fat loss:
+     1. self-report: "ate less and less, scale would not move" held for a couple of years or more
+     2. arithmetic: reported intake / goal weight at or under x10 (needsReverse, the coefficient scale)
+   Picking "eating very little and nothing moves" goes straight to Reverse. */
+function decidePhase(goal, reported, gw){
+  const coefficient = (reported != null && typeof coefficientOf === 'function') ? coefficientOf(reported, gw) : null;
+  const mathSignal  = (reported != null && typeof needsReverse === 'function') && needsReverse(reported, gw);
+  const selfReport  = (S.stall === 'yes') && (S.dur === 'long' || S.dur === 'forever');
+  if (goal === 'lean' && (mathSignal || selfReport)) return { phase:'Reverse Diet', num:1, coefficient, mathSignal, selfReport };
+  if (goal === 'reverse') return { phase:'Reverse Diet', num:1, coefficient, mathSignal, selfPicked:true };
+  if (goal === 'strong')  return { phase:'Strong',  num:1, coefficient };
+  if (goal === 'sustain') return { phase:'Sustain', num:1, coefficient };
+  return { phase:'Lean', num:1, coefficient };
+}
+
+/* Built 4 More prerequisites (brand_engine Canon Card + §6.2): all three required.
+   dieting history · tracking competence · training base (3+ lifting days). */
+function prereqs(){
+  return {
+    diet:  S.diets === 'months' || S.diets === 'years',
+    track: S.tracking === 'cage' || S.tracking === 'current',
+    train: S.training === 'consistent' || S.training === 'serious'
+  };
+}
+
+/* The door. First match wins, one primary door, always.
+   1. All three prerequisites  -> Built 4 More assessment call
+   2. Never tracked            -> the free Project (Foundations: tracking is the first skill, and
+                                  week one of honest logging is what sorts the two buckets)
+   3. Everyone else            -> the $497 CNS build (they can track, so the numbers become a system) */
+function pickDoor(p){
+  if (p.diet && p.track && p.train) return 'bfm';
+  if (S.tracking === 'never') return 'project';
+  return 'cns';
+}
+
+function finish(){
+  const cw = num('cw'), h = num('height'), age = num('age');
+  const gwUnsure = $('gwUnsure').checked;
+  let gw = gwUnsure ? estimateGoalWeight({height:h, sex:S.sex, weight:cw}) : num('gw');
+  const reported = $('calUnsure').checked ? null : num('cal');
+  const goal = inferGoal(cw, gw);
+  const dec = decidePhase(goal, reported, gw);
+  const w = { weight:cw, goalweight:gw, height:h, age:age, sex:S.sex };
+
+  let t = computePFS(w, dec.phase, dec.num);
+  /* Reverse anchors on what they actually eat (reverseStart), protein at goal weight x 1.0, as in build/. */
+  if (dec.phase === 'Reverse Diet'){
+    t = macrosFrom(reverseStart(reported, gw), Math.round(gw * 1.0), S.sex);
+    t.phase = 'Reverse Diet'; t.phaseNum = 1;
+  }
+  /* Safety floor, same as build/: never publish a target below it. */
+  const floor = /^m/i.test(S.sex) ? 1500 : 1200;
+  if (t.calories < floor) t = Object.assign(macrosFrom(floor, t.protein, S.sex), {phase:t.phase, phaseNum:t.phaseNum});
+
+  const p = prereqs();
+  const door = pickDoor(p);
+  R = { dec, t, door, p, goal, gw, gwUnsure, cw, h, age, reported };
+  render(R);
+  save(R);
+  $('quiz').classList.add('hidden'); $('result').classList.remove('hidden'); scrollTop();
+}
+
+/* ===================== RESULT COPY ===================== */
+const PHASE_WORD = { 'Reverse Diet':'Reverse', 'Lean':'Lean', 'Strong':'Strong', 'Sustain':'Sustain' };
+function titleOf(dec){ return dec.phase === 'Reverse Diet' ? 'The Reverse Diet' : dec.phase + ' Phase ' + (dec.num || 1); }
+
+function whyLine(r){
+  const d = r.dec;
+  if (d.phase === 'Reverse Diet'){
+    if (d.mathSignal && d.coefficient) return 'You are eating about ' + d.coefficient + ' calories per pound of your goal weight. At ten or below there is no deficit left to take, so the move is not less food. It is climbing back up, protein first, until your body has room to lose again.';
+    if (d.selfReport) return 'You have eaten less and less for years and the scale stopped listening. That points to a floor that may have come down over time. It is a likelihood, not a diagnosis, and the way forward is up before it is down.';
+    return 'You told me you are eating very little and nothing is moving. Before any deficit is considered, calories climb back up deliberately, protein first, from where you actually are.';
+  }
+  if (d.phase === 'Lean'){
+    const lead = (S.goal === 'unsure') ? 'Your goal weight sits below where you are now' : 'You want fat off';
+    let s = lead + ', and nothing in your answers says your metabolism needs rebuilding first. So this is a fat-loss phase, built off your goal weight instead of your current one, with protein held high so the muscle stays.';
+    if (r.reported && r.t.calories >= r.reported) s += ' That number may be more than you eat now. That surprises most people, and it is on purpose: the deficit comes from the body you are building toward, not from eating less and less.';
+    return s;
+  }
+  if (d.phase === 'Strong') return (S.goal === 'unsure' ? 'Your goal weight sits above where you are now' : 'You want to build') + ', so this is a building phase: enough fuel to add strength and muscle without adding fat you would only have to lose again.';
+  return (S.goal === 'unsure' ? 'Your goal weight is close to where you are now' : 'You like where you are') + ', so this is the hinge phase: eat at maintenance and hold what you built, on far less effort than it took to get here.';
+}
+
+function noteLine(r){
+  const d = r.dec;
+  if (d.phase === 'Reverse Diet'){
+    return r.reported
+      ? '<strong>A starting point, not a verdict.</strong> This is built on what you remember eating. Week one we measure it honestly, because a reverse has to anchor on what is real.'
+      : '<strong>A conservative starting point.</strong> You did not have a number, so this is built from your goal weight. Week one of honest tracking tells us where you really are.';
+  }
+  let s = 'Built from ' + (r.gwUnsure ? 'an estimated goal weight of ' : 'your goal weight of ') + Math.round(r.gw) + ' lbs, not your current weight.';
+  return s + ' <strong>How to eat to it, what to do when it stalls, and when to move to the next phase</strong> is the part the numbers alone do not tell you.';
+}
+
+function cycleHtml(phase){
+  const order = ['Reverse Diet','Lean','Sustain','Strong','Sustain'];
+  let marked = false;
+  return order.map((ph, i) => {
+    let here = false;
+    if (!marked && ph === phase){ here = true; marked = true; }
+    return (i ? '<span class="a">&rarr;</span>' : '') + '<span class="s' + (here ? ' here' : '') + '">' + PHASE_WORD[ph] + '</span>';
+  }).join('');
+}
+
+const DOORS = {
+  bfm: {
+    h:'You qualify for a Built 4 More assessment call',
+    p:'Most people who take this do not. You have dieted for real, you can track, and you train consistently. That is all three. On the call we find out together whether one on one is the right fit, and if it is not, I will tell you and point you somewhere better.',
+    cta:'Book my assessment call', url:() => CONFIG.callUrl },
+  cns: {
+    h:'Have your numbers built into a system',
+    p:'You can already track, so the next step is turning these numbers into meals you actually eat. The Complete Nutrition System is built from your answers: meal plans you can rebuild any time, restaurant orders, a swap guide, and numbers that move with you as you change phases. $497, yours for life.',
+    cta:'Build my nutrition system', url:() => CONFIG.cnsUrl },
+  project: {
+    h:'Start inside the Legacy Performance Project',
+    p:'The first skill is seeing what you actually eat, and nothing else works until you can. Foundations teaches it, one skill at a time, and a week of honest tracking is what confirms your phase. The Project is where that happens, alongside people running the same system.',
+    cta:'Join the Project', url:() => CONFIG.skoolUrl }
+};
+
+function qualHtml(r){
+  if (r.door === 'bfm') return '';
+  const p = r.p, n = [p.diet, p.track, p.train].filter(Boolean).length;
+  const li = (ok, txt) => '<li class="' + (ok ? 'y' : 'n') + '"><i>' + (ok ? '&#10003;' : '&middot;') + '</i><span>' + txt + '</span></li>';
+  return '<p><strong>One on one coaching (Built 4 More)</strong> opens once three things are in place. You have ' + n + ' of 3. You are early, and this is exactly where people build the rest.</p><ul>'
+    + li(p.diet,  'A real dieting history')
+    + li(p.track, 'You can track a day and the number means something')
+    + li(p.train, 'A consistent lifting base, 3 or more days a week')
+    + '</ul>';
+}
+
+function altHtml(r){
+  const rows = [];
+  if (r.door !== 'project') rows.push(['The Legacy Performance Project', 'The community, the courses, and the weekly coaching call.', CONFIG.skoolUrl, 'Join']);
+  if (r.door === 'project') rows.push(['Ready to skip ahead?', 'The $497 Complete Nutrition System builds your meals for you.', CONFIG.cnsUrl, 'See it']);
+  rows.push(['Get your Legacy Score', 'See how your sleep, fuel, training and recovery stack up.', CONFIG.scoreUrl, 'Get my score']);
+  return rows.map(a => '<div class="alt"><div><b>' + a[0] + '</b><span>' + a[1] + '</span></div><a href="' + a[2] + '">' + a[3] + ' &rarr;</a></div>').join('');
+}
+
+function render(r){
+  const word = PHASE_WORD[r.dec.phase];
+  $('rPhase').innerHTML = (word === 'Reverse' ? 'Start with <span>Reverse.</span>' : 'Start <span>' + word + '.</span>');
+  $('rTitle').textContent = titleOf(r.dec);
+  $('rWhy').textContent = whyLine(r);
+  $('rCal').textContent = r.t.calories.toLocaleString();
+  $('rPro').textContent = r.t.protein;
+  $('rNote').innerHTML = noteLine(r);
+  $('rCycle').innerHTML = cycleHtml(r.dec.phase);
+  const D = DOORS[r.door];
+  $('rDoor').innerHTML = '<h3>' + D.h + '</h3><p>' + D.p + '</p><a class="btn" href="' + D.url() + '">' + D.cta + '</a>';
+  $('rQual').innerHTML = qualHtml(r);
+  $('rAlso').innerHTML = altHtml(r);
+  $('formOk').classList.add('hidden'); $('sendBtn').disabled = false; $('formErr').textContent = '';
+}
+
+/* ===================== PERSISTENCE ===================== */
+function answers(r){
+  return {
+    goal:S.goal, goalUsed:r.goal, sex:S.sex, age:r.age, height:r.h, weight:r.cw,
+    goalweight:Math.round(r.gw), goalweightEstimated:r.gwUnsure,
+    calories_reported:r.reported, duration:S.dur, diets:S.diets, stall:S.stall,
+    training:S.training, tracking:S.tracking,
+    coefficient:r.dec.coefficient, bfmPrereqs:r.p
+  };
+}
+function save(r){
+  try {
+    localStorage.setItem(CONFIG.storeKey, JSON.stringify({
+      phase:r.dec.phase, phaseNum:r.dec.num, title:titleOf(r.dec),
+      calories:r.t.calories, protein:r.t.protein, door:r.door,
+      answers:answers(r), at:new Date().toISOString()
+    }));
+  } catch(e){}
+}
+
+/* Optional lead capture. Same no-cors text/plain pattern as postDoorway() in build/index.html. */
+async function postDoorway(p){
+  try { localStorage.setItem('lp_fyp_lead_' + Date.now(), JSON.stringify(p)); } catch(e){}
+  if (!CONFIG.writeUrl) return;
+  try {
+    await fetch(CONFIG.writeUrl, { method:'POST', mode:'no-cors',
+      headers:{'Content-Type':'text/plain;charset=utf-8'}, body:JSON.stringify(p) });
+  } catch(e){ /* localStorage backup already holds it */ }
+}
+$('leadForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  if (!R) return;
+  const name = $('fname').value.trim(), email = $('email').value.trim();
+  if (!name) { $('formErr').textContent = 'Add your first name.'; return; }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { $('formErr').textContent = 'Check that email address.'; return; }
+  $('formErr').textContent = ''; $('sendBtn').disabled = true;
+  const p = Object.assign({
+    type:'lead', source:'find-your-phase', name, email,
+    phase:R.dec.phase, phaseTitle:titleOf(R.dec), calories:R.t.calories, protein:R.t.protein,
+    door:R.door, ref:location.search || '', submittedAt:new Date().toISOString()
+  }, answers(R));
+  await postDoorway(p);
+  $('formOk').textContent = 'Done, ' + name + '. Your plan is on its way to ' + email + '.';
+  $('formOk').classList.remove('hidden');
+});
+
+$('retakeBtn').addEventListener('click', () => {
+  $('result').classList.add('hidden'); $('quiz').classList.remove('hidden'); show(0); scrollTop();
+});
+
+/* ---------- welcome back ---------- */
+(function(){
+  let prev = null;
+  try { prev = JSON.parse(localStorage.getItem(CONFIG.storeKey) || 'null'); } catch(e){}
+  if (!prev || !prev.title) return;
+  const w = $('welcome');
+  w.innerHTML = '<span>Welcome back. Last time you landed in <b>' + prev.title + '</b> at <b>'
+    + Number(prev.calories).toLocaleString() + '</b> calories and <b>' + prev.protein + 'g</b> protein. Things change. Retake it any time.</span>';
+  w.classList.remove('hidden');
+  $('startBtn').textContent = 'Retake it';
+})();
+</script>
+</body>
+</html>

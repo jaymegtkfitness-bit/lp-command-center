@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy Performance Free Tools: goal-date. Static SEO page, ungated result.
+     ALL math comes from ../../nutrition-engine.js (bump ?v= there when the engine changes).
+     Shared look + helpers: ../tools.css and ../tools.js (CONFIG + track() live in tools.js). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<title>Goal Weight Date Calculator: How Long Will It Take? | Legacy Performance</title>
+<meta name="description" content="Free goal weight date calculator. See how many weeks your goal honestly takes, your weekly pace, how many 16-week Lean seasons it needs, and your projected date.">
+<link rel="canonical" href="https://dashboard.legacyperformance.co/tools/goal-date/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Legacy Performance">
+<meta property="og:title" content="Goal Date Calculator | Legacy Performance">
+<meta property="og:description" content="Free goal weight date calculator. See how many weeks your goal honestly takes, your weekly pace, how many 16-week Lean seasons it needs, and your projected date.">
+<meta property="og:url" content="https://dashboard.legacyperformance.co/tools/goal-date/">
+<meta property="og:image" content="https://dashboard.legacyperformance.co/logo-white-gold.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<link rel="stylesheet" href="../tools.css?v=2">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "How long will it take to reach my goal weight?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Divide the pounds you want to lose by a sustainable weekly pace. We estimate yours from your goal weight: most people land between about 0.5 and 1 pound a week. Losing 35 pounds toward a 145 pound goal takes roughly 41 to 61 weeks of Lean, plus the Sustain breaks between seasons."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "How fast is it safe to lose weight?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "We cap estimates at 1.5 pounds a week, and less for smaller goals. Faster than that and a larger share of what you lose is muscle, which is exactly what you want to keep."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What is a Lean season?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "A fat-loss phase of up to 16 weeks. Bigger goals use more than one, with Sustain stretches at maintenance in between so your body and your life get a break."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Do steps really change my timeline?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Yes, a little. Steps above about 5,000 a day add burn and can shave weeks off. But nutrition creates the deficit. Steps support it."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Why is my date later than other calculators?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Many calculators assume you hold an aggressive deficit forever. We plan the pace most people can keep, and we build in seasons, because a date you actually reach beats a faster one you abandon."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body data-tool="goal-date">
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../../shield-white-gold.png" alt="">
+
+<main class="wrap">
+  <div class="head">
+    <a class="logo" href="../"><img src="../../logo-white-gold.png" alt="Legacy Performance"></a>
+    <a class="tag" href="../">Free<br>Tools</a>
+  </div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../">Free tools</a> / Goal date</nav>
+
+  <section class="hero">
+    <div class="eyebrow">Free tool</div>
+    <h1>Your <span>goal date</span></h1>
+    <p class="lead">How long your goal honestly takes at a pace you can keep, how many fat-loss seasons it needs, and when you land. No crash timelines.</p>
+  </section>
+  <div class="rule"></div>
+
+  <section class="tile calc" aria-label="Calculator">
+    <div class="fields">
+      <div class="field"><label class="fl" for="weight">Current weight</label><div class="inp"><input id="weight" type="number" inputmode="decimal" min="0" placeholder="180"><span class="unit">lb</span></div></div>
+      <div class="field"><label class="fl" for="goal">Goal weight</label><div class="inp"><input id="goal" type="number" inputmode="decimal" min="0" placeholder="145"><span class="unit">lb</span></div></div>
+      <div class="field full"><label class="fl" for="steps">Daily steps: <b id="stepsOut" style="color:var(--gold)">5,000</b></label><input id="steps" type="range" min="5000" max="15000" step="500" value="5000"><small>Maintenance already covers about 5,000 steps of daily life. Steps above that add burn.</small></div>
+    </div>
+    <div class="result" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="bridge">
+    <img src="../../shield-white-gold.png" alt="">
+    <div>
+      <b class="t">The timeline is a plan, the phase is the start</b>
+      <p>A goal date only holds if you start in the right phase. If you have been under-eating for a long time, cutting first can stall you. Find Your Phase tells you where to begin, and the Legacy Score shows what else is in the way.</p>
+      <div class="ctas">
+        <a class="btn" href="../../score/" data-href="score" data-track="bridge_score">Get your Legacy Score</a>
+        <a class="btn ghost" href="../../find-your-phase/" data-href="phase" data-track="bridge_phase">Find your phase</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="related">
+    <h3 class="label">Related tools</h3>
+    <div class="grid2">
+    <a class="tile tool" href="../calories/" data-track="related_calories"><span class="card-title">Maintenance &amp; Calorie Calculator</span><p>Your maintenance range and your calories for every phase, anchored to your goal weight.</p><span class="go">Open the tool</span></a>
+    <a class="tile tool" href="../body-comp/" data-track="related_body-comp"><span class="card-title">Body Fat &amp; Ideal Weight Calculator</span><p>Navy tape-measure body fat, your ideal weight, and why your waist beats the scale.</p><span class="go">Open the tool</span></a>
+    </div>
+  </section>
+
+  <article class="edu">
+    <h2>Three things decide your timeline</h2>
+    <p>Every fat-loss plan is built from three variables. <strong>The work</strong>: how many pounds you want to lose. <strong>The timeline</strong>: how long that honestly takes. <strong>The intensity</strong>: how deep the deficit runs. The work is fixed. So timeline and intensity trade against each other. Cut harder and it goes faster, until it does not, because you get hungry, tired, stall out and quit.</p>
+    <p>Our rule is simple. The intensity has a ceiling. When the math does not fit the date you wanted, <strong>the timeline moves, never the deficit</strong>.</p>
+    <h2>How we estimate your pace</h2>
+    <p>Your maintenance is built from your goal weight times 15. Lean starts at goal weight times 13, and steps to times 12 only when the scale stops setting new lows. The gap between the two, over a week, divided by the 3,500 calories in a pound of fat, is your pace. We keep it between 0.3 and 1.5 pounds a week. Slower than that is a stall. Faster costs muscle.</p>
+    <p>Steps help. Every day above about 5,000 steps adds a little burn, and you can see it move your weeks with the slider. Steps support the deficit. Nutrition creates it.</p>
+    <h2>Why seasons, not one long diet</h2>
+    <p>No single diet should run past about 16 weeks. After that, hunger climbs, energy drops, training suffers and the odds of rebounding go way up. So a bigger goal is split into <strong>Lean seasons</strong> with Sustain stretches in between, where you eat at maintenance for your goal body and let things settle. It feels slower. It is the version that actually finishes.</p>
+    <h2>Read it as a range</h2>
+    <p>The shorter number is the pace you might hold on a great run. The longer one is the pace most people actually live. Both are estimates. Your weekly weigh-ins, read as a two-week trend, are what tell you where you really are. One day is noise. Two weeks is a trend.</p>
+  </article>
+
+  <section class="faq">
+    <h3 class="label">Questions people ask</h3>
+    <details><summary>How long will it take to reach my goal weight?</summary><p>Divide the pounds you want to lose by a sustainable weekly pace. We estimate yours from your goal weight: most people land between about 0.5 and 1 pound a week. Losing 35 pounds toward a 145 pound goal takes roughly 41 to 61 weeks of Lean, plus the Sustain breaks between seasons.</p></details>
+    <details><summary>How fast is it safe to lose weight?</summary><p>We cap estimates at 1.5 pounds a week, and less for smaller goals. Faster than that and a larger share of what you lose is muscle, which is exactly what you want to keep.</p></details>
+    <details><summary>What is a Lean season?</summary><p>A fat-loss phase of up to 16 weeks. Bigger goals use more than one, with Sustain stretches at maintenance in between so your body and your life get a break.</p></details>
+    <details><summary>Do steps really change my timeline?</summary><p>Yes, a little. Steps above about 5,000 a day add burn and can shave weeks off. But nutrition creates the deficit. Steps support it.</p></details>
+    <details><summary>Why is my date later than other calculators?</summary><p>Many calculators assume you hold an aggressive deficit forever. We plan the pace most people can keep, and we build in seasons, because a date you actually reach beats a faster one you abandon.</p></details>
+  </section>
+
+  <footer class="foot">
+    <p class="tagline">Build health that lasts a lifetime.</p>
+    <p><a href="../">All free tools</a> &nbsp;·&nbsp; <a href="../../score/">The Legacy Score</a> &nbsp;·&nbsp; <a href="../../find-your-phase/">Find Your Phase</a></p>
+    <p>Free education, not medical advice. These tools do not diagnose or treat any condition. If you have a medical condition, are pregnant, or take medication, talk with your provider before changing how you eat or train.</p>
+    <p>© <span id="yr">2026</span> Legacy Performance</p>
+  </footer>
+</main>
+
+<script src="../../nutrition-engine.js?v=41"></script>
+<script src="../tools.js?v=2"></script>
+<script>
+/* ===== goal-date TOOL ===== every number below comes from a nutrition-engine.js function */
+LPT.bind(function(){
+  var out=LPT.$('out'), cw=LPT.num('weight'), gw=LPT.num('goal'), st=+LPT.$('steps').value||5000;
+  LPT.$('stepsOut').textContent=st.toLocaleString('en-US');
+  if(!(cw>0)||!(gw>0)){ out.innerHTML='<p class="empty">Enter your current and goal weight. Your timeline shows up here instantly.</p>'; return false; }
+  if(gw>=cw){ out.innerHTML='<p class="empty">Your goal is at or above your current weight. That is a Strong (building) or Sustain season, not a fat-loss timeline. Find Your Phase below will point you to the right start.</p>'; return false; }
+  var extra=stepBurn(cw, st), p=seasonPlan({weight:cw, goalweight:gw}, extra);
+  if(!p){ out.innerHTML='<p class="empty">Check your numbers and try again.</p>'; return false; }
+  var same=p.weeksLo===p.weeksHi;
+  var html='<div class="label">Time to your goal</div><div class="big"><b>'+(same?p.weeksLo:p.weeksLo+' to '+p.weeksHi)+'</b><em>weeks of Lean</em></div>'+
+    '<p class="sub">'+p.work+' lb to lose. Projected finish: <b style="color:var(--gold)">'+LPT.dateIn(p.weeksLo)+(same?'':' to '+LPT.dateIn(p.weeksHi))+'</b>, counting Lean weeks only. Add the Sustain stretches between seasons.</p>'+
+    '<div class="stats">'+
+    '<div class="stat"><div class="k">Pace at ×'+p.leanMult[0]+'</div><div class="v">'+p.rate1+' <small>lb/wk</small></div><div class="d">'+LPT.fmt(p.cal1)+' cal a day</div></div>'+
+    '<div class="stat"><div class="k">Pace at ×'+p.leanMult[1]+'</div><div class="v">'+p.rate2+' <small>lb/wk</small></div><div class="d">'+LPT.fmt(p.cal2)+' cal a day</div></div>'+
+    '<div class="stat on"><div class="k">Lean seasons</div><div class="v">'+(p.seasonsLo===p.seasonsHi?p.seasonsLo:p.seasonsLo+' to '+p.seasonsHi)+'</div><div class="d">Up to '+p.capWks+' weeks each</div></div>'+
+    '</div>';
+  html+='<p class="note">'+(extra>0?'Your '+st.toLocaleString('en-US')+' steps add about <b>'+extra+' calories a day</b> of burn. ':'')+'No single diet runs past '+p.capWks+' weeks. A bigger goal is split into Lean seasons with Sustain in between, so your body and your life get a break. How long each Sustain stretch lasts depends on how you respond, so we do not guess it here.</p>';
+  if(p.rate2>=LEAN_RATE_MAX) html+='<p class="note">We cap the pace at '+LEAN_RATE_MAX+' lb a week. Faster than that and muscle starts going with the fat.</p>';
+  html+='<p class="note"><a href="../calories/?weight='+Math.round(cw)+'&goal='+Math.round(gw)+'">See your calories for every phase</a></p>';
+  out.innerHTML=html; return true;
+});
+</script>
+</body>
+</html>

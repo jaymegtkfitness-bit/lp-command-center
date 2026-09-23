@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy Performance Free Tools: training-volume. Static SEO page, ungated result.
+     ALL math comes from ../../nutrition-engine.js (bump ?v= there when the engine changes).
+     Shared look + helpers: ../tools.css and ../tools.js (CONFIG + track() live in tools.js). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1e1e1e">
+<title>Training Volume Calculator: Weekly Sets Per Muscle | Legacy Performance</title>
+<meta name="description" content="Free training volume calculator. See how many hard sets per muscle group per week fit your experience and schedule, plus the training split that fits your days.">
+<link rel="canonical" href="https://dashboard.legacyperformance.co/tools/training-volume/">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Legacy Performance">
+<meta property="og:title" content="Training Volume Calculator | Legacy Performance">
+<meta property="og:description" content="Free training volume calculator. See how many hard sets per muscle group per week fit your experience and schedule, plus the training split that fits your days.">
+<meta property="og:url" content="https://dashboard.legacyperformance.co/tools/training-volume/">
+<meta property="og:image" content="https://dashboard.legacyperformance.co/logo-white-gold.png">
+<meta name="twitter:card" content="summary">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../../apple-touch-icon.png">
+<link rel="stylesheet" href="../tools.css?v=2">
+<script type="application/ld+json">
+{
+ "@context": "https://schema.org",
+ "@type": "FAQPage",
+ "mainEntity": [
+  {
+   "@type": "Question",
+   "name": "How many sets per muscle group per week should I do?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "A good evidence-based starting point is about 10 hard sets per muscle per week for beginners, 10 to 15 for intermediates and 15 to 20 for advanced lifters, with smaller muscles a little lower."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What counts as a hard set?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "A working set taken close to failure, usually with 1 to 3 reps left. Warm-up sets and easy sets do not count toward your weekly total."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Is it better to train a muscle once or twice a week?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Twice a week tends to work better for most people, because it spreads the weekly sets out and keeps each session productive."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "Should I do less volume while losing fat?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Usually yes. In a deficit, recovery is limited, and the goal is to keep your muscle. Holding the low end of your range with heavy weights does that well."
+   }
+  },
+  {
+   "@type": "Question",
+   "name": "What training split should I use?",
+   "acceptedAnswer": {
+    "@type": "Answer",
+    "text": "Two or three days: full body. Four days: upper and lower, twice through. Five days: upper and lower plus a full body day. Six days: push, pull, legs, twice through."
+   }
+  }
+ ]
+}
+</script>
+</head>
+<body data-tool="training-volume">
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../../shield-white-gold.png" alt="">
+
+<main class="wrap">
+  <div class="head">
+    <a class="logo" href="../"><img src="../../logo-white-gold.png" alt="Legacy Performance"></a>
+    <a class="tag" href="../">Free<br>Tools</a>
+  </div>
+  <nav class="crumbs" aria-label="Breadcrumb"><a href="../">Free tools</a> / Training volume</nav>
+
+  <section class="hero">
+    <div class="eyebrow">Free tool</div>
+    <h1>Your weekly <span>sets</span></h1>
+    <p class="lead">How many hard sets each muscle group needs per week for your experience, how to spread them across the days you have, and the split that fits.</p>
+  </section>
+  <div class="rule"></div>
+
+  <section class="tile calc" aria-label="Calculator">
+    <div class="fields">
+      <div class="field full"><span class="fl">Experience</span><div class="seg" data-name="exp"><button data-v="beginner" aria-pressed="true">Beginner</button><button data-v="intermediate">Intermediate</button><button data-v="advanced">Advanced</button></div><small>Beginner: under a year of consistent lifting. Intermediate: 1 to 3 years. Advanced: 3+ years and still progressing.</small></div>
+      <div class="field full"><span class="fl">Training days a week</span><div class="seg" data-name="days"><button data-v="2">2</button><button data-v="3" aria-pressed="true">3</button><button data-v="4">4</button><button data-v="5">5</button><button data-v="6">6</button></div></div>
+      <div class="field full"><span class="fl">Right now you are</span><div class="seg" data-name="goal"><button data-v="build" aria-pressed="true">Building or maintaining</button><button data-v="lose">Losing fat</button></div></div>
+    </div>
+    <div class="result" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="bridge">
+    <img src="../../shield-white-gold.png" alt="">
+    <div>
+      <b class="t">Training is the output. Recovery pays for it.</b>
+      <p>The right volume depends on how well you sleep, eat and recover. The Legacy Score shows whether recovery can pay for the work, and Find Your Phase tells you whether this is a season to build or to lean out.</p>
+      <div class="ctas">
+        <a class="btn" href="../../score/" data-href="score" data-track="bridge_score">Get your Legacy Score</a>
+        <a class="btn ghost" href="../../find-your-phase/" data-href="phase" data-track="bridge_phase">Find your phase</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="related">
+    <h3 class="label">Related tools</h3>
+    <div class="grid2">
+    <a class="tile tool" href="../protein/" data-track="related_protein"><span class="card-title">Protein Calculator</span><p>Your daily protein by phase, split into the meals you actually eat.</p><span class="go">Open the tool</span></a>
+    <a class="tile tool" href="../body-comp/" data-track="related_body-comp"><span class="card-title">Body Fat &amp; Ideal Weight Calculator</span><p>Navy tape-measure body fat, your ideal weight, and why your waist beats the scale.</p><span class="go">Open the tool</span></a>
+    </div>
+  </section>
+
+  <article class="edu">
+    <h2>What counts as a hard set</h2>
+    <p>A hard set is a working set taken close to failure, usually with 1 to 3 good reps left in the tank. Warm-ups do not count. Neither do sets you stop halfway because they got uncomfortable. Research on muscle growth keeps landing on the same idea: the number of hard sets each muscle gets per week is one of the strongest levers you control.</p>
+    <h2>How many sets you need</h2>
+    <ul>
+      <li><strong>Beginner, about 10 sets per muscle per week.</strong> Almost anything works when you are new. More volume just adds soreness.</li>
+      <li><strong>Intermediate, about 10 to 15.</strong> You need a little more stimulus to keep progressing.</li>
+      <li><strong>Advanced, about 15 to 20.</strong> Only if you are recovering well and still adding weight or reps.</li>
+    </ul>
+    <p>Those numbers are for the big groups: chest, back, quads, and hamstrings and glutes. Shoulders, arms, calves and core sit lower, because every press, row, squat and hinge already trains them. A bench press set counts for chest, and it also works your triceps and front shoulders.</p>
+    <h2>Twice a week beats once</h2>
+    <p>Spreading a muscle's weekly sets across two sessions tends to work better than cramming them into one. That is why two or three days of full body work so well, and why four days usually becomes an upper and lower split run twice. Five and six days just give you more room, not more magic.</p>
+    <h2>In a fat-loss phase, hold the low end</h2>
+    <p>When you are eating in a deficit, your recovery budget shrinks. The goal of training in a Lean phase is to <strong>keep the muscle you have</strong>, and that takes less volume than building it. Hold the low end of your range, keep the weights heavy, and let steps do the low-stress work.</p>
+    <h2>More is not always better</h2>
+    <p>Volume only helps as long as you can recover from it. If your lifts are stalling, your joints ache and your sleep is off, more sets will not fix it. Start in the middle of your range, add a set here and there while you are still progressing, and pull back when you are not.</p>
+  </article>
+
+  <section class="faq">
+    <h3 class="label">Questions people ask</h3>
+    <details><summary>How many sets per muscle group per week should I do?</summary><p>A good evidence-based starting point is about 10 hard sets per muscle per week for beginners, 10 to 15 for intermediates and 15 to 20 for advanced lifters, with smaller muscles a little lower.</p></details>
+    <details><summary>What counts as a hard set?</summary><p>A working set taken close to failure, usually with 1 to 3 reps left. Warm-up sets and easy sets do not count toward your weekly total.</p></details>
+    <details><summary>Is it better to train a muscle once or twice a week?</summary><p>Twice a week tends to work better for most people, because it spreads the weekly sets out and keeps each session productive.</p></details>
+    <details><summary>Should I do less volume while losing fat?</summary><p>Usually yes. In a deficit, recovery is limited, and the goal is to keep your muscle. Holding the low end of your range with heavy weights does that well.</p></details>
+    <details><summary>What training split should I use?</summary><p>Two or three days: full body. Four days: upper and lower, twice through. Five days: upper and lower plus a full body day. Six days: push, pull, legs, twice through.</p></details>
+  </section>
+
+  <footer class="foot">
+    <p class="tagline">Build health that lasts a lifetime.</p>
+    <p><a href="../">All free tools</a> &nbsp;·&nbsp; <a href="../../score/">The Legacy Score</a> &nbsp;·&nbsp; <a href="../../find-your-phase/">Find Your Phase</a></p>
+    <p>Free education, not medical advice. These tools do not diagnose or treat any condition. If you have a medical condition, are pregnant, or take medication, talk with your provider before changing how you eat or train.</p>
+    <p>© <span id="yr">2026</span> Legacy Performance</p>
+  </footer>
+</main>
+
+<script src="../../nutrition-engine.js?v=41"></script>
+<script src="../tools.js?v=2"></script>
+<script>
+/* ===== training-volume TOOL ===== every number below comes from a nutrition-engine.js function */
+var EXP={beginner:'Beginner', intermediate:'Intermediate', advanced:'Advanced'};
+LPT.bind(function(){
+  var out=LPT.$('out'), e=LPT.seg('exp')||'beginner', d=+LPT.seg('days')||3, lose=LPT.seg('goal')==='lose';
+  var r=weeklySets(e, d, lose);
+  var rows=r.groups.map(function(g){ return '<tr><td>'+g.name+'</td><td class="n">'+g.sets+'</td><td>'+g.range[0]+' to '+g.range[1]+'</td></tr>'; }).join('');
+  var days=r.split.days.map(function(x,i){ return '<div class="stat"><div class="k">Day '+(i+1)+'</div><div class="v" style="font-size:1rem">'+x+'</div></div>'; }).join('');
+  var html='<div class="label">'+EXP[r.experience]+(lose?', losing fat':'')+'</div><div class="big"><b>'+r.target+'</b><em>hard sets per big muscle group, per week</em></div>'+
+    '<p class="sub">Your range: '+r.range[0]+' to '+r.range[1]+' sets. '+(lose?'In a deficit we hold the low end, because recovery is the budget.':'Start in the middle and add sets only while you keep progressing.')+'</p>'+
+    '<table class="t"><thead><tr><th>Muscle group</th><th>Sets / wk</th><th>Range</th></tr></thead><tbody>'+rows+'</tbody></table>'+
+    '<div class="label" style="margin-top:22px">Your split: '+r.split.name+'</div><div class="stats">'+days+'</div>'+
+    '<div class="stats"><div class="stat"><div class="k">Sets to program</div><div class="v">~'+r.programmed+' <small>a week</small></div><div class="d">Compound lifts count for several muscles.</div></div>'+
+    '<div class="stat'+(r.heavySession?'':' on')+'"><div class="k">Per session</div><div class="v">~'+r.perSession+' <small>sets</small></div></div>'+
+    '<div class="stat"><div class="k">Effort</div><div class="v" style="font-size:1.1rem">'+r.rir+' <small>reps in reserve</small></div></div></div>';
+  if(r.heavySession) html+='<p class="note"><b>That is a lot for one session.</b> Add a training day, or run the low end of your range until you can.</p>';
+  html+='<p class="note">Each muscle gets trained about '+(r.split.freq===3?'three times':'twice')+' a week on this split. Smaller groups (shoulders, arms, calves, core) sit lower because presses, rows, squats and hinges already train them.</p>';
+  out.innerHTML=html; return true;
+});
+</script>
+</body>
+</html>
