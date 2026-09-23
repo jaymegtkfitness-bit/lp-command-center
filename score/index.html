@@ -138,6 +138,15 @@ h1 span{color:var(--gold)}
 .nextrow h4{font-weight:800;text-transform:uppercase;font-size:.98rem;color:#fff}
 .nextrow p{font-size:.86rem;color:var(--soft);margin-top:3px}
 .sec{margin-top:40px}
+.invite{border:1px solid var(--gold-dim);border-radius:16px;padding:24px;background:linear-gradient(120deg,rgba(193,173,114,.16),rgba(84,106,70,.18) 60%,rgba(255,255,255,.03))}
+.invite h3{font-weight:900;text-transform:uppercase;font-size:clamp(1.4rem,5vw,1.9rem);line-height:1.05;margin-top:8px}
+.invite .when{font-family:Cinzel,Georgia,serif;color:var(--gold);font-weight:700;margin-top:12px;font-size:1.02rem}
+.invite .zones{font-size:.8rem;color:var(--soft);margin-top:2px}
+.invite p{color:var(--body);margin-top:12px}
+.invite ul{list-style:none;margin-top:12px;display:grid;gap:6px}
+.invite li{padding-left:22px;position:relative;color:var(--body);font-size:.92rem}
+.invite li:before{content:"";position:absolute;left:0;top:.55em;width:10px;height:10px;border-radius:50%;background:var(--olive);border:2px solid var(--olive-lt)}
+.invite .btn{margin-top:18px}
 .history{display:flex;gap:6px;align-items:flex-end;height:70px;margin-top:12px}
 .history div{flex:1;background:linear-gradient(180deg,var(--gold),var(--olive));border-radius:4px 4px 0 0;min-height:4px;position:relative}
 .history div span{position:absolute;top:-18px;left:0;right:0;text-align:center;font-size:.68rem;color:var(--soft)}
@@ -253,6 +262,8 @@ h1 span{color:var(--gold)}
 
     <div class="read hidden" id="read"></div>
 
+    <div class="sec hidden" id="workshopSec"></div>
+
     <div class="sec hidden" id="nextSec">
       <div class="label">Your next step</div>
       <div class="next" id="nextList"></div>
@@ -289,7 +300,17 @@ const CONFIG = {
     call:   "https://legacyperformance.co/book-a-call",
     tools:  "../tools/"
   },
-  metaPixelId: ""
+  metaPixelId: "",
+
+  /* NEXT WORKSHOP: invited at the end of the results. Swap this block for each new workshop.
+     The card hides itself once endsAt has passed, so it never shows a stale date. "" url -> hidden. */
+  workshop: {
+    title:  "The Last 100 Days",
+    when:   "Saturday, September 26 · 12:00 PM Eastern",
+    zones:  "11:00 AM Central · 9:00 AM Pacific · 90 minutes",
+    endsAt: "2026-09-26T17:30:00Z",
+    url:    "https://legacyperformance.co/last-100-days?utm_source=legacy-score&utm_medium=results&utm_campaign=last-100-days"
+  }
 };
 
 /* =================== HELPERS =================== */
@@ -617,6 +638,7 @@ function renderResult(){
   /* gate: returning lead skips it */
   const lead = load('lp_lead');
   if (lead && lead.email){ $('gate').classList.add('hidden'); openRead(); sendLead(lead.name, lead.email, true); }
+  renderWorkshop();
   renderHistory();
 }
 
@@ -650,6 +672,28 @@ function renderNext(){
     <a class="btn${i ? ' ghost' : ''}" href="${x[3]}" data-cta="${x[4]}">${x[2]}</a></div>`).join('');
   qsa('[data-cta]', $('nextList')).forEach(a => a.addEventListener('click', () => post({ type:'lead', status:'cta', source:'legacy-score', cta:a.dataset.cta, ...leadBase() }, true)));
   $('nextSec').classList.remove('hidden');
+}
+
+/* The workshop invite: the back end of the questionnaire. Speaks to their constraint. */
+const WS_HOOK = {
+  Signals:'Your score says your body is talking and nobody has taught you to read it.',
+  Fuel:'Your score says your fuel is the constraint.',
+  Output:'Your score says you have more capacity than you are using.',
+  Recovery:'Your score says you are spending more than you are recovering.'
+};
+function renderWorkshop(){
+  const W = CONFIG.workshop, box = $('workshopSec');
+  if (!W || !W.url || (W.endsAt && Date.now() > Date.parse(W.endsAt))) return;
+  box.innerHTML = `<div class="invite">
+    <div class="label" style="color:var(--gold)">You're invited · free live workshop</div>
+    <h3>${W.title}</h3>
+    <div class="when">${W.when}</div><div class="zones">${W.zones}</div>
+    <p>${WS_HOOK[RESULT.weakest]} Saturday we walk through the whole system live, in the right order, so you know exactly what to do with this score.</p>
+    <ul><li>How to read your own body, so you stop guessing</li><li>Why the fix is an order, not more discipline</li><li>Two people in the room get their complete nutrition system, built and handed to them</li></ul>
+    <a class="btn" href="${W.url}" data-cta="workshop">Save my seat</a>
+  </div>`;
+  box.querySelector('[data-cta]').addEventListener('click', () => { track('Lead', { content_name:'workshop_from_score' }); post({ type:'lead', status:'cta', source:'legacy-score', cta:'workshop', ...leadBase(), tags:['workshop-invite-clicked'] }, true); });
+  box.classList.remove('hidden');
 }
 
 function renderHistory(){
