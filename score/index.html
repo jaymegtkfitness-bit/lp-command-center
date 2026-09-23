@@ -319,7 +319,11 @@ const CONFIG = {
     when:   "Saturday, September 26 · 12:00 PM Eastern",
     zones:  "11:00 AM Central · 9:00 AM Pacific · 90 minutes",
     endsAt: "2026-09-26T17:30:00Z",
-    url:    "https://legacyperformance.co/last-100-days?utm_source=legacy-score&utm_medium=results&utm_campaign=last-100-days"
+    url:    "https://legacyperformance.co/last-100-days?utm_source=legacy-score&utm_medium=results&utm_campaign=last-100-days",
+    /* The same GHL registration form as the workshop page (site/links.json form.workshop_last_100_days),
+       so a sign-up here fires the same show-up workflow. "" formId -> falls back to the button. */
+    formId: "Yds5JsB4rrSZ2b31qjYv",
+    formHeight: 560
   }
 };
 
@@ -741,9 +745,30 @@ function renderWorkshop(){
     <div class="when">${W.when}</div><div class="zones">${W.zones}</div>
     <p>${WS_HOOK[RESULT.weakest]} Saturday we walk through the whole system live, in the right order, so you know exactly what to do with this score.</p>
     <ul><li>How to read your own body, so you stop guessing</li><li>Why the fix is an order, not more discipline</li><li>Two people in the room get their complete nutrition system, built and handed to them</li></ul>
-    <a class="btn" href="${W.url}" data-cta="workshop">Save my seat</a>
+    ${W.formId
+      ? `<div class="wsform"><div class="label" style="margin-top:18px">Save your seat right here</div>
+          <iframe src="https://api.leadconnectorhq.com/widget/form/${W.formId}" style="width:100%;height:${W.formHeight}px;border:none;border-radius:12px;margin-top:10px"
+            id="inline-${W.formId}" data-layout="{'id':'INLINE'}" data-trigger-type="alwaysShow" data-trigger-value=""
+            data-activation-type="alwaysActivated" data-activation-value="" data-deactivation-type="neverDeactivate" data-deactivation-value=""
+            data-form-name="workshop_last_100_days" data-height="${W.formHeight}" data-layout-iframe-id="inline-${W.formId}" data-form-id="${W.formId}"
+            title="Workshop registration"></iframe></div>
+         <p class="fine" style="margin-top:8px">Want the full details first? <a href="${W.url}" data-cta="workshop" style="color:var(--gold)">See the workshop page</a></p>`
+      : `<a class="btn" href="${W.url}" data-cta="workshop">Save my seat</a>`}
   </div>`;
-  box.querySelector('[data-cta]').addEventListener('click', () => { track('Lead', { content_name:'workshop_from_score' }); post({ type:'lead', status:'cta', source:'legacy-score', cta:'workshop', ...leadBase(), tags:['workshop-invite-clicked'] }, true); });
+  const cta = box.querySelector('[data-cta]');
+  if (cta) cta.addEventListener('click', () => { track('Lead', { content_name:'workshop_from_score' }); post({ type:'lead', status:'cta', source:'legacy-score', cta:'workshop', ...leadBase(), tags:['workshop-invite-clicked'] }, true); });
+  if (W.formId && !document.querySelector('script[src*="form_embed.js"]')){
+    const sc = document.createElement('script'); sc.src = 'https://link.msgsndr.com/js/form_embed.js'; document.body.appendChild(sc);
+  }
+  /* GHL posts a message when its form is submitted: tag the score lead so we know who registered from here. */
+  if (!renderWorkshop.listening) window.addEventListener('message', e => {
+    if (!/leadconnectorhq|msgsndr/.test(e.origin || '')) return;
+    const d = typeof e.data === 'string' ? e.data : JSON.stringify(e.data || '');
+    if (/submit|success/i.test(d) && !renderWorkshop.done){ renderWorkshop.done = true;
+      track('CompleteRegistration', { content_name:'workshop_from_score' });
+      post({ type:'lead', status:'workshop', source:'legacy-score', ...leadBase(), tags:['workshop-registered-from-score'] }, true); }
+  });
+  renderWorkshop.listening = true;
   box.classList.remove('hidden');
 }
 
