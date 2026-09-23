@@ -616,7 +616,7 @@ function renderResult(){
   setTimeout(() => qsa('.track i', $('bars')).forEach(i => i.style.width = i.dataset.w + '%'), 60);
   /* gate: returning lead skips it */
   const lead = load('lp_lead');
-  if (lead && lead.email){ $('gate').classList.add('hidden'); openRead(); }
+  if (lead && lead.email){ $('gate').classList.add('hidden'); openRead(); sendLead(lead.name, lead.email, true); }
   renderHistory();
 }
 
@@ -680,17 +680,23 @@ $('gateForm').addEventListener('submit', e => {
   if (!name){ $('gateErr').textContent = 'Add your first name.'; return; }
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ $('gateErr').textContent = 'That email does not look right.'; return; }
   store('lp_lead', { name, email });
-  const R = RESULT;
-  post({ type:'lead', source:'legacy-score', name, email, score:R.score, band:R.band.name, constraint:R.weakest,
-    details:{ domains:Object.fromEntries(DOMAINS.map(d => [d, Math.round(R.dom[d] * 100)])), sex:P.sex, age:P.age, weight:P.weight,
-      goalWeight:P.goalWeight, goal:A.goal ? A.goal.v : '', livingAge:R.livingAge, potential:R.potential, confidence:R.conf,
-      labs:A.labs || {}, wear:A.wear || {} },
-    tags:['score-' + R.band.slug, 'constraint-' + R.weakest.toLowerCase(), 'goal-' + (A.goal ? A.goal.v : 'unknown')] });
+  sendLead(name, email, false);
   track('Lead', { content_name:'legacy_score' });
   $('gate').classList.add('hidden');
   openRead();
   $('read').scrollIntoView({ behavior:'smooth', block:'start' });
 });
+
+/* One lead row per completed score (first opt-in AND every retake), so the Sheet holds the history
+   and GHL gets the current band/constraint tags. */
+function sendLead(name, email, retake){
+  const R = RESULT;
+  post({ type:'lead', source:'legacy-score', name, email, score:R.score, band:R.band.name, constraint:R.weakest, retake:!!retake,
+    details:{ domains:Object.fromEntries(DOMAINS.map(d => [d, Math.round(R.dom[d] * 100)])), sex:P.sex, age:P.age, weight:P.weight,
+      goalWeight:P.goalWeight, goal:A.goal ? A.goal.v : '', livingAge:R.livingAge, potential:R.potential, confidence:R.conf,
+      labs:A.labs || {}, wear:A.wear || {} },
+    tags:['score-' + R.band.slug, 'constraint-' + R.weakest.toLowerCase(), 'goal-' + (A.goal ? A.goal.v : 'unknown')].concat(retake ? ['score-retake'] : []) });
+}
 
 /* =================== SHARE / RETAKE / START =================== */
 $('shareBtn').onclick = async () => {
