@@ -138,6 +138,16 @@ h1 span{color:var(--gold)}
 .nextrow h4{font-weight:800;text-transform:uppercase;font-size:.98rem;color:#fff}
 .nextrow p{font-size:.86rem;color:var(--soft);margin-top:3px}
 .sec{margin-top:40px}
+.possible{display:grid;gap:12px}
+.possible .case{font-weight:800;text-transform:uppercase;color:#fff;font-size:1.02rem;line-height:1.3;margin-top:6px}
+.possible .shot{border-radius:12px;overflow:hidden;background:#fff;border:1px solid var(--olive-dim)}
+.possible .shot img{display:block;width:100%;height:auto}
+.possible svg{width:100%;height:auto;display:block}
+.possible .note{font-size:.76rem;color:#8f8a80}
+.quote{border-left:3px solid var(--gold);padding:4px 0 4px 16px}
+.quote p{color:var(--body);font-style:italic}
+.quote cite{display:block;margin-top:8px;font-style:normal;font-family:Cinzel,Georgia,serif;color:var(--gold);font-weight:700;font-size:.9rem}
+
 .invite{border:1px solid var(--gold-dim);border-radius:16px;padding:24px;background:linear-gradient(120deg,rgba(193,173,114,.16),rgba(84,106,70,.18) 60%,rgba(255,255,255,.03))}
 .invite h3{font-weight:900;text-transform:uppercase;font-size:clamp(1.4rem,5vw,1.9rem);line-height:1.05;margin-top:8px}
 .invite .when{font-family:Cinzel,Georgia,serif;color:var(--gold);font-weight:700;margin-top:12px;font-size:1.02rem}
@@ -642,6 +652,46 @@ function renderResult(){
   renderHistory();
 }
 
+/* WHAT'S POSSIBLE: one real client case per constraint, from the proof bank + client reviews.
+   Real numbers only. Trend images are real client charts (no names); the bar charts are drawn
+   from the start and current numbers alone, so they never imply a path we don't have. */
+const IMG = '../img/proof/';
+const POSSIBLE = {
+  Fuel: { case:'Reverse diet: 1,400 to 2,500 calories a day',
+    text:'She came in eating too little to lose anything. Calories went up on purpose, over months. Her cycle came back, and food stopped being clean and dirty.',
+    chart:{ kind:'bars', unit:'cal a day', a:['When she started',1400], b:['Now',2500] },
+    quote:['I no longer feel guilt about eating ANYTHING. Currently, I consume 2,200 calories and have not had to dramatically alter my eating habits, yet I am still losing weight.','Brittany H.'] },
+  Output: { case:'In her 50s: 140 to 122 lbs, and a figure pro card',
+    text:'Training cut to three days a week. About 2,000 calories a day, and 30 minutes of walking instead of hours of cardio. Smarter output, not more of it.',
+    chart:{ kind:'bars', unit:'lb', a:['Start',140], b:['Now',122] },
+    quote:['While all of the other competitors were doing hours of cardio, Jayme got me ready while eating OVER 2,000 calories a day, and only 30 min of walking a day.','Missy R.'] },
+  Recovery: { case:'In her 60s: 180.5 to 152.4 lbs across a year',
+    text:'The move that finally worked was doing less: a break, a new eating schedule, and training pulled back so her body could actually recover.',
+    chart:{ kind:'img', src:IMG + 'trend-60s-12mo.jpg', alt:'Her real weight trend: 180.5 lb down to 152.4 lb over 12 months' },
+    quote:['Almost 3 years in, I am healthier in my 60\'s than I was in my 50\'s... More muscle, more energy, and the freedom I have around food.','Lori H.'] },
+  Signals: { case:'In her 40s: the scale moved 3 lbs. Everything else moved more.',
+    text:'165 to 162 on the scale, and it undersells it. Calories up, muscle on, body fat down. Less inflammation, less joint pain, and her hardest training in years. That is what reading your signals looks like.',
+    chart:{ kind:'img', src:IMG + 'trend-40s-recomp.jpg', alt:'Her real weight trend during a recomposition: 165 lb to 162 lb' },
+    quote:['There is a freedom and ownership that comes with this shift in thinking and forces me to have a much more holistic approach to my health.','Kristin M.'] }
+};
+function barsSVG(c){
+  const max = Math.max(c.a[1], c.b[1]) * 1.08, W = 300;
+  const row = (y, lbl, v, fill, tc) => `<text x="0" y="${y}" fill="#bdb7ac" font-size="10" letter-spacing="1.2" font-family="Montserrat,sans-serif">${lbl.toUpperCase()}</text>
+    <rect x="0" y="${y + 6}" width="${(v / max * W).toFixed(1)}" height="28" rx="6" fill="${fill}"/>
+    <text x="10" y="${y + 25}" fill="${tc}" font-size="13" font-weight="800" font-family="Montserrat,sans-serif">${v.toLocaleString()} ${c.unit}</text>`;
+  return `<svg viewBox="0 0 ${W} 92" role="img" aria-label="${c.a[0]} ${c.a[1]} ${c.unit}, ${c.b[0]} ${c.b[1]} ${c.unit}">
+    ${row(10, c.a[0], c.a[1], '#4A5C3E', '#F2EDE4')}${row(56, c.b[0], c.b[1], '#C1AD72', '#161616')}</svg>`;
+}
+function possibleHTML(){
+  const P = POSSIBLE[RESULT.weakest]; if (!P) return '';
+  const chart = P.chart.kind === 'img'
+    ? `<div class="shot"><img src="${P.chart.src}" alt="${P.chart.alt}" loading="lazy"></div><p class="note">Her real weight chart. Individual results vary.</p>`
+    : `${barsSVG(P.chart)}<p class="note">Her start and her number now. Individual results vary.</p>`;
+  return `<div class="tile possible"><div class="label">What's possible · ${RESULT.weakest}</div>
+    <p class="case">${P.case}</p><p>${P.text}</p>${chart}
+    <div class="quote"><p>&ldquo;${P.quote[0]}&rdquo;</p><cite>${P.quote[1]}</cite></div></div>`;
+}
+
 function openRead(){
   const R = RESULT, rd = READ[R.weakest];
   const labFlags = R.lVals.filter(x => x.s < .75).map(x => `${x.L.name} (${x.v} ${x.L.unit})`);
@@ -652,6 +702,7 @@ function openRead(){
     <div class="tile"><div class="label">The age you're living at</div>
       <p style="margin-top:8px"><span class="big">${R.livingAge}</span> <span style="color:var(--soft)">vs. ${P.age} on your birth certificate</span></p>
       <p style="margin-top:6px;font-size:.88rem;color:var(--soft)">An estimate from how your answers compare with what is typical for your age. ${R.livingAge > P.age ? 'The good news: this is the number that moves fastest when the right thing changes.' : 'You are ahead of the curve. Protect it.'}</p></div>
+    ${possibleHTML()}
     <div class="tile"><div class="label">Your strength</div><p style="margin-top:8px">${R.strongest} is your best domain. That is your foothold. We build from what is already working.</p></div>
     ${labFlags.length ? `<div class="tile"><div class="label">Labs to look at</div><p style="margin-top:8px">${labFlags.join(', ')} ${labFlags.length > 1 ? 'are' : 'is'} outside the optimal range. Worth a conversation with your provider, and worth retesting in 12 weeks.</p></div>` : ''}
     ${R.labAvg == null ? `<div class="tile"><div class="label">The last 18 points</div><p style="margin-top:8px">Without bloodwork your score tops out at 82, because a questionnaire can only see so much. Labs and genetics show what is actually happening underneath, and sharpen the plan instead of guessing.</p></div>` : ''}`;
