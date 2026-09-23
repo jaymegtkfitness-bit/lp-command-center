@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- ONE-PAGE next-steps PDF for Legacy Blueprint Bundle buyers. Links come from links.js.
+     Print with make-pdf.sh (US Letter, no margins). Must stay on ONE page.
+     Timeline per Jayme 2026-09-23: system built in 48 hours, kit arrives in 5-7 business days,
+     genetic read done 2-4 weeks after the lab has the sample. -->
+<meta charset="utf-8">
+<title>Your next steps | Legacy Performance</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+@page{size:8.5in 11in;margin:0}
+:root{--ink:#161616;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--olive:#4A5C3E;--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:8.5in;height:10.98in;overflow:hidden;background:var(--ink)}
+body{font-family:Montserrat,Helvetica,Arial,sans-serif;color:var(--parch);-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.page{position:relative;width:8.5in;height:10.98in;overflow:hidden;padding:.5in .6in .4in;
+  background:
+    radial-gradient(ellipse 50% 35% at 100% 0%, rgba(193,173,114,.16), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 32%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:absolute;left:0;top:0;right:0;height:6px;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
+.mark{position:absolute;right:-.9in;top:1.5in;width:5.2in;opacity:.055}
+.head{display:flex;justify-content:space-between;align-items:center}
+.head img{height:.58in;width:auto;margin-left:-.12in}
+.tag{font-size:8.5px;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:700;text-align:right;line-height:1.7}
+.hero{margin-top:.26in}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:12.5px;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+h1{font-weight:900;font-size:56px;line-height:.95;letter-spacing:-.01em;margin-top:8px;text-transform:uppercase}
+h1 span{color:var(--gold)}
+.lead{margin-top:11px;font-size:12px;line-height:1.6;color:#d9d3c8;max-width:5.5in}
+.rule{width:1.1in;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:.18in 0 .16in}
+.steps{display:grid;gap:9px}
+.step{display:grid;grid-template-columns:.7in 1fr auto;align-items:center;gap:12px;
+  background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));
+  border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:14px;padding:11px 15px 11px 11px}
+.n{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:33px;color:var(--gold);text-align:center;line-height:1}
+.step h2{font-size:13.5px;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff}
+.step p{font-size:10px;line-height:1.45;color:var(--soft);margin-top:4px}
+.url{display:block;font-size:9.5px;color:var(--gold);margin-top:5px;word-break:break-all;font-weight:600;text-decoration:none}
+.btn{display:inline-block;white-space:nowrap;background:var(--gold);color:var(--ink);font-weight:800;font-size:10.5px;letter-spacing:.06em;
+  text-transform:uppercase;padding:10px 14px;border-radius:9px;text-decoration:none}
+.btn.ghost{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);font-weight:700}
+.wait{margin-top:.17in;display:flex;align-items:center;gap:14px;background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));
+  border:1px solid var(--olive-dim);border-radius:14px;padding:11px 16px}
+.wait img{height:.48in;width:auto}
+.wait b{font-family:Cinzel,Georgia,serif;font-size:14px;color:var(--gold);font-weight:700;letter-spacing:.04em}
+.wait p{font-size:10px;color:#d9d3c8;margin-top:3px;line-height:1.5}
+.next{margin-top:.17in}
+.next h3{font-family:Cinzel,Georgia,serif;font-size:11.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600}
+.line{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:11px;position:relative}
+.line:before{content:"";position:absolute;left:6px;right:6px;top:6px;height:2px;background:linear-gradient(90deg,var(--olive-lt),var(--olive))}
+.pt{position:relative;padding-top:19px}
+.pt:before{content:"";position:absolute;left:0;top:0;width:13px;height:13px;border-radius:50%;background:var(--olive);border:2px solid var(--olive-lt)}
+.pt b{display:block;font-size:10px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff}
+.pt span{display:block;font-size:9px;line-height:1.45;color:var(--soft);margin-top:4px}
+.foot{position:absolute;left:.6in;right:.6in;bottom:.34in;display:flex;justify-content:space-between;font-size:9px;color:#8f8a80}
+.foot a{color:var(--gold);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="topbar"></div>
+  <img class="mark" src="../shield-white-gold.png" alt="">
+
+  <div class="head">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <div class="tag">The Legacy<br>Blueprint Bundle</div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">You're in</div>
+    <h1>Here's what <span>happens now.</span></h1>
+    <p class="lead">Start with the intake. Everything else follows from it: your system gets built from your answers within 48 hours, and your DNA kit is already on its way. You will be eating to a real plan long before your genetics come back. Every link is printed here so you never lose them.</p>
+  </div>
+  <div class="rule"></div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="n">01</div>
+      <div><h2>Fill out your intake, get your system in 48 hours</h2><p>Do this first, today. It is what your whole system gets built from: your numbers, your training, and the food you actually eat. <b style="color:#fff">Your finished system is back in your hands within 48 hours</b>, built by hand, and then you start eating to it.</p><span class="url" data-url="intakeUrl"></span></div>
+      <a class="btn" data-link="intakeUrl">Start my intake</a>
+    </div>
+    <div class="step">
+      <div class="n">02</div>
+      <div><h2>Book your onboarding call</h2><p>Book it now for a few days out, so your system is in your hands before we talk. We go through it together, line by line.</p><span class="url" data-url="onboardingCallUrl"></span></div>
+      <a class="btn" data-link="onboardingCallUrl">Book my call</a>
+    </div>
+    <div class="step">
+      <div class="n">03</div>
+      <div><h2>Swab, and send it back</h2><p>Your kit arrives in 5 to 7 business days. A cheek swab, the instructions are in the box, and it goes back in the prepaid mailer. Do it the day it lands.</p></div>
+      <a class="btn ghost">5 to 7 days</a>
+    </div>
+    <div class="step">
+      <div class="n">04</div>
+      <div><h2>Your results call</h2><p>Your genetic read is done 2 to 4 weeks after the lab has your sample. We book a time, go through it, and put it straight into your plan.</p></div>
+      <a class="btn ghost">2 to 4 weeks</a>
+    </div>
+  </div>
+
+  <div class="wait">
+    <img src="../shield-white-gold.png" alt="">
+    <div><b>The wait is the point</b><p>You are not sitting still until your genetics land. You spend those weeks eating to your plan and building the habit, so when your results arrive it is an adjustment to something already running, not a fresh start.</p></div>
+  </div>
+
+  <div class="next">
+    <h3>What happens from here</h3>
+    <div class="line">
+      <div class="pt"><b>Today</b><span>Fill out your intake and book your call. Your kit ships.</span></div>
+      <div class="pt"><b>48 hours after your intake</b><span>Your nutrition system arrives, built by hand. You start eating to it.</span></div>
+      <div class="pt"><b>5 to 7 business days</b><span>Your kit lands. Swab it and mail it back the same day.</span></div>
+      <div class="pt"><b>2 to 4 weeks later</b><span>Your genetic read is done. We sit down and put it into your system.</span></div>
+    </div>
+  </div>
+
+  <div class="foot">
+    <span>Questions? Write <a href="mailto:jayme.gtkfitness@gmail.com">jayme.gtkfitness@gmail.com</a></span>
+    <span>Your people are here: <a data-link="skoolUrl" data-plain="1">skool.com/legacy-performance</a></span>
+  </div>
+</div>
+
+<script src="links.js"></script>
+<script>
+document.querySelectorAll('[data-link]').forEach(function(a){
+  var u = BW_LINKS[a.dataset.link];
+  if (u) a.href = u;
+  else if (!a.dataset.plain) { a.classList.add('ghost'); a.textContent = 'Link in your welcome email'; a.removeAttribute('href'); }
+});
+document.querySelectorAll('[data-url]').forEach(function(s){
+  var u = BW_LINKS[s.dataset.url];
+  s.textContent = u ? u.replace(/^https?:\/\//,'') : '';
+});
+</script>
+</body>
+</html>

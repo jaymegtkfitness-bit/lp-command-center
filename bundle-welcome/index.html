@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- LEGACY BLUEPRINT BUNDLE post-purchase page, served at dashboard.legacyperformance.co/bundle-welcome/.
+     The $997 checkout redirects here. It matches the one-page PDF (pdf.html) on purpose: same steps,
+     same words, same links, so the page they land on and the file they keep never disagree.
+     BOTH read their links from links.js. Run make-pdf.sh after changing either. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1e1e1e">
+<title>You're In | The Legacy Blueprint Bundle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
+  -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;background:#1a1a1a}
+/* The background is its own fixed layer (not background-attachment:fixed, which iPhone ignores). */
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:fixed;left:0;top:0;right:0;height:5px;z-index:3;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
+.mark{position:fixed;right:-160px;top:140px;width:560px;max-width:none;opacity:.05;pointer-events:none;z-index:0}
+.wrap{position:relative;z-index:1;max-width:780px;margin:0 auto;padding:44px 24px 40px}
+.head{display:flex;justify-content:space-between;align-items:center;gap:16px}
+.head img{height:56px;width:auto;margin-left:-10px}
+.tag{font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:700;text-align:right;line-height:1.7}
+.hero{margin-top:48px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.85rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+h1{font-weight:900;font-size:clamp(2.9rem,11vw,4.9rem);line-height:.95;letter-spacing:-.01em;margin-top:8px;text-transform:uppercase}
+h1 span{color:var(--gold)}
+.lead{margin-top:16px;font-size:1.02rem;color:var(--body);max-width:580px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:32px 0 26px}
+.steps{display:grid;gap:14px}
+.step{display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:16px;
+  background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));
+  border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:18px 20px 18px 14px}
+.n{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:2.6rem;color:var(--gold);text-align:center;line-height:1}
+.step h2{font-size:1.02rem;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff}
+.step p{font-size:.88rem;color:var(--soft);margin-top:4px}
+.url{display:block;font-size:.76rem;color:var(--gold);margin-top:6px;word-break:break-all;font-weight:600;text-decoration:none}
+.btn{display:inline-block;white-space:nowrap;background:var(--gold);color:var(--ink);font-weight:800;font-size:.8rem;letter-spacing:.06em;
+  text-transform:uppercase;padding:12px 16px;border-radius:10px;text-decoration:none;text-align:center;transition:transform .15s,box-shadow .15s}
+.btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(193,173,114,.25)}
+.when{display:inline-block;white-space:nowrap;border:1px solid var(--gold-dim);color:var(--gold);font-weight:800;font-size:.72rem;
+  letter-spacing:.08em;text-transform:uppercase;padding:10px 14px;border-radius:10px}
+.next{margin-top:40px}
+.next h3{font-family:Cinzel,Georgia,serif;font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600}
+.line{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px;position:relative}
+.line:before{content:"";position:absolute;left:6px;right:6px;top:6px;height:2px;background:linear-gradient(90deg,var(--olive-lt),var(--olive))}
+.pt{position:relative;padding-top:22px}
+.pt:before{content:"";position:absolute;left:0;top:0;width:13px;height:13px;border-radius:50%;background:var(--olive);border:2px solid var(--olive-lt)}
+.pt b{display:block;font-size:.78rem;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#fff}
+.pt span{display:block;font-size:.8rem;color:var(--soft);margin-top:4px}
+.guar{margin-top:40px;display:flex;align-items:center;gap:18px;background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:16px;padding:18px 20px}
+.guar img{height:54px;width:auto;flex:none}
+.guar b{font-family:Cinzel,Georgia,serif;font-size:1.05rem;color:var(--gold);font-weight:700;letter-spacing:.04em}
+.guar p{font-size:.9rem;color:var(--body);margin-top:3px}
+.save{margin-top:28px;display:flex;gap:12px;flex-wrap:wrap;align-items:center}
+.save .btn{background:transparent;color:var(--gold);border:1px solid var(--gold-dim)}
+.notes{margin-top:28px;display:grid;gap:8px;font-size:.84rem;color:#9f998e}
+.notes a,.foot a{color:var(--gold);text-decoration:none;font-weight:600}
+.foot{margin-top:30px;font-size:.78rem;color:#8f8a80;text-align:center}
+@media (max-width:640px){
+  .wrap{padding:36px 18px 32px}
+  .head img{height:46px}
+  .hero{margin-top:36px}
+  .step{grid-template-columns:52px 1fr;padding:16px 16px 16px 10px;gap:12px}
+  .n{font-size:1.9rem}
+  .step .btn,.step .when{grid-column:2;justify-self:start}
+  .line{grid-template-columns:1fr;gap:0;margin-left:6px}
+  .line:before{left:6px;right:auto;top:6px;bottom:6px;width:1px;height:auto}
+  .pt{padding:0 0 18px 26px}
+  .pt:before{left:0;top:2px}
+  .guar{flex-direction:column;align-items:flex-start;gap:12px}
+  .mark{width:430px;right:-170px;top:110px}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="mark" src="../shield-white-gold.png" alt="">
+
+<div class="wrap">
+  <div class="head">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <div class="tag">The Legacy<br>Blueprint Bundle</div>
+  </div>
+
+  <div class="hero">
+    <div class="eyebrow">You're in</div>
+    <h1>Here's what <span>happens now.</span></h1>
+    <p class="lead">Start with the intake. Everything else follows from it: your system gets built from your answers within 48 hours, and your DNA kit is already on its way.</p>
+  </div>
+  <div class="rule"></div>
+
+  <div class="steps">
+    <div class="step">
+      <div class="n">01</div>
+      <div><h2>Fill out your intake, get your system in 48 hours</h2><p>Do this first, today. It is what your whole system gets built from: your numbers, your training, and the food you actually eat. <b style="color:#fff">Your finished system is back in your hands within 48 hours</b>, built by hand, and then you start eating to it.</p><a class="url" data-url="intakeUrl" data-link="intakeUrl"></a></div>
+      <a class="btn" data-link="intakeUrl">Start my intake</a>
+    </div>
+    <div class="step">
+      <div class="n">02</div>
+      <div><h2>Book your onboarding call</h2><p>Book it now for a few days out, so your system is in your hands before we talk. We go through it together, line by line.</p><a class="url" data-url="onboardingCallUrl" data-link="onboardingCallUrl"></a></div>
+      <a class="btn" data-link="onboardingCallUrl">Book my call</a>
+    </div>
+    <div class="step">
+      <div class="n">03</div>
+      <div><h2>Swab, and send it back</h2><p>Your kit arrives in 5 to 7 business days. A cheek swab, the instructions are in the box, and it goes back in the prepaid mailer. Do it the day it lands.</p></div>
+      <span class="when">5 to 7 days</span>
+    </div>
+    <div class="step">
+      <div class="n">04</div>
+      <div><h2>Your results call</h2><p>Your genetic read is done 2 to 4 weeks after the lab has your sample. We book a time, go through it, and put it straight into your plan.</p></div>
+      <span class="when">2 to 4 weeks</span>
+    </div>
+  </div>
+
+  <div class="guar">
+    <img src="../shield-white-gold.png" alt="">
+    <div><b>The wait is the point</b><p>You are not sitting still until your genetics land. You spend those weeks eating to your plan and building the habit, so when your results arrive it is an adjustment to something already running, not a fresh start.</p></div>
+  </div>
+
+  <div class="next">
+    <h3>What happens from here</h3>
+    <div class="line">
+      <div class="pt"><b>Today</b><span>Fill out your intake and book your call. Your kit ships.</span></div>
+      <div class="pt"><b>48 hours after your intake</b><span>Your nutrition system arrives, built by hand. You start eating to it.</span></div>
+      <div class="pt"><b>5 to 7 business days</b><span>Your kit lands. Swab it and mail it back the same day.</span></div>
+      <div class="pt"><b>2 to 4 weeks later</b><span>Your genetic read is done. We sit down and put it into your system.</span></div>
+    </div>
+  </div>
+
+  <div class="save">
+    <a class="btn" href="../../Legacy-Blueprint-Bundle-Next-Steps.pdf" download>Save these steps as a PDF</a>
+    <a class="btn" data-link="skoolUrl">Join the Project, free</a>
+  </div>
+
+  <div class="notes">
+    <span>Your kit ships to the address on your order. If that needs to change, reply to your receipt today.</span>
+    <span>Your system cannot be built until your intake is in, so it is the one thing to do today.</span>
+  </div>
+
+  <div class="foot">
+    Questions? Write <a href="mailto:jayme.gtkfitness@gmail.com">jayme.gtkfitness@gmail.com</a>
+  </div>
+</div>
+
+<script src="links.js"></script>
+<script>
+document.querySelectorAll('[data-link]').forEach(function(a){
+  var u = BW_LINKS[a.dataset.link];
+  if (u) a.href = u;
+  else { a.textContent = 'Link in your welcome email'; a.removeAttribute('href'); }
+});
+document.querySelectorAll('[data-url]').forEach(function(s){
+  var u = BW_LINKS[s.dataset.url];
+  s.textContent = u ? u.replace(/^https?:\/\//,'') : '';
+});
+</script>
+</body>
+</html>
