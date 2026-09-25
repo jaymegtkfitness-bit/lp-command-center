@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy OS — entry: splash + sign in. Mobile-first, Legacy Dark.
+     Replicates the Ascend OS mobile splash + sign-in composition, rebranded.
+     Static mockup for review: the CTAs are visual until wired to the doorway auth. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#141310">
+<title>The Legacy OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.30);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.045);--field-line:rgba(242,237,228,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
+  -webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
+  background:radial-gradient(ellipse 70% 45% at 50% 8%, rgba(193,173,114,.10), transparent 60%),
+    radial-gradient(ellipse 100% 55% at 50% 108%, rgba(84,106,70,.30), transparent 70%),
+    linear-gradient(180deg,#1a1813 0%,#141310 60%,#100f0c 100%)}
+.topbar{position:fixed;left:0;top:0;right:0;height:4px;z-index:3;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
+
+.screen{min-height:100vh;max-width:440px;margin:0 auto;padding:calc(48px + env(safe-area-inset-top)) 26px calc(30px + env(safe-area-inset-bottom));
+  display:flex;flex-direction:column;align-items:center;text-align:center}
+.hidden{display:none}
+
+/* glowing mark */
+.markwrap{position:relative;display:grid;place-items:center;margin-bottom:22px}
+.markwrap:before{content:"";position:absolute;width:230px;height:230px;border-radius:50%;
+  background:radial-gradient(circle, rgba(193,173,114,.34), rgba(193,173,114,.10) 42%, transparent 68%);filter:blur(4px)}
+.markwrap img{position:relative;width:118px;height:auto;filter:drop-shadow(0 6px 26px rgba(193,173,114,.45))}
+.oslabel{font-size:.72rem;letter-spacing:.42em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:4px}
+
+/* splash */
+.splash{justify-content:center}
+.splash .mark-lg img{width:150px}
+.splash .oslabel{margin-top:24px}
+.h-splash{font-weight:900;font-size:clamp(2.9rem,13.5vw,3.9rem);line-height:.96;letter-spacing:-.01em;margin-top:12px}
+.h-splash .g{color:var(--gold)}
+.splash .lead{margin-top:22px;font-size:1.02rem;color:var(--body);max-width:380px;line-height:1.6}
+.spacer{flex:1}
+.pill{display:inline-block;width:100%;max-width:340px;background:var(--gold);color:var(--ink);font-weight:800;font-size:1.02rem;
+  letter-spacing:.03em;padding:17px 20px;border-radius:14px;border:none;cursor:pointer;font-family:inherit;margin-top:30px;
+  box-shadow:0 10px 30px rgba(193,173,114,.28);transition:transform .15s,box-shadow .15s}
+.pill:hover{transform:translateY(-1px);box-shadow:0 14px 36px rgba(193,173,114,.38)}
+.brandfoot{margin-top:30px;font-size:.66rem;letter-spacing:.34em;text-transform:uppercase;color:#7d786d;font-weight:700}
+
+/* sign in */
+.signin{justify-content:center}
+.h-signin{font-weight:900;font-size:clamp(2.6rem,12vw,3.3rem);line-height:1;letter-spacing:-.01em;margin-top:14px}
+.signin .sub{margin-top:14px;font-size:.98rem;color:var(--soft);max-width:360px;line-height:1.55}
+.card{width:100%;margin-top:34px;background:linear-gradient(180deg,rgba(84,106,70,.10),rgba(255,255,255,.03));
+  border:1px solid var(--olive-dim,rgba(143,169,122,.22));border-radius:20px;padding:26px 20px 22px;text-align:left}
+.flabel{font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-bottom:9px}
+input{width:100%;background:var(--field);border:1.5px solid var(--field-line);border-radius:13px;color:var(--parch);
+  font-family:inherit;font-size:1.02rem;padding:16px 15px;outline:none;transition:border-color .15s,box-shadow .15s}
+input::placeholder{color:#78726a}
+input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+.cta{display:block;width:100%;margin-top:16px;background:var(--gold);color:var(--ink);font-weight:800;font-size:1rem;letter-spacing:.03em;
+  padding:17px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(193,173,114,.26);transition:transform .15s}
+.cta:hover{transform:translateY(-1px)}
+.altrow{display:flex;justify-content:space-between;gap:14px;margin-top:20px}
+.alt{background:none;border:none;color:var(--soft);font-family:inherit;font-size:.66rem;letter-spacing:.16em;text-transform:uppercase;
+  font-weight:700;cursor:pointer;line-height:1.5;text-align:left;padding:0}
+.alt:last-child{text-align:right}
+.alt:hover{color:var(--gold)}
+.backtop{position:fixed;left:18px;top:calc(20px + env(safe-area-inset-top));z-index:4;background:none;border:none;color:var(--soft);
+  font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;letter-spacing:.02em}
+.backtop:hover{color:var(--gold)}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+
+<!-- ============ SPLASH ============ -->
+<main class="screen splash" id="splash">
+  <div class="spacer"></div>
+  <div class="markwrap mark-lg"><img src="../shield-white-gold.png" alt="Legacy Performance"></div>
+  <div class="oslabel">The Legacy OS</div>
+  <h1 class="h-splash">The operating system behind your <span class="g">health.</span></h1>
+  <p class="lead">For Legacy Performance clients. Your nutrition system, your progress, your LP Coach, your training, and your next step, all running in one place.</p>
+  <div class="spacer"></div>
+  <button class="pill" onclick="showSignin()">Sign in</button>
+  <div class="brandfoot">Legacy Performance</div>
+</main>
+
+<!-- ============ SIGN IN ============ -->
+<main class="screen signin hidden" id="signin">
+  <button class="backtop" onclick="showSplash()">&larr; Back</button>
+  <div class="spacer"></div>
+  <div class="markwrap"><img src="../shield-white-gold.png" alt=""></div>
+  <div class="oslabel">The Legacy OS</div>
+  <h1 class="h-signin">Sign in</h1>
+  <p class="sub">Enter your email to get a magic link, or use a password.</p>
+
+  <div class="card">
+    <div class="flabel">Email</div>
+    <input id="email" type="email" autocomplete="email" placeholder="you@email.com">
+    <button class="cta">Send magic link</button>
+    <div class="altrow">
+      <button class="alt">Use password instead</button>
+      <button class="alt">Forgot / set password?</button>
+    </div>
+  </div>
+
+  <div class="spacer"></div>
+  <div class="brandfoot">Legacy Performance</div>
+</main>
+
+<script>
+function showSignin(){document.getElementById('splash').classList.add('hidden');document.getElementById('signin').classList.remove('hidden');window.scrollTo(0,0);}
+function showSplash(){document.getElementById('signin').classList.add('hidden');document.getElementById('splash').classList.remove('hidden');window.scrollTo(0,0);}
+</script>
+</body>
+</html>
