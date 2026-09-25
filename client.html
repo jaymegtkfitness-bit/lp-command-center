@@ -385,6 +385,12 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .ra-poss{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:16px;padding:16px 16px;margin:14px 0}
 .ra-poss p{margin:0 0 10px;font-size:14.5px;line-height:1.55;color:var(--ink)}
 .ra-poss p:last-child{margin-bottom:0}
+.ra-next{background:linear-gradient(160deg,rgba(193,173,114,.18),rgba(74,92,62,.14));border:1.5px solid var(--accent);border-radius:16px;padding:18px 16px;margin:16px 0}
+.ra-next-eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:6px}
+.ra-next-h{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--headline);line-height:1.15;margin-bottom:8px}
+.ra-next-body{font-size:14px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
+.ra-next .btn{width:100%}
+.ra-next-price{font-size:12px;color:var(--muted);text-align:center;margin:8px 0 0}
 .ra-close{font-size:15px;line-height:1.5;color:var(--ink-soft);margin:0 0 10px}
 .ra-underbtn{font-size:12.5px;color:var(--muted);text-align:center;margin:8px 0 12px;line-height:1.4}
 .btn-big{font-size:16px;padding:16px 18px;font-weight:700}
@@ -3911,6 +3917,8 @@ var RA_SCALE    = ["I weigh daily and it runs my mood","I avoid it completely","
 var RA_TRIED    = ["Keto","Fasting","Low-carb","Macros","Weight Watchers","A coach","A challenge","Nothing with real structure"];
 var RA_TRACKED  = ["Yes, and I'm good at it","Yes, but I can't live like that","No, never"];
 var RA_STATUS   = ["Menopause or perimenopause","Thyroid","Medication or supplementation","Injuries","None of these"];
+var RA_BLOODWORK= ["Within the last year","More than a year ago","Never"];
+var RA_ENERGY   = ["Solid most days","Up and down","Running on empty"];
 function raNum(id,val,unit){ return '<div class="gnum-unit"><input class="input big-input" type="number" inputmode="decimal" id="'+id+'" value="'+(val||"")+'">'+(unit?'<span class="gunit">'+unit+'</span>':'')+'</div>'; }
 function raText(id,val){ return '<textarea class="input" id="'+id+'" rows="3" style="font-size:15px">'+esc(val||"")+'</textarea>'; }
 var STEP = {
@@ -3980,6 +3988,15 @@ var STEP = {
   inway:{ q:"What is the thing that keeps getting in the way of staying consistent?", hint:"",
     render:function(){ return raText("w_inway",WIZ.inway); },
     collect:function(){ WIZ.inway=g("w_inway").value; return null; } },
+  bloodwork:{ q:"When did you last get bloodwork done?", hint:"This tells us how much we can actually see under the hood.",
+    render:function(){ return wizChips("bloodwork",RA_BLOODWORK); },
+    collect:function(){ return WIZ.bloodwork?null:"Pick one."; } },
+  genetictest:{ q:"Have you ever done genetic testing for your health?", hint:"",
+    render:function(){ return wizChips("genetictest",["No","Yes"]); },
+    collect:function(){ return WIZ.genetictest?null:"Pick one."; } },
+  energy:{ q:"How's your energy and recovery, day to day?", hint:"",
+    render:function(){ return wizChips("energy",RA_ENERGY); },
+    collect:function(){ return WIZ.energy?null:"Pick one."; } },
   status:{ q:"Anything I should know before I look at your numbers?", hint:"Menopause or perimenopause, thyroid, any medication or supplementation, injuries, anything.",
     render:function(){ return wizChips("statusflags",RA_STATUS,true); },
     collect:function(){ return null; } },
@@ -3987,7 +4004,8 @@ var STEP = {
 };
 function gOrder(){
   return ["intro","goal","sex","weight","height","goalweight","intakecal","intakedur","adapted","traindays",
-    "restarts","nextday","scalerel","whynow","readiness","tried","tracked","normalday","inway","status","result"];
+    "restarts","nextday","scalerel","whynow","readiness","tried","tracked","normalday","inway",
+    "bloodwork","genetictest","energy","status","result"];
 }
 function renderWiz(){
   var order=gOrder(); if(WIZ_I>=order.length) WIZ_I=order.length-1;
@@ -4109,6 +4127,40 @@ function goalArcHtml(){
   h+='<p class="ra-arc-hon">Read this as a range, not a date. It is an estimate off two numbers, and it moves with what your check-ins actually show. Nobody can promise you a finish line, and you should not trust anyone who does.</p>';
   return h+'</div>';
 }
+/* The OS-sells engine: the assessment surfaces the gap, The Read recommends the product.
+   Roadmap logic → CNS (nutrition gap). Legacy-Score logic → Genetic Blueprint (wellness gap).
+   Both gaps → the Blueprint Bundle. Compliance: educational framing, never a diagnosis. */
+function readinessNextStep(){
+  var tracked=WIZ.tracked||"", tried=(WIZ.tried||[]).length, energy=WIZ.energy||"", blood=WIZ.bloodwork||"", gtest=WIZ.genetictest||"";
+  var nutritionGap = (tracked==="No, never") || (tracked==="Yes, but I can't live like that") || !!WIZ.reverse;
+  var wellnessGap  = (energy==="Running on empty") || (blood==="Never") ||
+                     (gtest==="No" && (tried>=3 || WIZ.reverse || energy==="Up and down"));
+  if(nutritionGap && wellnessGap) return "bundle";
+  if(nutritionGap) return "cns";
+  if(wellnessGap)  return "genetics";
+  return "";
+}
+function raNextStepHtml(){
+  var rec=readinessNextStep(); if(!rec) return "";
+  var cnsUrl=CONFIG.completeSystemUrl||"#", cnsPrice=CONFIG.completeSystemPrice||"$497";
+  var genUrl=CONFIG.geneticsBuyUrl||"#", genPrice=CONFIG.geneticsPrice||"$997";
+  var B={
+    cns:{ h:"Get the plan built around your foods",
+      body:"Your numbers are set. The next move most people miss is turning that number into meals they actually eat, so it stops being math. That is the Complete Nutrition System: your plan, built for you and re-buildable forever.",
+      cta:"Build my Complete Nutrition System", url:cnsUrl, price:"One-time · "+cnsPrice },
+    genetics:{ h:"Look under the hood",
+      body:"You have tried a lot, and the read so far says the next answer is not another diet. It is what your body is actually working with. The Genetic Blueprint reads your DNA and your labs so we stop guessing and start with your data.",
+      cta:"Get my Genetic Blueprint", url:genUrl, price:"One-time · "+genPrice },
+    bundle:{ h:"The plan and the read, together",
+      body:"You need the plan built for you and the read under the hood. The Blueprint Bundle does both, your nutrition system plus your DNA and labs, and it credits toward Built for More.",
+      cta:"See the Blueprint Bundle", url:genUrl, price:"Bundle · credits toward Built for More" }
+  }[rec];
+  return '<div class="ra-next"><div class="ra-next-eyebrow">Your best next step</div>'
+    +'<div class="ra-next-h">'+esc(B.h)+'</div>'
+    +'<p class="ra-next-body">'+esc(B.body)+'</p>'
+    +'<a class="btn btn-primary btn-big" href="'+esc(B.url)+'" target="_blank" rel="noopener">'+esc(B.cta)+' →</a>'
+    +'<p class="ra-next-price">'+esc(B.price)+'</p></div>';
+}
 /* SCREEN 3 — The Read. Numbers as THE ANSWER, then the possibility, then the curiosity gap → book. */
 function readinessRead(){
   raSaveIntake();                                              // persist on first view (guarded)
@@ -4136,6 +4188,7 @@ function readinessRead(){
   h+=goalArcHtml();                                            // duration-to-goal arc (2026-09-03)
   (WIZ.routes||[]).forEach(function(rk){ var txt=RA_ROUTE[rk]; if(!txt) return; txt=txt.replace(/\{coach\}/g, coach);
     h+='<div class="ra-poss">'+txt.split("\n\n").map(function(par){return '<p>'+esc(par)+'</p>';}).join("")+'</div>'; });
+  h+=raNextStepHtml();                                         // the OS sells: recommend CNS / Genetic Blueprint / Bundle off their answers
   ["Here is the part nobody tells you, though.","A number on its own does not change anything.","What it means for your body, your season, and the very first move you make with it...","...that is where this turns real.","And that is not something you read off a screen by yourself.","You have had plans before. You have probably had six of them.","Information was never your problem.","You could not see the middle, and no one ever sat down and showed you how to look.","That is exactly what your Readiness Consultation is for.","Your numbers, your season, your best next step, straight from your coach.","Let's get you booked and moving inside 48 hours."]
     .forEach(function(l){ h+='<p class="ra-close">'+esc(l)+'</p>'; });
   h+='<div class="actions" style="margin-top:16px"><button class="btn btn-primary btn-big" onclick="showBooking()">Book your Readiness Consultation</button>'
@@ -4157,7 +4210,8 @@ function raSaveIntake(){
   var blob={goal:WIZ.goal,intakecal:WIZ.intakecal,intakedur:WIZ.intakedur,adapted:WIZ.adapted,traindays:WIZ.traindays,
     arcmonths:(_arc.mLo?(_arc.mLo+"-"+_arc.mHi):""), arcroute:_arc.route||_arc.kind||"", arcpct:(_arc.pct?_arc.pct.toFixed(0):""),
     restarts:WIZ.restarts,nextday:WIZ.nextday,scalerel:WIZ.scalerel,readiness:WIZ.readiness,tried:WIZ.tried||[],
-    tracked:WIZ.tracked,normalday:WIZ.normalday,statusflags:status,routes:WIZ.routes||[]};
+    tracked:WIZ.tracked,normalday:WIZ.normalday,statusflags:status,routes:WIZ.routes||[],
+    bloodwork:WIZ.bloodwork,genetictest:WIZ.genetictest,energy:WIZ.energy,nextstep:(typeof readinessNextStep==='function'?readinessNextStep():'')};
   postToSheet({type:"intakedeep", email:ID.email, ts:new Date().toISOString(), deep:JSON.stringify(blob), deepdone:"Yes",
     constraint:(WIZ.reverse?"Likely metabolically adapted":(WIZ.tracked||"")), constraintkey:(WIZ.routes||[]).join(","),
     whynow:WIZ.whynow||"", inway:WIZ.inway||"", readiness:WIZ.readiness||"",
