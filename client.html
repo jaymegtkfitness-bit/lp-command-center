@@ -1086,7 +1086,7 @@ var CONFIG = {
   cronoAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.cronometer.android.gold",  // Cronometer (Android)
   paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting",  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
   geneticsBuyUrl: "https://dashboard.legacyperformance.co/genetic-blueprint.html",  // Genetic Blueprint SALES PAGE (has both checkout links). "" hides the buy card.
-  geneticsPrice: "$997"   // Genetic Blueprint standalone. "" = just "one-time test". Ladder: Blueprint $997 · Bundle (CNS + Blueprint) $1,497; both credit toward Built for More.
+  geneticsPrice: "$997"   // Blueprint Bundle price (CNS + Genetic Blueprint). Genetics is bundle-only now; no standalone. Ladder: CNS $497 · Bundle $997; credits toward Built for More.
 };
 /* =============== END CONFIG (stop editing here) =============== */
 
@@ -4135,25 +4135,21 @@ function readinessNextStep(){
   var nutritionGap = (tracked==="No, never") || (tracked==="Yes, but I can't live like that") || !!WIZ.reverse;
   var wellnessGap  = (energy==="Running on empty") || (blood==="Never") ||
                      (gtest==="No" && (tried>=3 || WIZ.reverse || energy==="Up and down"));
-  if(nutritionGap && wellnessGap) return "bundle";
+  if(wellnessGap)  return "bundle";   // genetics is bundle-only ($997 = CNS + Genetic Blueprint)
   if(nutritionGap) return "cns";
-  if(wellnessGap)  return "genetics";
   return "";
 }
 function raNextStepHtml(){
   var rec=readinessNextStep(); if(!rec) return "";
   var cnsUrl=CONFIG.completeSystemUrl||"#", cnsPrice=CONFIG.completeSystemPrice||"$497";
-  var genUrl=CONFIG.geneticsBuyUrl||"#", genPrice=CONFIG.geneticsPrice||"$997";
+  var genUrl=CONFIG.geneticsBuyUrl||"#", bunPrice=CONFIG.geneticsPrice||"$997";
   var B={
     cns:{ h:"Get the plan built around your foods",
       body:"Your numbers are set. The next move most people miss is turning that number into meals they actually eat, so it stops being math. That is the Complete Nutrition System: your plan, built for you and re-buildable forever.",
       cta:"Build my Complete Nutrition System", url:cnsUrl, price:"One-time · "+cnsPrice },
-    genetics:{ h:"Look under the hood",
-      body:"You have tried a lot, and the read so far says the next answer is not another diet. It is what your body is actually working with. The Genetic Blueprint reads your DNA and your labs so we stop guessing and start with your data.",
-      cta:"Get my Genetic Blueprint", url:genUrl, price:"One-time · "+genPrice },
     bundle:{ h:"The plan and the read, together",
-      body:"You need the plan built for you and the read under the hood. The Blueprint Bundle does both, your nutrition system plus your DNA and labs, and it credits toward Built for More.",
-      cta:"See the Blueprint Bundle", url:genUrl, price:"Bundle · credits toward Built for More" }
+      body:"You have tried a lot, and the read so far says the next answer is not another diet. You need the plan built for you and the read under the hood. The Blueprint Bundle does both, your nutrition system plus your DNA and labs, and it credits toward Built for More.",
+      cta:"See the Blueprint Bundle", url:genUrl, price:"One-time · "+bunPrice+" · credits toward Built for More" }
   }[rec];
   return '<div class="ra-next"><div class="ra-next-eyebrow">Your best next step</div>'
     +'<div class="ra-next-h">'+esc(B.h)+'</div>'
