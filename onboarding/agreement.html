@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy OS — onboarding step 2: Sign your agreement (e-sign). Mobile-first, Legacy Dark.
+     Content from Built-for-More-Agreement.md. STILL NEEDS: [LEGAL ENTITY], [STATE], attorney review.
+     Static mockup: the signature is visual until wired to the doorway. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#141310">
+<title>Sign Your Agreement | Legacy OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.30);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.04);--field-line:rgba(242,237,228,.13)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
+  -webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
+  background:radial-gradient(ellipse 70% 34% at 50% 3%, rgba(193,173,114,.09), transparent 60%),
+    radial-gradient(ellipse 105% 48% at 0% 100%, rgba(74,92,62,.52), transparent 74%),
+    radial-gradient(ellipse 90% 46% at 100% 97%, rgba(74,92,62,.30), transparent 72%),
+    linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
+
+.wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) 22px 48px}
+
+.topnav{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.topnav img{height:32px;width:auto;margin-left:-4px}
+.back{background:none;border:none;color:var(--soft);font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+.back:hover{color:var(--gold)}
+
+.eyebrow{margin-top:26px;font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.h-ag{font-weight:900;letter-spacing:-.01em;line-height:1.0;text-transform:uppercase;margin-top:12px}
+.h-ag span{display:block}
+.h-ag .l1{font-size:clamp(2.6rem,12.3vw,3.2rem)}
+.h-ag .l2{font-size:clamp(2.6rem,12.3vw,3.2rem);color:var(--gold);line-height:1.0;margin-top:1px}
+.intro{margin-top:16px;font-size:.95rem;color:var(--body);line-height:1.6}
+
+/* contract */
+.doc{margin-top:26px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:16px;padding:20px 18px}
+.cl{margin-bottom:20px}
+.cl:last-child{margin-bottom:0}
+.cl h2{font-size:.97rem;font-weight:800;color:#fff;letter-spacing:.01em;margin-bottom:7px}
+.cl h2 .n{color:var(--gold);margin-right:6px}
+.cl p{font-size:.85rem;color:var(--soft);line-height:1.6;margin-bottom:8px}
+.cl p:last-child{margin-bottom:0}
+.cl ul{margin:6px 0 0;padding-left:18px}
+.cl li{font-size:.85rem;color:var(--soft);line-height:1.55;margin-bottom:5px}
+.ver{margin-top:18px;font-size:.74rem;color:#7d786d;font-style:italic;line-height:1.5}
+
+/* sign block */
+.sign{margin-top:22px;background:linear-gradient(180deg,rgba(193,173,114,.12),rgba(255,255,255,.03));
+  border:1px solid var(--gold-dim);border-radius:16px;padding:22px 18px}
+.sign h3{font-size:1.05rem;font-weight:800;color:#fff;margin-bottom:6px}
+.sign .sh{font-size:.83rem;color:var(--body);line-height:1.55;margin-bottom:16px}
+.flabel{font-size:.64rem;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-bottom:8px}
+#sig{width:100%;background:var(--field);border:1.5px solid var(--field-line);border-radius:12px;color:var(--parch);
+  font-family:'Cinzel',Georgia,serif;font-size:1.25rem;padding:14px 15px;outline:none;transition:border-color .15s,box-shadow .15s}
+#sig::placeholder{color:#78726a;font-family:Montserrat,sans-serif;font-size:.95rem}
+#sig:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+.chk{display:flex;align-items:flex-start;gap:11px;cursor:pointer;margin-top:16px}
+.chk input{width:22px;height:22px;flex:none;accent-color:var(--gold);margin-top:1px}
+.chk span{font-size:.83rem;color:var(--body);line-height:1.45}
+.cta{display:block;width:100%;margin-top:18px;background:var(--gold);color:var(--ink);font-weight:800;font-size:.98rem;letter-spacing:.03em;
+  padding:16px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(193,173,114,.26);
+  opacity:.4;pointer-events:none;transition:opacity .2s,transform .15s}
+.cta.on{opacity:1;pointer-events:auto}
+.cta.on:hover{transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <div class="topnav">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <button class="back" onclick="location.href='index.html'">&larr; Path</button>
+  </div>
+
+  <div class="eyebrow">Step 2 of 5 &middot; The Legacy OS</div>
+  <h1 class="h-ag"><span class="l1">Sign your</span><span class="l2">agreement</span></h1>
+  <p class="intro">Between you and Legacy Performance. Read it in full, then sign at the bottom. This is the coaching agreement for the Built 4 More program.</p>
+
+  <div class="doc">
+
+    <div class="cl"><h2><span class="n">1.</span>Program Description</h2>
+      <p>Built 4 More is a coaching program for people ready to build a health system that fits their real life. It runs on proven frameworks, structured support, and a community of serious members. Based on the term and tier you select, it includes:</p>
+      <ul>
+        <li>Coaching for the selected term, with access to a coach who guides your plan.</li>
+        <li>A personalized Roadmap, updated as you progress.</li>
+        <li>Access to the Legacy OS dashboard and its tools, including your nutrition system and your numbers.</li>
+        <li>A training plan delivered through the training app.</li>
+        <li>Community access for support and accountability.</li>
+        <li>An optional wellness layer (labs, genetics, and physician-guided supplementation) through an independent licensed provider, subject to Section 6.</li>
+      </ul>
+    </div>
+
+    <div class="cl"><h2><span class="n">2.</span>Term, Investment, and Payment</h2>
+      <p>Your term, total investment, and payment schedule are confirmed in writing before enrollment. Payment options include paid in full, split payments as agreed, Buy Now Pay Later where available, or a custom plan agreed in writing.</p>
+      <p>Any prior one-time purchases (for example the Complete Nutrition System or the Blueprint Bundle) may be applied as a credit toward the program where stated in writing at enrollment.</p>
+      <p>You agree to keep a valid payment method on file for the full term and authorize the agreed charges on the confirmed schedule.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">3.</span>Cancellation and Refund Policy</h2>
+      <p>You may choose to exit early, but you still owe the full remaining balance of the total program cost. Choosing to stop does not end your payment obligation.</p>
+      <p>If Legacy Performance removes you from the program, your future payments are cancelled. If you paid in full, we refund the amount corresponding to the time remaining in the term at removal.</p>
+      <p>Other than removal by the Company, no refunds are issued except where we have not provided the services in this Agreement. Not achieving a particular result does not entitle you to a refund.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">4.</span>Payment Authorization and Chargebacks</h2>
+      <p>By signing, you authorize the agreed charges to your payment method on the schedule in Section 2, for the full term, without further authorization on each charge.</p>
+      <p>If you have a concern about a charge, you agree to contact us in writing and allow at least fifteen business days for a good-faith resolution before contacting your bank or processor. You agree not to initiate a chargeback for authorized amounts. If you do, this signed Agreement may be submitted as evidence of authorization, access may be suspended, and the full remaining balance becomes due.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">5.</span>No Guarantees</h2>
+      <p>We make no guarantees regarding health, body-composition, income, or any other outcome. Results depend on your own effort, decisions, and consistency. What we provide is access to coaching, tools, resources, and community, not a specific result. Examples of others' results are illustrative only.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">6.</span>Scope of Services and Not Medical Advice</h2>
+      <p>Legacy Performance provides health and performance coaching, education, and lifestyle guidance. It is not medical care. We are not your physician and do not diagnose, treat, or prescribe.</p>
+      <p>Any labs, genetic testing, supplementation, or physician-guided protocols are provided by an independent, licensed telehealth provider, subject to that provider's own agreement and clinical judgment, and are not part of the coaching services here.</p>
+      <p>You agree to get clearance from your own physician before beginning any nutrition, exercise, or supplementation program, to disclose relevant health conditions, and to use your own judgment. You assume the ordinary risks of exercise and dietary change.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">7.</span>Expectations and Communication</h2>
+      <p>You reach out when you need support. We check in regularly, and more support is available when you ask. We respond within a reasonable time on business days. Communication happens in the community channel, on scheduled calls, or in one-on-one chats as agreed. You are responsible for your own attendance and engagement.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">8.</span>Confidentiality</h2>
+      <p>Both parties keep sensitive business, health, and personal information confidential. We will not disclose your information without your consent, except as required by law or as needed to deliver the wellness layer through the licensed provider in Section 6.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">9.</span>Intellectual Property</h2>
+      <p>All materials, tools, frameworks, the Legacy OS, and resources are proprietary and for your use only. You agree not to share, resell, or replicate them without written permission. This obligation survives the end of this Agreement.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">10.</span>Liability Limitation</h2>
+      <p>The Company is not liable for any direct, indirect, incidental, or consequential damages arising from your participation. You are responsible for your own decisions and actions. To the maximum extent permitted by law, our total liability shall not exceed the total amount you paid to the Company.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">11.</span>Miscellaneous</h2>
+      <p>You agree to remain respectful and professional. We may terminate without refund for abusive or disruptive conduct. Disputes are resolved under the laws of the State of [STATE]. If any provision is unenforceable, the rest remains in effect. This Agreement is the entire understanding and supersedes prior agreements; changes must be in writing and signed by both parties.</p>
+    </div>
+
+    <div class="cl"><h2><span class="n">12.</span>Acknowledgment and Electronic Signature</h2>
+      <p>By signing below, you confirm you have read, understood, and agree to all terms, including specifically the No Refund policy (Section 3), the Payment Authorization and Chargeback terms (Section 4), the No Guarantees terms (Section 5), and the Not Medical Advice terms (Section 6).</p>
+      <p>By typing your full legal name, checking the box, and clicking Sign, you agree to be bound by this Agreement, consent to electronic delivery of records, confirm you have authority to enter it, and acknowledge this electronic signature has the same legal effect as a wet-ink signature under the E-SIGN Act, UETA, and equivalent state laws.</p>
+    </div>
+
+    <p class="ver">Built 4 More Coaching Agreement, version v1-legacy-2026-09-25. Legacy Performance, State of [STATE].</p>
+  </div>
+
+  <div class="sign">
+    <h3>Sign below</h3>
+    <p class="sh">Typing your full legal name and checking the box has the same legal effect as a wet-ink signature.</p>
+    <div class="flabel">Type your full legal name (treated as your signature)</div>
+    <input id="sig" type="text" placeholder="First Middle Last" oninput="chk()">
+    <label class="chk"><input type="checkbox" id="agree" onchange="chk()"><span>I have read and agree to the coaching agreement above. I understand that typing my name and clicking Sign has the same legal effect as a wet-ink signature.</span></label>
+    <button class="cta" id="cta" onclick="location.href='index.html'">Sign and continue &rarr;</button>
+  </div>
+
+</main>
+
+<script>
+function chk(){
+  var ok = document.getElementById('sig').value.trim().length>1 && document.getElementById('agree').checked;
+  document.getElementById('cta').classList.toggle('on', ok);
+}
+</script>
+</body>
+</html>
