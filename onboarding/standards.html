@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Legacy OS — onboarding step 1: The Legacy Standards. Mobile-first, Legacy Dark.
+     Ascend "review the standards" equivalent. DRAFT content pulled from brand_engine + memories;
+     Jayme to refine (brain-dump). Acknowledge at the end unlocks step 2 (sign agreement). -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#141310">
+<title>The Legacy Standards | Legacy OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.30);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.04);--field-line:rgba(242,237,228,.13)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
+  -webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
+  background:radial-gradient(ellipse 70% 38% at 50% 3%, rgba(193,173,114,.10), transparent 60%),
+    radial-gradient(ellipse 105% 55% at 0% 100%, rgba(74,92,62,.60), transparent 74%),
+    radial-gradient(ellipse 90% 50% at 100% 96%, rgba(74,92,62,.34), transparent 72%),
+    linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
+
+.wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:calc(24px + env(safe-area-inset-top)) 22px 130px}
+
+/* top */
+.topnav{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.topnav img{height:32px;width:auto;margin-left:-4px}
+.back{background:none;border:none;color:var(--soft);font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer}
+.back:hover{color:var(--gold)}
+
+/* hero */
+.eyebrow{margin-top:26px;font-size:.72rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.h-std{font-weight:900;letter-spacing:-.01em;line-height:1.0;text-transform:uppercase;margin-top:12px}
+.h-std span{display:block}
+.h-std .l1{font-size:clamp(2.7rem,12.5vw,3.3rem)}
+.h-std .l2{font-size:clamp(2.7rem,12.5vw,3.3rem);color:var(--gold);line-height:1.0;letter-spacing:-.01em;margin-top:1px}
+.lead{margin-top:16px;font-size:.98rem;color:var(--body);line-height:1.6}
+
+/* sections */
+.sec{margin-top:34px}
+.sec-k{font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--olive-lt);font-weight:700;margin-bottom:12px}
+.sec p{font-size:.97rem;color:var(--body);line-height:1.65;margin-bottom:10px}
+.sec p:last-child{margin-bottom:0}
+.big{font-family:Cinzel,Georgia,serif;font-size:1.5rem;color:#fff;font-weight:700;line-height:1.3;margin-bottom:10px}
+.big b{color:var(--gold)}
+
+/* standards cards */
+.stds{display:grid;gap:12px;margin-top:4px}
+.std{background:linear-gradient(90deg,rgba(84,106,70,.14),rgba(255,255,255,.028));border:1px solid var(--olive-dim);
+  border-left:3px solid var(--olive-lt);border-radius:15px;padding:16px 16px 16px 15px;display:grid;grid-template-columns:34px 1fr;gap:12px;align-items:start}
+.std .num{font-family:Cinzel,serif;font-weight:700;font-size:1.4rem;color:var(--gold);line-height:1}
+.std h3{font-size:.98rem;font-weight:800;color:#fff;letter-spacing:.01em}
+.std p{font-size:.86rem;color:var(--soft);margin-top:4px;line-height:1.55}
+
+.faith{margin-top:26px;background:linear-gradient(90deg,rgba(193,173,114,.12),rgba(255,255,255,.03));
+  border:1px solid var(--gold-dim);border-left:3px solid var(--gold);border-radius:15px;padding:18px 18px}
+.faith .sec-k{color:var(--gold)}
+.faith p{font-size:.92rem;color:var(--body);line-height:1.6;margin:0}
+
+/* acknowledge bar */
+.ack{position:fixed;left:0;right:0;bottom:0;z-index:5;background:linear-gradient(180deg,rgba(15,19,16,0),#0f1310 32%);
+  padding:22px 22px calc(20px + env(safe-area-inset-bottom))}
+.ack-in{max-width:460px;margin:0 auto}
+.chk{display:flex;align-items:flex-start;gap:11px;cursor:pointer;margin-bottom:12px}
+.chk input{width:22px;height:22px;flex:none;accent-color:var(--gold);margin-top:1px}
+.chk span{font-size:.88rem;color:var(--body);line-height:1.45}
+.cta{display:block;width:100%;background:var(--gold);color:var(--ink);font-weight:800;font-size:.98rem;letter-spacing:.03em;
+  padding:16px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(193,173,114,.26);
+  opacity:.45;pointer-events:none;transition:opacity .2s,transform .15s}
+.cta.on{opacity:1;pointer-events:auto}
+.cta.on:hover{transform:translateY(-1px)}
+</style>
+</head>
+<body>
+<main class="wrap">
+
+  <div class="topnav">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <button class="back" onclick="location.href='index.html'">&larr; Path</button>
+  </div>
+
+  <div class="eyebrow">Step 1 of 5 &middot; The Legacy OS</div>
+  <h1 class="h-std"><span class="l1">The Legacy</span><span class="l2">Standards</span></h1>
+  <p class="lead">Before anything else, read this. Not skim, read. It takes about five minutes, and it is the line between the people who change here and the people who drift.</p>
+
+  <div class="sec">
+    <div class="sec-k">Our mission</div>
+    <p class="big">Five thousand lives. <b>That is the number.</b></p>
+    <p>We are here to help five thousand people build a body and a life that is built to last. And every one of them changes three more, so five thousand becomes fifteen thousand.</p>
+    <p>You are not a statistic in that. You are one of the five thousand. Your health is the mission, starting now.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-k">How we see you</div>
+    <p>You are the hero here. Not me, not your coach.</p>
+    <p>A new coach is not going to save you. Not even me. What changes your life is a system you can actually run, and the decision to run it.</p>
+    <p>We hand you the plan, the tools, and the people. You bring the ownership. That is the deal, and it works every time both sides keep it.</p>
+  </div>
+
+  <div class="sec">
+    <div class="sec-k">The Standards of Excellence</div>
+    <div class="stds">
+      <div class="std"><div class="num">1</div><div><h3>Own it.</h3><p>Your results are yours. We give you everything you need. Nobody else can eat, train, or sleep for you.</p></div></div>
+      <div class="std"><div class="num">2</div><div><h3>Take action before you feel ready.</h3><p>Information was never your problem. You do not have to learn it all before you start. Do the next step, then the next.</p></div></div>
+      <div class="std"><div class="num">3</div><div><h3>Ask early, ask once, then move.</h3><p>Stuck for more than a day? Ask. Do not sit in silence and do not wait for perfect. Get the answer and take the action.</p></div></div>
+      <div class="std"><div class="num">4</div><div><h3>Share your wins.</h3><p>Post them. Your win is someone else's proof that this works, and it carries the room on the days they are flat.</p></div></div>
+      <div class="std"><div class="num">5</div><div><h3>Protect the room.</h3><p>What is shared here stays here. Real talk only happens where people feel safe. Guard that for everyone.</p></div></div>
+      <div class="std"><div class="num">6</div><div><h3>Show up.</h3><p>Book your calls and keep them. Momentum is the whole game. Speed matters more than perfection.</p></div></div>
+    </div>
+  </div>
+
+  <div class="faith">
+    <div class="sec-k">One more thing</div>
+    <p>This is founded on biblical values, and it is built for everyone. If faith is part of your life, there is a place for it here. If it is not, the system works exactly the same. You are welcome either way.</p>
+  </div>
+
+</main>
+
+<div class="ack">
+  <div class="ack-in">
+    <label class="chk"><input type="checkbox" id="agree" onchange="document.getElementById('cta').classList.toggle('on',this.checked)"><span>I have read the Legacy Standards, and I am in.</span></label>
+    <button class="cta" id="cta" onclick="location.href='index.html'">Continue to sign your agreement &rarr;</button>
+  </div>
+</div>
+</body>
+</html>
