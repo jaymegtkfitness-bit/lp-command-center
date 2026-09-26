@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- LP Workout Logger — prototype. Mobile-first, Legacy Dark.
+     Chalk's structure (Blocks A-D, target reps, rest timer, video link, RPE note)
+     + FitNotes' logging (weight/reps steppers, save, set list, last-time + PR).
+     Static demo: sample LP Training System day. Data lives in localStorage only for now. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#141310">
+<title>Workout | Legacy OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.30);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.05);--field-line:rgba(242,237,228,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
+  -webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
+  background:radial-gradient(ellipse 70% 34% at 50% 2%, rgba(193,173,114,.09), transparent 60%),
+    radial-gradient(ellipse 105% 50% at 0% 100%, rgba(74,92,62,.5), transparent 74%),
+    linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
+
+.wrap{position:relative;z-index:1;max-width:460px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 18px calc(96px + env(safe-area-inset-bottom))}
+
+/* header */
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.top img{height:30px;width:auto;margin-left:-4px}
+.eyebrow{margin-top:20px;font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);font-weight:700}
+h1{font-family:Montserrat;font-weight:900;font-size:2.1rem;letter-spacing:-.01em;text-transform:uppercase;line-height:1;margin-top:8px}
+.sub{margin-top:8px;font-size:.9rem;color:var(--soft)}
+
+/* rest timer bar */
+.timer{position:sticky;top:8px;z-index:5;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:linear-gradient(90deg,rgba(84,106,70,.22),rgba(20,19,16,.85));backdrop-filter:blur(8px);
+  border:1px solid var(--olive-dim);border-radius:14px;padding:12px 14px}
+.timer .tlab{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);font-weight:700}
+.timer .tval{font-family:Cinzel,serif;font-weight:700;font-size:1.5rem;color:#fff;font-variant-numeric:tabular-nums}
+.timer .trow{display:flex;align-items:center;gap:12px}
+.tbtn{background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:inherit;font-weight:800;font-size:.78rem;padding:9px 13px;cursor:pointer;letter-spacing:.02em}
+.tbtn.ghost{background:transparent;border:1px solid var(--field-line);color:var(--parch)}
+
+/* exercise cards */
+.ex{margin-top:12px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:16px;overflow:hidden}
+.ex.done{border-color:var(--olive-dim)}
+.ex-head{display:grid;grid-template-columns:34px 1fr auto;gap:12px;align-items:center;padding:15px 15px;cursor:pointer}
+.blk{width:34px;height:34px;border-radius:9px;background:rgba(193,173,114,.16);display:grid;place-items:center;color:var(--gold);font-family:Cinzel,serif;font-weight:700;font-size:1.1rem}
+.ex.done .blk{background:var(--olive);color:#fff}
+.ex-name{font-size:1.02rem;font-weight:800;color:#fff}
+.ex-meta{font-size:.8rem;color:var(--soft);margin-top:2px}
+.ex-meta .last{color:var(--olive-lt)}
+.chev{color:var(--soft);font-size:1.1rem;transition:transform .2s}
+.ex.open .chev{transform:rotate(90deg)}
+.ex-body{display:none;padding:0 15px 15px}
+.ex.open .ex-body{display:block}
+.note{background:rgba(193,173,114,.08);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:9px 12px;margin-bottom:12px;font-size:.82rem;color:var(--body);line-height:1.5}
+.note b{color:var(--gold)}
+.vid{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:700;color:var(--gold);text-decoration:none;margin-bottom:12px}
+
+/* logged set list */
+.sets{display:grid;gap:7px;margin-bottom:12px}
+.setrow{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:11px;padding:11px 12px}
+.setrow .sn{font-family:Cinzel,serif;font-weight:700;color:var(--gold);text-align:center}
+.setrow .sv{font-weight:700;color:#fff;font-size:.96rem}
+.setrow .sv small{color:var(--soft);font-weight:600;font-size:.78rem}
+.setrow .pr{color:var(--gold);font-size:.62rem;letter-spacing:.1em;font-weight:800;text-transform:uppercase}
+
+/* logger (FitNotes-style) */
+.logger{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stepper{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:10px}
+.stepper .k{font-size:.6rem;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:700;text-align:center}
+.stepper .row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px}
+.sbtn{width:38px;height:38px;border-radius:10px;border:1px solid var(--field-line);background:rgba(255,255,255,.04);color:var(--parch);font-size:1.3rem;font-weight:700;cursor:pointer;line-height:1}
+.sbtn:active{background:var(--gold);color:var(--ink)}
+.sval{font-family:Cinzel,serif;font-weight:700;font-size:1.5rem;color:#fff;min-width:56px;text-align:center;font-variant-numeric:tabular-nums}
+.save{grid-column:1 / -1;background:var(--gold);color:var(--ink);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.95rem;padding:14px;cursor:pointer;letter-spacing:.03em;margin-top:2px}
+.save:active{transform:translateY(1px)}
+
+/* finish bar */
+.finish{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:14px 18px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(15,19,16,0),#0f1310 30%)}
+.finish .fin-in{max-width:460px;margin:0 auto}
+.fbtn{display:block;width:100%;background:var(--olive);color:#fff;border:none;border-radius:13px;font-family:inherit;font-weight:800;font-size:.98rem;padding:16px;cursor:pointer;letter-spacing:.02em}
+.prog{font-size:.72rem;color:var(--soft);text-align:center;margin-bottom:9px;font-weight:600}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <button class="tbtn ghost" onclick="location.href='../client.html'">Done</button>
+  </div>
+
+  <div class="eyebrow">Week 1 · Day A · Lower</div>
+  <h1>Lower A</h1>
+  <p class="sub">4 blocks · tap an exercise to log your sets. It remembers last time.</p>
+
+  <div class="timer">
+    <div><div class="tlab">Rest timer</div><div class="tval" id="tval">0:00</div></div>
+    <div class="trow">
+      <button class="tbtn ghost" onclick="restReset()">Reset</button>
+      <button class="tbtn" id="tbtn" onclick="restToggle()">Start 90s</button>
+    </div>
+  </div>
+
+  <div id="list"></div>
+</main>
+
+<div class="finish"><div class="fin-in">
+  <div class="prog" id="prog"></div>
+  <button class="fbtn" onclick="finish()">Finish workout ✓</button>
+</div></div>
+
+<script>
+/* Sample LP Training System day. In the real thing this comes from the member's 12-week program. */
+var DAY=[
+  {k:'A', name:'Barbell Split Squat', target:'3 × 6 / side', rpe:'RPE 8', last:'95 lb × 6', vid:'#', w:95, r:6},
+  {k:'B', name:'Barbell Incline Bench Press', target:'3 × 8', rpe:'RPE 8', last:'115 lb × 8', vid:'#', w:115, r:8},
+  {k:'C', name:'Romanian Deadlift', target:'3 × 8', rpe:'RPE 7', last:'155 lb × 8', vid:'#', w:155, r:8},
+  {k:'D', name:'Chest-Supported Row', target:'3 × 10', rpe:'RPE 8', last:'70 lb × 10', vid:'#', w:70, r:10}
+];
+var LOG={};   // exIndex -> [{w,r,pr}]
+try{ LOG=JSON.parse(localStorage.getItem('lp_wk_demo')||'{}'); }catch(e){ LOG={}; }
+var openIdx=0;
+
+function bestFor(i){ var arr=LOG[i]||[]; var b=0; arr.forEach(function(s){ if(s.w*s.r>b) b=s.w*s.r; }); return b; }
+function render(){
+  document.getElementById('list').innerHTML=DAY.map(function(x,i){
+    var sets=LOG[i]||[];
+    var done=sets.length>=3;
+    var setHtml=sets.map(function(s,si){
+      return '<div class="setrow"><div class="sn">'+(si+1)+'</div><div class="sv">'+s.w+' <small>lb</small> × '+s.r+' <small>reps</small></div>'+(s.pr?'<div class="pr">★ PR</div>':'<div></div>')+'</div>';
+    }).join('');
+    return '<div class="ex'+(i===openIdx?' open':'')+(done?' done':'')+'" id="ex'+i+'">'
+      +'<div class="ex-head" onclick="toggle('+i+')"><div class="blk">'+x.k+'</div>'
+      +'<div><div class="ex-name">'+x.name+'</div><div class="ex-meta">'+x.target+' · '+x.rpe+' · <span class="last">last '+x.last+'</span></div></div>'
+      +'<div class="chev">›</div></div>'
+      +'<div class="ex-body">'
+      +'<div class="note">Target <b>'+x.target+'</b> at <b>'+x.rpe+'</b>. Beat last time: <b>'+x.last+'</b>.</div>'
+      +'<a class="vid" href="'+x.vid+'">▶ Watch the demo</a>'
+      +(setHtml?'<div class="sets">'+setHtml+'</div>':'')
+      +'<div class="logger">'
+      +'<div class="stepper"><div class="k">Weight (lb)</div><div class="row"><button class="sbtn" onclick="bump('+i+',\'w\',-5)">−</button><div class="sval" id="w'+i+'">'+x.w+'</div><button class="sbtn" onclick="bump('+i+',\'w\',5)">+</button></div></div>'
+      +'<div class="stepper"><div class="k">Reps</div><div class="row"><button class="sbtn" onclick="bump('+i+',\'r\',-1)">−</button><div class="sval" id="r'+i+'">'+x.r+'</div><button class="sbtn" onclick="bump('+i+',\'r\',1)">+</button></div></div>'
+      +'<button class="save" onclick="saveSet('+i+')">Save set '+(sets.length+1)+' →</button>'
+      +'</div></div></div>';
+  }).join('');
+  var totalSets=DAY.reduce(function(a,_,i){return a+((LOG[i]||[]).length);},0);
+  var doneEx=DAY.filter(function(_,i){return (LOG[i]||[]).length>=3;}).length;
+  document.getElementById('prog').textContent=doneEx+' of '+DAY.length+' exercises done · '+totalSets+' sets logged';
+}
+function toggle(i){ openIdx=(openIdx===i?-1:i); render(); }
+function bump(i,f,d){ var el=document.getElementById(f+i); var v=+el.textContent+d; if(f==='w')v=Math.max(0,v); if(f==='r')v=Math.max(1,v); el.textContent=v; }
+function saveSet(i){
+  var w=+document.getElementById('w'+i).textContent, r=+document.getElementById('r'+i).textContent;
+  var prevBest=bestFor(i);
+  var pr = (w*r)>prevBest && prevBest>0 ? true : (prevBest===0 ? false : false);
+  LOG[i]=LOG[i]||[]; LOG[i].push({w:w,r:r,pr:pr});
+  try{ localStorage.setItem('lp_wk_demo', JSON.stringify(LOG)); }catch(e){}
+  restStart(90);
+  render();
+}
+/* rest timer */
+var RT=null, rleft=0;
+function fmt(s){ var m=Math.floor(s/60); return m+':'+('0'+(s%60)).slice(-2); }
+function restStart(s){ rleft=s; document.getElementById('tval').textContent=fmt(rleft); document.getElementById('tbtn').textContent='Pause';
+  clearInterval(RT); RT=setInterval(function(){ rleft--; if(rleft<=0){ rleft=0; clearInterval(RT); document.getElementById('tbtn').textContent='Start 90s'; } document.getElementById('tval').textContent=fmt(rleft); },1000); }
+function restToggle(){ if(RT){ clearInterval(RT); RT=null; document.getElementById('tbtn').textContent='Resume'; } else if(rleft>0){ restStart(rleft); } else { restStart(90); } }
+function restReset(){ clearInterval(RT); RT=null; rleft=0; document.getElementById('tval').textContent='0:00'; document.getElementById('tbtn').textContent='Start 90s'; }
+function finish(){ alert('Nice work. Your sets are saved and would flow into your weekly check-in.'); }
+render();
+</script>
+</body>
+</html>
