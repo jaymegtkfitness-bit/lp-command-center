@@ -1060,7 +1060,7 @@ select.input{appearance:none}
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="restaurant-data.js?v=1"></script>
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=41"></script>
+<script src="nutrition-engine.js?v=42"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -1413,7 +1413,7 @@ function buildModel(server){
   // ---- meal plan (Complete Nutrition System — coach-built, pushed as type:mealplan) ----
   var smp=(server&&server.mealplan&&server.mealplan.length)?server.mealplan[server.mealplan.length-1]:null;
   if(smp){ try{ var pj=JSON.parse(smp['Plan']||'{}');
-      M.mealplan={ title:smp['Title']||pj.title||'Your Meal Plan', note:pj.note||'', days:(pj.days||[]), ts:ts(smp['Timestamp'])||0 };
+      M.mealplan={ title:smp['Title']||pj.title||'Your Meal Plan', note:pj.note||'', days:(pj.days||[]), freeMeals:pj.freeMeals||0, freedom:pj.freedom||null, ts:ts(smp['Timestamp'])||0 };
     }catch(e){ M.mealplan=null; } }
   else M.mealplan=null;
   if(!M.mealplan){ try{ var lmp=JSON.parse(localStorage.getItem("lp_client_mealplan")||"null"); if(lmp&&lmp.days&&lmp.days.length) M.mealplan=lmp; }catch(e){} }  // client self-generated plan (device)
@@ -3633,6 +3633,19 @@ var LS_FOODS="lp_client_foods", LS_MEALPLAN="lp_client_mealplan";
 /* FOOD_DB, fmtQty(), generateMealPlan() now live in nutrition-engine.js (shared). */
 function loadFoods(){ try{ return JSON.parse(localStorage.getItem(LS_FOODS)||"null")||{}; }catch(e){ return {}; } }
 function saveFoods(sel){ try{ localStorage.setItem(LS_FOODS, JSON.stringify(sel)); }catch(e){} }
+/* Free meals a week — the member's standing choice. MACRO_FREEDOM (engine) owns the range + math:
+   2 are built into the number, each extra trades ~100 cal/day, protein never moves. The pick is
+   saved with their foods, so a fresh "build my plan" defaults to what they last chose. */
+function freeMealsBlock(){
+  var cur=+(loadFoods().freeMeals)||MACRO_FREEDOM.included, chips='';
+  for(var n=MACRO_FREEDOM.included; n<=MACRO_FREEDOM.max; n++){
+    chips+='<button type="button" class="chip'+(n===cur?' on':'')+'" data-n="'+n+'" onclick="feFreePick(this)">'+n+'</button>';
+  }
+  return '<div class="field"><label>Free meals a week</label>'
+    +'<div class="wiz-hint" style="margin:-2px 0 8px">'+MACRO_FREEDOM.included+' are already built into your number. Each extra trades about 100 calories a day, and your protein never moves.</div>'
+    +'<div class="chips" id="fe_free">'+chips+'</div></div>';
+}
+function feFreePick(b){ var box=b.parentNode; Array.prototype.forEach.call(box.children,function(c){c.classList.remove('on');}); b.classList.add('on'); }
 function renderFoodEditor(){
   var saved=loadFoods();
   function catBlock(catKey, id, label){
@@ -3644,6 +3657,7 @@ function renderFoodEditor(){
     }).join('')+'</div></div>';
   }
   g("foodEditor").innerHTML=catBlock('protein','fe_prot','Proteins')+catBlock('carb','fe_carb','Smart carbs')+catBlock('fruit','fe_fruit','Fruit')+catBlock('fat','fe_fat','Fats')+catBlock('veg','fe_veg','Veggies')
+    +freeMealsBlock()
     +'<div class="actions"><button class="btn btn-primary" onclick="doGenerate()">Generate my plan →</button> <span class="status" id="genPlanStatus"></span></div>';
 }
 function showMealBuilder(){ renderFoodEditor(); show("mealbuilder"); }
@@ -3651,6 +3665,8 @@ function doGenerate(){
   if(!M.intake||!M.intake.pfs){ var s=g('genPlanStatus'); if(s){s.textContent="Build your Power Food System first.";s.style.color="var(--stall-tx)";} return; }
   var sel={protein:mval('fe_prot').split(', ').filter(Boolean),carb:mval('fe_carb').split(', ').filter(Boolean),fruit:mval('fe_fruit').split(', ').filter(Boolean),fat:mval('fe_fat').split(', ').filter(Boolean),veg:mval('fe_veg').split(', ').filter(Boolean)};
   if(!sel.protein.length||!sel.carb.length){ var s2=g('genPlanStatus'); if(s2){s2.textContent="Keep at least one protein and one carb on.";s2.style.color="var(--stall-tx)";} return; }
+  var freeSel=document.querySelector('#fe_free .chip.on');
+  sel.freeMeals=freeSel?+freeSel.getAttribute('data-n'):MACRO_FREEDOM.included;   // standing choice, saved with foods
   saveFoods(sel);
   var plan=generateMealPlan(M.intake, sel, 3, (ID&&ID.name)||"");
   M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
@@ -3746,6 +3762,19 @@ function renderOffline(){
     +'<p class="empty" style="margin:0 0 10px">We could not reach the server just now, so this is everything as of your last good load. Nothing is lost. Your check-in will send as soon as the connection is back.</p>'
     +'<div class="actions no-print"><button class="btn btn-ghost" onclick="location.reload()">Try again</button></div>';
 }
+/* Free-meals callout on the plan — how many they chose, what it did to the number (protein never
+   moves), and the rule. Only shows when the plan carries the freedom info. */
+function freeMealsCallout(mp){
+  var n=+((mp&&mp.freeMeals)||0); if(!n) return '';
+  var fd=mp.freedom||{}, extra=+fd.extra||0, base=+fd.base||0, cut=+fd.cut||0;
+  var line = extra>0
+    ? n+' free meals a week. Your number holds at your target minus '+cut+' calories a day for the '+extra+' extra, and your protein never moves.'
+    : n+' free meals a week, already built into your number.';
+  var mc=(fd.mealCal&&fd.mealCal.length===2)?(fd.mealCal[0]+' to '+fd.mealCal[1]):'600 to 800';
+  return '<div class="readcard" style="margin:0 0 12px;padding:12px 14px;border-left:3px solid var(--gold)">'
+    +'<div class="rk">Free meals</div>'
+    +'<div class="rtxt" style="margin-top:4px">'+esc(line)+' A free meal replaces a meal and is '+mc+' calories, composed freely. Protein and produce still count that day.</div></div>';
+}
 function renderMealPlan(){
   var card=g("mealPlanCard"), box=g("mealPlanBox"); if(!card) return;
   if(!hasCNS()){ card.style.display="none"; return; }
@@ -3763,6 +3792,7 @@ function renderMealPlan(){
   if(MP_DAY>=mp.days.length) MP_DAY=0;
   var chips=mp.days.map(function(d,i){ return '<button class="mp-chip'+(i===MP_DAY?' on':'')+'" onclick="mpDay('+i+')">'+esc(d.label||('Day '+(d.day||i+1)))+'</button>'; }).join('');
   box.innerHTML=(mp.note?'<p class="wiz-hint" style="margin:0 0 10px">'+esc(mp.note)+'</p>':'')
+    +freeMealsCallout(mp)
     +'<div class="mp-days">'+chips+'</div>'
     +'<div id="mpDayBox">'+mpDayHTML(mp.days[MP_DAY])+'</div>'
     +rebuildPrompt()

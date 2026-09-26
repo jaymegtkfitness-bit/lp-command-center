@@ -1746,7 +1746,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 <!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=41"></script>
+<script src="../nutrition-engine.js?v=42"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK =================== */
 const CONFIG = {
@@ -1766,13 +1766,14 @@ const CONFIG = {
      The cap is real: every buyer gets walked through the install personally, so the ceiling is
      how many of those Jayme can run in a month, not how many the engine can generate.
        monthlyCap  = that number.
-       buildsTaken = how many are actually sold THIS calendar month. Update it Monday in the
-                     Command Center, in the rhythm that already exists.
+       buildsTaken = CAPACITY TAKEN, not just sales. A build you give away costs the same hands
+                     and hours as a paid one, so it counts. Sept 2026: 3 sold + 2 given away at
+                     the Last 100 Days workshop = 5. Update it Monday in the Command Center.
      At buildsTaken 0 the page states the cap without a countdown, which is true on day one.
      The moment it is above 0 the countdown appears and has to keep being true, because a repeat
      visitor who sees the same number twice stops believing every other number on the page. */
   monthlyCap:  10,   // FIRST ROUND: 10 builds (Last 100 Days, Sept 2026). Back to 25/month after.
-  buildsTaken: 0,
+  buildsTaken: 5,   // 3 sold + 2 given away live at the Last 100 Days workshop (set 2026-09-25)
 
   /* Meta pixel id for paid traffic. "" -> no pixel loads. */
   metaPixelId: ""

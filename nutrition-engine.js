@@ -979,8 +979,18 @@ function withFruit(sel){
 }
 function generateMealPlan(it, sel, days, name){
   sel=withFruit(sel);
-  var p=it.pfs;
   sel=sel||{};
+  var p=it.pfs;
+  /* THE MACRO FREEDOM CHOICE (Jayme 2026-09-26). The member picks how many free meals a week they
+     want (2 included, up to 4). Every free meal past the 2 included trades ~100 cal/day for that
+     week and the plan rebuilds at the lower number, so portions come down with it. Protein NEVER
+     moves (macrosFrom holds it and pulls the cut from carbs + fat). Applies in every phase.
+     The choice persists so a fresh "build my plan" defaults to what they last chose. */
+  var freedom=null;
+  if(+sel.freeMeals){
+    freedom=freedomPlan(it.pfs, +sel.freeMeals, it.sex||sel.sex||'');
+    p=freedom.pfs;                                  // protein unchanged; carbs/fat carry the cut
+  }
   /* Frequency drives how many meals get built and whether a shake is carved out first.
      sel.frequency is one of FREQUENCY_ORDER; sel.shakeGrams defaults to 30. */
   var S=mealSplit(p, sel.frequency, sel.shakeGrams);
@@ -1025,7 +1035,10 @@ function generateMealPlan(it, sel, days, name){
   }
   var nm=name?(String(name).split(' ')[0]+"'s"):"Your";
   return {title:nm+" meal plan", frequency:S.frequency, label:S.label,
-    note:"Built from your favorites. Swap any food and regenerate anytime.", days:out};
+    note:"Built from your favorites. Swap any food and regenerate anytime.", days:out,
+    freeMeals: freedom?freedom.freeMeals:MACRO_FREEDOM.included,
+    freedom: freedom?{freeMeals:freedom.freeMeals, extra:freedom.extra, cut:freedom.cut, base:freedom.base,
+                      mealCal:MACRO_FREEDOM.mealCal, included:MACRO_FREEDOM.included, rules:freedom.rules} : null};
 }
 
 /* ═══════════════════════════════════════════════════════════════════════════
@@ -2030,7 +2043,7 @@ function prepGuide(deck, opts){
    meal, it never adds on top. Want more than two? Every extra free meal costs 100 calories a day
    for that week, and the plan is rebuilt at the lower number, so the portions come down with it.
    On a free meal the only target is 600 to 800 calories. Protein and produce still count that day. */
-var MACRO_FREEDOM={included:2, cutPerExtra:100, mealCal:[600,800], max:6};
+var MACRO_FREEDOM={included:2, cutPerExtra:100, mealCal:[600,800], max:4};
 /* THE 85% STANDARD (Jayme 2026-09-18). Numbers only change when she is at least 85% consistent.
    100% consistent in effort, 85% consistent in hitting the numbers. One shared wording, used by the
    system document and the dashboard so they never disagree. */
