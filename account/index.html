@@ -22,7 +22,6 @@ body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'S
   background:radial-gradient(ellipse 70% 45% at 50% 8%, rgba(193,173,114,.10), transparent 60%),
     radial-gradient(ellipse 100% 55% at 50% 108%, rgba(84,106,70,.30), transparent 70%),
     linear-gradient(180deg,#1a1813 0%,#141310 60%,#100f0c 100%)}
-.topbar{position:fixed;left:0;top:0;right:0;height:4px;z-index:3;background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
 
 .screen{min-height:100vh;max-width:440px;margin:0 auto;padding:calc(48px + env(safe-area-inset-top)) 26px calc(30px + env(safe-area-inset-bottom));
   display:flex;flex-direction:column;align-items:center;text-align:center}
@@ -74,14 +73,13 @@ input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
 </style>
 </head>
 <body>
-<div class="topbar"></div>
 
 <!-- ============ SPLASH ============ -->
 <main class="screen splash" id="splash">
   <div class="spacer"></div>
   <div class="markwrap mark-lg"><img src="../shield-white-gold.png" alt="Legacy Performance"></div>
   <div class="oslabel">The Legacy OS</div>
-  <h1 class="h-splash">The operating system behind your <span class="g">health.</span></h1>
+  <h1 class="h-splash">The operating system<br>behind your<br><span class="g">health.</span></h1>
   <p class="lead">For Legacy Performance clients. Your nutrition system, your progress, your LP Coach, your training, and your next step, all running in one place.</p>
   <div class="spacer"></div>
   <button class="pill" onclick="showSignin()">Sign in</button>
