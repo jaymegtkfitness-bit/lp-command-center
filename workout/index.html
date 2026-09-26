@@ -116,11 +116,12 @@ h1{font-family:Montserrat;font-weight:900;font-size:2.1rem;letter-spacing:-.01em
 
 <script>
 /* Sample LP Training System day. In the real thing this comes from the member's 12-week program. */
+function yt(q){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q+' proper form'); }
 var DAY=[
-  {k:'A', name:'Barbell Split Squat', target:'3 × 6 / side', rpe:'RPE 8', last:'95 lb × 6', vid:'#', w:95, r:6},
-  {k:'B', name:'Barbell Incline Bench Press', target:'3 × 8', rpe:'RPE 8', last:'115 lb × 8', vid:'#', w:115, r:8},
-  {k:'C', name:'Romanian Deadlift', target:'3 × 8', rpe:'RPE 7', last:'155 lb × 8', vid:'#', w:155, r:8},
-  {k:'D', name:'Chest-Supported Row', target:'3 × 10', rpe:'RPE 8', last:'70 lb × 10', vid:'#', w:70, r:10}
+  {k:'A', name:'Barbell Split Squat', target:'3 × 6 / side', rpe:'RPE 8', last:'95 lb × 6', vid:yt('barbell split squat'), w:95, r:6},
+  {k:'B', name:'Barbell Incline Bench Press', target:'3 × 8', rpe:'RPE 8', last:'115 lb × 8', vid:yt('barbell incline bench press'), w:115, r:8},
+  {k:'C', name:'Romanian Deadlift', target:'3 × 8', rpe:'RPE 7', last:'155 lb × 8', vid:yt('romanian deadlift'), w:155, r:8},
+  {k:'D', name:'Chest-Supported Row', target:'3 × 10', rpe:'RPE 8', last:'70 lb × 10', vid:yt('chest supported row'), w:70, r:10}
 ];
 var LOG={};   // exIndex -> [{w,r,pr}]
 try{ LOG=JSON.parse(localStorage.getItem('lp_wk_demo')||'{}'); }catch(e){ LOG={}; }
@@ -140,7 +141,7 @@ function render(){
       +'<div class="chev">›</div></div>'
       +'<div class="ex-body">'
       +'<div class="note">Target <b>'+x.target+'</b> at <b>'+x.rpe+'</b>. Beat last time: <b>'+x.last+'</b>.</div>'
-      +'<a class="vid" href="'+x.vid+'">▶ Watch the demo</a>'
+      +'<a class="vid" href="'+x.vid+'" target="_blank" rel="noopener">▶ Watch the demo on YouTube</a>'
       +(setHtml?'<div class="sets">'+setHtml+'</div>':'')
       +'<div class="logger">'
       +'<div class="stepper"><div class="k">Weight (lb)</div><div class="row"><button class="sbtn" onclick="bump('+i+',\'w\',-5)">−</button><div class="sval" id="w'+i+'">'+x.w+'</div><button class="sbtn" onclick="bump('+i+',\'w\',5)">+</button></div></div>'
