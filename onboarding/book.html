@@ -48,9 +48,25 @@ body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'S
 
 .time{margin-top:20px;font-size:.86rem;color:var(--soft);text-align:center}
 .time b{color:var(--gold)}
-.cta{display:block;width:100%;margin-top:14px;background:var(--gold);color:var(--ink);font-weight:800;font-size:.98rem;letter-spacing:.03em;
-  padding:17px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(193,173,114,.26);text-align:center;text-decoration:none;transition:transform .15s}
+/* booking widget */
+.book-k{font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--olive-lt);font-weight:700;margin:24px 0 12px}
+.days{display:flex;gap:9px;overflow-x:auto;padding-bottom:6px;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.days::-webkit-scrollbar{display:none}
+.day{flex:0 0 auto;min-width:60px;text-align:center;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:13px;padding:10px 8px;cursor:pointer;transition:border-color .15s,background .15s}
+.day.on{border-color:var(--gold);background:linear-gradient(180deg,rgba(193,173,114,.18),rgba(255,255,255,.03))}
+.day .dow{font-size:.6rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);font-weight:700}
+.day .dnum{font-family:Cinzel,serif;font-weight:700;font-size:1.3rem;color:#fff;line-height:1.15;margin-top:1px}
+.day.on .dnum{color:var(--gold)}
+.day .mon{font-size:.58rem;color:var(--soft);text-transform:uppercase;letter-spacing:.08em}
+.slots{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:16px}
+.slot{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:14px;color:var(--parch);font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;transition:border-color .15s}
+.slot.on{border-color:var(--gold);background:linear-gradient(180deg,rgba(193,173,114,.2),rgba(255,255,255,.03));color:#fff}
+.slot:hover{border-color:var(--olive-lt)}
+.tz{margin-top:12px;font-size:.74rem;color:var(--soft);text-align:center}
+.cta{display:block;width:100%;margin-top:16px;background:var(--gold);color:var(--ink);font-weight:800;font-size:.98rem;letter-spacing:.03em;
+  padding:17px;border-radius:13px;border:none;cursor:pointer;font-family:inherit;box-shadow:0 8px 24px rgba(193,173,114,.26);text-align:center;text-decoration:none;transition:transform .15s,opacity .2s}
 .cta:hover{transform:translateY(-1px)}
+.cta[disabled]{opacity:.4;pointer-events:none;box-shadow:none}
 .note{margin-top:14px;font-size:.82rem;color:var(--soft);text-align:center;line-height:1.55}
 .note a{color:var(--gold);text-decoration:none;font-weight:700}
 .foot{margin-top:26px;font-size:.68rem;letter-spacing:.28em;text-transform:uppercase;color:#7d786d;font-weight:700;text-align:center}
@@ -76,10 +92,50 @@ body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'S
   </div>
 
   <p class="time">Takes about <b>thirty minutes</b>. Your time with your coach starts here.</p>
-  <a class="cta" href="#">Pick my time &rarr;</a>
+
+  <div class="book-k">Pick your day</div>
+  <div class="days" id="days"></div>
+  <div class="slots" id="slots"></div>
+  <p class="tz" id="tz"></p>
+  <button class="cta" id="confirm" disabled>Pick a time to continue</button>
   <p class="note">Nothing fits? Message us in the community and we will open a spot.</p>
 
   <div class="foot">Legacy Performance</div>
 </main>
+
+<script>
+var SLOTS=['9:00 AM','10:30 AM','1:00 PM','3:30 PM'];
+var DOW=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'], MON=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+var pickedDay=0, pickedSlot=null;
+function nextDays(n){ var out=[], d=new Date(); d.setDate(d.getDate()+1);
+  while(out.length<n){ var g=d.getDay(); if(g!==0&&g!==6) out.push(new Date(d)); d.setDate(d.getDate()+1); } return out; }
+var DAYS=nextDays(6);
+function renderDays(){
+  document.getElementById('days').innerHTML=DAYS.map(function(d,i){
+    return '<div class="day'+(i===pickedDay?' on':'')+'" onclick="pickDay('+i+')">'
+      +'<div class="dow">'+DOW[d.getDay()]+'</div><div class="dnum">'+d.getDate()+'</div><div class="mon">'+MON[d.getMonth()]+'</div></div>';
+  }).join('');
+}
+function renderSlots(){
+  document.getElementById('slots').innerHTML=SLOTS.map(function(t){
+    return '<button class="slot'+(t===pickedSlot?' on':'')+'" onclick="pickSlot(\''+t+'\')">'+t+'</button>';
+  }).join('');
+  var tz; try{ tz=Intl.DateTimeFormat().resolvedOptions().timeZone; }catch(e){ tz=''; }
+  document.getElementById('tz').textContent = tz? ('Times shown in your time zone ('+tz.replace(/_/g,' ')+').') : '';
+}
+function pickDay(i){ pickedDay=i; pickedSlot=null; renderDays(); renderSlots(); updateCta(); }
+function pickSlot(t){ pickedSlot=t; renderSlots(); updateCta(); }
+function updateCta(){
+  var b=document.getElementById('confirm');
+  if(pickedSlot){ var d=DAYS[pickedDay]; b.disabled=false; b.textContent='Confirm '+DOW[d.getDay()]+' '+MON[d.getMonth()]+' '+d.getDate()+', '+pickedSlot+' →'; }
+  else { b.disabled=true; b.textContent='Pick a time to continue'; }
+}
+document.getElementById('confirm').addEventListener('click', function(){
+  var d=DAYS[pickedDay];
+  this.textContent='Booked ✓ '+DOW[d.getDay()]+' '+MON[d.getMonth()]+' '+d.getDate()+', '+pickedSlot;
+  this.style.pointerEvents='none';
+});
+renderDays(); renderSlots(); updateCta();
+</script>
 </body>
 </html>
