@@ -75,6 +75,10 @@ input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
 .backtop{position:fixed;left:18px;top:calc(20px + env(safe-area-inset-top));z-index:4;background:none;border:none;color:var(--soft);
   font-family:inherit;font-size:.82rem;font-weight:700;cursor:pointer;letter-spacing:.02em}
 .backtop:hover{color:var(--gold)}
+.newhere{margin-top:20px;font-size:.86rem;color:var(--soft)}
+.link{background:none;border:none;color:var(--gold);font-family:inherit;font-size:.86rem;font-weight:700;cursor:pointer;padding:0;text-decoration:underline;text-underline-offset:3px}
+.legalmini{font-size:.7rem;color:#8f8a80;margin-top:14px;line-height:1.5;text-align:center}
+.legalmini a{color:var(--gold);text-decoration:none;font-weight:600}
 </style>
 </head>
 <body>
@@ -110,13 +114,42 @@ input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
     </div>
   </div>
 
+  <p class="newhere">New here? <button class="link" onclick="showSetup()">Set up your account</button></p>
+  <div class="spacer"></div>
+  <div class="brandfoot">Legacy Performance</div>
+</main>
+
+<!-- ============ SET UP ACCOUNT ============ -->
+<main class="screen signin hidden" id="setup">
+  <button class="backtop" onclick="showSignin()">&larr; Back</button>
+  <div class="spacer"></div>
+  <div class="markwrap"><img src="../shield-white-gold.png" alt=""></div>
+  <div class="oslabel">The Legacy OS</div>
+  <h1 class="h-signin">Set up your<br>account</h1>
+  <p class="sub">Two minutes and you're in. Use the same email you paid with.</p>
+
+  <div class="card">
+    <div class="flabel">Full name</div>
+    <input id="s-name" type="text" autocomplete="name" placeholder="First and last">
+    <div class="flabel" style="margin-top:16px">Email</div>
+    <input id="s-email" type="email" autocomplete="email" placeholder="you@email.com">
+    <div class="flabel" style="margin-top:16px">Set a password</div>
+    <input id="s-pw" type="password" autocomplete="new-password" placeholder="Create a password">
+    <input id="s-pw2" type="password" autocomplete="new-password" placeholder="Confirm password" style="margin-top:10px">
+    <button class="cta">Create my account &rarr;</button>
+    <p class="legalmini">By continuing you agree to the Legacy Performance <a href="#">Terms</a> and <a href="#">Privacy Policy</a>.</p>
+  </div>
+
+  <p class="newhere">Already have an account? <button class="link" onclick="showSignin()">Sign in</button></p>
   <div class="spacer"></div>
   <div class="brandfoot">Legacy Performance</div>
 </main>
 
 <script>
-function showSignin(){document.getElementById('splash').classList.add('hidden');document.getElementById('signin').classList.remove('hidden');window.scrollTo(0,0);}
-function showSplash(){document.getElementById('signin').classList.add('hidden');document.getElementById('splash').classList.remove('hidden');window.scrollTo(0,0);}
+function _show(id){['splash','signin','setup'].forEach(function(s){document.getElementById(s).classList.toggle('hidden',s!==id);});window.scrollTo(0,0);}
+function showSignin(){_show('signin');}
+function showSplash(){_show('splash');}
+function showSetup(){_show('setup');}
 </script>
 </body>
 </html>
