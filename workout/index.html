@@ -69,8 +69,17 @@ h1{font-family:Montserrat;font-weight:900;font-size:2.1rem;letter-spacing:-.01em
 .swap summary{cursor:pointer;font-size:.78rem;font-weight:700;color:var(--gold);list-style:none;padding:2px 0}
 .swap summary::-webkit-details-marker{display:none}
 .swap .subs{margin-top:8px;display:grid;gap:6px}
-.swap .sub{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--body)}
-.swap .sub b{color:#fff;font-weight:700}
+.swap .sub{display:block;width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:10px;padding:12px 12px;font-size:.86rem;color:var(--body);font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+.swap .sub:hover{border-color:var(--olive-lt)}
+.swap .sub.on{border-color:var(--gold);background:linear-gradient(90deg,rgba(193,173,114,.18),rgba(255,255,255,.03));color:#fff;font-weight:700}
+.swap .sub .tag{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-left:6px}
+.swap .addown{display:flex;gap:8px;margin-top:2px}
+.swap .custinp{flex:1;min-width:0;background:rgba(255,255,255,.04);border:1px solid var(--field-line);border-radius:10px;color:var(--parch);font-family:inherit;font-size:.85rem;padding:11px 12px;outline:none}
+.swap .custinp:focus{border-color:var(--gold)}
+.swap .custbtn{background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:inherit;font-weight:800;font-size:.8rem;padding:0 16px;cursor:pointer;white-space:nowrap}
+.sinp{font-family:Cinzel,serif;font-weight:700;font-size:1.5rem;color:#fff;background:transparent;border:none;text-align:center;width:76px;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.sinp::-webkit-outer-spin-button,.sinp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sinp:focus{outline:none;color:var(--gold)}
 
 /* LP Coach recommendation */
 .coach{background:linear-gradient(90deg,rgba(193,173,114,.18),rgba(255,255,255,.03));border:1px solid var(--gold-dim);border-left:3px solid var(--gold);border-radius:12px;padding:11px 13px;margin-bottom:12px}
@@ -156,10 +165,14 @@ try{ LOG=JSON.parse(localStorage.getItem('lp_wk_demo')||'{}'); }catch(e){ LOG={}
 var openIdx=0;
 
 function bestFor(i){ var arr=LOG[i]||[]; var b=0; arr.forEach(function(s){ if(s.w*s.r>b) b=s.w*s.r; }); return b; }
+var SWAPS_D={}; try{ SWAPS_D=JSON.parse(localStorage.getItem('lp_wk_demo_swaps')||'{}'); }catch(e){ SWAPS_D={}; }
+function swapDTo(i,nm){ SWAPS_D[i]=nm; try{ localStorage.setItem('lp_wk_demo_swaps', JSON.stringify(SWAPS_D)); }catch(e){} render(); }
+function swapDCustom(i){ var el=document.getElementById('cust'+i); var v=(el&&el.value||'').trim(); if(v) swapDTo(i,v); }
 function render(){
   document.getElementById('list').innerHTML=DAY.map(function(x,i){
     var sets=LOG[i]||[];
     var done=sets.length>=3;
+    var activeName=SWAPS_D[i]||x.name; var opts=[x.name,x.sub1,x.sub2].filter(Boolean); var custActive=opts.indexOf(activeName)<0;
     var setHtml=sets.map(function(s,si){
       return '<div class="setrow"><div class="sn">'+(si+1)+'</div><div class="sv">'+s.w+' <small>lb</small> × '+s.r+' <small>reps</small></div>'+(s.pr?'<div class="pr">★ PR</div>':'<div></div>')+'</div>';
     }).join('');
@@ -167,7 +180,7 @@ function render(){
     var recHtml=rec?('<div class="coach"><div class="ck">◆ LP Coach</div><div class="ct">'+rec.msg+'</div></div>'):'';
     return '<div class="ex'+(i===openIdx?' open':'')+(done?' done':'')+'" id="ex'+i+'">'
       +'<div class="ex-head" onclick="toggle('+i+')"><div class="blk">'+x.k+'</div>'
-      +'<div><div class="ex-name">'+x.name+'</div><div class="ex-meta">'+tgt(x)+' · '+x.rir+' · <span class="last">last '+x.last+'</span></div></div>'
+      +'<div><div class="ex-name">'+activeName+'</div><div class="ex-meta">'+tgt(x)+' · '+x.rir+' · <span class="last">last '+x.last+'</span></div></div>'
       +'<div class="chev">›</div></div>'
       +'<div class="ex-body">'
       +'<div class="detail">'
@@ -177,13 +190,17 @@ function render(){
         +'<div class="d"><span>Rest</span><b>'+x.rest+'</b></div>'
       +'</div>'
       +'<div class="note">'+x.note+'</div>'
-      +'<details class="swap"><summary>⇄ Swap this exercise</summary><div class="subs"><div class="sub"><b>Option 1</b> · '+x.sub1+'</div><div class="sub"><b>Option 2</b> · '+x.sub2+'</div></div></details>'
+      +'<details class="swap"'+(activeName!==x.name?' open':'')+'><summary>⇄ Swap this exercise</summary><div class="subs">'
+        +(custActive?'<button class="sub on">✓ '+activeName+'<span class="tag">yours</span></button>':'')
+        +opts.map(function(nm,oi){var on=(nm===activeName);return '<button class="sub'+(on?' on':'')+'" data-nm="'+String(nm).replace(/"/g,'&quot;')+'" onclick="swapDTo('+i+',this.getAttribute(\'data-nm\'))">'+(on?'✓ ':'')+nm+(oi===0?'<span class="tag">original</span>':'')+'</button>';}).join('')
+        +'<div class="addown"><input class="custinp" id="cust'+i+'" type="text" placeholder="Type your own exercise"><button class="custbtn" onclick="swapDCustom('+i+')">Use</button></div>'
+      +'</div></details>'
       +'<a class="vid" href="'+x.vid+'" target="_blank" rel="noopener">▶ Watch the demo on YouTube</a>'
       +(setHtml?'<div class="sets">'+setHtml+'</div>':'')
       +recHtml
       +'<div class="logger">'
-      +'<div class="stepper"><div class="k">Weight (lb)</div><div class="row"><button class="sbtn" onclick="bump('+i+',\'w\',-5)">−</button><div class="sval" id="w'+i+'">'+x.w+'</div><button class="sbtn" onclick="bump('+i+',\'w\',5)">+</button></div></div>'
-      +'<div class="stepper"><div class="k">Reps</div><div class="row"><button class="sbtn" onclick="bump('+i+',\'r\',-1)">−</button><div class="sval" id="r'+i+'">'+x.r+'</div><button class="sbtn" onclick="bump('+i+',\'r\',1)">+</button></div></div>'
+      +'<div class="stepper"><div class="k">Weight (lb)</div><div class="row"><button class="sbtn" onclick="bump('+i+',\'w\',-2.5)">−</button><input class="sinp" id="w'+i+'" type="number" inputmode="decimal" step="2.5" value="'+x.w+'"><button class="sbtn" onclick="bump('+i+',\'w\',2.5)">+</button></div></div>'
+      +'<div class="stepper"><div class="k">Reps</div><div class="row"><button class="sbtn" onclick="bump('+i+',\'r\',-1)">−</button><input class="sinp" id="r'+i+'" type="number" inputmode="numeric" step="1" value="'+x.r+'"><button class="sbtn" onclick="bump('+i+',\'r\',1)">+</button></div></div>'
       +'<button class="save" onclick="saveSet('+i+')">Save set '+(sets.length+1)+' →</button>'
       +'</div></div></div>';
   }).join('');
@@ -192,9 +209,10 @@ function render(){
   document.getElementById('prog').textContent=doneEx+' of '+DAY.length+' exercises done · '+totalSets+' sets logged';
 }
 function toggle(i){ openIdx=(openIdx===i?-1:i); startClock(); render(); }
-function bump(i,f,d){ var el=document.getElementById(f+i); var v=+el.textContent+d; if(f==='w')v=Math.max(0,v); if(f==='r')v=Math.max(1,v); el.textContent=v; }
+function bump(i,f,d){ var el=document.getElementById(f+i); var v=(parseFloat(el.value)||0)+d; if(f==='w')v=Math.max(0,Math.round(v*2)/2); if(f==='r')v=Math.max(1,Math.round(v)); el.value=v; }
 function saveSet(i){
-  var w=+document.getElementById('w'+i).textContent, r=+document.getElementById('r'+i).textContent;
+  var w=parseFloat(document.getElementById('w'+i).value)||0, r=parseInt(document.getElementById('r'+i).value,10)||0;
+  if(!r) return;
   var prevBest=bestFor(i);
   var pr = (w*r)>prevBest && prevBest>0 ? true : (prevBest===0 ? false : false);
   LOG[i]=LOG[i]||[]; LOG[i].push({w:w,r:r,pr:pr});
