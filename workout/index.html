@@ -59,6 +59,16 @@ h1{font-family:Montserrat;font-weight:900;font-size:2.1rem;letter-spacing:-.01em
 .note{background:rgba(193,173,114,.08);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:9px 12px;margin-bottom:12px;font-size:.82rem;color:var(--body);line-height:1.5}
 .note b{color:var(--gold)}
 .vid{display:inline-flex;align-items:center;gap:7px;font-size:.78rem;font-weight:700;color:var(--gold);text-decoration:none;margin-bottom:12px}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.detail .d{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:10px;padding:9px 11px}
+.detail .d span{display:block;font-size:.55rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-bottom:2px}
+.detail .d b{font-size:.9rem;color:#fff;font-weight:800}
+.swap{margin-bottom:12px}
+.swap summary{cursor:pointer;font-size:.78rem;font-weight:700;color:var(--gold);list-style:none;padding:2px 0}
+.swap summary::-webkit-details-marker{display:none}
+.swap .subs{margin-top:8px;display:grid;gap:6px}
+.swap .sub{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:9px;padding:9px 11px;font-size:.83rem;color:var(--body)}
+.swap .sub b{color:#fff;font-weight:700}
 
 /* LP Coach recommendation */
 .coach{background:linear-gradient(90deg,rgba(193,173,114,.18),rgba(255,255,255,.03));border:1px solid var(--gold-dim);border-left:3px solid var(--gold);border-radius:12px;padding:11px 13px;margin-bottom:12px}
@@ -124,10 +134,10 @@ function yt(q){ return 'https://www.youtube.com/results?search_query='+encodeURI
 /* Each lift has a REP RANGE (double progression): work in the range; when you hit the TOP of the
    range on all your sets, add weight next time (inc). Upper body ~5 lb, lower body ~10 lb. */
 var DAY=[
-  {k:'A', name:'Barbell Split Squat', sets:3, lo:6, hi:8, unit:' / side', rpe:'RPE 8', last:'95 lb × 6', inc:10, vid:yt('barbell split squat'), w:95, r:6},
-  {k:'B', name:'Barbell Incline Bench Press', sets:3, lo:8, hi:10, unit:'', rpe:'RPE 8', last:'115 lb × 8', inc:5, vid:yt('barbell incline bench press'), w:115, r:8},
-  {k:'C', name:'Romanian Deadlift', sets:3, lo:8, hi:10, unit:'', rpe:'RPE 7', last:'155 lb × 8', inc:10, vid:yt('romanian deadlift'), w:155, r:8},
-  {k:'D', name:'Chest-Supported Row', sets:3, lo:10, hi:12, unit:'', rpe:'RPE 8', last:'70 lb × 10', inc:5, vid:yt('chest supported row'), w:70, r:10}
+  {k:'A', name:'Barbell Split Squat', warmup:'2 sets', sets:3, lo:6, hi:8, unit:' / side', rir:'RIR 1-2', rest:'2-3 min', sub1:'Dumbbell Split Squat', sub2:'Leg Press', note:'Pause one second at the bottom and drive through the front heel. Control the way down, full range on every rep.', inc:10, last:'95 lb × 6', vid:yt('barbell split squat'), w:95, r:6},
+  {k:'B', name:'Barbell Incline Bench Press', warmup:'2-4 sets', sets:3, lo:8, hi:10, unit:'', rir:'RIR 1', rest:'3-5 min', sub1:'Smith Machine Incline Press', sub2:'Dumbbell Incline Press', note:'Set a 30 to 45 degree bench. Touch the upper chest and press without bouncing. Keep tension on the pecs.', inc:5, last:'115 lb × 8', vid:yt('barbell incline bench press'), w:115, r:8},
+  {k:'C', name:'Romanian Deadlift', warmup:'2 sets', sets:3, lo:8, hi:10, unit:'', rir:'RIR 2', rest:'2-3 min', sub1:'Dumbbell RDL', sub2:'Back Extension', note:'Soft knees, push the hips back, feel the hamstrings load. Stop the rep when your back wants to round.', inc:10, last:'155 lb × 8', vid:yt('romanian deadlift'), w:155, r:8},
+  {k:'D', name:'Chest-Supported Row', warmup:'1-2 sets', sets:3, lo:10, hi:12, unit:'', rir:'RIR 1', rest:'1-2 min', sub1:'Seal Row', sub2:'Machine Row', note:'Pull to the belly and squeeze the shoulder blades. Let them spread apart on the way down, under control.', inc:5, last:'70 lb × 10', vid:yt('chest supported row'), w:70, r:10}
 ];
 function tgt(x){ return x.sets+' × '+x.lo+'-'+x.hi+x.unit; }
 /* THE LP COACH RECOMMENDATION — double progression. Runs once the working sets are in. */
@@ -157,10 +167,17 @@ function render(){
     var recHtml=rec?('<div class="coach"><div class="ck">◆ LP Coach</div><div class="ct">'+rec.msg+'</div></div>'):'';
     return '<div class="ex'+(i===openIdx?' open':'')+(done?' done':'')+'" id="ex'+i+'">'
       +'<div class="ex-head" onclick="toggle('+i+')"><div class="blk">'+x.k+'</div>'
-      +'<div><div class="ex-name">'+x.name+'</div><div class="ex-meta">'+tgt(x)+' · '+x.rpe+' · <span class="last">last '+x.last+'</span></div></div>'
+      +'<div><div class="ex-name">'+x.name+'</div><div class="ex-meta">'+tgt(x)+' · '+x.rir+' · <span class="last">last '+x.last+'</span></div></div>'
       +'<div class="chev">›</div></div>'
       +'<div class="ex-body">'
-      +'<div class="note">Target <b>'+tgt(x)+'</b> at <b>'+x.rpe+'</b>. Beat last time: <b>'+x.last+'</b>.</div>'
+      +'<div class="detail">'
+        +'<div class="d"><span>Warm-up</span><b>'+x.warmup+'</b></div>'
+        +'<div class="d"><span>Working</span><b>'+tgt(x)+'</b></div>'
+        +'<div class="d"><span>Intensity</span><b>'+x.rir+'</b></div>'
+        +'<div class="d"><span>Rest</span><b>'+x.rest+'</b></div>'
+      +'</div>'
+      +'<div class="note">'+x.note+'</div>'
+      +'<details class="swap"><summary>⇄ Swap this exercise</summary><div class="subs"><div class="sub"><b>Option 1</b> · '+x.sub1+'</div><div class="sub"><b>Option 2</b> · '+x.sub2+'</div></div></details>'
       +'<a class="vid" href="'+x.vid+'" target="_blank" rel="noopener">▶ Watch the demo on YouTube</a>'
       +(setHtml?'<div class="sets">'+setHtml+'</div>':'')
       +recHtml
