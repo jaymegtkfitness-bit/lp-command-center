@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Weekly Lifts + Pattern Analytics — prototype. Mobile-first, Legacy Dark.
+     Coach curates a handful of KEY trackable exercises each week, each tagged by MOVEMENT PATTERN
+     (Squat/Hinge/Push/Pull/Lunge/Core). Members log weight+reps; Progress rolls up BY PATTERN so
+     they see averages/bests/trend across the varying exercises. No workout/timer content — just the
+     trackable lifts and the member's own data. Logging is localStorage on-device for this demo. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#141310">
+<title>Your Lifts | Legacy OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.3);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.05);--field-line:rgba(242,237,228,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);-webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
+  background:radial-gradient(ellipse 70% 34% at 50% 2%, rgba(193,173,114,.09), transparent 60%),radial-gradient(ellipse 105% 50% at 0% 100%, rgba(74,92,62,.5), transparent 74%),linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
+.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:calc(22px + env(safe-area-inset-top)) 18px calc(40px + env(safe-area-inset-bottom))}
+.top{display:flex;justify-content:space-between;align-items:center}
+.top img{height:30px;margin-left:-4px}
+.done{background:transparent;border:1px solid var(--field-line);color:var(--parch);font-family:inherit;font-weight:700;font-size:.82rem;padding:9px 14px;border-radius:11px;cursor:pointer}
+.eyebrow{margin-top:22px;font-size:.7rem;letter-spacing:.28em;text-transform:uppercase;color:var(--gold);font-weight:700}
+h1{font-weight:900;font-size:2rem;letter-spacing:-.01em;text-transform:uppercase;line-height:1;margin-top:8px}
+.sub{margin-top:8px;font-size:.9rem;color:var(--soft)}
+.tabs{display:flex;gap:8px;margin-top:18px}
+.tab{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--field-line);color:var(--body);font-family:inherit;font-weight:800;font-size:.86rem;padding:11px;border-radius:12px;cursor:pointer;letter-spacing:.02em}
+.tab.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+/* pattern badge */
+.pbadge{display:inline-block;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;padding:4px 8px;border-radius:99px;border:1px solid var(--field-line);color:var(--olive-lt)}
+.pbadge.Squat{color:#C1AD72;border-color:rgba(193,173,114,.4)}
+.pbadge.Hinge{color:#8FA97A;border-color:rgba(143,169,122,.4)}
+.pbadge.Push{color:#d99a6c;border-color:rgba(217,154,108,.4)}
+.pbadge.Pull{color:#8fb0c1;border-color:rgba(143,176,193,.4)}
+.pbadge.Lunge{color:#c18fb0;border-color:rgba(193,143,176,.4)}
+.pbadge.Core{color:#b0b08f;border-color:rgba(176,176,143,.4)}
+/* exercise cards */
+.ex{margin-top:11px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:16px;padding:14px 15px}
+.ex-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.ex-name{font-size:1.02rem;font-weight:800;color:#fff}
+.ex-last{font-size:.78rem;color:var(--olive-lt);margin-top:3px}
+.logger{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
+.stepper{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:10px}
+.stepper .k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:700;text-align:center}
+.stepper .row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px}
+.sbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--field-line);background:rgba(255,255,255,.04);color:var(--parch);font-size:1.25rem;font-weight:700;cursor:pointer;line-height:1}
+.sbtn:active{background:var(--gold);color:var(--ink)}
+.sinp{font-family:Cinzel,serif;font-weight:700;font-size:1.4rem;color:#fff;background:transparent;border:none;text-align:center;width:70px;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.sinp::-webkit-outer-spin-button,.sinp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sinp:focus{outline:none;color:var(--gold)}
+.save{grid-column:1/-1;background:var(--gold);color:var(--ink);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.9rem;padding:13px;cursor:pointer;margin-top:2px}
+.hist{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
+.hpill{font-size:.72rem;color:var(--soft);background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:8px;padding:5px 9px}
+.hpill b{color:#fff}
+/* progress */
+.pcard{margin-top:12px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:16px;padding:15px 16px}
+.pcard.empty{opacity:.5}
+.pcard-h{display:flex;justify-content:space-between;align-items:center}
+.pcard-h .pn{font-size:1.05rem;font-weight:800;color:#fff}
+.pstats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:12px}
+.pstat{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:11px;padding:10px;text-align:center}
+.pstat .v{font-family:Cinzel,serif;font-weight:700;font-size:1.35rem;color:var(--gold)}
+.pstat .l{font-size:.56rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-top:3px}
+.trend{margin-top:12px;display:flex;align-items:flex-end;gap:4px;height:38px}
+.bar{flex:1;background:linear-gradient(180deg,var(--gold),rgba(193,173,114,.25));border-radius:3px 3px 0 0;min-height:3px}
+.tnote{font-size:.75rem;color:var(--soft);margin-top:8px}
+.empty-msg{color:var(--soft);text-align:center;padding:30px 10px;font-size:.9rem}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="top">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <button class="done" onclick="location.href='../client.html'">Done</button>
+  </div>
+  <div class="eyebrow">Bootcamp · Week of Sept 28</div>
+  <h1>Your Lifts</h1>
+  <p class="sub">Track this week's key lifts. Your progress rolls up by movement pattern.</p>
+  <div class="tabs">
+    <button class="tab on" id="tab-log" onclick="setTab('log')">This week</button>
+    <button class="tab" id="tab-prog" onclick="setTab('prog')">Progress</button>
+  </div>
+  <div id="view"></div>
+</main>
+<script>
+/* Coach curates these each week — a few KEY trackable lifts, each tagged with a movement pattern.
+   (Generic exercise names; the value is the tracking + the pattern rollups.) */
+var WEEK=[
+  {n:'Goblet Squat', p:'Squat'},
+  {n:'KB Sumo Deadlift', p:'Hinge'},
+  {n:'DB Push Press', p:'Push'},
+  {n:'1-Arm DB Row', p:'Pull'},
+  {n:'DB Reverse Lunge', p:'Lunge'},
+  {n:'KB Swing', p:'Hinge'},
+  {n:'DB Chest Press', p:'Push'}
+];
+var PATTERNS=['Squat','Hinge','Push','Pull','Lunge','Core'];
+var LOG=[]; try{ LOG=JSON.parse(localStorage.getItem('lp_lifts_log')||'[]'); }catch(e){ LOG=[]; }
+var TAB='log';
+function save(){ try{ localStorage.setItem('lp_lifts_log', JSON.stringify(LOG)); }catch(e){} }
+function forEx(n){ return LOG.filter(function(x){return x.n===n;}).sort(function(a,b){return b.ts-a.ts;}); }
+function lastEx(n){ var a=forEx(n); return a.length?a[0]:null; }
+function setTab(t){ TAB=t; document.getElementById('tab-log').classList.toggle('on',t==='log'); document.getElementById('tab-prog').classList.toggle('on',t==='prog'); render(); }
+function bump(id,f,d){ var el=document.getElementById(id); var v=(parseFloat(el.value)||0)+d; if(f==='w')v=Math.max(0,Math.round(v*2)/2); else v=Math.max(1,Math.round(v)); el.value=v; }
+function logLift(i){
+  var ex=WEEK[i]; var w=parseFloat(document.getElementById('w'+i).value)||0, r=parseInt(document.getElementById('r'+i).value,10)||0;
+  if(!r) return;
+  LOG.push({n:ex.n, p:ex.p, w:w, r:r, ts:Date.now()}); save(); render();
+}
+function renderLog(){
+  return WEEK.map(function(ex,i){
+    var last=lastEx(ex.n); var hist=forEx(ex.n).slice(0,4);
+    var startW=last?last.w:0, startR=last?last.r:8;
+    return '<div class="ex"><div class="ex-top"><div><div class="ex-name">'+ex.n+'</div>'
+      +(last?'<div class="ex-last">last '+last.w+' lb × '+last.r+'</div>':'<div class="ex-last">not logged yet</div>')
+      +'</div><span class="pbadge '+ex.p+'">'+ex.p+'</span></div>'
+      +'<div class="logger">'
+      +'<div class="stepper"><div class="k">Weight (lb)</div><div class="row"><button class="sbtn" onclick="bump(\'w'+i+'\',\'w\',-2.5)">−</button><input class="sinp" id="w'+i+'" type="number" inputmode="decimal" step="2.5" value="'+startW+'"><button class="sbtn" onclick="bump(\'w'+i+'\',\'w\',2.5)">+</button></div></div>'
+      +'<div class="stepper"><div class="k">Reps</div><div class="row"><button class="sbtn" onclick="bump(\'r'+i+'\',\'r\',-1)">−</button><input class="sinp" id="r'+i+'" type="number" inputmode="numeric" step="1" value="'+startR+'"><button class="sbtn" onclick="bump(\'r'+i+'\',\'r\',1)">+</button></div></div>'
+      +'<button class="save" onclick="logLift('+i+')">Log it →</button>'
+      +'</div>'
+      +(hist.length?'<div class="hist">'+hist.map(function(h){return '<span class="hpill"><b>'+h.w+'</b> lb × '+h.r+'</span>';}).join('')+'</div>':'')
+      +'</div>';
+  }).join('');
+}
+function renderProg(){
+  if(!LOG.length) return '<div class="empty-msg">Log a few lifts and your pattern progress shows up here.</div>';
+  return PATTERNS.map(function(p){
+    var e=LOG.filter(function(x){return x.p===p;});
+    if(!e.length) return '';
+    var avgW=Math.round(e.reduce(function(a,x){return a+x.w;},0)/e.length*10)/10;
+    var avgR=Math.round(e.reduce(function(a,x){return a+x.r;},0)/e.length);
+    var best=Math.max.apply(null,e.map(function(x){return x.w;}));
+    // trend: avg weight per week bucket (last up to 8 sessions)
+    var recent=e.slice().sort(function(a,b){return a.ts-b.ts;}).slice(-8);
+    var mx=Math.max.apply(null,recent.map(function(x){return x.w;}))||1;
+    var bars=recent.map(function(x){return '<div class="bar" style="height:'+Math.max(8,Math.round(x.w/mx*100))+'%"></div>';}).join('');
+    var dir = recent.length>1 ? (recent[recent.length-1].w>recent[0].w?'trending up':(recent[recent.length-1].w<recent[0].w?'easing off':'holding steady')) : 'just getting started';
+    return '<div class="pcard"><div class="pcard-h"><span class="pn">'+p+'</span><span class="pbadge '+p+'">'+e.length+' logged</span></div>'
+      +'<div class="pstats"><div class="pstat"><div class="v">'+avgW+'</div><div class="l">Avg lb</div></div>'
+      +'<div class="pstat"><div class="v">'+avgR+'</div><div class="l">Avg reps</div></div>'
+      +'<div class="pstat"><div class="v">'+best+'</div><div class="l">Best lb</div></div></div>'
+      +'<div class="trend">'+bars+'</div><div class="tnote">Your '+p.toLowerCase()+' pattern is '+dir+'.</div></div>';
+  }).join('') || '<div class="empty-msg">Log a few lifts and your pattern progress shows up here.</div>';
+}
+function render(){ document.getElementById('view').innerHTML = TAB==='log'?renderLog():renderProg(); }
+render();
+</script>
+</body>
+</html>
