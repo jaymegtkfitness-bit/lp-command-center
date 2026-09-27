@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- THE LEGACY METHOD — original LP method page, structured like a modern method page (hero → the
+     problem → the method → the seasons → the numbers → proof → tools → the path → FAQ → CTA).
+     100% Legacy's own method content (Awareness Circle, Season Cycle, Macro Freedom, the 5,000 mission).
+     Legacy Dark. No em dashes in member copy. Links out to the already-built free tools. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#141310">
+<title>The Legacy Method | Legacy Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.3);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.045);--field-line:rgba(242,237,228,.13)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink);scroll-behavior:smooth}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);-webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;
+  background:radial-gradient(ellipse 60% 30% at 50% 2%, rgba(193,173,114,.1), transparent 60%),radial-gradient(ellipse 100% 40% at 0% 60%, rgba(74,92,62,.4), transparent 72%),radial-gradient(ellipse 90% 40% at 100% 100%, rgba(74,92,62,.35), transparent 72%),linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
+.wrap{position:relative;z-index:1;max-width:620px;margin:0 auto;padding:0 20px}
+.head{display:flex;justify-content:space-between;align-items:center;padding:22px 0}
+.head img{height:38px;width:auto;margin-left:-4px}
+.head a{color:var(--gold);text-decoration:none;font-weight:800;font-size:.82rem;letter-spacing:.02em;border:1px solid var(--gold-dim);padding:9px 15px;border-radius:10px}
+section{padding:46px 0}
+.eyebrow{font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.h-hero{font-weight:900;letter-spacing:-.01em;line-height:1.0;text-transform:uppercase;margin-top:14px}
+.h-hero .l1{display:block;font-size:clamp(2.0rem,9vw,2.7rem)}
+.h-hero .l2{display:block;font-size:clamp(3.3rem,16vw,4.6rem);color:var(--gold);line-height:.95}
+h2{font-weight:900;font-size:clamp(1.7rem,6.5vw,2.3rem);letter-spacing:-.01em;text-transform:uppercase;line-height:1.05}
+h2 .g{color:var(--gold)}
+.k{font-size:.68rem;letter-spacing:.24em;text-transform:uppercase;color:var(--olive-lt);font-weight:700;margin-bottom:12px}
+.lead{margin-top:16px;font-size:1.05rem;color:var(--body);max-width:520px}
+p.big{font-size:1.15rem;color:#fff;font-weight:600;line-height:1.5}
+p.body{font-size:1rem;color:var(--body);margin-top:12px;max-width:520px}
+.cta{display:inline-block;margin-top:22px;background:var(--gold);color:var(--ink);font-weight:800;font-size:1rem;letter-spacing:.03em;padding:16px 26px;border-radius:13px;text-decoration:none;box-shadow:0 10px 30px rgba(193,173,114,.28)}
+.cta.ghost{background:transparent;color:var(--parch);border:1px solid var(--field-line);box-shadow:none;margin-left:8px}
+/* the circle / cards */
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.grid4{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.card{background:rgba(255,255,255,.025);border:1px solid var(--field-line);border-radius:16px;padding:20px 18px}
+.card .cn{font-family:Cinzel,serif;font-weight:700;color:var(--gold);font-size:1.1rem}
+.card h3{font-size:1.05rem;font-weight:800;color:#fff;margin-top:6px}
+.card p{font-size:.9rem;color:var(--soft);margin-top:7px;line-height:1.55}
+.seasons{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:8px;margin-top:22px}
+.season{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:13px;padding:14px 10px;text-align:center}
+.season b{display:block;font-family:Cinzel,serif;font-weight:700;color:#fff;font-size:1rem}
+.season span{font-size:.66rem;color:var(--soft);text-transform:uppercase;letter-spacing:.06em;margin-top:4px;display:block}
+.season.hinge{border-color:var(--gold-dim);background:linear-gradient(180deg,rgba(193,173,114,.14),rgba(255,255,255,.03))}
+.season.hinge b{color:var(--gold)}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.num{background:linear-gradient(90deg,rgba(84,106,70,.14),rgba(255,255,255,.028));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:14px;padding:16px}
+.num .v{font-family:Cinzel,serif;font-weight:700;color:var(--gold);font-size:1.5rem}
+.num .l{font-size:.85rem;color:var(--body);margin-top:4px}
+.proof{display:grid;gap:12px;margin-top:22px}
+.q{background:rgba(255,255,255,.025);border:1px solid var(--field-line);border-radius:15px;padding:18px}
+.q p{font-size:1rem;color:#fff;font-style:italic;line-height:1.5}
+.q span{display:block;font-size:.8rem;color:var(--gold);font-weight:700;margin-top:10px;font-style:normal}
+.tools{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:22px}
+.tool{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:14px;padding:16px;text-decoration:none;color:inherit;transition:border-color .15s,transform .15s;display:block}
+.tool:hover{border-color:var(--gold);transform:translateY(-2px)}
+.tool h3{font-size:.95rem;font-weight:800;color:#fff}
+.tool p{font-size:.78rem;color:var(--soft);margin-top:4px}
+.tool .go{font-size:.74rem;font-weight:800;color:var(--gold);margin-top:9px}
+.ladder{display:grid;gap:12px;margin-top:22px}
+.rung{display:grid;grid-template-columns:44px 1fr auto;gap:14px;align-items:center;background:rgba(255,255,255,.025);border:1px solid var(--field-line);border-radius:15px;padding:16px}
+.rung .n{width:44px;height:44px;border-radius:11px;background:rgba(193,173,114,.14);display:grid;place-items:center;color:var(--gold);font-family:Cinzel,serif;font-weight:700;font-size:1.3rem}
+.rung h3{font-size:1rem;font-weight:800;color:#fff}
+.rung p{font-size:.82rem;color:var(--soft);margin-top:2px}
+.rung .price{font-weight:800;color:var(--gold);font-size:.95rem;white-space:nowrap}
+.faq{margin-top:22px}
+.faq details{border-bottom:1px solid var(--field-line);padding:14px 0}
+.faq summary{cursor:pointer;font-weight:800;color:#fff;font-size:1rem;list-style:none}
+.faq summary::-webkit-details-marker{display:none}
+.faq p{font-size:.92rem;color:var(--body);margin-top:10px;line-height:1.6}
+.faithbox{margin-top:22px;background:linear-gradient(90deg,rgba(193,173,114,.1),rgba(255,255,255,.03));border:1px solid var(--gold-dim);border-left:3px solid var(--gold);border-radius:15px;padding:18px}
+.faithbox p{font-size:.95rem;color:var(--body);line-height:1.6}
+.finalcta{text-align:center;padding:56px 0}
+.foot{border-top:1px solid var(--field-line);padding:26px 0 40px;text-align:center;color:#7d786d;font-size:.78rem}
+@media(max-width:520px){.seasons{grid-template-columns:1fr 1fr}.grid2,.nums,.tools{grid-template-columns:1fr}.rung{grid-template-columns:40px 1fr}.rung .price{grid-column:2;justify-self:start;margin-top:4px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="head">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <a href="#start">Get started</a>
+  </div>
+
+  <!-- HERO -->
+  <section style="padding-top:20px">
+    <div class="eyebrow">The Legacy Method</div>
+    <h1 class="h-hero"><span class="l1">The system behind</span><span class="l2">your health</span></h1>
+    <p class="lead">Not another diet. Not another workout app. A way of seeing your body clearly, so the right move becomes obvious, and you can run it for the rest of your life.</p>
+    <a class="cta" href="#start">See where you stand</a>
+  </section>
+
+  <!-- THE PROBLEM -->
+  <section>
+    <div class="k">Start here</div>
+    <p class="big">You do not have a discipline problem. You have an awareness problem.</p>
+    <p class="body">You have tried the plans. You have had the willpower. What no one gave you was a clear read on what your body is actually doing and what to do about it. Information was never your problem. Seeing clearly was. That is what this fixes first.</p>
+  </section>
+
+  <!-- THE METHOD: THE AWARENESS CIRCLE -->
+  <section>
+    <h2>The Awareness <span class="g">Circle</span></h2>
+    <p class="body">Your body is always running one loop. Learn to read the four parts of it and you stop guessing. Everything we coach lives inside this circle.</p>
+    <div class="grid4">
+      <div class="card"><div class="cn">01</div><h3>Signals</h3><p>What your body is telling you. Your numbers, your labs, your genetics, the scale read as a trend.</p></div>
+      <div class="card"><div class="cn">02</div><h3>Fuel</h3><p>What you put in. Protein first, produce, water, and the freedom to eat like a real person.</p></div>
+      <div class="card"><div class="cn">03</div><h3>Output</h3><p>What you spend. Training, steps, and the life you are actually building with the energy you get back.</p></div>
+      <div class="card"><div class="cn">04</div><h3>Recovery</h3><p>What you rebuild. Sleep, stress, and the rest that lets the whole loop keep going.</p></div>
+    </div>
+  </section>
+
+  <!-- THE SEASONS -->
+  <section>
+    <h2>Your body has <span class="g">seasons</span></h2>
+    <p class="body">You were never meant to diet forever, or bulk forever. You move through phases of one lifelong system, and Sustain is the hinge you always come home to. Not a circle. A spiral, climbing.</p>
+    <div class="seasons">
+      <div class="season"><b>Reverse</b><span>Rebuild the engine</span></div>
+      <div class="season"><b>Lean</b><span>Take fat off</span></div>
+      <div class="season hinge"><b>Sustain</b><span>The hinge</span></div>
+      <div class="season"><b>Strong</b><span>Build the muscle</span></div>
+    </div>
+    <p class="body" style="margin-top:16px">Most people live stuck in one gear. You will learn to shift, on purpose, for the rest of your life.</p>
+  </section>
+
+  <!-- THE NUMBERS: MACRO FREEDOM -->
+  <section>
+    <h2>Macro <span class="g">Freedom</span></h2>
+    <p class="body">Four numbers you are taught once, that you can run without an app, forever. Hit these and the rest takes care of itself. Free meals get no calorie number. You compose them, you do not cap them.</p>
+    <div class="nums">
+      <div class="num"><div class="v">Calories</div><div class="l">Your ideal body weight times 13, to start.</div></div>
+      <div class="num"><div class="v">Protein</div><div class="l">About one gram per pound of your goal weight.</div></div>
+      <div class="num"><div class="v">Produce</div><div class="l">600 to 800 grams a day. Volume you can see.</div></div>
+      <div class="num"><div class="v">Water</div><div class="l">Half your body weight in ounces.</div></div>
+    </div>
+  </section>
+
+  <!-- THE MISSION -->
+  <section>
+    <div class="k">Why this exists</div>
+    <p class="big">Five thousand lives. One at a time.</p>
+    <p class="body">We are here to help five thousand people build a life that is Built 4 More, and every one of them changes three more. You are not a number here. You are a person, with a story, and the best thing you can do is bring the people you love along with you.</p>
+  </section>
+
+  <!-- PROOF -->
+  <section>
+    <div class="k">What it looks like</div>
+    <div class="proof">
+      <div class="q"><p>"I stopped white knuckling it. I finally understand what my body is doing, and for the first time the plan fits my actual life."</p><span>Woman, 40s</span></div>
+      <div class="q"><p>"I have more energy, my bloodwork moved, and I am eating more food than I have in years. Nobody ever taught me the way out."</p><span>Woman, 50s</span></div>
+    </div>
+  </section>
+
+  <!-- TOOLS -->
+  <section>
+    <h2>Free <span class="g">tools</span></h2>
+    <p class="body">Start seeing clearly right now. No cost, no catch.</p>
+    <div class="tools">
+      <a class="tool" href="../score/"><h3>The Legacy Score</h3><p>An honest read on where your health stands today.</p><div class="go">Get my score →</div></a>
+      <a class="tool" href="../find-your-phase/"><h3>Find Your Phase</h3><p>Which season your body is actually in.</p><div class="go">Find my phase →</div></a>
+      <a class="tool" href="../tools/protein/"><h3>Protein Target</h3><p>Your daily protein floor and target.</p><div class="go">Open →</div></a>
+      <a class="tool" href="../tools/calories/"><h3>Calorie Range</h3><p>Your starting number, no guessing.</p><div class="go">Open →</div></a>
+    </div>
+    <p class="body" style="margin-top:14px"><a href="../tools/" style="color:var(--gold);font-weight:700;text-decoration:none">See all the free tools →</a></p>
+  </section>
+
+  <!-- THE PATH -->
+  <section id="start">
+    <h2>The <span class="g">path</span></h2>
+    <p class="body">Enter free. Move at your pace. Go deeper when you are ready.</p>
+    <div class="ladder">
+      <div class="rung"><div class="n">1</div><div><h3>The Power Food System</h3><p>The free method that teaches you the numbers and how to eat like a person.</p></div><div class="price">Free</div></div>
+      <div class="rung"><div class="n">2</div><div><h3>The Complete Nutrition System</h3><p>Your plan, built for you around the foods you already eat, and re-buildable forever.</p></div><div class="price">$497</div></div>
+      <div class="rung"><div class="n">3</div><div><h3>Built 4 More</h3><p>Proximity and an exact step-by-step roadmap to any goal, with a coach in your corner.</p></div><div class="price">Apply</div></div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section>
+    <h2>Honest <span class="g">answers</span></h2>
+    <div class="faq">
+      <details><summary>Is this just another diet?</summary><p>No. A diet gets you to one goal, once. This is a system you run for life, that moves with you through every season your body goes through.</p></details>
+      <details><summary>Do I have to give up the foods I love?</summary><p>No. Macro Freedom is built so real food and real life fit inside your numbers. Free meals are part of the plan, not a cheat.</p></details>
+      <details><summary>What if I have tried everything and nothing works anymore?</summary><p>Then you probably do not have a willpower problem. You have an adapted metabolism, and the first move is not another deficit. We read your numbers and start you in the right season.</p></details>
+      <details><summary>Do I have to be religious?</summary><p>No. This is founded on biblical principles for the wisdom they bring, and it is built for everyone. You do not have to believe what we believe to get the full benefit.</p></details>
+    </div>
+  </section>
+
+  <!-- FAITH -->
+  <section style="padding-top:0">
+    <div class="faithbox"><p>The curriculum is built on sound science, and none of it is medical advice. In addition to the science, the heart of Legacy Performance is founded on biblical principles, for the wisdom they bring. That wisdom is for everyone. You are welcome here exactly as you are.</p></div>
+  </section>
+
+  <!-- FINAL CTA -->
+  <section class="finalcta">
+    <div class="eyebrow">Your first step</div>
+    <h2 style="margin-top:12px">See where you <span class="g">stand</span></h2>
+    <p class="body" style="margin:14px auto 0">Get your numbers and your season in a few minutes, then book a call to hear your best next move.</p>
+    <div style="margin-top:24px"><a class="cta" href="../score/">Get my Legacy Score</a><a class="cta ghost" href="../onboarding/book.html">Book a call</a></div>
+  </section>
+
+  <div class="foot">Legacy Performance · Founded on biblical values, built for everyone.<br>Not medical advice. Talk with your own doctor before changing how you eat, train, or supplement.</div>
+</div>
+</body>
+</html>
