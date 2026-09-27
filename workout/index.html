@@ -39,6 +39,8 @@ h1{font-family:Montserrat;font-weight:900;font-size:2.1rem;letter-spacing:-.01em
   border:1px solid var(--olive-dim);border-radius:14px;padding:12px 14px}
 .timer .tlab{font-size:.62rem;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);font-weight:700}
 .timer .tval{font-family:Cinzel,serif;font-weight:700;font-size:1.5rem;color:#fff;font-variant-numeric:tabular-nums}
+.timer .tval.gold{color:var(--gold)}
+.timer .tcol{display:flex;flex-direction:column}
 .timer .trow{display:flex;align-items:center;gap:12px}
 .tbtn{background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:inherit;font-weight:800;font-size:.78rem;padding:9px 13px;cursor:pointer;letter-spacing:.02em}
 .tbtn.ghost{background:transparent;border:1px solid var(--field-line);color:var(--parch)}
@@ -113,11 +115,9 @@ h1{font-family:Montserrat;font-weight:900;font-size:2.1rem;letter-spacing:-.01em
   <p class="sub">4 blocks · tap an exercise to log your sets. It remembers last time.</p>
 
   <div class="timer">
-    <div><div class="tlab">Rest timer</div><div class="tval" id="tval">0:00</div></div>
-    <div class="trow">
-      <button class="tbtn ghost" onclick="restReset()">Reset</button>
-      <button class="tbtn" id="tbtn" onclick="restToggle()">Start 90s</button>
-    </div>
+    <div class="tcol"><div class="tlab">Workout</div><div class="tval" id="wkTime">0:00</div></div>
+    <div class="tcol"><div class="tlab">Rest</div><div class="tval gold" id="restTime">0:00</div></div>
+    <button class="tbtn ghost" onclick="resetRest()">Reset rest</button>
   </div>
 
   <div id="list"></div>
@@ -191,7 +191,7 @@ function render(){
   var doneEx=DAY.filter(function(_,i){return (LOG[i]||[]).length>=3;}).length;
   document.getElementById('prog').textContent=doneEx+' of '+DAY.length+' exercises done · '+totalSets+' sets logged';
 }
-function toggle(i){ openIdx=(openIdx===i?-1:i); render(); }
+function toggle(i){ openIdx=(openIdx===i?-1:i); startClock(); render(); }
 function bump(i,f,d){ var el=document.getElementById(f+i); var v=+el.textContent+d; if(f==='w')v=Math.max(0,v); if(f==='r')v=Math.max(1,v); el.textContent=v; }
 function saveSet(i){
   var w=+document.getElementById('w'+i).textContent, r=+document.getElementById('r'+i).textContent;
@@ -199,16 +199,18 @@ function saveSet(i){
   var pr = (w*r)>prevBest && prevBest>0 ? true : (prevBest===0 ? false : false);
   LOG[i]=LOG[i]||[]; LOG[i].push({w:w,r:r,pr:pr});
   try{ localStorage.setItem('lp_wk_demo', JSON.stringify(LOG)); }catch(e){}
-  restStart(90);
+  markSet();
   render();
 }
 /* rest timer */
-var RT=null, rleft=0;
-function fmt(s){ var m=Math.floor(s/60); return m+':'+('0'+(s%60)).slice(-2); }
-function restStart(s){ rleft=s; document.getElementById('tval').textContent=fmt(rleft); document.getElementById('tbtn').textContent='Pause';
-  clearInterval(RT); RT=setInterval(function(){ rleft--; if(rleft<=0){ rleft=0; clearInterval(RT); document.getElementById('tbtn').textContent='Start 90s'; } document.getElementById('tval').textContent=fmt(rleft); },1000); }
-function restToggle(){ if(RT){ clearInterval(RT); RT=null; document.getElementById('tbtn').textContent='Resume'; } else if(rleft>0){ restStart(rleft); } else { restStart(90); } }
-function restReset(){ clearInterval(RT); RT=null; rleft=0; document.getElementById('tval').textContent='0:00'; document.getElementById('tbtn').textContent='Start 90s'; }
+var sessionStart=null, lastSet=null, CLK=null;
+function fmt(s){ var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return (h?h+':'+('0'+m).slice(-2):''+m)+':'+('0'+ss).slice(-2); }
+function tick(){ var now=Date.now();
+  var a=document.getElementById('wkTime'); if(a) a.textContent=sessionStart?fmt(Math.floor((now-sessionStart)/1000)):'0:00';
+  var b=document.getElementById('restTime'); if(b) b.textContent=lastSet?fmt(Math.floor((now-lastSet)/1000)):'0:00'; }
+function startClock(){ if(!sessionStart)sessionStart=Date.now(); if(!CLK)CLK=setInterval(tick,1000); tick(); }
+function markSet(){ lastSet=Date.now(); startClock(); }
+function resetRest(){ lastSet=Date.now(); startClock(); }
 function finish(){ alert('Nice work. Your sets are saved and would flow into your weekly check-in.'); }
 render();
 </script>
