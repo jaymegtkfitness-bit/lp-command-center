@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Generic personal workout tracker shell. Holds NO program of its own — the program loads from
+     the viewer's own private link (#fragment, gzip+base64) and is cached to their device only.
+     Safe to deploy: this file contains no program content; logging is localStorage per device. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<meta name="theme-color" content="#141310">
+<title>My Training</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.3);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.05);--field-line:rgba(242,237,228,.14)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink)}
+body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);-webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
+  background:radial-gradient(ellipse 70% 34% at 50% 2%, rgba(193,173,114,.09), transparent 60%),radial-gradient(ellipse 105% 50% at 0% 100%, rgba(74,92,62,.5), transparent 74%),linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
+.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))}
+.eyebrow{font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);font-weight:700}
+h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:uppercase;line-height:1.05;margin-top:6px}
+.pnotes{margin-top:10px}
+.pnotes summary{cursor:pointer;font-size:.78rem;font-weight:700;color:var(--gold);list-style:none}
+.pnotes summary::-webkit-details-marker{display:none}
+.pnotes .body{margin-top:8px;font-size:.82rem;color:var(--body);line-height:1.55;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:12px 14px}
+/* nav */
+.nav{display:flex;gap:8px;overflow-x:auto;margin-top:16px;padding-bottom:4px;scrollbar-width:none}
+.nav::-webkit-scrollbar{display:none}
+.nchip{flex:0 0 auto;background:rgba(255,255,255,.04);border:1px solid var(--field-line);color:var(--body);font-family:inherit;font-weight:700;font-size:.8rem;padding:8px 14px;border-radius:99px;cursor:pointer;white-space:nowrap}
+.nchip.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.navlabel{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--soft);font-weight:700;margin:16px 0 8px}
+/* timer */
+.timer{position:sticky;top:8px;z-index:5;margin-top:16px;display:flex;align-items:center;justify-content:space-between;gap:10px;background:linear-gradient(90deg,rgba(84,106,70,.22),rgba(20,19,16,.85));backdrop-filter:blur(8px);border:1px solid var(--olive-dim);border-radius:14px;padding:11px 13px}
+.timer .tlab{font-size:.6rem;letter-spacing:.18em;text-transform:uppercase;color:var(--soft);font-weight:700}
+.timer .tval{font-family:Cinzel,serif;font-weight:700;font-size:1.4rem;color:#fff;font-variant-numeric:tabular-nums}
+.timer .tval.gold{color:var(--gold)}
+.timer .tcol{display:flex;flex-direction:column}
+.tbtn{background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:inherit;font-weight:800;font-size:.76rem;padding:9px 12px;cursor:pointer}
+.tbtn.ghost{background:transparent;border:1px solid var(--field-line);color:var(--parch)}
+/* exercise */
+.ex{margin-top:11px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:16px;overflow:hidden}
+.ex.done{border-color:var(--olive-dim)}
+.ex-head{display:grid;grid-template-columns:30px 1fr auto;gap:11px;align-items:center;padding:14px 14px;cursor:pointer}
+.blk{width:30px;height:30px;border-radius:8px;background:rgba(193,173,114,.16);display:grid;place-items:center;color:var(--gold);font-family:Cinzel,serif;font-weight:700;font-size:.9rem}
+.ex.done .blk{background:var(--olive);color:#fff}
+.ex-name{font-size:1rem;font-weight:800;color:#fff;line-height:1.2}
+.ex-meta{font-size:.78rem;color:var(--soft);margin-top:2px}
+.ex-meta .last{color:var(--olive-lt)}
+.chev{color:var(--soft);font-size:1.1rem;transition:transform .2s}
+.ex.open .chev{transform:rotate(90deg)}
+.ex-body{display:none;padding:0 14px 14px}
+.ex.open .ex-body{display:block}
+.detail{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.detail .d{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:10px;padding:9px 11px}
+.detail .d span{display:block;font-size:.54rem;letter-spacing:.12em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-bottom:2px}
+.detail .d b{font-size:.88rem;color:#fff;font-weight:800}
+.note{background:rgba(193,173,114,.08);border-left:3px solid var(--gold);border-radius:0 10px 10px 0;padding:9px 12px;margin-bottom:12px;font-size:.82rem;color:var(--body);line-height:1.5}
+.swap{margin-bottom:12px}
+.swap summary{cursor:pointer;font-size:.78rem;font-weight:700;color:var(--gold);list-style:none}
+.swap summary::-webkit-details-marker{display:none}
+.swap .subs{margin-top:8px;display:grid;gap:6px}
+.swap .sub{display:block;width:100%;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:10px;padding:12px 12px;font-size:.86rem;color:var(--body);font-family:inherit;cursor:pointer;transition:border-color .15s,background .15s}
+.swap .sub:hover{border-color:var(--olive-lt)}
+.swap .sub.on{border-color:var(--gold);background:linear-gradient(90deg,rgba(193,173,114,.18),rgba(255,255,255,.03));color:#fff;font-weight:700}
+.swap .sub .tag{font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-left:6px}
+.swap .addown{display:flex;gap:8px;margin-top:2px}
+.swap .custinp{flex:1;min-width:0;background:rgba(255,255,255,.04);border:1px solid var(--field-line);border-radius:10px;color:var(--parch);font-family:inherit;font-size:.85rem;padding:11px 12px;outline:none}
+.swap .custinp:focus{border-color:var(--gold)}
+.swap .custbtn{background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:inherit;font-weight:800;font-size:.8rem;padding:0 16px;cursor:pointer;white-space:nowrap}
+.coach{background:linear-gradient(90deg,rgba(193,173,114,.18),rgba(255,255,255,.03));border:1px solid var(--gold-dim);border-left:3px solid var(--gold);border-radius:12px;padding:11px 13px;margin-bottom:12px}
+.coach .ck{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-bottom:3px}
+.coach .ct{font-size:.86rem;color:#fff;line-height:1.5;font-weight:600}
+.sets{display:grid;gap:7px;margin-bottom:12px}
+.setrow{display:grid;grid-template-columns:24px 1fr auto;gap:10px;align-items:center;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:11px;padding:10px 12px}
+.setrow .sn{font-family:Cinzel,serif;font-weight:700;color:var(--gold);text-align:center}
+.setrow .sv{font-weight:700;color:#fff;font-size:.94rem}
+.setrow .sv small{color:var(--soft);font-weight:600;font-size:.76rem}
+.setrow .pr{color:var(--gold);font-size:.6rem;letter-spacing:.1em;font-weight:800;text-transform:uppercase}
+.logger{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stepper{background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:10px}
+.stepper .k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:700;text-align:center}
+.stepper .row{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-top:6px}
+.sbtn{width:36px;height:36px;border-radius:10px;border:1px solid var(--field-line);background:rgba(255,255,255,.04);color:var(--parch);font-size:1.25rem;font-weight:700;cursor:pointer;line-height:1}
+.sbtn:active{background:var(--gold);color:var(--ink)}
+.sval{font-family:Cinzel,serif;font-weight:700;font-size:1.4rem;color:#fff;min-width:52px;text-align:center;font-variant-numeric:tabular-nums}
+.sinp{font-family:Cinzel,serif;font-weight:700;font-size:1.4rem;color:#fff;background:transparent;border:none;text-align:center;width:72px;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.sinp::-webkit-outer-spin-button,.sinp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.sinp:focus{outline:none;color:var(--gold)}
+.save{grid-column:1/-1;background:var(--gold);color:var(--ink);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.92rem;padding:13px;cursor:pointer;margin-top:2px}
+.finish{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(15,19,16,0),#0f1310 30%)}
+.finish .fin-in{max-width:480px;margin:0 auto}
+.fbtn{display:block;width:100%;background:var(--olive);color:#fff;border:none;border-radius:13px;font-family:inherit;font-weight:800;font-size:.96rem;padding:15px;cursor:pointer}
+.prog{font-size:.7rem;color:var(--soft);text-align:center;margin-bottom:8px;font-weight:600}
+.load{padding:40px 10px;text-align:center;color:var(--soft)}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="eyebrow">Private · Personal use</div>
+  <h1 id="title">My Training</h1>
+  <div id="notesWrap"></div>
+  <div class="navlabel" id="wkLabel" style="display:none">Week</div>
+  <div class="nav" id="weeks"></div>
+  <div class="navlabel" id="dayLabel" style="display:none">Day</div>
+  <div class="nav" id="days"></div>
+  <div class="timer" id="timerBar" style="display:none">
+    <div class="tcol"><div class="tlab">Workout</div><div class="tval" id="wkTime">0:00</div></div>
+    <div class="tcol"><div class="tlab">Rest</div><div class="tval gold" id="restTime">0:00</div></div>
+    <button class="tbtn ghost" onclick="resetRest()">Reset rest</button>
+  </div>
+  <div id="list"><div class="load">Loading your program…</div></div>
+</main>
+<div class="finish" id="finishBar" style="display:none"><div class="fin-in"><div class="prog" id="prog"></div><button class="fbtn" onclick="finish()">Finish workout ✓</button></div></div>
+
+<script>
+var PROG=null, wi=0, di=0, openIdx=0, LOG={}, SWAPS={};
+try{ LOG=JSON.parse(localStorage.getItem('lp_myprog')||'{}'); }catch(e){ LOG={}; }
+try{ SWAPS=JSON.parse(localStorage.getItem('lp_myprog_swaps')||'{}'); }catch(e){ SWAPS={}; }
+function swapTo(ei, nm){ SWAPS[exKey(ei)]=nm; try{ localStorage.setItem('lp_myprog_swaps', JSON.stringify(SWAPS)); }catch(e){} renderList(); }
+function swapCustom(ei){ var el=document.getElementById('cust'+ei); var v=(el&&el.value||'').trim(); if(v) swapTo(ei, v); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
+function flatDays(){ // [{block,label,week,day,exercises}]
+  var out=[]; (PROG.blocks||[]).forEach(function(b){ (b.weeks||[]).forEach(function(w){ (w.days||[]).forEach(function(d){ out.push({block:b.block,label:b.label,week:w.week,day:d.day,exercises:d.exercises||[]}); }); }); }); return out;
+}
+function weeksList(){ var seen={},out=[]; flatDays().forEach(function(x){ var key=(x.block||'')+'|'+x.week; if(!seen[key]){seen[key]=1;out.push(x);} }); return out; }
+function daysForWeek(wkKey){ return flatDays().filter(function(x){ return (x.block||'')+'|'+x.week===wkKey; }); }
+function rng(repRange){ var m=String(repRange||'').match(/(\d+)\s*-\s*(\d+)/); if(m)return[+m[1],+m[2]]; var n=String(repRange||'').match(/(\d+)/); return n?[+n[1],+n[1]]:[8,10]; }
+function rirStr(r){ if(Array.isArray(r))return 'RIR '+r.filter(function(x){return x!=='';}).join('-'); return r?('RIR '+r):''; }
+function key(){ return wi+'|'+di; }
+function exKey(ei){ return key()+'|'+ei; }
+function bestFor(k){ var a=LOG[k]||[]; var b=0; a.forEach(function(s){ if(s.w*s.r>b)b=s.w*s.r; }); return b; }
+
+function renderNav(){
+  var wl=weeksList();
+  document.getElementById('wkLabel').style.display=wl.length>1?'':'none';
+  document.getElementById('weeks').innerHTML=wl.map(function(x,i){
+    return '<button class="nchip'+(i===wi?' on':'')+'" onclick="pickWeek('+i+')">Wk '+x.week+'</button>';
+  }).join('');
+  var wkKey=(wl[wi]?((wl[wi].block||'')+'|'+wl[wi].week):'');
+  var days=daysForWeek(wkKey);
+  document.getElementById('dayLabel').style.display=days.length?'':'none';
+  document.getElementById('days').innerHTML=days.map(function(x,i){
+    return '<button class="nchip'+(i===di?' on':'')+'" onclick="pickDay('+i+')">'+esc(x.day)+'</button>';
+  }).join('');
+}
+function currentDay(){ var wl=weeksList(); var wkKey=(wl[wi]?((wl[wi].block||'')+'|'+wl[wi].week):''); return daysForWeek(wkKey)[di]; }
+function coachRec(ei,ex){ var sets=LOG[exKey(ei)]||[]; var r=rng(ex.repRange); var need=+((ex.workingSets||'').match(/\d+/)||[3])[0]||3;
+  if(sets.length<need) return null; var work=sets.slice(-need);
+  if(work.every(function(s){return s.r>=r[1];})) return 'You hit the top of the range on every set. Add weight next time.';
+  if(work.some(function(s){return s.r<r[0];})) return 'That was heavy. Hold this weight and build back to '+r[0]+' clean reps.';
+  return 'Stay here and add reps until you hit '+r[1]+' on every set, then go heavier.';
+}
+function renderList(){
+  var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
+  document.getElementById('list').innerHTML=(d.exercises||[]).map(function(ex,ei){
+    var r=rng(ex.repRange); var sets=LOG[exKey(ei)]||[]; var need=+((ex.workingSets||'').match(/\d+/)||[3])[0]||3; var done=sets.length>=need;
+    var activeName=SWAPS[exKey(ei)]||ex.exercise; var opts=[ex.exercise,ex.sub1,ex.sub2].filter(Boolean);
+    var setHtml=sets.map(function(s,si){ return '<div class="setrow"><div class="sn">'+(si+1)+'</div><div class="sv">'+s.w+' <small>lb</small> × '+s.r+' <small>reps</small></div>'+(s.pr?'<div class="pr">★ PR</div>':'<div></div>')+'</div>'; }).join('');
+    var rec=coachRec(ei,ex); var recHtml=rec?('<div class="coach"><div class="ck">◆ LP Coach</div><div class="ct">'+esc(rec)+'</div></div>'):'';
+    var custActive=opts.indexOf(activeName)<0;
+    var subs='<details class="swap"><summary>⇄ Swap this exercise</summary><div class="subs">'
+      +(custActive?'<button class="sub on">✓ '+esc(activeName)+'<span class="tag">yours</span></button>':'')
+      +opts.map(function(nm,oi){var on=(nm===activeName);return '<button class="sub'+(on?' on':'')+'" data-nm="'+esc(nm).replace(/"/g,'&quot;')+'" onclick="swapTo('+ei+',this.getAttribute(\'data-nm\'))">'+(on?'✓ ':'')+esc(nm)+(oi===0?'<span class="tag">original</span>':'')+'</button>';}).join('')
+      +'<div class="addown"><input class="custinp" id="cust'+ei+'" type="text" placeholder="Type your own exercise"><button class="custbtn" onclick="swapCustom('+ei+')">Use</button></div>'
+      +'</div></details>';
+    var startW = sets.length?sets[sets.length-1].w:0;
+    return '<div class="ex'+(ei===openIdx?' open':'')+(done?' done':'')+'">'
+      +'<div class="ex-head" onclick="toggle('+ei+')"><div class="blk">'+(ei+1)+'</div>'
+      +'<div><div class="ex-name">'+esc(activeName)+'</div><div class="ex-meta">'+esc((ex.workingSets||'')+' × '+(ex.repRange||''))+' · '+esc(rirStr(ex.rir))+'</div></div><div class="chev">›</div></div>'
+      +'<div class="ex-body">'
+      +'<div class="detail">'
+        +'<div class="d"><span>Warm-up</span><b>'+esc(ex.warmupSets||'—')+'</b></div>'
+        +'<div class="d"><span>Working</span><b>'+esc((ex.workingSets||'')+' × '+(ex.repRange||''))+'</b></div>'
+        +'<div class="d"><span>Intensity</span><b>'+esc(rirStr(ex.rir)||'—')+'</b></div>'
+        +'<div class="d"><span>Rest</span><b>'+esc(ex.rest||'—')+'</b></div>'
+      +'</div>'
+      +(ex.note?'<div class="note">'+esc(ex.note)+'</div>':'')
+      +subs
+      +(setHtml?'<div class="sets">'+setHtml+'</div>':'')
+      +recHtml
+      +'<div class="logger">'
+      +'<div class="stepper"><div class="k">Weight (lb)</div><div class="row"><button class="sbtn" onclick="bump('+ei+',\'w\',-2.5)">−</button><input class="sinp" id="w'+ei+'" type="number" inputmode="decimal" step="2.5" value="'+startW+'"><button class="sbtn" onclick="bump('+ei+',\'w\',2.5)">+</button></div></div>'
+      +'<div class="stepper"><div class="k">Reps</div><div class="row"><button class="sbtn" onclick="bump('+ei+',\'r\',-1)">−</button><input class="sinp" id="r'+ei+'" type="number" inputmode="numeric" step="1" value="'+r[0]+'"><button class="sbtn" onclick="bump('+ei+',\'r\',1)">+</button></div></div>'
+      +'<button class="save" onclick="saveSet('+ei+')">Save set '+(sets.length+1)+' →</button>'
+      +'</div></div></div>';
+  }).join('');
+  var exs=(d.exercises||[]); var doneN=exs.filter(function(_,ei){var need=+((exs[ei].workingSets||'').match(/\d+/)||[3])[0]||3;return (LOG[exKey(ei)]||[]).length>=need;}).length;
+  var totalSets=exs.reduce(function(a,_,ei){return a+((LOG[exKey(ei)]||[]).length);},0);
+  document.getElementById('prog').textContent=doneN+' of '+exs.length+' exercises · '+totalSets+' sets logged';
+}
+function render(){ renderNav(); renderList(); }
+function pickWeek(i){ wi=i; di=0; openIdx=0; render(); }
+function pickDay(i){ di=i; openIdx=0; render(); window.scrollTo(0,0); }
+function toggle(i){ openIdx=(openIdx===i?-1:i); startClock(); renderList(); }
+function bump(ei,f,d){ var el=document.getElementById(f+ei); var v=(parseFloat(el.value)||0)+d; if(f==='w')v=Math.max(0,Math.round(v*2)/2); if(f==='r')v=Math.max(1,Math.round(v)); el.value=v; }
+function saveSet(ei){ var w=parseFloat(document.getElementById('w'+ei).value)||0, r=parseInt(document.getElementById('r'+ei).value,10)||0; if(!r){ return; } var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); renderList(); }
+/* Two running clocks: Workout (total elapsed, starts on first move, never resets until Finish)
+   and Rest (time since your last set, resets every time you save a set or tap Reset rest). */
+var sessionStart=null, lastSet=null, CLK=null;
+function fmt(s){ var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return (h?h+':'+('0'+m).slice(-2):''+m)+':'+('0'+ss).slice(-2); }
+function tick(){ var now=Date.now();
+  var a=document.getElementById('wkTime'); if(a) a.textContent=sessionStart?fmt(Math.floor((now-sessionStart)/1000)):'0:00';
+  var b=document.getElementById('restTime'); if(b) b.textContent=lastSet?fmt(Math.floor((now-lastSet)/1000)):'0:00'; }
+function startClock(){ if(!sessionStart)sessionStart=Date.now(); if(!CLK)CLK=setInterval(tick,1000); tick(); }
+function markSet(){ lastSet=Date.now(); startClock(); }
+function resetRest(){ lastSet=Date.now(); startClock(); }
+function finish(){ alert('Session saved on this device. This is your private trial of the LP workout system.'); }
+
+/* This page holds NO program of its own. Your program rides in your PRIVATE link's #fragment
+   (gzip+base64). First open loads it and caches it to this device, so after that it works from
+   your home screen even without the link. Nothing is stored on the server. */
+function boot(j){
+  PROG=j;
+  document.getElementById('title').textContent=(j.title||'My Training').replace(/\.xlsx$/i,'').replace(/_/g,' ');
+  if(j.notes){ document.getElementById('notesWrap').innerHTML='<details class="pnotes"><summary>Program notes</summary><div class="body">'+esc(j.notes)+'</div></details>'; }
+  document.getElementById('timerBar').style.display='';
+  document.getElementById('finishBar').style.display='';
+  render();
+}
+async function ungz(b64){
+  var bin=atob(b64), by=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) by[i]=bin.charCodeAt(i);
+  var s=new Blob([by]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return await new Response(s).text();
+}
+(async function(){
+  var h=decodeURIComponent((location.hash||'').replace(/^#/,''));
+  try{
+    if(h){ var txt=await ungz(h); try{ localStorage.setItem('lp_prog_data', txt); }catch(e){} boot(JSON.parse(txt)); return; }
+    var cached=localStorage.getItem('lp_prog_data'); if(cached){ boot(JSON.parse(cached)); return; }
+    document.getElementById('list').innerHTML='<div class="load">Open your personal program link to load your training.</div>';
+  }catch(e){
+    document.getElementById('list').innerHTML='<div class="load">Could not load your program on this browser.<br><span style="font-size:.8rem">Try Safari or Chrome (needs a recent version).</span></div>';
+  }
+})();
+</script>
+</body>
+</html>
