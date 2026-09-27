@@ -190,7 +190,7 @@ function render(){
         +'<div class="d"><span>Rest</span><b>'+x.rest+'</b></div>'
       +'</div>'
       +'<div class="note">'+x.note+'</div>'
-      +'<details class="swap"'+(activeName!==x.name?' open':'')+'><summary>⇄ Swap this exercise</summary><div class="subs">'
+      +'<details class="swap"><summary>⇄ Swap this exercise</summary><div class="subs">'
         +(custActive?'<button class="sub on">✓ '+activeName+'<span class="tag">yours</span></button>':'')
         +opts.map(function(nm,oi){var on=(nm===activeName);return '<button class="sub'+(on?' on':'')+'" data-nm="'+String(nm).replace(/"/g,'&quot;')+'" onclick="swapDTo('+i+',this.getAttribute(\'data-nm\'))">'+(on?'✓ ':'')+nm+(oi===0?'<span class="tag">original</span>':'')+'</button>';}).join('')
         +'<div class="addown"><input class="custinp" id="cust'+i+'" type="text" placeholder="Type your own exercise"><button class="custbtn" onclick="swapDCustom('+i+')">Use</button></div>'
