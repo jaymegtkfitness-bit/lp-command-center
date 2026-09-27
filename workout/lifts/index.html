@@ -31,6 +31,10 @@ h1{font-weight:900;font-size:2rem;letter-spacing:-.01em;text-transform:uppercase
 .tabs{display:flex;gap:8px;margin-top:18px}
 .tab{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--field-line);color:var(--body);font-family:inherit;font-weight:800;font-size:.86rem;padding:11px;border-radius:12px;cursor:pointer;letter-spacing:.02em}
 .tab.on{background:var(--gold);color:var(--ink);border-color:var(--gold)}
+.weeknav{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:16px;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:8px 10px}
+.weeknav .wl{font-weight:800;color:#fff;font-size:.92rem}
+.weeknav .wn{width:36px;height:36px;border-radius:9px;border:1px solid var(--field-line);background:rgba(255,255,255,.04);color:var(--parch);font-size:1.1rem;font-weight:700;cursor:pointer}
+.weeknav .wn:disabled{opacity:.3;cursor:default}
 /* pattern badge */
 .pbadge{display:inline-block;font-size:.56rem;letter-spacing:.12em;text-transform:uppercase;font-weight:800;padding:4px 8px;border-radius:99px;border:1px solid var(--field-line);color:var(--olive-lt)}
 .pbadge.Squat{color:#C1AD72;border-color:rgba(193,173,114,.4)}
@@ -78,7 +82,7 @@ h1{font-weight:900;font-size:2rem;letter-spacing:-.01em;text-transform:uppercase
     <img src="../logo-white-gold.png" alt="Legacy Performance">
     <button class="done" onclick="location.href='../client.html'">Done</button>
   </div>
-  <div class="eyebrow">Bootcamp · Week of Sept 28</div>
+  <div class="eyebrow">Bootcamp Strength</div>
   <h1>Your Lifts</h1>
   <p class="sub">Track this week's key lifts. Your progress rolls up by movement pattern.</p>
   <div class="tabs">
@@ -88,18 +92,26 @@ h1{font-weight:900;font-size:2rem;letter-spacing:-.01em;text-transform:uppercase
   <div id="view"></div>
 </main>
 <script>
-/* Coach curates these each week — a few KEY trackable lifts, each tagged with a movement pattern.
-   (Generic exercise names; the value is the tracking + the pattern rollups.) */
-var WEEK=[
-  {n:'Goblet Squat', p:'Squat'},
-  {n:'KB Sumo Deadlift', p:'Hinge'},
-  {n:'DB Push Press', p:'Push'},
-  {n:'1-Arm DB Row', p:'Pull'},
-  {n:'DB Reverse Lunge', p:'Lunge'},
-  {n:'KB Swing', p:'Hinge'},
-  {n:'DB Chest Press', p:'Push'}
+/* Weekly schedule of KEY trackable lifts. Each week the coach curates a few lifts tagged by pattern.
+   The tracker AUTO-SHOWS the current week by date, and advances on its own each week. (In the real
+   build this list is fed from the coach each week; here a few weeks are seeded to show it working.) */
+var SCHEDULE=[
+  {start:'2026-09-28', label:'Week of Sep 28', lifts:[
+    {n:'Goblet Squat',p:'Squat'},{n:'KB Sumo Deadlift',p:'Hinge'},{n:'DB Push Press',p:'Push'},
+    {n:'1-Arm DB Row',p:'Pull'},{n:'DB Reverse Lunge',p:'Lunge'},{n:'KB Swing',p:'Hinge'},{n:'DB Chest Press',p:'Push'}]},
+  {start:'2026-10-05', label:'Week of Oct 5', lifts:[
+    {n:'Front Squat',p:'Squat'},{n:'DB RDL',p:'Hinge'},{n:'DB Bench Press',p:'Push'},
+    {n:'Chest-Supported Row',p:'Pull'},{n:'Walking Lunge',p:'Lunge'},{n:'Hanging Knee Raise',p:'Core'},{n:'DB Overhead Press',p:'Push'}]},
+  {start:'2026-10-12', label:'Week of Oct 12', lifts:[
+    {n:'Bulgarian Split Squat',p:'Lunge'},{n:'KB Deadlift',p:'Hinge'},{n:'Push-Up',p:'Push'},
+    {n:'Lat Pulldown',p:'Pull'},{n:'Goblet Squat',p:'Squat'},{n:'Weighted Plank',p:'Core'}]}
 ];
 var PATTERNS=['Squat','Hinge','Push','Pull','Lunge','Core'];
+function curWeekIdx(){ var t=new Date(); t.setHours(0,0,0,0); var idx=0;
+  for(var i=0;i<SCHEDULE.length;i++){ if(new Date(SCHEDULE[i].start+'T00:00:00')<=t) idx=i; } return idx; }
+var WI=curWeekIdx();
+var WEEK=SCHEDULE[WI].lifts;
+function setWeek(i){ if(i<0||i>=SCHEDULE.length) return; WI=i; WEEK=SCHEDULE[WI].lifts; render(); }
 var LOG=[]; try{ LOG=JSON.parse(localStorage.getItem('lp_lifts_log')||'[]'); }catch(e){ LOG=[]; }
 var TAB='log';
 function save(){ try{ localStorage.setItem('lp_lifts_log', JSON.stringify(LOG)); }catch(e){} }
@@ -148,7 +160,8 @@ function renderProg(){
       +'<div class="trend">'+bars+'</div><div class="tnote">Your '+p.toLowerCase()+' pattern is '+dir+'.</div></div>';
   }).join('') || '<div class="empty-msg">Log a few lifts and your pattern progress shows up here.</div>';
 }
-function render(){ document.getElementById('view').innerHTML = TAB==='log'?renderLog():renderProg(); }
+function renderWeekNav(){ var s=SCHEDULE[WI]; return '<div class="weeknav"><button class="wn" '+(WI<=0?'disabled':'')+' onclick="setWeek('+(WI-1)+')">‹</button><div class="wl">'+s.label+'</div><button class="wn" '+(WI>=SCHEDULE.length-1?'disabled':'')+' onclick="setWeek('+(WI+1)+')">›</button></div>'; }
+function render(){ document.getElementById('view').innerHTML = TAB==='log'?(renderWeekNav()+renderLog()):renderProg(); }
 render();
 </script>
 </body>
