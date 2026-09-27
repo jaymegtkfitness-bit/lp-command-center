@@ -61,6 +61,20 @@ h1{font-weight:900;font-size:2rem;letter-spacing:-.01em;text-transform:uppercase
 .hist{margin-top:10px;display:flex;flex-wrap:wrap;gap:6px}
 .hpill{font-size:.72rem;color:var(--soft);background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:8px;padding:5px 9px}
 .hpill b{color:#fff}
+.swap{margin-top:12px}
+.swap summary{cursor:pointer;font-size:.78rem;font-weight:700;color:var(--gold);list-style:none}
+.swap summary::-webkit-details-marker{display:none}
+.swap .subs{margin-top:10px;display:grid;gap:8px}
+.swap .cur{font-size:.82rem;color:var(--body);display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.swap .cur b{color:#fff}
+.swap .rev{background:transparent;border:1px solid var(--field-line);color:var(--soft);font-family:inherit;font-size:.72rem;font-weight:700;padding:6px 10px;border-radius:8px;cursor:pointer}
+.swap .rev:hover{color:var(--gold);border-color:var(--gold)}
+.swap .addown{display:flex;gap:8px}
+.swap .custinp{flex:1;min-width:0;background:rgba(255,255,255,.04);border:1px solid var(--field-line);border-radius:10px;color:var(--parch);font-family:inherit;font-size:.85rem;padding:11px 12px;outline:none}
+.swap .custinp:focus{border-color:var(--gold)}
+.swap .custbtn{background:var(--gold);color:var(--ink);border:none;border-radius:10px;font-family:inherit;font-weight:800;font-size:.8rem;padding:0 16px;cursor:pointer;white-space:nowrap}
+.swap .swnote{font-size:.74rem;color:var(--soft)}
+.swap .swnote b{color:var(--olive-lt)}
 /* progress */
 .pcard{margin-top:12px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:16px;padding:15px 16px}
 .pcard.empty{opacity:.5}
@@ -113,6 +127,14 @@ var WI=curWeekIdx();
 var WEEK=SCHEDULE[WI].lifts;
 function setWeek(i){ if(i<0||i>=SCHEDULE.length) return; WI=i; WEEK=SCHEDULE[WI].lifts; render(); }
 var LOG=[]; try{ LOG=JSON.parse(localStorage.getItem('lp_lifts_log')||'[]'); }catch(e){ LOG=[]; }
+/* Per-slot swaps: a member can plug in their own exercise for a lift (bad knee, machine taken, etc.).
+   The swap keeps the original MOVEMENT PATTERN, so their data still rolls up correctly. */
+var SWAPS_L={}; try{ SWAPS_L=JSON.parse(localStorage.getItem('lp_lifts_swaps')||'{}'); }catch(e){ SWAPS_L={}; }
+function swKey(i){ return WI+'_'+i; }
+function activeLift(i){ return SWAPS_L[swKey(i)]||WEEK[i].n; }
+function saveSwaps(){ try{ localStorage.setItem('lp_lifts_swaps', JSON.stringify(SWAPS_L)); }catch(e){} }
+function swapLiftCustom(i){ var el=document.getElementById('lcust'+i); var v=(el&&el.value||'').trim(); if(v){ SWAPS_L[swKey(i)]=v; saveSwaps(); render(); } }
+function revertLift(i){ delete SWAPS_L[swKey(i)]; saveSwaps(); render(); }
 var TAB='log';
 function save(){ try{ localStorage.setItem('lp_lifts_log', JSON.stringify(LOG)); }catch(e){} }
 function forEx(n){ return LOG.filter(function(x){return x.n===n;}).sort(function(a,b){return b.ts-a.ts;}); }
@@ -120,15 +142,22 @@ function lastEx(n){ var a=forEx(n); return a.length?a[0]:null; }
 function setTab(t){ TAB=t; document.getElementById('tab-log').classList.toggle('on',t==='log'); document.getElementById('tab-prog').classList.toggle('on',t==='prog'); render(); }
 function bump(id,f,d){ var el=document.getElementById(id); var v=(parseFloat(el.value)||0)+d; if(f==='w')v=Math.max(0,Math.round(v*2)/2); else v=Math.max(1,Math.round(v)); el.value=v; }
 function logLift(i){
-  var ex=WEEK[i]; var w=parseFloat(document.getElementById('w'+i).value)||0, r=parseInt(document.getElementById('r'+i).value,10)||0;
+  var name=activeLift(i), p=WEEK[i].p;
+  var w=parseFloat(document.getElementById('w'+i).value)||0, r=parseInt(document.getElementById('r'+i).value,10)||0;
   if(!r) return;
-  LOG.push({n:ex.n, p:ex.p, w:w, r:r, ts:Date.now()}); save(); render();
+  LOG.push({n:name, p:p, w:w, r:r, ts:Date.now()}); save(); render();
 }
 function renderLog(){
   return WEEK.map(function(ex,i){
-    var last=lastEx(ex.n); var hist=forEx(ex.n).slice(0,4);
+    var name=activeLift(i), swapped=(name!==ex.n);
+    var last=lastEx(name); var hist=forEx(name).slice(0,4);
     var startW=last?last.w:0, startR=last?last.r:8;
-    return '<div class="ex"><div class="ex-top"><div><div class="ex-name">'+ex.n+'</div>'
+    var swap='<details class="swap"><summary>⇄ Swap / use your own</summary><div class="subs">'
+      +(swapped?'<div class="cur">Using <b>'+name+'</b><button class="rev" onclick="revertLift('+i+')">↩ back to '+ex.n+'</button></div>':'')
+      +'<div class="addown"><input class="custinp" id="lcust'+i+'" type="text" placeholder="Type the exercise you did"><button class="custbtn" onclick="swapLiftCustom('+i+')">Use</button></div>'
+      +'<div class="swnote">Counts toward your <b>'+ex.p+'</b> pattern either way.</div>'
+      +'</div></details>';
+    return '<div class="ex"><div class="ex-top"><div><div class="ex-name">'+name+'</div>'
       +(last?'<div class="ex-last">last '+last.w+' lb × '+last.r+'</div>':'<div class="ex-last">not logged yet</div>')
       +'</div><span class="pbadge '+ex.p+'">'+ex.p+'</span></div>'
       +'<div class="logger">'
@@ -137,6 +166,7 @@ function renderLog(){
       +'<button class="save" onclick="logLift('+i+')">Log it →</button>'
       +'</div>'
       +(hist.length?'<div class="hist">'+hist.map(function(h){return '<span class="hpill"><b>'+h.w+'</b> lb × '+h.r+'</span>';}).join('')+'</div>':'')
+      + swap
       +'</div>';
   }).join('');
 }
