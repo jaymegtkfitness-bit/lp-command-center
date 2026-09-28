@@ -3024,7 +3024,15 @@ function payload(status){
     glp1:S.glp1, glp1Detail:val('glp1when'), menopause:(S.med.meno === 'yes'),
     cuisines:(M.cuisines||[]).join(', '),
     labs:S.labs||'none', lowNutrients:(S.multi.lownut||[]).join(', '),
+    /* The sheet has no columns for her body numbers, so they also ride in Notes. Without this the
+       build has no weight, goal, sex or targets and cannot be generated at all (Tim Downey, Sept 23). */
     notes:[val('extra'),
+      [ (S.sex||''), (num('age')?num('age')+'y':''), (num('height')?Math.floor(num('height')/12)+"'"+(num('height')%12)+'"':''),
+        (num('cw')?num('cw')+' lb':''), (num('gw')?'goal '+num('gw')+' lb':''), (S.activity||''),
+        (t.calories?t.calories+' cal':''), (t.protein?t.protein+'g protein':'') ].filter(Boolean).join(' · ') ? 
+        'Numbers: '+[ (S.sex||''), (num('age')?num('age')+'y':''), (num('height')?Math.floor(num('height')/12)+"'"+(num('height')%12)+'"':''),
+        (num('cw')?num('cw')+' lb':''), (num('gw')?'goal '+num('gw')+' lb':''), (S.activity||''), (S.phase||''),
+        (t.calories?t.calories+' cal':''), (t.protein?t.protein+'g protein':'') ].filter(Boolean).join(' · ') : '',
       (S.glp1 && S.glp1!=='no') ? 'GLP-1: '+S.glp1+(val('glp1when')?' ('+val('glp1when')+')':'') : '',
       (S.labs && S.labs!=='none') ? 'Labs/genetics: '+S.labs : '',
       (S.multi.lownut||[]).length ? 'Flagged low: '+S.multi.lownut.join(', ') : ''].filter(Boolean).join(' | '),
