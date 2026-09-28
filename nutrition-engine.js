@@ -1655,8 +1655,9 @@ function restaurantMeals(chain, target, opts){
   opts=opts||{};
   var calT=Math.max(200,+target.calories||0), proT=Math.max(10,+target.protein||0);
   var items=rmItems(chain), slot=opts.slot||'meal', want=opts.count||3;
-  var styleOk=rmStyleOk(opts.style);
-  if(styleOk){ var kept=items.filter(styleOk); if(kept.length) items=kept; }
+  var styleOk=rmStyleOk(opts.style), disRx=dislikeRx(opts.dislikes);
+  var ok=function(i){ return (!styleOk || styleOk(i)) && dislikesOk(disRx, i.name+' '+i.serving); };
+  var kept=items.filter(ok); if(kept.length) items=kept;
   var combos=rmCombos(items, slot);
   combos.forEach(function(c){ c.t=rmTotals(c.parts); c.s=rmScore(c, calT, proT); });
   var fits=combos.filter(function(c){ return c.t.kcal<=calT*1.10 && c.t.p>=proT*0.90; });
