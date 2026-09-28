@@ -699,6 +699,8 @@ function recipeCandidates(slotKind, sel, k, used, slotName){
   return RECIPE_LIBRARY.map(function(r, i){ return {r:r, i:i}; })
     .filter(function(x){ return x.r.slot===slotKind; })
     .filter(function(x){ return !picks.length || fams.indexOf(proteinFamily(x.r.lead))>=0; })   // only proteins she eats
+    .filter(function(x){ var rx=dislikeRx(sel.dislikes);
+      return !rx || !(x.r.ing||[]).some(function(g){ return g[4]!=='ps' && rx.test(String(g[2])); }); })
     .map(function(x){
       var pref=star.some(function(n){ return proteinFamily(n)===proteinFamily(x.r.lead); }) ? 0 : 1;
       /* Dinner should read like dinner: a cooked meal beats a cold salad at the end of the day. */
@@ -1008,6 +1010,7 @@ function generateMealPlan(it, sel, days, name){
   }
   var P=pick('protein',sel.protein), C=pick('carb',sel.carb), F=pick('fat',sel.fat);
   var V=(sel.veg&&sel.veg.length)?sel.veg:FOOD_DB.veg;
+  if(DIS){ var vkeep=V.filter(function(v){ return dislikesOk(DIS, v.n||v); }); if(vkeep.length) V=vkeep; }
   var names=S.names;
   var split=MEAL_SPLIT[Math.min(m,5)-1]||MEAL_SPLIT[2];
   var out=[];
@@ -1213,6 +1216,21 @@ var GLP1={vegFactor:0.8,
 function glp1FromIntake(row){ row=row||{}; var v=row.glp1||row['GLP-1']||row['GLP1']||row['Glp1']||row['GLP-1 status']||'';
   if(!v){ var m=String(row.Notes||row.notes||'').match(/GLP-1:\s*(\w+)/i); if(m) v=m[1]; }
   return /^(on|yes|true|1|on one now|currently)/i.test(String(v).trim()) ? 'on' : ''; }
+/* DISLIKES (Jayme 2026-09-28). The intake asks "allergies and dislikes" in plain words ("bell peppers
+   any color, tomatoes"). Allergies were honoured; dislikes were not, so a disliked food still arrived
+   inside a recipe. dislikeRx() turns her words into a matcher used by the food pools, the vegetable
+   list and the recipe filter. Seasonings are exempt, or black pepper would disqualify every recipe. */
+function dislikeRx(list){
+  var terms=(Array.isArray(list)?list:String(list||'').split(/[,|;]/))
+    .map(function(x){ return String(x).toLowerCase()
+      .replace(/\b(any colou?r|all kinds|of any kind|no |dislikes?|hates?|allergic to)\b/g,'')
+      .replace(/[^a-z0-9 ()-]/g,' ').replace(/\s+/g,' ').trim(); })
+    .filter(function(x){ return x.length>2; })
+    .map(function(x){ return x.replace(/(es|s)$/,''); });
+  if(!terms.length) return null;
+  return new RegExp('\\b('+terms.map(function(t){ return t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }).join('|')+')', 'i');
+}
+function dislikesOk(rx, name){ return !rx || !rx.test(String(name||'')); }
 function glp1On(sel){ var v=String((sel||{}).glp1||'').toLowerCase(); return v==='on' || v==='yes' || v==='true' || v==='1'; }
 function glp1Order(list, first, later){
   var f=function(n){ var a=first.indexOf(n), b=later.indexOf(n); return a>=0 ? a : (b>=0 ? 100+b : 50); };
@@ -1220,7 +1238,7 @@ function glp1Order(list, first, later){
 }
 function generateMealOptions(it, sel, name){
   var p=it.pfs; sel=withFruit(sel||{});
-  var GLP=glp1On(sel);
+  var GLP=glp1On(sel), DIS=dislikeRx(sel.dislikes);
   /* Plant-based eaters keep beans, lentils and chickpeas: for them those are protein, not bulk. */
   var LATER=/vegan|vegetarian/i.test(sel.style||'') ? GLP1.carbLater.filter(function(n){ return !/beans|lentils|chickpeas|green peas/.test(n); }) : GLP1.carbLater;
   if(GLP){
@@ -1241,6 +1259,7 @@ function generateMealOptions(it, sel, name){
   var addedFoods={};                                           // slot -> [names we had to add]
   function poolFor(cat, picks, slot){
     var all=safeFoods(cat, sel.style, sel.allergies);
+    if(DIS){ var keep=all.filter(function(f){ return dislikesOk(DIS, f.n); }); if(keep.length>=3) all=keep; }
     var inSlot=function(f){ return f.slot==='any' || f.slot===slot; };
     var theirs=all.filter(function(f){ return !picks||!picks.length||picks.indexOf(f.n)>=0; });
     var fits=theirs.filter(inSlot);

@@ -313,7 +313,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=43"></script>
+<script src="../nutrition-engine.js?v=44"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -404,7 +404,7 @@ function build(){
   var DAILY = (FREE && FREE.extra) ? FREE.pfs : {calories:+IN.cal, protein:+IN.pro, carbs:+IN.carbG, fat:+IN.fatG};
   var it = {pfs:{calories:DAILY.calories, protein:DAILY.protein, carbs:DAILY.carbs, fat:DAILY.fat}};
   PG = 1;
-  var sel = {protein:IN.protein||[], carb:IN.carb||[], fruit:IN.fruit||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[], glp1:IN.glp1||'',
+  var sel = {protein:IN.protein||[], carb:IN.carb||[], fruit:IN.fruit||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[], glp1:IN.glp1||'', dislikes:IN.dislikes||'',
              frequency:IN.freq||'3', shakeGrams:+IN.shake||30};
   var deck = generateMealOptions(it, sel, IN.name||'');
   var shop = [shoppingList(deck, {week:true})];

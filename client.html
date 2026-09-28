@@ -1147,7 +1147,7 @@ select.input{appearance:none}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=43"></script>
+<script src="nutrition-engine.js?v=44"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -3983,6 +3983,7 @@ function openMySystem(){
   var inp={name:(ID&&ID.name)||'', sex:it.sex||'', weight:+it.weight||'', goalweight:+it.goalweight||'', activity:it.activity||'', cal:Math.round(p.calories||0), pro:Math.round(p.protein||0), carbG:Math.round(p.carbs||0), fatG:Math.round(p.fat||0),
     phase:(it.track==='Long'?'Sustain':(it.track||'Lean')), freq:it.meals||it.frequency||'3', shake:it.shakeGrams||30,
     style:c['Eating style']||'', allergies:list(c['Allergen keys']),
+    dislikes:c['Allergies/dislikes']||c['Dislikes']||'',
     protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fruit:list(f.fruit||c['Fruits']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
     restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
   inp.lowNutrients=(typeof nutrientsFromIntake==='function') ? nutrientsFromIntake(c) : [];
