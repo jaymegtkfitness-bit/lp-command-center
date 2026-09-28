@@ -603,7 +603,7 @@ function build(){
   /* 7. restaurants: her places in full, then a wider list so she is covered anywhere */
   var mine = (IN.restaurants||[]);
   var rests = mine.map(function(name){
-    var r = restaurantMeals(name, {calories:lunchCal, protein:lunch.target.protein}, {count:3});
+    var r = restaurantMeals(name, {calories:lunchCal, protein:lunch.target.protein}, {count:3, style:sel.style});
     if (r.empty) return '';
     return '<div class="tile rest"><h3>' + esc(name) + '</h3>' + r.options.map(function(o){
       return '<p class="order">' + esc(o.title) + '</p><p class="fit">' + o.totals.kcal + ' cal · ' + o.totals.p + 'g protein</p>'; }).join('') +
@@ -618,7 +618,7 @@ function build(){
   ];
   var more = GROUPS.map(function(g){
     var rows = g.list.filter(function(n){ return mine.indexOf(n) < 0 && restaurantChains().indexOf(n) >= 0; }).map(function(n){
-      var r = restaurantMeals(n, {calories:lunchCal, protein:lunch.target.protein}, {count:6});
+      var r = restaurantMeals(n, {calories:lunchCal, protein:lunch.target.protein}, {count:6, style:sel.style});
       if (r.empty || !r.options.length) return '';
       var grown = r.options.filter(function(x){ return !/kid|cub meal|junior|\bjr\b|mini\b/i.test(x.title); });
       if (!grown.length) return '';                                  // a kids' meal is not an order I am giving her

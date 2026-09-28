@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 <title>Legacy Performance — Client Dashboard</title>
 <meta name="theme-color" content="#1C1C1C" />
+<!-- Warm the connection to the data doorway so the first data fetch starts sooner -->
+<link rel="preconnect" href="https://script.google.com" crossorigin />
+<link rel="preconnect" href="https://script.googleusercontent.com" crossorigin />
+<link rel="dns-prefetch" href="https://script.google.com" />
 <!-- Run FULLSCREEN as an installed app (no Safari address bar / bottom toolbar over the nav) when Added to Home Screen -->
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="mobile-web-app-capable" content="yes" />
@@ -23,7 +27,7 @@
    ===================================================================== */
 :root, :root[data-theme="man"], :root[data-theme="charcoal"]{
   --charcoal:#1C1C1C; --olive:#4A5C3E; --olive-soft:#7c9268; --parchment:#F2EDE4; --gold:#C1AD72;
-  --bg:#1C1C1C; --header-bg:#141310; --surface:#26241f; --surface-2:#302d26;
+  --bg:#131210; --header-bg:#0e0d0b; --surface:#1f1d18; --surface-2:#292620;
   --headline:#F2EDE4; --ink:#EAE4D8; --ink-soft:#cfc9bc; --muted:#948d7e; --line:rgba(242,237,228,.10);
   --accent:#C1AD72; --accent-ink:#1C1C1C; --accent-soft:rgba(193,173,114,.16);  /* GOLD primary */
   --rust:#9A4A3A; --blue:#4A7A9A;   /* semantic track colors — Lean=rust, Strong=blue, Sustain=gold */
@@ -52,7 +56,7 @@
 }
 /* Tabbed layout + theme picker */
 /* Bottom app nav — 5 tabs, LP Coach shield centered; white inactive, gold active; dark bar in every theme (--header-bg stays dark) */
-.ctabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;justify-content:space-around;align-items:flex-end;background:var(--header-bg);border:none;border-top:1.5px solid var(--line);border-radius:0;padding:11px 6px calc(12px + env(safe-area-inset-bottom));margin:0}
+.ctabs{position:fixed;left:0;right:0;bottom:0;z-index:60;display:flex;justify-content:space-around;align-items:flex-end;background:rgba(11,11,9,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:none;border-top:1px solid var(--line);border-radius:0;padding:11px 6px calc(12px + env(safe-area-inset-bottom));margin:0}
 .ctab{flex:1;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border-radius:0;font:700 11px/1.15 'Montserrat',sans-serif;letter-spacing:.02em;color:var(--parchment);background:transparent;border:none;cursor:pointer}
 .ctab svg{width:27px;height:27px;stroke:currentColor;fill:none}
 .ctab.on{background:transparent;color:var(--gold)}
@@ -74,6 +78,7 @@
 .tbadge{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:99px;color:var(--parchment)}
 /* Nutrition hero — average-vs-target ring (olive) + protein & water floors */
 #nutHeroCard:has(#nutHeroBox:empty){display:none}
+#homeHeroCard:has(#homeHeroBox:empty){display:none}
 .nh-ringwrap{display:grid;place-items:center;padding:4px 0 2px}
 .nh-ring{position:relative;width:188px;height:188px;border-radius:50%;display:grid;place-items:center}
 .nh-ring::after{content:"";position:absolute;inset:14px;border-radius:50%;background:var(--surface);border:1px solid var(--line)}
@@ -218,16 +223,57 @@
 .jgen{margin-top:14px;padding-top:12px;border-top:1px solid var(--line)}
 *{box-sizing:border-box}
 html,body{margin:0;padding:0}
-body{font-family:'Montserrat',system-ui,sans-serif;background:var(--bg);color:var(--ink);
+body{font-family:'Montserrat',system-ui,sans-serif;background:#0d0d0b;color:var(--ink);
   -webkit-font-smoothing:antialiased;line-height:1.5;min-height:100vh}
-.safe{background:var(--header-bg);height:env(safe-area-inset-top)}
+/* Seamless Legacy Dark background — one fixed layer behind everything (iOS-safe).
+   Olive green rises from the bottom-left, a touch of gold from the bottom-right. */
+.appbg{position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    radial-gradient(ellipse 92% 44% at 100% 100%, rgba(193,173,114,.14), transparent 72%),
+    radial-gradient(ellipse 100% 46% at 0% 100%, rgba(74,92,62,.30), transparent 74%),
+    linear-gradient(180deg,#131210 0%,#0d0d0b 55%,#08090a 100%)}
+.safe{background:transparent;height:env(safe-area-inset-top)}
 
-/* Header — parchment band (light on purpose) so the black+gold logo always reads,
-   in both themes; the touch color (green for men / gold for women) underlines it. */
-header{background:var(--parchment);padding:14px 20px;display:flex;align-items:center;
-  justify-content:space-between;gap:12px;border-bottom:2px solid var(--touch)}
+/* Header — seamless now: no band, just the white-gold logo + the hamburger. */
+header{background:transparent;padding:14px 18px 8px;display:flex;align-items:center;
+  justify-content:space-between;gap:12px;border-bottom:none}
 .brand{display:flex;align-items:center;gap:12px}
-.brand img{height:40px;width:auto;display:block}
+.brand img{height:38px;width:auto;display:block}
+/* hamburger */
+.menubtn{background:transparent;border:0;padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;gap:5px;width:42px;align-items:center;justify-content:center}
+.menubtn span{display:block;width:23px;height:2px;border-radius:2px;background:var(--parchment);transition:.2s}
+/* slide-out drawer */
+.drawer-scrim{position:fixed;inset:0;z-index:80;background:rgba(8,9,7,.62);opacity:0;visibility:hidden;transition:opacity .25s}
+.drawer-scrim.open{opacity:1;visibility:visible}
+.drawer{position:fixed;top:0;right:0;bottom:0;z-index:81;width:min(84vw,340px);transform:translateX(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);
+  background:linear-gradient(180deg,#1b1a15 0%,#131210 60%,#0c0c0b 100%);border-left:1px solid var(--line);
+  padding:calc(18px + env(safe-area-inset-top)) 20px calc(24px + env(safe-area-inset-bottom));display:flex;flex-direction:column;overflow-y:auto}
+.drawer.open{transform:translateX(0)}
+.drawer-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.drawer-head img{height:32px;width:auto}
+.drawer-x{background:transparent;border:0;color:var(--muted);font-size:24px;line-height:1;cursor:pointer;padding:2px 6px}
+.drawer-nav{display:flex;flex-direction:column;gap:2px}
+.drawer-nav a,.drawer-nav button{display:flex;align-items:center;justify-content:space-between;gap:10px;text-align:left;width:100%;
+  background:transparent;border:0;border-radius:12px;color:var(--parchment);font-family:inherit;font-size:15.5px;font-weight:600;
+  padding:15px 12px;cursor:pointer;text-decoration:none;transition:background .15s}
+.drawer-nav a:active,.drawer-nav button:active{background:rgba(255,255,255,.05)}
+.drawer-nav a small{color:var(--muted);font-weight:600;font-size:11px;letter-spacing:.05em;text-transform:uppercase}
+.drawer-group{font-size:10.5px;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:18px 12px 4px}
+.drawer-cta{margin-top:4px;margin-bottom:6px;background:var(--gold)!important;color:#12140e!important;justify-content:center!important;font-weight:800!important}
+/* login heading — new default treatment (all-caps, gold anchor line) */
+.login-h{font-family:'Montserrat',system-ui,sans-serif;font-weight:900;text-transform:uppercase;font-size:clamp(2.6rem,13vw,3.4rem);line-height:.98;letter-spacing:-.01em;text-align:center;margin-top:12px;color:#fff}
+.login-h .gold{color:var(--gold)}
+/* first-load skeleton — branded loading state instead of a blank screen while the first
+   data fetch runs. Hidden as soon as any real screen renders (see show()). */
+#bootLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0d0d0b}
+#bootLoader img{height:44px;width:auto;opacity:.95}
+#bootLoader .bl-spin{width:30px;height:30px;border-radius:50%;border:3px solid rgba(193,173,114,.22);border-top-color:var(--gold);animation:blspin .8s linear infinite}
+#bootLoader .bl-txt{font-size:13px;color:var(--muted);letter-spacing:.04em}
+@keyframes blspin{to{transform:rotate(360deg)}}
+/* Embedded workout — the assigned program lives inside the Workouts tab (member experience). */
+.wk-head{margin:2px 0 12px}
+.wk-head h2{font-weight:900;text-transform:uppercase;font-size:1.4rem;color:#fff;letter-spacing:-.01em}
+.workout-frame{display:block;width:100%;height:72vh;min-height:540px;border:0;border-radius:16px;background:#141510;box-shadow:0 0 0 1px var(--line)}
 .gear{background:transparent;border:1px solid rgba(28,28,28,.20);color:#1C1C1C;
   border-radius:8px;padding:6px 10px;font-family:inherit;font-size:16px;line-height:1;cursor:pointer}
 
@@ -536,7 +582,7 @@ select.input{appearance:none}
 /* Complete Nutrition System buyers on the free plan (.lite.cns) keep the weekly check-in, the
    Progress tab and the stats, because the $497 build sells "one read on your trend every week".
    Everything else stays free-tier. Decision: Jayme 2026-09-13. */
-.lite:not(.cns) #ctab-btn-progress,.lite #ctab-btn-wellness{display:none!important}
+.lite #ctab-btn-wellness{display:none!important}
 .lite #stdCard,.lite #readCard,.lite #awCard,.lite #journeyCard,.lite #geneticsCard,.lite #coachCard,.lite #requestsCard,.lite #bookCallCard,.lite #obCard,.lite:not(.cns) #ciCta,.lite #moCta,.lite #qtCta,.lite:not(.cns) .stats{display:none!important}
 #cnsBanner{display:none}
 .lite.cns #cnsBanner{display:block;background:var(--gold);color:#1C1C1C;border-radius:12px;padding:12px 15px;margin:0 0 14px;line-height:1.45;font-size:14px;font-weight:500}
@@ -608,11 +654,33 @@ select.input{appearance:none}
 </style>
 </head>
 <body>
+<div class="appbg"></div>
+<div id="bootLoader"><img src="logo-white-gold.png" alt="Legacy Performance"><div class="bl-spin"></div><div class="bl-txt">Loading your dashboard…</div></div>
 <div class="safe"></div>
 <header>
-  <div class="brand" onclick="if(window.ID&&ID.email)showHome()" style="cursor:pointer" title="Home"><img src="logo.png" alt="Legacy Performance" /></div>
-  <button class="gear" onclick="editIdentity()" id="gearBtn" title="Settings">⚙</button>
+  <div class="brand" onclick="if(window.ID&&ID.email)showHome()" style="cursor:pointer" title="Home"><img src="logo-white-gold.png" alt="Legacy Performance" /></div>
+  <button class="menubtn" onclick="openMenu()" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
 </header>
+
+<!-- slide-out menu -->
+<div class="drawer-scrim" id="drawerScrim" onclick="closeMenu()"></div>
+<aside class="drawer" id="drawer" aria-hidden="true">
+  <div class="drawer-head"><img src="logo-white-gold.png" alt="Legacy Performance"><button class="drawer-x" onclick="closeMenu()" aria-label="Close">&times;</button></div>
+  <nav class="drawer-nav">
+    <a class="drawer-cta" href="onboarding/community.html" target="_blank" rel="noopener">Join the community</a>
+    <div class="drawer-group">My membership</div>
+    <a id="drawerAccount" href="#" onclick="return openAccount()">Account &amp; billing <small>Portal</small></a>
+    <a href="onboarding/community.html" target="_blank" rel="noopener">Community <small>Skool</small></a>
+    <div class="drawer-group">Tools &amp; guides</div>
+    <a href="library/">Guides &amp; library</a>
+    <a href="#" onclick="closeMenu();showClientTab('nutrition');openEatingOut();return false;">Restaurant finder <small>48 chains</small></a>
+    <a href="tools/">Nutrition tools</a>
+    <a href="find-your-phase/">Find your phase</a>
+    <a href="score/">Legacy Score</a>
+    <div class="drawer-group">Account</div>
+    <button onclick="closeMenu();editIdentity()">Settings</button>
+  </nav>
+</aside>
 
 <div class="wrap">
 
@@ -626,28 +694,20 @@ select.input{appearance:none}
     </div>
   </section>
 
-  <!-- ============ ONBOARD ============ -->
+  <!-- ============ LOGIN ============ -->
   <section id="onboard" class="hidden">
-    <div class="eyebrow">Let's get you in</div>
-    <h1>Legacy Performance Client Dashboard</h1>
-    <p class="sub">Confirm it's you. This links you to your coaching and keeps your data yours — 15 seconds, once on this device.</p>
-    <div class="card">
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
-        <div class="field"><label>First name</label>
-          <input class="input" id="ob_first" placeholder="First" autocomplete="given-name" /></div>
-        <div class="field"><label>Last name</label>
-          <input class="input" id="ob_last" placeholder="Last" autocomplete="family-name" /></div>
-      </div>
-      <div class="field"><label>Date of birth</label>
-        <input class="input" id="ob_dob" type="date" autocomplete="bday" /></div>
-      <div class="field"><label>Email <span class="hint">— the one you signed up with</span></label>
+    <div class="eyebrow" style="text-align:center;margin-top:20px">The operating system behind your health</div>
+    <h1 class="login-h">Welcome<br><span class="gold">back</span></h1>
+    <p class="sub" style="text-align:center">Enter your email and we'll send you a secure login link.</p>
+    <div class="card" style="margin-top:22px">
+      <div class="field"><label>Email</label>
         <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
       <div class="actions">
-        <button class="btn btn-primary" id="obBtn" onclick="verifyMe()">Enter my dashboard →</button>
+        <button class="btn btn-primary" id="obBtn" onclick="magicLinkRequest()">Send my login link →</button>
         <div class="status" id="obStatus"></div>
       </div>
     </div>
-    <p class="foot">We match your name, birthday, and email to your coaching account — so no one else can open your data, and you never get split into two profiles. Not you? <a href="#" onclick="editIdentity();return false;">Start over</a>.</p>
+    <p class="foot">No password to remember — your link signs you in and keeps your data yours. Password login is coming with the new Legacy app. Stuck? Reach out to your coach.</p>
   </section>
 
   <!-- ============ SETUP WIZARD ============ -->
@@ -703,8 +763,8 @@ select.input{appearance:none}
       <button class="ctab on" id="ctab-btn-home" onclick="showClientTab('home')"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5M5 9.5V20h14V9.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</button>
       <button class="ctab" id="ctab-btn-nutrition" onclick="showClientTab('nutrition')"><svg viewBox="0 0 24 24"><path d="M12 21c5-3 8-6.5 8-11a5 5 0 00-8-3 5 5 0 00-8 3c0 4.5 3 8 8 11z" stroke-width="1.7" stroke-linejoin="round"/></svg>Nutrition</button>
       <button class="ctab ctab-coach" id="ctab-btn-coach" onclick="showClientTab('coach')"><span class="navshield"><img src="shield-navmark.png" alt="LP Coach" /></span>Coach</button>
+      <button class="ctab" id="ctab-btn-workouts" onclick="showClientTab('workouts')"><svg viewBox="0 0 24 24"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" stroke-width="1.7" stroke-linecap="round"/></svg>Workouts</button>
       <button class="ctab" id="ctab-btn-wellness" onclick="showClientTab('wellness')"><svg viewBox="0 0 24 24"><path d="M10.5 13.5l3-3a4 4 0 015.6 5.6l-4 4a4 4 0 01-5.6 0M13.5 10.5l-3 3a4 4 0 01-5.6-5.6l4-4a4 4 0 015.6 0" stroke-width="1.6" stroke-linecap="round"/></svg>Wellness</button>
-      <button class="ctab" id="ctab-btn-progress" onclick="showClientTab('progress')"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2" stroke-width="1.7" stroke-linecap="round"/></svg>Progress</button>
     </nav>
 
     <!-- ===== LP COACH TAB ===== -->
@@ -714,6 +774,8 @@ select.input{appearance:none}
     <div class="ctab-panel" id="ctab-home">
       <!-- The #1 CTA for a new member: book the Readiness Consultation (48h). Shown until booked. -->
       <div class="card book-banner" id="bookBanner" style="display:none"></div>
+      <!-- Daily quick-look: average calories (ring, w/ overage) + protein target + calorie target. -->
+      <div class="card" id="homeHeroCard"><div id="homeHeroBox"></div></div>
       <!-- Always-visible home card for CNS owners: the PDF is the product, one click from Home. -->
       <div class="card" id="cnsHomeCard" style="display:none"></div>
       <div class="card" id="offlineCard" style="display:none"></div>
@@ -791,6 +853,13 @@ select.input{appearance:none}
       <div class="card" id="geneticsCard" style="display:none">
         <div class="sec-h"><h2>Genetic Blueprint</h2></div>
         <div id="geneticsBox"></div>
+      </div>
+
+      <!-- Guides & library -->
+      <div class="card" id="libraryCard">
+        <div class="sec-h"><h2>Guides &amp; library</h2></div>
+        <p class="empty" style="margin:0 0 10px">The Legacy method in short reads — the Awareness Circle, the Season Cycle, Macro Freedom, and the Scale Standard — plus your tools, all in one place.</p>
+        <a class="btn btn-primary" href="library/">Open the library →</a>
       </div>
 
       <!-- Coach note -->
@@ -900,12 +969,29 @@ select.input{appearance:none}
       </div>
     </div>
 
+    <!-- ===== WORKOUTS TAB ===== -->
+    <div class="ctab-panel hidden" id="ctab-workouts">
+      <div id="workoutsBox"></div>
+    </div>
+
     <!-- ===== WELLNESS TAB ===== -->
     <div class="ctab-panel hidden" id="ctab-wellness">
       <!-- Wellness (provider-guided catalog — mockup tiles, on-screen) -->
       <div id="wellnessCard">
         <div class="sec-h" style="margin:0 0 10px"><h2>Wellness</h2></div>
         <div id="wellTilesBox"></div>
+      </div>
+
+      <!-- Supplements — the consumer stack (general wellness, not medical) -->
+      <div class="card" id="suppCard">
+        <div class="sec-h"><h2>Your supplements</h2></div>
+        <div id="suppBox"></div>
+      </div>
+
+      <!-- Bloodwork — the member's own labs, tracked (informs nutrition & lifestyle only) -->
+      <div class="card" id="bloodCard">
+        <div class="sec-h"><h2>Bloodwork</h2></div>
+        <div id="bloodBox"></div>
       </div>
 
       <!-- Dosing calculator -->
@@ -1058,7 +1144,8 @@ select.input{appearance:none}
 
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — ONE source, also used by the Command Center. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
-<script src="restaurant-data.js?v=1"></script>
+<!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
+     so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
 <script src="nutrition-engine.js?v=42"></script>
 <script>
@@ -1077,6 +1164,8 @@ var CONFIG = {
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
   bookCallUrl: "https://legacyperformance.co/coaching-call",  // coaching call (Built for More 1:1 / included). "" hides.
   thorneUrl: "",  // your Thorne dispensary / affiliate link — the supplement tiles link here. "" = placeholder (#).
+  huelUrl: "",    // TODO: your Huel affiliate link.
+  equipUrl: "",   // TODO: your Equip Foods partner link.
   onboardCallUrl: "",  // dedicated onboarding-call link (separate workflow — Jayme building it). No fallback: Book button hides until set.
   skoolAppUrl: "https://apps.apple.com/us/app/skool-communities/id6447270545",  // Skool app (iOS)
   skoolAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.skool.skoolcommunities",  // Skool app (Android)
@@ -1132,6 +1221,13 @@ function consistencyToNum(v){
 function loadLS(k,d){ try{ return JSON.parse(localStorage.getItem(k)||d); }catch(e){ return JSON.parse(d); } }
 function saveLS(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 
+/* ============================ SLIDE-OUT MENU ============================ */
+/* TODO(Jayme): set ACCOUNT_URL to your GoHighLevel member/billing portal link. */
+var ACCOUNT_URL = "";
+function openMenu(){ var d=g("drawer"),s=g("drawerScrim"); if(d)d.classList.add("open"); if(s)s.classList.add("open"); if(d)d.setAttribute("aria-hidden","false"); }
+function closeMenu(){ var d=g("drawer"),s=g("drawerScrim"); if(d)d.classList.remove("open"); if(s)s.classList.remove("open"); if(d)d.setAttribute("aria-hidden","true"); }
+function openAccount(){ closeMenu(); if(ACCOUNT_URL){ window.open(ACCOUNT_URL,"_blank","noopener"); } else { alert("Your account & billing portal link is coming soon."); } return false; }
+
 /* ============================ IDENTITY ============================ */
 function loadIdentity(){ try{ return JSON.parse(localStorage.getItem(LS_ID)||"null"); }catch(e){ return null; } }
 /* User-choice color themes (charcoal / parchment / olive) — replaces the old gender-driven palette. */
@@ -1146,13 +1242,49 @@ function applyTheme(theme, save){
 function applyGender(gen){ applyTheme(currentTheme()); }   // back-compat shim; theme now drives the palette
 function showClientTab(tab){
   CLIENT_TAB=tab;
-  ["home","nutrition","coach","progress","wellness"].forEach(function(t){
-    var panel=g("ctab-"+t), btn=g("ctab-btn-"+t);
-    if(panel) panel.classList.toggle("hidden", t!==tab);
-    if(btn) btn.classList.toggle("on", t===tab);
+  /* Progress was merged INTO Coach — the Coach tab shows both panels stacked (the hidden
+     panels between them collapse, so it reads as one screen: your read, then your progress). */
+  var vis = (tab==="coach") ? {coach:1, progress:1} : {};
+  if(tab!=="coach") vis[tab]=1;
+  ["home","nutrition","coach","progress","workouts","wellness"].forEach(function(t){
+    var panel=g("ctab-"+t); if(panel) panel.classList.toggle("hidden", !vis[t]);
   });
-  if(tab==="coach") renderCoach();
+  ["home","nutrition","coach","workouts","wellness"].forEach(function(t){
+    var btn=g("ctab-btn-"+t); if(btn) btn.classList.toggle("on", t===tab);
+  });
+  /* Lazy render: build each tab's content only when it's opened (keeps the initial
+     Home paint fast). Nutrition's heavy meal-plan generation runs once per session. */
+  if(tab==="coach"){ renderCoach(); renderProgressHero(); }
+  else if(tab==="nutrition"){ if(!window._nutRendered){ renderNutritionHero(); renderMealPlan(); renderSwaps(); window._nutRendered=true; } renderEatingOutTeaser(); }
+  else if(tab==="wellness"){ renderWellnessTiles(); renderSupplements(); renderBloodwork(); }
+  else if(tab==="workouts") renderWorkouts();
   window.scrollTo(0,0);
+}
+/* Workouts — a real in-app member experience: the member's assigned program is embedded
+   right in the tab (no jarring jump to a bare page; the bottom nav stays). Members without
+   a program yet get the getting-started view. Jayme's account carries the Min-Max program. */
+function assignedProgram(){
+  if(ID && ID.email && ID.email.toLowerCase()===(typeof JAYME_EMAIL!=='undefined'?JAYME_EMAIL:"")){
+    return { name:"The Min-Max Program", src:"workout/private/?embed=1" };
+  }
+  return null;   // no assigned program wired for generic members yet
+}
+function renderWorkouts(){
+  var box=g("workoutsBox"); if(!box) return;
+  var prog=assignedProgram();
+  if(prog){
+    if(box.getAttribute('data-prog')===prog.src) return;   // already embedded — don't reload the frame
+    box.setAttribute('data-prog', prog.src);
+    box.innerHTML='<div class="wk-head"><div class="eyebrow" style="color:var(--gold);font-size:.72rem;letter-spacing:.24em;text-transform:uppercase">Your training</div>'
+      +'<h2 style="margin:4px 0 0">'+esc(prog.name)+'</h2>'
+      +'<p class="sub" style="margin:6px 0 0">Your full block. Log every set, run the timer, and it remembers your numbers for next time.</p></div>'
+      +'<iframe class="workout-frame" src="'+prog.src+'" title="Your training" loading="lazy"></iframe>';
+  } else {
+    box.innerHTML='<div class="card"><div class="sec-h"><h2>Your workouts</h2></div>'
+      +'<p class="sub" style="margin:-4px 0 12px">Train for your life, not just the gym. Your coach sets your program — log your lifts and add weight when you\'ve earned it.</p>'
+      +'<a class="btn btn-primary" href="workout/">Start a workout →</a>'
+      +'<a class="btn btn-ghost" href="workout/lifts/" style="margin-top:10px">Your key lifts &amp; trends →</a></div>';
+  }
 }
 /* LP Coach — the decision surface (v1: the read + your track + submit a check-in). Grows into the
    baseline collector + adjustment engine (see Dashboard-Redesign-Spec.md "Legacy Coach"). */
@@ -1210,6 +1342,32 @@ function verifyMe(){
   });
 }
 function saveIdentity(){ verifyMe(); }   // legacy alias, in case anything still calls it
+
+/* ---- Magic-link login (secure on this stack; only the email travels, no secret).
+   The doorway emails the member their private ?k= link. Password login is deferred to
+   the Supabase app rollout — JSONP GET can't carry a password securely. ---- */
+function magicLinkRequest(){
+  var em=g("ob_email"), st=g("obStatus"), btn=g("obBtn");
+  var email=em?em.value.trim().toLowerCase():"";
+  function fail(m){ if(st){st.textContent=m; st.style.color="var(--stall-tx)";} if(btn)btn.disabled=false; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Enter the email you signed up with.");
+  if(email===JAYME_EMAIL){ jaymeBoot(); return; }   // Jayme's own preview account — straight in, no server
+  if(!CONFIG.writeUrl) return fail("Login link needs the server — not available in demo.");
+  if(st){ st.textContent="Sending your link…"; st.style.color="var(--muted)"; } if(btn)btn.disabled=true;
+  magicLinkJSONP(email, function(res){
+    if(res && res.ok){ if(st){ st.textContent="Check your email — your login link is on the way."; st.style.color="var(--accent)"; } if(btn)btn.disabled=false; }
+    else if(res && res.reason==='notfound') fail("We couldn't find that email. Use the one you signed up with, or contact your coach.");
+    else fail("Couldn't send the link — check your connection and try again.");
+  });
+}
+function magicLinkJSONP(email, cb){
+  var done=false, nm="__ml"+Date.now(), s=document.createElement("script");
+  window[nm]=function(d){ done=true; try{delete window[nm];}catch(e){} s.remove(); cb(d); };
+  s.onerror=function(){ if(!done){ try{delete window[nm];}catch(e){} s.remove(); cb(null); } };
+  s.src=CONFIG.writeUrl+"?action=magiclink&email="+encodeURIComponent(email)+"&callback="+nm;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){ try{delete window[nm];}catch(e){} s.remove(); cb(null); } }, 9000);
+}
 function verifyJSONP(fn, ln, dob, email, cb){
   var done=false, name="__vf"+Date.now(), s=document.createElement("script");
   window[name]=function(data){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(data); };
@@ -1220,15 +1378,17 @@ function verifyJSONP(fn, ln, dob, email, cb){
   setTimeout(function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } }, 8000);
 }
 function editIdentity(){
-  try{ localStorage.removeItem(LS_TOKEN); }catch(e){}
-  TOKEN=null;
-  ["ob_first","ob_last","ob_dob","ob_email"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
+  try{ localStorage.removeItem(LS_TOKEN); localStorage.removeItem('lp_preview_acct'); localStorage.removeItem(LS_ID); }catch(e){}
+  TOKEN=null; ID=null;
+  ["ob_email"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
   var st=g("obStatus"); if(st) st.textContent="";
   show("onboard");
 }
 
 /* ============================ NAVIGATION ============================ */
-function show(idOn){ CUR_SECTION=idOn; ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
+function show(idOn){ CUR_SECTION=idOn;
+  var _bl=g("bootLoader"); if(_bl) _bl.style.display="none";
+  ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
 /* ---- Top "‹ Back" on every drill-in screen (Home uses the bottom nav, so it's excluded). One shared
    button, moved to the top of whatever screen is showing. On the multi-step flows it steps back a step;
    everywhere else it exits to Home. Subtle by design — present, not in the way. */
@@ -1312,6 +1472,7 @@ function loadClientData(cb){
 /* Build the merged model from server rows (authoritative) + local (instant). */
 function buildModel(server){
   serverOk = !!(server && server.ok);
+  window._nutRendered=false;   // fresh data → let the Nutrition tab re-render on next open
   try{ M.booked = M.booked || (loadLS("lp_client_booked","")==="1"); }catch(e){}   // booked the Readiness Consultation → drop the onboarding banner
   // ---- check-ins ----
   var sc = (server&&server.checkins||[]).map(function(r){
@@ -1458,14 +1619,13 @@ function renderHome(){
     g("ciCta").textContent = d>=7?"You're due — start this week's check-in":"Start this week's check-in";
   }
   drawTrend(h);
-  renderProgressHero();
   drawBiofeedback(h);
+  renderHomeHero();
   renderAwarenessCircle(h);
   renderCoachNotes();
   renderPRs();
   renderClientNotes();
   renderRx();
-  renderWellnessTiles();
   var wl=g("wellnessLink"); if(wl) wl.href="wellness.html"+(TOKEN?("?k="+encodeURIComponent(TOKEN)):"");
   renderLog(h);
   renderMonthlyAverages(h);
@@ -1479,12 +1639,11 @@ function renderHome(){
   renderGeneticsCard();
   renderRequestsCard();
   renderPFS();
-  renderNutritionHero();
   renderRoadmap();
-  renderMealPlan();
-  renderSwaps();
   renderCronometer();
-  renderFastFood();
+  /* Nutrition-tab content (Your Numbers, the meal plan generation, swaps, eating-out)
+     renders LAZILY when the Nutrition tab opens — see showClientTab(). Keeps the heavy
+     meal-plan build + the restaurant data off the initial paint. */
   gateProtocolCards();
   renderOnboarding();
   renderFoundations();
@@ -1704,6 +1863,41 @@ function renderWellnessTiles(){
   if(genUnlocked) h+='<div class="wtile"><div class="wthumb tw-gold">'+dna+'</div><div class="wbody"><div class="wt">Your customized stack</div><div class="wd">Built from your DNA results</div></div><span class="wchev">&#8250;</span></div>';
   else h+='<div class="wtile locked"><div class="wthumb wlock">'+lock+'</div><div class="wbody"><div class="wt dim">Your customized stack</div><div class="wd">Unlocks with your Genetic Blueprint</div></div><span class="wunlock">Blueprint &#8594;</span></div>';
   box.innerHTML=h;
+}
+/* Supplements — the consumer stack (Huel/Thorne/Equip). General wellness education, partner
+   links, no medical claims. Foundation base for everyone + an optional phase add-on. */
+function renderSupplements(){
+  var box=g("suppBox"); if(!box) return;
+  var it=M.intake, track=(it&&it.track)||'';
+  var thorne=CONFIG.thorneUrl||'#', huel=CONFIG.huelUrl||'#', equip=CONFIG.equipUrl||'#';
+  function row(tag,cls,nm,desc,brand,link){ return '<div class="wtile"><div class="wthumb '+cls+'">'+tag+'</div><div class="wbody"><div class="wt">'+esc(nm)+'</div><div class="wd">'+desc+'</div></div><a class="wgo" href="'+(link||'#')+'" target="_blank" rel="noopener">'+esc(brand)+' &rarr;</a></div>'; }
+  function sub(t){ return '<div class="wsubh">'+esc(t)+'</div>'; }
+  var h='<p class="empty" style="text-align:left;margin:0 0 8px">Simple, not a cabinet &mdash; this base is the whole stack most people ever need. General wellness, not medical advice.</p>';
+  h+=sub('Your foundation');
+  h+=row('HUEL','tw-olive','Huel','Protein + all 27 vitamins &amp; minerals in one. Your anchor.','Huel',huel);
+  h+=row('CREA','tw-gold','Creatine','3&ndash;5 g a day. Foundational &mdash; most people should take it.','Thorne',thorne);
+  h+=row('FISH','tw-blue','Fish oil','Omega-3. A solid everyday add.','Thorne',thorne);
+  if(/lean/i.test(track)){ h+=sub('For your Lean phase'); h+=row('+HUEL','tw-olive','Extra Huel serving','Optional &mdash; volume and satiety while you’re in a deficit.','Huel',huel); }
+  else if(/strong/i.test(track)){ h+=sub('For your Strong phase'); h+=row('PRO','tw-rust','Extra protein','Optional &mdash; an extra Huel or a dedicated protein for higher targets.','Equip',equip); }
+  h+=sub('Skip these');
+  h+='<div class="wtile"><div class="wthumb wlock">&times;</div><div class="wbody"><div class="wt dim">EAAs / BCAAs</div><div class="wd">Not necessary when your protein is on point. Save your money.</div></div></div>';
+  h+='<p class="foot" style="margin-top:12px">Huel, Thorne and Equip are partners; links may be affiliate. Your Genetic Blueprint personalizes this stack.</p>';
+  box.innerHTML=h;
+}
+/* Bloodwork — the member records their OWN labs, on-device only. We read the trend to inform
+   nutrition & lifestyle, never to diagnose. Raw labs stay private (not sent to the sheet). */
+function renderBloodwork(){
+  var box=g("bloodBox"); if(!box) return;
+  var saved=''; try{ saved=localStorage.getItem('lp_client_labs')||''; }catch(e){}
+  var h='<p class="empty" style="text-align:left;margin:0 0 10px">Your labs are yours. Record your latest numbers so we can read the <b>trend over time</b> &mdash; we use it to inform your nutrition and lifestyle, never to diagnose or treat. Anything medical goes to your provider.</p>'
+    +'<div class="field"><label>Your latest labs <span class="hint">&mdash; e.g. Testosterone 620, Vit D 42, Ferritin 90, HbA1c 5.3, hs-CRP 0.8, TSH 1.9 &middot; and the date</span></label>'
+    +'<textarea class="input" id="labsText" rows="4" placeholder="Type your key markers + the date">'+esc(saved)+'</textarea></div>'
+    +'<div class="actions"><button class="btn btn-primary" onclick="saveLabs()">Save my labs</button> <span class="status" id="labsStatus"></span></div>';
+  box.innerHTML=h;
+}
+function saveLabs(){
+  var t=g("labsText").value; try{ localStorage.setItem('lp_client_labs', t); }catch(e){}
+  var s=g("labsStatus"); if(s){ s.textContent="Saved on your device."; s.style.color="var(--accent)"; setTimeout(function(){s.textContent="";},1800); }
 }
 function renderRx(){
   var box=g("rxBox"); if(!box) return;
@@ -3281,33 +3475,62 @@ function renderJourneyCard(){
     +'<div style="color:'+gs.color+';font-size:13.5px;font-weight:600;margin-top:2px">'+esc(gs.label)+'</div></div>';
   box.innerHTML=h;
 }
-/* Nutrition hero — the average-vs-target ring (avg intake from check-ins vs the target),
-   plus the protein floor and the water floor (half bodyweight in oz). Nutrition = olive. */
+/* Shared calorie ring — AVERAGE intake vs target. Green fills toward the target; if they go
+   OVER, the ring fills fully and the OVERAGE shows as a warning (rust) arc so they see it. */
+function calRingHtml(avg, target, goalTxt){
+  var center, unit, deltaHTML, ringBg;
+  if(avg==null){
+    center=target.toLocaleString(); unit='kcal target';
+    ringBg='conic-gradient(rgba(255,255,255,.07) 0 100%)';
+    deltaHTML='<div class="nh-cap">Your average lands here once you start checking in — 5 days of data sets your read.</div>';
+  } else {
+    center=Math.round(avg).toLocaleString(); unit='avg kcal / day';
+    var diff=Math.round(avg-target);
+    if(avg<=target){
+      var p=(avg/target*100).toFixed(1);
+      ringBg='conic-gradient(var(--olive) 0 '+p+'%, rgba(255,255,255,.07) '+p+'% 100%)';
+    } else {
+      var gp=(target/avg*100).toFixed(1);                                   // green = the target's share of what they ate
+      ringBg='conic-gradient(var(--olive) 0 '+gp+'%, var(--stall) '+gp+'% 100%)';   // rust = the overage
+    }
+    var txt=diff<0?(Math.abs(diff)+' under target'):(diff>0?('<b>'+diff+' over</b>'):'on target');
+    deltaHTML='<div class="nh-delta"><span class="nh-pill tgt">Target '+target.toLocaleString()+'</span>'
+      +'<span class="nh-pill '+(diff<=0?'good':'warn')+'">'+txt+'</span></div>';
+  }
+  return '<div class="nh-ringwrap"><div class="nh-ring" style="background:'+ringBg+'"><div class="nh-inner">'
+    +'<div class="nh-num">'+center+'</div><div class="nh-unit">'+unit+'</div>'
+    +(goalTxt?'<div class="nh-goal">'+esc(goalTxt)+'</div>':'')+'</div></div></div>'+deltaHTML;
+}
+/* Home hero — the daily quick-look: the average-calorie ring + protein target + calorie
+   target. (Water + the deep numbers live in the Nutrition tab, per Jayme.) */
+function renderHomeHero(){
+  var box=g("homeHeroBox"); if(!box) return;
+  var it=M.intake;
+  if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }
+  var target=Math.round(it.pfs.calories);
+  var avg=avgRecentCal(M.checkins,4);
+  var pfloor=proteinFloor() || (isFinite(it.pfs.protein)?Math.round(it.pfs.protein):null);
+  var protein=isFinite(it.pfs.protein)?Math.round(it.pfs.protein):(pfloor||'—');
+  var goalTxt=it.track||it.goal||'';
+  var h=calRingHtml(avg, target, goalTxt)
+    +'<div class="nh-duo">'
+    +'<div class="nh-mini"><div class="nh-l">Protein target</div><div class="nh-v">'+protein+'<small> g</small></div>'+(pfloor&&isFinite(it.pfs.protein)&&pfloor<Math.round(it.pfs.protein)?'<div class="nh-l" style="margin-top:4px;opacity:.75">never below '+pfloor+' g</div>':'')+'</div>'
+    +'<div class="nh-mini"><div class="nh-l">Calorie target</div><div class="nh-v">'+target.toLocaleString()+'<small> kcal</small></div></div>'
+    +'</div>';
+  box.innerHTML=h;
+}
+/* Nutrition hero — the same ring, plus protein target + the water floor (deep numbers). */
 function renderNutritionHero(){
   var box=g("nutHeroBox"); if(!box) return;
   var it=M.intake;
-  if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }   // only once they have targets
+  if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }
   var target=Math.round(it.pfs.calories);
   var avg=avgRecentCal(M.checkins,4);
   var pfloor=proteinFloor() || (isFinite(it.pfs.protein)?Math.round(it.pfs.protein):null);
   var goalTxt=it.track||it.goal||'';
   var cks=M.checkins||[], last=cks.length?cks[cks.length-1]:null;
   var bw=(last&&last.weight)||it.weight||null, water=bw?Math.round(bw/2):null;
-  var pct, center, unit, deltaHTML;
-  if(avg==null){
-    center=target.toLocaleString(); unit='kcal target'; pct=0;
-    deltaHTML='<div class="nh-cap">Your average lands here once you start checking in — 5 days of data sets your read.</div>';
-  } else {
-    center=Math.round(avg).toLocaleString(); unit='avg kcal / day';
-    var diff=Math.round(avg-target); pct=Math.min(avg/target*100,100);
-    var txt=diff<0?(Math.abs(diff)+' under target'):(diff>0?(diff+' over target'):'on target');
-    deltaHTML='<div class="nh-delta"><span class="nh-pill tgt">Target '+target.toLocaleString()+'</span>'
-      +'<span class="nh-pill '+(diff<=0?'good':'warn')+'">'+txt+'</span></div>';
-  }
-  var ringBg='conic-gradient(var(--olive) 0 '+pct.toFixed(0)+'%, rgba(255,255,255,.07) '+pct.toFixed(0)+'% 100%)';
-  var h='<div class="nh-ringwrap"><div class="nh-ring" style="background:'+ringBg+'"><div class="nh-inner">'
-    +'<div class="nh-num">'+center+'</div><div class="nh-unit">'+unit+'</div>'
-    +(goalTxt?'<div class="nh-goal">'+esc(goalTxt)+'</div>':'')+'</div></div></div>'+deltaHTML
+  var h=calRingHtml(avg, target, goalTxt)
     +'<div class="nh-duo">'
     +'<div class="nh-mini"><div class="nh-l">Protein target</div><div class="nh-v">'+(isFinite(it.pfs.protein)?Math.round(it.pfs.protein):(pfloor||'—'))+'<small> g</small></div>'+(pfloor&&isFinite(it.pfs.protein)&&pfloor<Math.round(it.pfs.protein)?'<div class="nh-l" style="margin-top:4px;opacity:.75">never below '+pfloor+' g</div>':'')+'</div>'
     +'<div class="nh-mini"><div class="nh-l">Water floor</div><div class="nh-v">'+(water||'—')+'<small> oz</small></div></div>'
@@ -3684,8 +3907,32 @@ var SHAKE_CAL=(typeof shakeCalories==='function')?shakeCalories(SHAKE_PRO):Math.
 function ffPick(c){ FF_REST=c; var r=g("ffResult"); if(r) r.innerHTML=""; }
 function ffMeals(n, shake){ FF_MEALS=n; FF_SHAKE=!!shake; renderFastFood(); }
 function ffSlot(sl){ FF_SLOT=sl; renderFastFood(); }
+/* Lazy-load the 280KB restaurant database only when the eating-out card first needs it. */
+function ensureRestaurantData(cb){
+  if(typeof RESTAURANT_DB!=='undefined'){ if(cb)cb(); return; }
+  window._rdbCbs=(window._rdbCbs||[]); if(cb)window._rdbCbs.push(cb);
+  if(window._rdbLoading) return;
+  window._rdbLoading=true;
+  var s=document.createElement('script'); s.src='restaurant-data.js?v=1';
+  s.onload=s.onerror=function(){ window._rdbLoading=false; var cbs=window._rdbCbs||[]; window._rdbCbs=[]; cbs.forEach(function(f){ try{f();}catch(e){} }); };
+  document.head.appendChild(s);
+}
+/* The eating-out card shows a button by default; the 280KB restaurant file + the finder
+   load ONLY when the member taps it — never on plain Nutrition-tab opens. */
+function renderEatingOutTeaser(){
+  var card=g("fastFoodCard"), box=g("fastFoodBox"); if(!card) return;
+  if(!M.intake||!M.intake.pfs){ card.style.display="none"; return; }
+  card.style.display="";
+  box.innerHTML='<p class="empty" style="margin:0 0 10px">Build a real order that fits your numbers at 48 restaurants — every number comes from the chain\'s own published nutrition.</p>'
+    +'<button class="btn btn-primary" onclick="openEatingOut()">Find a restaurant order →</button>';
+}
+function openEatingOut(){
+  var box=g("fastFoodBox"); if(box) box.innerHTML='<p class="empty">Loading restaurants…</p>';
+  ensureRestaurantData(renderFastFood);
+}
 function renderFastFood(){
   var card=g("fastFoodCard"), box=g("fastFoodBox"), it=M.intake; if(!card) return;
+  if(typeof RESTAURANT_DB==='undefined'){ ensureRestaurantData(renderFastFood); return; }  // fetch data, then re-render
   var chains=(typeof restaurantChains==='function')?restaurantChains():[];
   if(!it||!it.pfs||!chains.length){ card.style.display="none"; return; }
   card.style.display="";
@@ -4407,9 +4654,55 @@ function demoBoot(){
   ID={ name:"Rachel", email:"rachel@demo.legacy", gender:"woman" };
   serverOk=true; applyTheme("charcoal", false); showHome();
 }
+
+/* ---- Jayme's own preview account (fuzbuttle0630@gmail.com) — a full, self-contained
+   experience, never tangled with a real client's data. Reached by logging in with that
+   email, by ?jayme=1, or restored on reload via the lp_preview_acct flag. ---- */
+var JAYME_EMAIL = "fuzbuttle0630@gmail.com";
+function jaymeBoot(){
+  try{ localStorage.setItem('lp_preview_acct','jayme'); }catch(e){}
+  buildModel(null);
+  var now=Date.now(), day=86400000;
+  var it={ done:true, signal:"clear", sex:"Male", age:39, height:71, weight:201, goalweight:186,
+    activity:"Active", track:"Lean", steps:"10,000+", trackingexp:"Yes, I track well",
+    trainloc:"Home / garage", traindays:"4–5", pregnant:"No", diethistory:"3+ years",
+    fueling:"Eating well", filters:[], priorities:["Lean","Strong","Long"],
+    extragoals:["More energy","Longevity"], interests:["Peptides","Genetic testing","Bloodwork"],
+    flagsRaw:"Documenting my own 15 lb cut — walking the path I coach." };
+  it.pfsBase=computePFS(it,it.track); it.anchor=it.pfsBase; it.pfs=it.pfsBase; it.phaseIdx=0;
+  M.intake=it;
+  M.deep={ deepdone:"Yes", constraint:"Capacity", constraintkey:"capacity",
+    inway:"A hundred decisions a day for other people leave little for me.",
+    whynow:"Leading from full instead of fumes — and showing the path by walking it.",
+    coachstyle:"Direct — call it and let's move", readiness:"9" };
+  DEEP=M.deep;
+  var pf=proteinFloor()||180;
+  M.checkins=[0,1,2,3].map(function(i){
+    return { ts:now-(3-i)*7*day, weight:+(201-i*1.6).toFixed(1), cons:82+i*4, consLabel:"85–95%",
+      cal:it.pfs.calories-30+i*15, protein:pf-10+i*6, steps:10500+i*300, workouts:4, effort:8,
+      digdir:"Normal", food:8, energy:4, sleep:4, acuity:4, strength:5, digestion:4,
+      hunger:3, libido:4, inflammation:2, mood:4, recovery:4, stress:3, followups:[] };
+  });
+  M.measurements=[0,2].map(function(i){ return { Timestamp:new Date(now-(3-i)*7*day).toISOString(),
+    Weight:+(201-i*1.6).toFixed(1), Waist:+(36-i*0.5).toFixed(1), Units:"in" }; });
+  M.lite=false; M.tier="Built for More"; M.complete="Yes"; M.onProtocol="Yes"; M.genetics="in";
+  M.geneticsintake=[{Timestamp:new Date(now-30*day).toISOString()}];
+  var dsel={protein:['chicken breast','96% ground beef','sirloin steak','salmon','shrimp','nonfat Greek yogurt','whole eggs','egg whites','low-fat cottage cheese','whey protein powder'],
+    carb:['white rice','potatoes','sweet potato','oats','berries','banana','sourdough'], fat:['avocado','olive oil','almonds','peanut butter'],
+    veg:['broccoli','spinach','peppers','green beans','asparagus','salad greens'], frequency:'3 + shake', shakeGrams:30};
+  var dd=generateMealOptions({pfs:it.pfs}, dsel, 'Jayme');
+  M.mealplan={ title:"Jayme's Lean Phase", note:"Protein anchors every meal. Built from your foods.", ts:now,
+    days:[ {day:1,label:"Everyday",meals:dd.slots.map(function(sl){ var o=sl.options[0];
+      return {name:sl.name+(o.name?' · '+o.name:''), items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0)}; })} ] };
+  ID={ name:"Jayme", email:JAYME_EMAIL, gender:"man" };
+  try{ saveLS(LS_ID, ID); }catch(e){}
+  serverOk=true; applyTheme("charcoal", false); showHome();
+}
 (function(){
   // ?demo=1 (or ?rachel=1) → Jayme's all-access preview app. Clean, no dev bench, everything unlocked.
   if(getParam('demo') || getParam('rachel')){ demoBoot(); return; }
+  // Jayme's preview account: ?jayme=1, or restored on reload once he's logged in with it.
+  if(getParam('jayme') || (function(){ try{ return localStorage.getItem('lp_preview_acct')==='jayme'; }catch(e){ return false; } })()){ jaymeBoot(); return; }
   // ?fresh=1 → wipe this device's saved data and start a brand-new experience (for testing/demos).
   if(getParam('fresh')){ try{ ['lp_client_id','lp_client_token','lp_client_log','lp_client_pr','lp_client_note','lp_client_monthly','lp_client_quarterly','lp_client_intake','lp_client_deep'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} }
   // ?preview=1 → the constraint-engine test bench. Never renders without the flag, so a real client
@@ -4436,7 +4729,11 @@ function demoBoot(){
   }
   else if(ID && ID.email){ boot(); }
   else { show("onboard"); }
+  setTimeout(function(){ var b=g("bootLoader"); if(b) b.style.display="none"; }, 12000);  // safety: never let the loader stick
 })();
+/* Service worker — caches the app shell so repeat opens load instantly from the phone,
+   then refresh in the background. Data (the doorway) is never cached. Safe no-op if unsupported. */
+if('serviceWorker' in navigator){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).catch(function(){}); }); }
 </script>
 </body>
 </html>

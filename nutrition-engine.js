@@ -493,10 +493,10 @@ var MEAL_TEMPLATES=[
   {id:'sandwich', slot:'pm', veg:true, protein:['turkey breast','deli turkey','canned tuna','canned chicken','chicken breast'], carb:['sourdough','whole-wheat bread','bagel'],
    fat:['avocado','hummus','cheese'], name:function(r){ return mealNice(r.p)+' and '+mealNice(r.f||'avocado')+' Sandwich'; }},
   /* NO-COOK lunches and dinners (Jayme 2026-09-19): assembled from ready-to-eat foods, raw vegetables only. */
-  {id:'nc_sandwich', slot:'pm', nocook:true, veg:true, protein:['deli turkey','canned chicken','canned tuna'], carb:['whole-wheat bread','sourdough'],
-   fat:['cheese','avocado','hummus'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Sandwich'+(r.f?' with '+mealNice(r.f):''); }, needsAny:['whole-wheat bread','sourdough']},
-  {id:'nc_wrap', slot:'pm', nocook:true, veg:true, protein:['canned chicken','deli turkey','canned tuna'], carb:['flour tortilla'],
-   fat:['avocado','hummus','cheese'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Wrap'; }, needs:['flour tortilla']},
+  {id:'nc_sandwich', slot:'pm', nocook:true, veg:true, protein:['deli turkey','canned chicken','canned tuna'], carb:['whole-wheat bread','sourdough','English muffin','bagel'],
+   fat:['cheese','avocado','hummus'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Sandwich'+(r.f?' with '+mealNice(r.f):''); }, needsAny:['whole-wheat bread','sourdough','English muffin','bagel']},
+  {id:'nc_wrap', slot:'pm', nocook:true, veg:true, protein:['canned chicken','deli turkey','canned tuna'], carb:['flour tortilla','corn tortilla'],
+   fat:['avocado','hummus','cheese'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Wrap'; }, needsAny:['flour tortilla','corn tortilla']},
   {id:'nc_plate', slot:'pm', nocook:true, veg:true, protein:['canned tuna','canned chicken','deli turkey'], carb:['chickpeas','rice cakes','whole-wheat bread'],
    fat:['hummus','avocado','olives'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' and '+mealNice(r.f||'hummus')+' Plate'; }},
   {id:'nc_plant', slot:'pm', nocook:true, veg:true, protein:['edamame','extra-firm tofu','plant protein powder','2% Greek yogurt','low-fat cottage cheese'], carb:['chickpeas','black beans','whole-wheat bread','sourdough','rice cakes'],
@@ -1504,6 +1504,19 @@ var RESTAURANT_RULES=[
   "Zero-calorie drink."
 ];
 var RM_ROW={name:0,serving:1,cat:2,kcal:3,p:4,c:5,f:6,lto:7,src:8};
+/* Eating style at restaurants (Jayme 2026-09-28). A client who said "no red meat" should not be handed
+   an Arby's roast beef. Filter the chain's items by the same style she picked for her food lists. */
+var RM_STYLE_BLOCK={
+  'no red meat': /\b(beef|steak|ribeye|sirloin|burger|brisket|prime rib|pastrami|corned|lamb|bison|veal|meatball|philly|patty|big mac|whopper|quarter pounder)\b/i,
+  'no pork':     /\b(pork|bacon|ham|sausage|pepperoni|prosciutto|carnitas|chorizo|bratwurst)\b/i,
+  'pescatarian': /\b(beef|steak|ribeye|sirloin|burger|brisket|lamb|bison|pork|bacon|ham|sausage|chicken|turkey|patty|nugget|wing|philly|carnitas|barbacoa|asada|meatball)\b/i,
+  'vegetarian':  /\b(beef|steak|burger|lamb|bison|pork|bacon|ham|sausage|chicken|turkey|fish|salmon|tuna|shrimp|cod|tilapia|nugget|wing|patty|meat|anchov)\b/i
+};
+RM_STYLE_BLOCK['vegan']=RM_STYLE_BLOCK['vegetarian'];
+function rmStyleOk(style){
+  var rx=RM_STYLE_BLOCK[String(style||'').toLowerCase()];
+  return rx ? function(i){ return !rx.test(i.name+' '+i.serving); } : null;
+}
 function rmItems(chain){
   var d=(typeof RESTAURANT_DB!=='undefined')&&RESTAURANT_DB.chains[chain]; if(!d) return [];
   return d.items.map(function(r){ return {name:r[0],serving:r[1],cat:r[2],kcal:r[3],p:r[4],c:r[5],f:r[6],lto:!!r[7],src:d.src[r[8]]||''}; });
@@ -1623,6 +1636,8 @@ function restaurantMeals(chain, target, opts){
   opts=opts||{};
   var calT=Math.max(200,+target.calories||0), proT=Math.max(10,+target.protein||0);
   var items=rmItems(chain), slot=opts.slot||'meal', want=opts.count||3;
+  var styleOk=rmStyleOk(opts.style);
+  if(styleOk){ var kept=items.filter(styleOk); if(kept.length) items=kept; }
   var combos=rmCombos(items, slot);
   combos.forEach(function(c){ c.t=rmTotals(c.parts); c.s=rmScore(c, calT, proT); });
   var fits=combos.filter(function(c){ return c.t.kcal<=calT*1.10 && c.t.p>=proT*0.90; });
