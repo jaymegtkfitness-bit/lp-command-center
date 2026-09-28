@@ -16,7 +16,7 @@
 <meta name="apple-mobile-web-app-title" content="Legacy" />
 <link rel="apple-touch-icon" href="apple-touch-icon.png" />
 <link rel="manifest" href="client.webmanifest" />
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
 <style>
 /* =====================================================================
    LEGACY PERFORMANCE — Client Dashboard
@@ -652,14 +652,239 @@ select.input{appearance:none}
   .print-only .foodcol span,.print-only .rm-faq span,.print-only .wiz-hint,.print-only .lp-steps div,.print-only .rm-rules div,.print-only .rm-table td{color:#3a372f!important}
 }
 </style>
+<!-- ===================== KINO SHELL (Sep 28 redesign) ===================== -->
+<style id="kino-shell">
+:root{ --gold-soft:#d8c789; --green-lit:#7d9463; --ink-dim:#9a958a; --ink-faint:#6f6a60; --k-card:#181713; --k-card2:#201e18; }
+/* floating transparent logo + separate corner buttons (hamburger / gear) */
+header{position:fixed!important;top:0;left:0;right:0;z-index:60;height:72px;padding:0!important;
+  display:block!important;background:transparent!important;pointer-events:none}
+header .brand{position:absolute;left:50%;top:13px;transform:translateX(-50%);pointer-events:auto}
+header .brand img{height:46px!important;filter:drop-shadow(0 2px 8px rgba(0,0,0,.65))}
+header .menubtn{position:absolute;left:14px;top:15px;pointer-events:auto;width:38px;height:38px;border-radius:11px;
+  background:rgba(20,19,16,.55);border:1px solid var(--line);backdrop-filter:blur(4px);gap:5px;padding:0}
+header .menubtn span{width:17px;background:var(--ink-dim)}
+.gearbtn{position:absolute;right:14px;top:15px;pointer-events:auto;width:38px;height:38px;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;background:rgba(20,19,16,.55);border:1px solid var(--line);
+  backdrop-filter:blur(4px);color:var(--gold);cursor:pointer}
+.gearbtn svg{width:19px;height:19px;stroke:currentColor;fill:none}
+.safe{display:none}
+.wrap{padding-top:78px!important;padding-bottom:132px!important}
+/* FLOATING detached bottom nav; content scrolls behind */
+nav.ctabs{position:fixed;left:0;right:0;bottom:22px;z-index:60;background:transparent!important;border:none!important;
+  -webkit-backdrop-filter:none;backdrop-filter:none;display:flex;justify-content:center;padding:0!important;pointer-events:none}
+.navbar{pointer-events:auto;display:flex;align-items:center;gap:4px;padding:4px 14px;
+  background:rgba(16,15,12,.86);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border:1px solid rgba(255,255,255,.09);border-radius:22px;
+  box-shadow:0 16px 38px rgba(0,0,0,.6), inset 0 1px 0 rgba(255,255,255,.06)}
+nav.ctabs .ctab{flex:none;width:60px;height:42px;gap:2px;color:var(--ink-faint);font:800 8.5px/1 'Montserrat',sans-serif;letter-spacing:.04em}
+nav.ctabs .ctab .ico{width:42px;height:29px;display:flex;align-items:center;justify-content:center;border-radius:11px}
+nav.ctabs .ctab svg{width:20px;height:20px}
+nav.ctabs .ctab.on{color:var(--gold)}
+nav.ctabs .ctab.on .ico{background:linear-gradient(160deg,var(--gold-soft),var(--gold));color:#0e0d0b;box-shadow:0 5px 14px rgba(193,173,114,.32)}
+nav.ctabs .ctab-coach{width:70px;justify-content:flex-end}
+nav.ctabs .ctab-coach .navshield{width:64px;height:64px;margin-top:0;transform:translateY(-17px);margin-bottom:-12px;border-radius:21px;
+  background:linear-gradient(160deg,#232019,#15130f);border:1.5px solid rgba(193,173,114,.6);
+  box-shadow:0 10px 24px rgba(0,0,0,.55), 0 0 0 5px rgba(16,15,12,.86);padding:0}
+nav.ctabs .ctab-coach.on .navshield{border-color:rgba(193,173,114,.95);box-shadow:0 10px 24px rgba(0,0,0,.55),0 0 0 5px rgba(16,15,12,.86),0 0 18px rgba(193,173,114,.35)}
+nav.ctabs .ctab-coach .navshield img{width:33px!important;height:33px!important}
+nav.ctabs .ctab-coach{color:var(--gold-soft)}
+/* FONT RULE: Montserrat everywhere; Cinzel only for small eyebrow labels */
+h1{font-family:'Montserrat',system-ui,sans-serif!important;font-weight:900!important;letter-spacing:.005em!important;line-height:1.02}
+h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight:800!important}
+.nh-num,.ph-big,.nh-v,.coach-hero .coach-ttl,.readcard .verd,.recrow .rval{font-family:'Montserrat',system-ui,sans-serif!important}
+.nh-num,.ph-big{font-weight:900!important}
+/* ===== mockup building blocks (Daily Target, program hero, tiles, rows, checkin) ===== */
+.k-eyebrow{font-family:'Cinzel',serif;font-size:13px;letter-spacing:.14em;color:var(--gold-soft);text-transform:uppercase;margin:0 0 3px}
+.k-slabel{font-family:'Cinzel',serif;font-weight:600;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold-soft);margin:24px 2px 12px;display:flex;justify-content:space-between;align-items:baseline}
+.k-slabel .sub{font-family:'Montserrat',system-ui,sans-serif;font-weight:500;letter-spacing:.02em;color:var(--ink-faint);text-transform:none;font-size:11px}
+.k-slabel .va{color:var(--gold);font-weight:700;font-size:11px;letter-spacing:.06em}
+.dt{background:linear-gradient(160deg,var(--k-card2),var(--k-card));border:1px solid var(--line);border-radius:22px;padding:20px 18px 18px}
+.dt-top{display:flex;align-items:center;gap:18px}
+.kring{position:relative;width:96px;height:96px;flex:none}
+.kring svg{transform:rotate(-90deg)}
+.kring .rt{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.kring .rt b{font-weight:900;font-size:21px;color:#fff;line-height:1;font-family:'Montserrat',sans-serif}
+.kring .rt span{font-size:8.5px;letter-spacing:.1em;color:var(--ink-dim);text-transform:uppercase;margin-top:3px}
+.dt-goalwrap{flex:1;min-width:0}
+.goalpill{display:inline-flex;align-items:center;gap:7px;background:rgba(193,173,114,.12);border:1px solid rgba(193,173,114,.3);color:var(--gold-soft);font-weight:700;font-size:12.5px;padding:7px 12px;border-radius:999px}
+.tgeyebrow{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);font-weight:700;margin-bottom:4px}
+.tgstat{font-weight:800;font-size:13.5px;color:var(--ink-dim);line-height:1.3}
+.kstatpill{display:inline-flex;align-items:center;gap:6px;margin-top:8px;font-weight:800;font-size:12px;padding:6px 11px;border-radius:999px}
+.kstatpill.ok{background:rgba(125,148,99,.16);border:1px solid rgba(125,148,99,.4);color:var(--green-lit)}
+.kstatpill.off{background:rgba(192,106,62,.15);border:1px solid rgba(192,106,62,.4);color:#d98a5e}
+.editgoal{display:inline-flex;gap:5px;color:var(--gold);font-weight:700;font-size:12px;margin-top:9px}
+.tiles3{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+.mtile{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:16px;padding:13px 14px}
+.mtile .k{font-weight:900;font-size:20px;color:var(--green-lit);font-family:'Montserrat',sans-serif}
+.mtile .l{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-top:2px;font-weight:600}
+.mtile.step{grid-column:1/3;display:flex;align-items:center;justify-content:space-between}
+.mtile.step .k{color:#fff}
+.kbar{height:6px;border-radius:4px;background:rgba(255,255,255,.08);margin-top:8px;overflow:hidden;grid-column:1/3}
+.kbar i{display:block;height:100%;background:linear-gradient(90deg,var(--olive),var(--green-lit))}
+.phero{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);min-height:172px;background:linear-gradient(180deg,rgba(8,9,10,0) 18%,rgba(8,9,10,.9) 100%),linear-gradient(120deg,#2b3327,#151713 70%)}
+.phero .art{position:absolute;inset:0;opacity:.5;background:radial-gradient(80% 120% at 82% 0%,rgba(125,148,99,.5),transparent 60%),radial-gradient(60% 90% at 8% 92%,rgba(193,173,114,.35),transparent 60%)}
+.phero-body{position:relative;padding:16px;min-height:172px;display:flex;flex-direction:column;justify-content:flex-end}
+.pswitch{position:absolute;top:14px;left:14px;background:rgba(0,0,0,.42);border:1px solid rgba(255,255,255,.14);color:#fff;font-weight:700;font-size:11px;letter-spacing:.06em;padding:6px 12px;border-radius:999px}
+.ppct{position:absolute;top:12px;right:12px;width:52px;height:52px}
+.ppct .rt{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:13px;color:#fff;font-family:'Montserrat',sans-serif}
+.pname{font-family:'Montserrat',sans-serif;font-weight:900;font-size:23px;line-height:1.02;text-transform:uppercase;color:#fff;letter-spacing:.005em;max-width:82%}
+.ptag{color:var(--ink-dim);font-weight:600;font-size:11.5px;letter-spacing:.06em;margin-top:6px}
+.krow{display:flex;align-items:center;gap:13px;background:var(--k-card);border:1px solid var(--line);border-radius:16px;padding:11px 13px;margin-top:10px}
+.krow .ic{width:46px;height:46px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;font-size:22px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.krow .rb{flex:1;min-width:0}
+.krow .rt2{font-weight:800;font-size:14.5px;color:#fff;line-height:1.15}
+.krow .rs{font-size:11.5px;color:var(--ink-dim);margin-top:3px;line-height:1.3}
+.krow .go{color:var(--ink-faint);flex:none;font-size:20px}
+.kcheckin{display:flex;align-items:center;gap:13px;background:linear-gradient(160deg,rgba(74,92,62,.28),rgba(74,92,62,.08));border:1px solid rgba(125,148,99,.3);border-radius:18px;padding:15px;margin-top:14px}
+.kcheckin .ci{width:44px;height:44px;border-radius:12px;background:rgba(0,0,0,.25);display:flex;align-items:center;justify-content:center;font-size:22px;flex:none}
+.kcheckin .cb{flex:1}
+.kcheckin .ct{font-family:'Cinzel',serif;font-weight:600;font-size:15px;letter-spacing:.04em;color:#fff}
+.kcheckin .cs{font-size:11.5px;color:var(--ink-dim);margin-top:2px;line-height:1.3}
+.kcheckin .ar{color:var(--gold);font-size:22px;flex:none}
+.kweeks{display:flex;gap:8px;margin-top:12px}
+.kwchip{flex:1;text-align:center;padding:9px 0;border-radius:12px;border:1px solid var(--line);background:rgba(255,255,255,.02);font-weight:700;font-size:11px;letter-spacing:.05em;color:var(--ink-dim)}
+.kwchip.on{background:linear-gradient(160deg,rgba(193,173,114,.22),rgba(193,173,114,.08));border-color:rgba(193,173,114,.45);color:var(--gold-soft)}
+.kday{display:flex;align-items:center;gap:13px;background:var(--k-card);border:1px solid var(--line);border-radius:16px;padding:11px;margin-top:10px;cursor:pointer}
+.kday.today{border-color:rgba(193,173,114,.5);background:linear-gradient(160deg,rgba(193,173,114,.10),var(--k-card))}
+.kday .thumb{width:60px;height:60px;border-radius:12px;flex:none;position:relative;overflow:hidden;background:linear-gradient(140deg,#2b3327,#14140f)}
+.kday .thumb:after{content:"";position:absolute;inset:0;background:radial-gradient(70% 90% at 70% 20%,rgba(125,148,99,.45),transparent 60%)}
+.kday .thumb .em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;opacity:.85}
+.kday .dn{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:800}
+.kday .dt2{font-weight:800;font-size:14.5px;color:#fff;margin-top:3px;line-height:1.15}
+.kday .dpills{margin-top:6px;display:flex;gap:6px}
+.kday .rb{flex:1;min-width:0}
+.kday .go{color:var(--ink-faint);font-size:20px;flex:none}
+.kstart{display:flex;align-items:center;justify-content:center;gap:9px;font-weight:900;font-size:14px;letter-spacing:.03em;padding:15px;border-radius:15px;margin-top:12px;text-transform:uppercase;background:linear-gradient(160deg,var(--gold-soft),var(--gold));color:#161309;box-shadow:0 8px 20px rgba(193,173,114,.3)}
+/* Workouts = program library (Kino Programs) */
+.progcard{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--line);height:120px;margin-top:12px;background:linear-gradient(180deg,rgba(8,9,10,.1) 28%,rgba(8,9,10,.88) 100%),linear-gradient(120deg,#26301f,#15130f 72%)}
+.progcard.p2{background:linear-gradient(180deg,rgba(8,9,10,.1) 28%,rgba(8,9,10,.88) 100%),linear-gradient(120deg,#2c2740,#15130f 72%)}
+.progcard.p3{background:linear-gradient(180deg,rgba(8,9,10,.1) 28%,rgba(8,9,10,.88) 100%),linear-gradient(120deg,#3a2a1c,#15130f 72%)}
+.progcard-body{position:absolute;inset:0;padding:15px;display:flex;flex-direction:column;justify-content:flex-end}
+.progcard .pcname{font-family:'Montserrat',sans-serif;font-weight:900;font-size:18px;text-transform:uppercase;color:#fff;line-height:1.05}
+.progcard .pcpills{margin-top:7px;display:flex;gap:6px}
+.progcard .pcnow{position:absolute;top:12px;left:12px;background:rgba(193,173,114,.9);color:#161309;font-weight:800;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:4px 9px;border-radius:999px}
+/* workout overlay — a day's workout overview, opened from Home's day list */
+#workoutOverlay{position:fixed;inset:0;z-index:80;background:#0b0b0a;display:none;flex-direction:column}
+#workoutOverlay.open{display:flex}
+.wov-head{display:flex;align-items:center;gap:12px;padding:calc(10px + env(safe-area-inset-top)) 16px 12px}
+.wov-back{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--gold);font-size:22px;line-height:1;cursor:pointer}
+#workoutOverlayTitle{font-family:'Montserrat',sans-serif;font-weight:900;font-size:17px;text-transform:uppercase;color:#fff;letter-spacing:.01em}
+#workoutOverlayFrame{flex:1;width:100%;border:0;background:#141510}
+/* Home hero container becomes the flush Daily Target card */
+#homeHeroCard{padding:0;background:transparent;border:none;box-shadow:none;overflow:visible}
+/* HOME = the simple Kino screen only. Hide every legacy Home card; keep the Daily-Target hero. */
+#ctab-home > *{display:none!important}
+#ctab-home > #homeHeroCard{display:block!important}
+/* NUTRITION = simple Kino screen. Flush hero; legacy cards hidden unless force-shown by a tile. */
+#nutHeroCard{padding:0;background:transparent;border:none;box-shadow:none;overflow:visible}
+#nutHeroCard > .sec-h{display:none}
+#ctab-nutrition > .card:not(#nutHeroCard){display:none}
+#ctab-nutrition > .card.force-show{display:block!important;margin-top:14px}
+.logtile{display:flex;align-items:center;gap:14px;background:linear-gradient(160deg,var(--k-card2),var(--k-card));border:1px solid var(--line);border-radius:18px;padding:13px 15px;margin-top:12px;cursor:pointer}
+.logtile img{width:46px;height:46px;border-radius:12px;flex:none}
+.logtile .rb{flex:1}
+.logtile .rt2{font-weight:800;font-size:15px;color:#fff}
+.logtile .rs{font-size:11.5px;color:var(--ink-dim);margin-top:2px}
+.logtile .go{font-size:20px;flex:none}
+/* Nutrition: large centered avg-cal ring */
+.dt-ringwrap{display:flex;justify-content:center;padding:8px 0 2px}
+.dt-ringwrap .kring .rt b{font-size:32px}
+.dt-ringwrap .kring .rt span{font-size:10px;margin-top:5px}
+.dt-status{text-align:center;margin-top:8px}
+.dt-status .tgstat{font-size:15px}
+.dt-status .editgoal{justify-content:center;color:var(--ink-faint);font-weight:600}
+/* meals with options */
+.opt{font-size:11px;color:var(--gold-soft);font-weight:700}
+.macros{display:flex;gap:6px;margin-top:5px;flex-wrap:wrap}
+.mealopts{margin:2px 0 0 0}
+.mopt{background:rgba(255,255,255,.02);border:1px solid var(--line);border-radius:13px;padding:11px 13px;margin-top:8px;margin-left:14px}
+.mopt .mn{font-weight:700;font-size:13px;color:#fff}
+.mopt .mi{font-size:11.5px;color:var(--ink-dim);margin-top:3px;line-height:1.4}
+.mopt .mm{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
+.mopt.star .mn:before{content:"★ ";color:var(--gold)}
+/* LP COACH = simple Kino Portal screen. Hide the legacy progress cards. */
+#ctab-coach{padding:0}
+#ctab-progress{display:none!important}
+.read{background:linear-gradient(160deg,rgba(193,173,114,.16),rgba(193,173,114,.04));border:1px solid rgba(193,173,114,.34);border-radius:20px;padding:16px;margin-top:6px}
+.read .rh{display:flex;align-items:center;gap:9px;margin-bottom:8px}
+.read .rh .av{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);padding:5px}
+.read .rh .av img{width:100%;height:100%;object-fit:contain}
+.read .rh .rt{font-family:'Cinzel',serif;font-weight:600;font-size:13px;letter-spacing:.06em;color:var(--gold-soft)}
+.read p{margin:0;font-size:13px;line-height:1.5;color:var(--ink)}
+.read p b{color:#fff}
+.read .cta{display:flex;gap:9px;margin-top:13px}
+.read .cta a{flex:1;text-align:center;font-weight:800;font-size:12px;padding:11px;border-radius:12px;cursor:pointer}
+.read .cta .g{background:linear-gradient(160deg,var(--gold-soft),var(--gold));color:#161309}
+.read .cta .o{background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--ink)}
+.pstat{display:flex;align-items:center;gap:13px;margin-top:4px}
+.pav{width:54px;height:54px;border-radius:16px;flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:22px;color:#161309;background:linear-gradient(160deg,var(--gold-soft),var(--gold));font-family:'Montserrat',sans-serif}
+.statgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px;flex:1}
+.sg{background:rgba(255,255,255,.025);border:1px solid var(--line);border-radius:13px;padding:8px 11px}
+.sg .k{font-weight:900;font-size:15px;color:#fff;font-family:'Montserrat',sans-serif}
+.sg .l{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-dim);margin-top:1px;font-weight:600}
+.chips{display:flex;gap:7px;margin-top:12px;overflow-x:auto}
+.chips::-webkit-scrollbar{height:0}
+.chip{flex:none;padding:7px 13px;border-radius:999px;border:1px solid var(--line);background:rgba(255,255,255,.02);font-weight:700;font-size:11px;color:var(--ink-dim);cursor:pointer}
+.chip.on{background:linear-gradient(160deg,rgba(193,173,114,.22),rgba(193,173,114,.08));border-color:rgba(193,173,114,.45);color:var(--gold-soft)}
+.chartcard{background:linear-gradient(160deg,var(--k-card2),var(--k-card));border:1px solid var(--line);border-radius:18px;padding:15px;margin-top:11px}
+.chartcard .ch-top{display:flex;justify-content:space-between;align-items:baseline}
+.chartcard .cv{font-weight:900;font-size:22px;color:#fff;font-family:'Montserrat',sans-serif}
+.chartcard .cv span{font-size:11px;color:var(--ink-dim);font-weight:600}
+.chartcard .rng{font-size:11px;color:var(--gold);font-weight:700;background:none;border:1px solid var(--line);border-radius:8px;padding:5px 9px;cursor:pointer}
+.lift{display:flex;align-items:center;gap:12px;background:var(--k-card);border:1px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:9px}
+.lift .ln{flex:1;font-weight:700;font-size:13.5px;color:var(--ink)}
+.lift .lv{font-weight:900;font-size:15px;color:#fff;font-family:'Montserrat',sans-serif}
+.lift .lu{font-size:10px;color:var(--ink-dim);font-weight:600;margin-left:3px}
+.lift .lx{color:var(--ink-faint);font-size:18px;cursor:pointer;margin-left:8px}
+.lift input.le{background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:8px;color:#fff;font-family:inherit;font-weight:800;font-size:14px;width:72px;padding:6px;text-align:center}
+.lift input.len{flex:1;background:rgba(0,0,0,.25);border:1px solid var(--line);border-radius:8px;color:#fff;font-family:inherit;font-weight:600;font-size:13px;padding:8px}
+.ci-row{display:flex;align-items:center;gap:12px;background:var(--k-card);border:1px solid var(--line);border-radius:14px;padding:10px 13px;margin-top:9px}
+.ci-row .cb{flex:1}
+.ci-row .cd{font-weight:800;font-size:13px;color:#fff}
+.ci-row .cm{font-size:11px;color:var(--ink-dim);margin-top:1px}
+.ci-row .cw{font-weight:900;font-size:15px;color:var(--gold-soft);font-family:'Montserrat',sans-serif}
+/* WELLNESS = simple Kino screen. Flush; legacy cards hidden unless force-shown. */
+#wellnessCard{padding:0;background:transparent;border:none}
+#wellnessCard > .sec-h{display:none}
+#ctab-wellness > .card:not(#wellnessCard){display:none}
+#ctab-wellness > .card.force-show{display:block!important;margin-top:14px}
+.wbadge{display:inline-block;font-size:9px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;padding:3px 8px;border-radius:999px;background:rgba(125,148,99,.16);border:1px solid rgba(125,148,99,.4);color:var(--green-lit)}
+.wbadge.gold{background:rgba(193,173,114,.14);border-color:rgba(193,173,114,.4);color:var(--gold-soft)}
+.stack{background:linear-gradient(160deg,var(--k-card2),var(--k-card));border:1px solid var(--line);border-radius:20px;padding:16px;margin-top:12px}
+.stack .sh{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.stack .sh .t{font-weight:800;font-size:15px;color:#fff}
+.suprow{display:flex;align-items:center;gap:12px;padding:10px 0;border-top:1px solid var(--line)}
+.suprow:first-of-type{border-top:none}
+.suprow .si{width:38px;height:38px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;font-size:18px;background:rgba(255,255,255,.04);border:1px solid var(--line)}
+.suprow .sb{flex:1;min-width:0}
+.suprow .sn{font-weight:700;font-size:13.5px;color:var(--ink)}
+.suprow .sm{font-size:11px;color:var(--ink-dim);margin-top:1px}
+.suprow .lk{color:var(--gold);font-weight:800;font-size:12px;flex:none;cursor:pointer}
+.krow .ic.blood{color:#d9615e;background:rgba(217,97,94,.12);border-color:rgba(217,97,94,.3)}
+.krow .ic.gene{color:#8fb0c9;background:rgba(143,176,201,.12);border-color:rgba(143,176,201,.3)}
+.pepwrap{background:linear-gradient(160deg,var(--k-card2),var(--k-card));border:1px solid var(--line);border-radius:20px;padding:8px 14px 14px;margin-top:12px}
+.peprow{display:flex;align-items:center;gap:12px;padding:11px 2px;border-top:1px solid var(--line);cursor:pointer}
+.peprow:first-child{border-top:none}
+.peprow .pi{width:34px;flex:none;text-align:center;font-size:18px}
+.peprow .pb{flex:1}
+.peprow .pn{font-weight:700;font-size:13.5px;color:var(--ink)}
+.peprow .pm{font-size:11px;color:var(--ink-dim);margin-top:1px}
+.peprow .go{color:var(--ink-faint);font-size:19px}
+.compliance{font-size:10.5px;color:var(--ink-faint);line-height:1.4;margin-top:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--line)}
+/* keep the home header eyebrow/greeting clean */
+#homeEyebrow{font-family:'Cinzel',serif;letter-spacing:.14em}
+#greeting{text-transform:uppercase;font-size:38px!important;margin-top:2px}
+#home > #homeSub{display:none!important}
+</style>
 </head>
 <body>
 <div class="appbg"></div>
 <div id="bootLoader"><img src="logo-white-gold.png" alt="Legacy Performance"><div class="bl-spin"></div><div class="bl-txt">Loading your dashboard…</div></div>
 <div class="safe"></div>
 <header>
-  <div class="brand" onclick="if(window.ID&&ID.email)showHome()" style="cursor:pointer" title="Home"><img src="logo-white-gold.png" alt="Legacy Performance" /></div>
   <button class="menubtn" onclick="openMenu()" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="brand" onclick="if(window.ID&&ID.email)showHome()" style="cursor:pointer" title="Home"><img src="logo-white-gold.png" alt="Legacy Performance" /></div>
+  <button class="gearbtn" onclick="openMenu()" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
 </header>
 
 <!-- slide-out menu -->
@@ -681,6 +906,12 @@ select.input{appearance:none}
     <button onclick="closeMenu();editIdentity()">Settings</button>
   </nav>
 </aside>
+
+<!-- Workout overview overlay — opened when a day is tapped on Home -->
+<div id="workoutOverlay">
+  <div class="wov-head"><button class="wov-back" onclick="closeWorkoutDay()" aria-label="Back">‹</button><div id="workoutOverlayTitle">Workout</div></div>
+  <iframe id="workoutOverlayFrame" title="Workout" src="about:blank"></iframe>
+</div>
 
 <div class="wrap">
 
@@ -759,13 +990,13 @@ select.input{appearance:none}
     <p class="sub" id="homeSub">Your dashboard updates every time you check in — and it's the same view your coach sees.</p>
 
     <!-- ===== BOTTOM APP NAV ===== -->
-    <nav class="ctabs">
-      <button class="ctab on" id="ctab-btn-home" onclick="showClientTab('home')"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5M5 9.5V20h14V9.5" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></svg>Home</button>
-      <button class="ctab" id="ctab-btn-nutrition" onclick="showClientTab('nutrition')"><svg viewBox="0 0 24 24"><path d="M12 21c5-3 8-6.5 8-11a5 5 0 00-8-3 5 5 0 00-8 3c0 4.5 3 8 8 11z" stroke-width="1.7" stroke-linejoin="round"/></svg>Nutrition</button>
-      <button class="ctab ctab-coach" id="ctab-btn-coach" onclick="showClientTab('coach')"><span class="navshield"><img src="shield-navmark.png" alt="LP Coach" /></span>Coach</button>
-      <button class="ctab" id="ctab-btn-workouts" onclick="showClientTab('workouts')"><svg viewBox="0 0 24 24"><path d="M4 9v6M7 7v10M17 7v10M20 9v6M7 12h10" stroke-width="1.7" stroke-linecap="round"/></svg>Workouts</button>
-      <button class="ctab" id="ctab-btn-wellness" onclick="showClientTab('wellness')"><svg viewBox="0 0 24 24"><path d="M10.5 13.5l3-3a4 4 0 015.6 5.6l-4 4a4 4 0 01-5.6 0M13.5 10.5l-3 3a4 4 0 01-5.6-5.6l4-4a4 4 0 015.6 0" stroke-width="1.6" stroke-linecap="round"/></svg>Wellness</button>
-    </nav>
+    <nav class="ctabs"><div class="navbar">
+      <button class="ctab on" id="ctab-btn-home" onclick="showClientTab('home')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M3 10.5L12 3l9 7.5M5 9.5V20h14V9.5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Home</button>
+      <button class="ctab" id="ctab-btn-nutrition" onclick="showClientTab('nutrition')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M5 3v7a2.5 2.5 0 0 0 5 0V3M7.5 10v11M18 3c-1.7 0-2.5 2-2.5 5s.8 5 2.5 5m0 0v8" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Nutrition</button>
+      <button class="ctab ctab-coach" id="ctab-btn-coach" onclick="showClientTab('coach')"><span class="navshield"><img src="shield-white-gold.png" alt="LP Coach" /></span>LP Coach</button>
+      <button class="ctab" id="ctab-btn-workouts" onclick="showClientTab('workouts')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M6.5 6.5v11M4 8.5v7M17.5 6.5v11M20 8.5v7M6.5 12h11" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Workouts</button>
+      <button class="ctab" id="ctab-btn-wellness" onclick="showClientTab('wellness')"><span class="ico"><svg viewBox="0 0 24 24"><path d="M12 3s6.5 6.8 6.5 11a6.5 6.5 0 0 1-13 0C5.5 9.8 12 3 12 3z" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Wellness</button>
+    </div></nav>
 
     <!-- ===== LP COACH TAB ===== -->
     <div class="ctab-panel hidden" id="ctab-coach"></div>
@@ -1015,10 +1246,6 @@ select.input{appearance:none}
     </div>
 
     <!-- ===== FOOTER: identity ===== -->
-    <div style="margin-top:14px;display:flex;gap:10px;flex-wrap:wrap">
-      <button class="btn btn-ghost" onclick="retakeAssessment()">↻ Retake the Readiness Assessment</button>
-      <button class="btn btn-ghost" onclick="editIdentity()">Update name / email</button>
-    </div>
     <p class="foot" id="syncNote"></p>
   </section>
 
@@ -1147,7 +1374,7 @@ select.input{appearance:none}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=45"></script>
+<script src="nutrition-engine.js?v=46"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -1252,6 +1479,10 @@ function showClientTab(tab){
   ["home","nutrition","coach","workouts","wellness"].forEach(function(t){
     var btn=g("ctab-btn-"+t); if(btn) btn.classList.toggle("on", t===tab);
   });
+  /* The "Welcome back, NAME" header belongs to Home only — every other tab shows its own title. */
+  var isHome=(tab==="home"), ge=g("greeting"), gy=g("homeEyebrow");
+  if(ge) ge.style.display=isHome?"":"none";
+  if(gy) gy.style.display=isHome?"":"none";
   /* Lazy render: build each tab's content only when it's opened (keeps the initial
      Home paint fast). Nutrition's heavy meal-plan generation runs once per session. */
   if(tab==="coach"){ renderCoach(); renderProgressHero(); }
@@ -1265,54 +1496,136 @@ function showClientTab(tab){
    a program yet get the getting-started view. Jayme's account carries the Min-Max program. */
 function assignedProgram(){
   if(ID && ID.email && ID.email.toLowerCase()===(typeof JAYME_EMAIL!=='undefined'?JAYME_EMAIL:"")){
-    return { name:"The Min-Max Program", src:"workout/private/?embed=1" };
+    return { name:"The Min-Max Program", src:"workout/private/?embed=1", pct:15, weeks:6,
+      days:[{t:"Upper 1",mins:55,ex:8},{t:"Lower 1",mins:40,ex:6},{t:"Upper 2",mins:50,ex:7},{t:"Lower 2",mins:35,ex:5},{t:"Arms/Delts",mins:65,ex:9}] };
   }
   return null;   // no assigned program wired for generic members yet
 }
+/* Open a single day as its own workout overview (where you start the session). */
+function openWorkoutDay(i){
+  var ap=assignedProgram(); if(!ap) return;
+  var ov=g("workoutOverlay"), fr=g("workoutOverlayFrame"), ti=g("workoutOverlayTitle");
+  if(!ov||!fr) return;
+  var d=(ap.days&&ap.days[i]), day=(d&&d.t)?d.t:((typeof d==='string')?d:("Day "+(i+1)));
+  if(ti) ti.textContent=day;
+  var base=ap.src.indexOf('?')>=0?ap.src:(ap.src+'?embed=1');
+  fr.src=base+"&day="+i+"&_="+Date.now();
+  ov.classList.add("open"); document.body.style.overflow="hidden";
+}
+function closeWorkoutDay(){ var ov=g("workoutOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("workoutOverlayFrame"); if(fr) fr.src="about:blank"; }
+/* Workouts tab = the PROGRAM LIBRARY (Kino "Programs"). Your active program lives on Home;
+   here you browse every program and switch. */
 function renderWorkouts(){
   var box=g("workoutsBox"); if(!box) return;
-  var prog=assignedProgram();
-  if(prog){
-    if(box.getAttribute('data-prog')===prog.src) return;   // already embedded — don't reload the frame
-    box.setAttribute('data-prog', prog.src);
-    box.innerHTML='<div class="wk-head"><div class="eyebrow" style="color:var(--gold);font-size:.72rem;letter-spacing:.24em;text-transform:uppercase">Your training</div>'
-      +'<h2 style="margin:4px 0 0">'+esc(prog.name)+'</h2>'
-      +'<p class="sub" style="margin:6px 0 0">Your full block. Log every set, run the timer, and it remembers your numbers for next time.</p></div>'
-      +'<iframe class="workout-frame" src="'+prog.src+'" title="Your training" loading="lazy"></iframe>';
-  } else {
-    box.innerHTML='<div class="card"><div class="sec-h"><h2>Your workouts</h2></div>'
-      +'<p class="sub" style="margin:-4px 0 12px">Train for your life, not just the gym. Your coach sets your program — log your lifts and add weight when you\'ve earned it.</p>'
-      +'<a class="btn btn-primary" href="workout/">Start a workout →</a>'
-      +'<a class="btn btn-ghost" href="workout/lifts/" style="margin-top:10px">Your key lifts &amp; trends →</a></div>';
+  var ap=assignedProgram();
+  var h='<div class="hrow"><p class="eyebrow" id="wkEyebrow">The Library</p><h1 style="text-transform:uppercase;font-size:30px">Programs</h1></div>';
+  h+='<div class="k-slabel">Your Program</div>';
+  if(ap){
+    h+='<div class="progcard" onclick="showClientTab(\'home\')"><div class="pcnow">Active</div><div class="progcard-body">'
+      +'<div class="pcname">'+esc(ap.name)+'</div><div class="pcpills"><span class="pill">In progress</span><span class="pill">Open on Home →</span></div></div></div>';
   }
+  h+='<div class="k-slabel">Browse Programs</div>';
+  var lib=[
+    {n:'Lean Conditioning', m:['6 weeks','Lean'], c:''},
+    {n:'Strong Builder', m:['8 weeks','Strong'], c:'p2'},
+    {n:'Foundations Starter', m:['4 weeks','New to training'], c:'p3'}
+  ];
+  lib.forEach(function(p){
+    h+='<div class="progcard '+p.c+'"><div class="progcard-body"><div class="pcname">'+esc(p.n)+'</div>'
+      +'<div class="pcpills">'+p.m.map(function(x){return '<span class="pill">'+esc(x)+'</span>';}).join('')+'</div></div></div>';
+  });
+  h+='<div class="krow" style="margin-top:14px"><div class="ic">🏆</div><div class="rb"><div class="rt2">History &amp; PRs</div>'
+    +'<div class="rs">Your core lifts and past sessions — in LP Coach</div></div><div class="go" onclick="showClientTab(\'coach\')">›</div></div>';
+  box.innerHTML=h;
 }
 /* LP Coach — the decision surface (v1: the read + your track + submit a check-in). Grows into the
    baseline collector + adjustment engine (see Dashboard-Redesign-Spec.md "Legacy Coach"). */
+/* ---- LP Coach: Kino Portal + coaching read ---- */
+var COACH_RANGE=3;   // months shown on the weight trend
+var CORE_EDIT=false;
+var CORE_DEFAULT=[{n:"Bench Press",v:""},{n:"Back Squat",v:""},{n:"Deadlift",v:""},{n:"Overhead Press",v:""}];
+function loadCoreLifts(){ try{ var a=JSON.parse(localStorage.getItem('lp_client_corelifts')||'null'); return (a&&a.length)?a:CORE_DEFAULT.slice(); }catch(e){ return CORE_DEFAULT.slice(); } }
+function saveCoreLifts(a){ try{ localStorage.setItem('lp_client_corelifts', JSON.stringify(a)); }catch(e){} }
+function toggleCoreEdit(){ if(CORE_EDIT) saveCoreEdits(); else { CORE_EDIT=true; renderCoach(); } }
+function saveCoreEdits(){ var a=loadCoreLifts(); a.forEach(function(l,i){ var nn=g('cln'+i), vv=g('clv'+i); if(nn)l.n=nn.value; if(vv)l.v=vv.value; }); saveCoreLifts(a); CORE_EDIT=false; renderCoach(); }
+function addCoreLift(){ var a=loadCoreLifts(); a.push({n:"",v:""}); saveCoreLifts(a); CORE_EDIT=true; renderCoach(); }
+function delCoreLift(i){ var a=loadCoreLifts(); a.splice(i,1); saveCoreLifts(a); renderCoach(); }
+function setCoachRange(m){ COACH_RANGE=m; renderCoach(); }
+function messageCoach(){ var n=(CONFIG.coachSmsNumber||"").replace(/[^0-9+]/g,""); if(n){ window.location.href='sms:'+n; } else { alert('Messaging your coach is coming soon.'); } }
+function bookCall(){ var u=CONFIG.onboardCallUrl||""; if(u){ window.open(u,'_blank','noopener'); } else { alert('Your booking link is coming soon.'); } }
+function ftIn(inches){ if(!isFinite(inches)) return '—'; var f=Math.floor(inches/12), i=Math.round(inches%12); return f+"'"+i+'"'; }
+function weightTrendSVG(months){
+  var cks=(M.checkins||[]).filter(function(c){return c.weight!=null && c.ts;}).sort(function(a,b){return a.ts-b.ts;});
+  var cut=Date.now()-months*30*864e5;
+  var pts=cks.filter(function(c){return c.ts>=cut;}).map(function(c){return +c.weight;});
+  if(pts.length<2 && cks.length) pts=cks.slice(-8).map(function(c){return +c.weight;});   // fall back to last 8
+  if(pts.length<2){ return {svg:'<div style="color:var(--ink-dim);font-size:12px;padding:18px 2px">Your weight trend builds here as you check in.</div>', cur:(pts[0]||(M.intake&&M.intake.weight)||'—')}; }
+  var xs=pts.map(function(_,i){return 18+i*(300/(pts.length-1));});
+  var mn=Math.min.apply(null,pts)-1, mx=Math.max.apply(null,pts)+1;
+  function y(v){ return 18+(mx-v)/(mx-mn)*72; }
+  var poly=pts.map(function(v,i){return xs[i].toFixed(0)+','+y(v).toFixed(0);}).join(' ');
+  var area='18,90 '+poly+' 318,90';
+  var svg='<svg width="100%" viewBox="0 0 336 100" style="margin-top:8px">'
+    +'<polygon points="'+area+'" fill="url(#ga)" opacity="0.5"/>'
+    +'<polyline points="'+poly+'" fill="none" stroke="#7d9463" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    +'<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d9463" stop-opacity=".5"/><stop offset="1" stop-color="#7d9463" stop-opacity="0"/></linearGradient></defs></svg>';
+  return {svg:svg, cur:pts[pts.length-1]};
+}
 function renderCoach(){
   var box=g("ctab-coach"); if(!box) return;
-  var it=M&&M.intake, track=(it&&it.track)||"";
+  var it=M&&M.intake||{}, track=(it&&it.track)||"Lean";
   var inFdn=(typeof inFoundations==='function')?inFoundations():false;
   var cks=(M&&M.checkins)||[], last=cks.length?cks[cks.length-1]:null;
-  var rk, verdict, read;
-  if(!it || !it.done){
-    rk="Start here"; verdict="Let's find your starting point.";
-    read="Answer a few questions and I'll set your provisional phase — then five days of tracking confirms it.";
-  } else if(inFdn){
-    rk="Right now"; verdict="Collect your baseline.";
-    read="Five days of tracked calories, protein, steps and sleep. Submit a check-in and I'll lock in your phase from there.";
-  } else if(!last){
-    rk="Right now"; verdict="Time for your first check-in.";
-    read="Log your week and I'll read the trend and call your next move.";
+  var read;
+  if(!it || !it.done){ read="Answer a few questions and I'll set your provisional phase — then a week of tracking confirms it."; }
+  else if(inFdn){ read="Collect your baseline: a week of tracked calories, protein, steps and sleep. Submit a check-in and I'll lock your phase."; }
+  else if(!last){ read="Log your first week and I'll read the trend and call your next move."; }
+  else { read="Your latest check-in is in. Hold your numbers where they are — your next check-in decides the adjustment."; }
+
+  var name=(ID&&ID.name)||"You", initial=name.trim().charAt(0).toUpperCase();
+  var cur=(last&&last.weight)||it.weight||'—', gw=(isFinite(+it.goalweight)&&+it.goalweight>0)?Math.round(+it.goalweight):'—';
+  var wt=weightTrendSVG(COACH_RANGE);
+  var ranges=[1,2,3,6];
+
+  var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">Your Progress</p><h1 style="text-transform:uppercase;font-size:30px">LP Coach</h1></div>';
+  // read
+  h+='<div class="k-slabel">This Week\'s Read</div>'
+    +'<div class="read"><div class="rh"><div class="av"><img src="shield-white-gold.png" alt="LP"></div><div class="rt">From your coach</div></div>'
+    +'<p>'+esc(read)+'</p>'
+    +'<div class="cta"><a class="g" onclick="messageCoach()">Message coach</a><a class="o" onclick="bookCall()">Book a call</a></div></div>';
+  // snapshot
+  h+='<div class="k-slabel">Snapshot</div>'
+    +'<div class="pstat"><div class="pav">'+esc(initial)+'</div><div class="statgrid">'
+    +'<div class="sg"><div class="k">'+(it.age||'—')+'</div><div class="l">Age</div></div>'
+    +'<div class="sg"><div class="k">'+ftIn(+it.height)+'</div><div class="l">Height</div></div>'
+    +'<div class="sg"><div class="k">'+cur+' lb</div><div class="l">Current</div></div>'
+    +'<div class="sg"><div class="k">'+gw+' lb</div><div class="l">Target</div></div>'
+    +'</div></div>';
+  // measurements + trend
+  h+='<div class="chips"><div class="chip on">Body Weight</div><div class="chip">Waist</div><div class="chip">Chest</div><div class="chip">Arms</div></div>'
+    +'<div class="chartcard"><div class="ch-top"><div class="cv">'+wt.cur+' <span>lb</span></div>'
+    +'<select class="rng" onchange="setCoachRange(+this.value)">'+ranges.map(function(m){return '<option value="'+m+'"'+(m===COACH_RANGE?' selected':'')+'>'+m+' Month'+(m>1?'s':'')+'</option>';}).join('')+'</select></div>'
+    +wt.svg+'</div>';
+  // core lifts (editable)
+  var lifts=loadCoreLifts();
+  h+='<div class="k-slabel">Core Lifts <span class="va" onclick="toggleCoreEdit()">'+(CORE_EDIT?'Done':'Edit')+'</span></div>';
+  lifts.forEach(function(l,i){
+    if(CORE_EDIT){
+      h+='<div class="lift"><input class="len" id="cln'+i+'" value="'+esc(l.n)+'" placeholder="Lift name"><input class="le" id="clv'+i+'" value="'+esc(l.v)+'" placeholder="lb"><span class="lx" onclick="delCoreLift('+i+')">🗑</span></div>';
+    } else {
+      h+='<div class="lift"><div class="ln">'+esc(l.n||'—')+'</div><div class="lv">'+(l.v?esc(l.v):'—')+'<span class="lu">'+(l.v?' lb':'')+'</span></div></div>';
+    }
+  });
+  if(CORE_EDIT) h+='<div class="lift" style="justify-content:center;color:var(--gold);font-weight:800;cursor:pointer" onclick="addCoreLift()">＋ Add a lift</div>';
+  // check-ins
+  h+='<div class="k-slabel">Check-ins <span class="va" onclick="showCheckin()">＋ Add</span></div>';
+  var recent=cks.slice(-3).reverse();
+  if(recent.length){
+    recent.forEach(function(c){ h+='<div class="ci-row"><div class="cb"><div class="cd">'+(c.ts?fmtDate(c.ts):'Check-in')+'</div><div class="cm">Weight &amp; how the week felt</div></div><div class="cw">'+(c.weight!=null?c.weight:'—')+'</div></div>'; });
   } else {
-    rk="Latest read"; verdict="You're on "+track+" — keep going.";
-    read="Your latest check-in is in. Hold your numbers where they are; your next check-in decides the adjustment.";
+    h+='<div class="ci-row"><div class="cb"><div class="cd">No check-ins yet</div><div class="cm">Your first one starts your trend</div></div><div class="cw">—</div></div>';
   }
-  var tc = /lean/i.test(track)?'var(--rust)':(/strong/i.test(track)?'var(--blue)':'var(--gold)');
-  var h = '<div class="coach-hero"><span class="coach-shield"><img src="shield-navmark.png" alt=""></span>'
-        + '<div class="coach-ttl">LP Coach</div><div class="coach-sub">Your plan, read and adjusted &mdash; the way your coach would.</div></div>'
-        + '<div class="card readcard"><div class="rk">'+esc(rk)+'</div><div class="verd">'+esc(verdict)+'</div><div class="rtxt">'+esc(read)+'</div></div>';
-  if(track) h += '<div class="card"><div class="recrow"><div><div class="rlabel">Your phase</div><div class="rval">'+esc(track)+'</div></div><span class="tbadge" style="background:'+tc+'">'+esc(track)+'</span></div></div>';
-  h += '<button class="btn btn-primary" style="margin-top:8px" onclick="showCheckin()">Submit a check-in</button>';
+  h+='<div class="kcheckin" onclick="showCheckin()" style="margin-top:14px"><div class="ci">📅</div><div class="cb"><div class="ct">Weekly Check-In</div><div class="cs">Add this week\'s photos, weight, and how it felt.</div></div><div class="ar">→</div></div>';
   box.innerHTML=h;
 }
 function pickGender(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove("on");}); b.classList.add("on"); p.dataset.val=b.dataset.v; } // palette applies on dashboard entry, not on pick
@@ -1601,7 +1914,7 @@ function buildModel(server){
 
 /* ============================ RENDER ============================ */
 function renderHome(){
-  g("greeting").textContent="Welcome back, "+ID.name.split(" ")[0];
+  g("greeting").textContent=ID.name.split(" ")[0];
   renderCnsHome(); renderOffline();
   var h=M.checkins, first=h[0], last=h[h.length-1];
   g("stWeight").textContent = (last&&last.weight!=null) ? last.weight : ((M.intake&&M.intake.weight) ? M.intake.weight : "—");
@@ -1614,8 +1927,8 @@ function renderHome(){
     chEl.className="n "+(ch<0?"pos":ch>0?"neg":"");
   } else { chEl.textContent="—"; chEl.className="n"; }
   // due nudge
+  g("homeEyebrow").textContent = "Welcome back,";
   if(last){ var d=daysSince(last.ts);
-    g("homeEyebrow").innerHTML = d>=7?'<span class="pill">Due now</span>':"This week";
     g("ciCta").textContent = d>=7?"You're due — start this week's check-in":"Start this week's check-in";
   }
   drawTrend(h);
@@ -1843,25 +2156,40 @@ function renderProgressHero(){
 }
 /* Wellness catalog tiles (mockup, on-screen). Supplements link to Thorne (CONFIG.thorneUrl);
    peptides route to the order-request; the customized stack unlocks with the Genetic Blueprint. */
+function wellOpen(id,msg){ var c=g(id); if(c){ c.classList.add('force-show'); c.scrollIntoView({behavior:'smooth',block:'start'}); } else if(msg){ alert(msg); } }
+function shopLink(u){ if(u){ window.open(u,'_blank','noopener'); } else { alert('Shop link coming soon.'); } }
 function renderWellnessTiles(){
   var box=g("wellTilesBox"); if(!box) return;
-  var thorne=CONFIG.thorneUrl||'#', orderUrl='wellness.html'+(TOKEN?('?k='+encodeURIComponent(TOKEN)):'');
-  var gv=String(M.genetics||'none').toLowerCase(), genUnlocked=(gv.indexOf('in')===0||gv==='complete'||gv==='done');
-  var pep='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M10.5 13.5l3-3a4 4 0 015.6 5.6l-4 4a4 4 0 01-5.6 0M13.5 10.5l-3 3a4 4 0 01-5.6-5.6l4-4a4 4 0 015.6 0" stroke="#12140e" stroke-width="1.7" stroke-linecap="round"/></svg>';
-  var chat='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M8 15s1.5 2 4 2 4-2 4-2M9 9h.01M15 9h.01M12 21a9 9 0 100-18 9 9 0 000 18z" stroke="#12140e" stroke-width="1.6" stroke-linecap="round"/></svg>';
-  var heart='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 21c5-3 8-6.5 8-11a5 5 0 00-8-3 5 5 0 00-8 3c0 4.5 3 8 8 11z" stroke="#f2ede4" stroke-width="1.6" stroke-linejoin="round"/></svg>';
-  var lock='<svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="9" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 11V8a4 4 0 018 0v3" stroke="currentColor" stroke-width="1.7"/></svg>';
-  var dna='<svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M7 3c0 5 10 5 10 10S7 18 7 21M17 3c0 5-10 5-10 10s10 5 10 8" stroke="#12140e" stroke-width="1.6" stroke-linecap="round"/></svg>';
-  var arrow=' &#8599;';
-  var h='<div class="wkicker">Recommended for your plan</div>';
-  h+='<div class="wtile"><div class="wthumb tw-olive">WHEY</div><div class="wbody"><div class="wt">Whey Isolate</div><div class="wd">Daily protein base</div></div><a class="wgo" href="'+thorne+'" target="_blank" rel="noopener">Thorne'+arrow+'</a></div>';
-  h+='<div class="wtile"><div class="wthumb tw-gold">CREA</div><div class="wbody"><div class="wt">Creatine</div><div class="wd">Foundational &#183; daily</div></div><a class="wgo" href="'+thorne+'" target="_blank" rel="noopener">Thorne'+arrow+'</a></div>';
-  h+='<div class="wtile"><div class="wthumb tw-blue">'+pep+'</div><div class="wbody"><div class="wt">Peptide support</div><span class="wtag">Physician-guided</span></div><a class="wgo" href="'+orderUrl+'">Request &#8594;</a></div>';
-  h+='<div class="wtile"><div class="wthumb tw-gold">'+chat+'</div><div class="wbody"><div class="wt">Book a consultation</div><div class="wd">Talk it through with your coach</div></div><a class="wgo" href="'+(CONFIG.bookCallUrl||'#')+'" target="_blank" rel="noopener">Book &#8594;</a></div>';
-  h+='<div class="wsubh">Phase of Life</div>';
-  h+='<div class="wtile"><div class="wthumb tw-rust">'+heart+'</div><div class="wbody"><div class="wt">Menopause &amp; perimenopause</div><div class="wd">Resources for your season</div></div><span class="wchev">&#8250;</span></div>';
-  if(genUnlocked) h+='<div class="wtile"><div class="wthumb tw-gold">'+dna+'</div><div class="wbody"><div class="wt">Your customized stack</div><div class="wd">Built from your DNA results</div></div><span class="wchev">&#8250;</span></div>';
-  else h+='<div class="wtile locked"><div class="wthumb wlock">'+lock+'</div><div class="wbody"><div class="wt dim">Your customized stack</div><div class="wd">Unlocks with your Genetic Blueprint</div></div><span class="wunlock">Blueprint &#8594;</span></div>';
+  var it=M.intake||{}, track=(it&&it.track)||'Lean';
+  var thorne=CONFIG.thorneUrl||'', huel=CONFIG.huelUrl||'', equip=CONFIG.equipUrl||'';
+  var onPep=(typeof isOnProtocol==='function')?isOnProtocol():false;
+  var addon = /strong/i.test(track)?'Extra protein — for higher targets':'Extra Huel — volume &amp; satiety in your deficit';
+  var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">Functional Performance</p><h1 style="text-transform:uppercase;font-size:30px">Wellness</h1></div>';
+  // Your Stack
+  h+='<div class="k-slabel">Your Stack <span class="sub">'+esc(track)+' phase</span></div>'
+    +'<div class="stack"><div class="sh"><div class="t">Foundational supplements</div><span class="wbadge">At cost</span></div>'
+    +'<div class="suprow"><div class="si">🥛</div><div class="sb"><div class="sn">Whey Isolate</div><div class="sm">Daily protein anchor · Thorne</div></div><div class="lk" onclick="shopLink(\''+thorne+'\')">Shop ↗</div></div>'
+    +'<div class="suprow"><div class="si">💪</div><div class="sb"><div class="sn">Creatine Monohydrate</div><div class="sm">5 g daily · Thorne</div></div><div class="lk" onclick="shopLink(\''+thorne+'\')">Shop ↗</div></div>'
+    +'<div class="suprow"><div class="si">🐟</div><div class="sb"><div class="sn">Fish Oil (Omega-3)</div><div class="sm">Recovery &amp; joints · Equip</div></div><div class="lk" onclick="shopLink(\''+equip+'\')">Shop ↗</div></div>'
+    +'<div class="suprow"><div class="si">✨</div><div class="sb"><div class="sn">'+esc(track)+' add-on</div><div class="sm">'+addon+'</div></div><div class="lk" onclick="shopLink(\''+huel+'\')">View →</div></div>'
+    +'</div>';
+  // Labs & Genetics
+  h+='<div class="k-slabel">Labs &amp; Genetics</div>'
+    +'<div class="krow" onclick="wellOpen(\'bloodCard\')"><div class="ic blood">🩸</div><div class="rb"><div class="rt2">Bloodwork</div><div class="rs">Record your labs — informs nutrition &amp; lifestyle</div></div><div class="go">›</div></div>'
+    +'<div class="krow" onclick="var g0=document.getElementById(\'geneticsCard\'); if(g0){wellOpen(\'geneticsCard\');} else if(CONFIG.geneticsBuyUrl){window.open(CONFIG.geneticsBuyUrl,\'_blank\',\'noopener\');}"><div class="ic gene">🧬</div><div class="rb"><div class="rt2">Genetic Blueprint</div><div class="rs">Your DNA sharpens the plan — see your report</div></div><div class="go">›</div></div>';
+  // Peptide Protocol (gated to on-protocol)
+  if(onPep){
+    h+='<div class="k-slabel">Peptide Protocol <span class="wbadge gold" style="align-self:center">On protocol</span></div>'
+      +'<div class="pepwrap">'
+      +'<div class="peprow" onclick="wellOpen(\'doseCard\')"><div class="pi">📅</div><div class="pb"><div class="pn">Dosing schedule</div><div class="pm">Your prescribed days &amp; times</div></div><div class="go">›</div></div>'
+      +'<div class="peprow" onclick="wellOpen(\'doseCard\')"><div class="pi">🧮</div><div class="pb"><div class="pn">Dosing calculator</div><div class="pm">Measure your prescribed dose in units</div></div><div class="go">›</div></div>'
+      +'<div class="peprow" onclick="alert(\'Dose reminders are coming soon — pick a day &amp; time and get a push.\')"><div class="pi">🔔</div><div class="pb"><div class="pn">Dose reminders</div><div class="pm">Pick your day &amp; time — push notification</div></div><div class="go">›</div></div>'
+      +'<div class="peprow" onclick="wellOpen(\'rxCard\',\'Prescriber notes are coming soon.\')"><div class="pi">📝</div><div class="pb"><div class="pn">Prescriber notes</div><div class="pm">Keep your provider\'s instructions handy</div></div><div class="go">›</div></div>'
+      +'<div class="compliance">Your prescribed protocol. The app never recommends or changes a dose — it only helps you measure and follow what your provider prescribed. Questions about a dose or symptom → Request a consult.</div>'
+      +'</div>';
+  }
+  // Request a Consult
+  h+='<div class="kcheckin" onclick="bookCall()" style="margin-top:14px"><div class="ci">🩺</div><div class="cb"><div class="ct">Request a Consult</div><div class="cs">Any medical, dosing, or symptom question goes to the Patient Care Team.</div></div><div class="ar">→</div></div>';
   box.innerHTML=h;
 }
 /* Supplements — the consumer stack (Huel/Thorne/Equip). General wellness education, partner
@@ -3503,38 +3831,178 @@ function calRingHtml(avg, target, goalTxt){
 }
 /* Home hero — the daily quick-look: the average-calorie ring + protein target + calorie
    target. (Water + the deep numbers live in the Nutrition tab, per Jayme.) */
+/* Kino SVG ring — green fills toward target; overage shows as a rust arc. */
+function kRingSVG(avg, target, size, cls){
+  var S=size||96, C=S/2, sw=Math.round(S*0.094), r=Math.round(C-sw/2-1), circ=Math.round(2*Math.PI*r);
+  var vb='0 0 '+S+' '+S, wrap='kring'+(cls?(' '+cls):'');
+  var centerNum, unit, overArc='';
+  if(avg==null){
+    centerNum=target.toLocaleString();
+    return '<div class="'+wrap+'" style="width:'+S+'px;height:'+S+'px"><svg width="'+S+'" height="'+S+'" viewBox="'+vb+'">'
+      +'<circle cx="'+C+'" cy="'+C+'" r="'+r+'" stroke="rgba(255,255,255,.10)" stroke-width="'+sw+'" fill="none"/></svg>'
+      +'<div class="rt"><b>'+centerNum+'</b><span>kcal target</span></div></div>';
+  }
+  centerNum=Math.round(avg).toLocaleString(); unit='avg kcal';
+  var frac = avg<=target ? (avg/target) : (target/avg);
+  var greenLen=Math.round(circ*Math.min(frac,1)), gap=circ-greenLen;
+  if(avg>target){
+    overArc='<circle cx="'+C+'" cy="'+C+'" r="'+r+'" stroke="var(--stall)" stroke-width="'+sw+'" fill="none" stroke-linecap="round" stroke-dasharray="'+circ+'" stroke-dashoffset="0"/>';
+  }
+  return '<div class="'+wrap+'" style="width:'+S+'px;height:'+S+'px"><svg width="'+S+'" height="'+S+'" viewBox="'+vb+'">'
+    +'<circle cx="'+C+'" cy="'+C+'" r="'+r+'" stroke="rgba(255,255,255,.08)" stroke-width="'+sw+'" fill="none"/>'
+    +overArc
+    +'<circle cx="'+C+'" cy="'+C+'" r="'+r+'" stroke="url(#kg)" stroke-width="'+sw+'" fill="none" stroke-linecap="round" stroke-dasharray="'+greenLen+' '+gap+'" stroke-dashoffset="0"/>'
+    +'<defs><linearGradient id="kg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d9463"/><stop offset="1" stop-color="#4A5C3E"/></linearGradient></defs>'
+    +'</svg><div class="rt"><b>'+centerNum+'</b><span>'+unit+'</span></div></div>';
+}
+/* HOME — the simple Kino screen: Daily Target → Your Program → Weekly Check-In. Everything
+   wordy (the read, journey, awareness loop, foundations) lives on other tabs now. */
 function renderHomeHero(){
   var box=g("homeHeroBox"); if(!box) return;
   var it=M.intake;
   if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }
   var target=Math.round(it.pfs.calories);
   var avg=avgRecentCal(M.checkins,4);
-  var pfloor=proteinFloor() || (isFinite(it.pfs.protein)?Math.round(it.pfs.protein):null);
-  var protein=isFinite(it.pfs.protein)?Math.round(it.pfs.protein):(pfloor||'—');
-  var goalTxt=it.track||it.goal||'';
-  var h=calRingHtml(avg, target, goalTxt)
-    +'<div class="nh-duo">'
-    +'<div class="nh-mini"><div class="nh-l">Protein target</div><div class="nh-v">'+protein+'<small> g</small></div>'+(pfloor&&isFinite(it.pfs.protein)&&pfloor<Math.round(it.pfs.protein)?'<div class="nh-l" style="margin-top:4px;opacity:.75">never below '+pfloor+' g</div>':'')+'</div>'
-    +'<div class="nh-mini"><div class="nh-l">Calorie target</div><div class="nh-v">'+target.toLocaleString()+'<small> kcal</small></div></div>'
-    +'</div>';
+  var protein=isFinite(it.pfs.protein)?Math.round(it.pfs.protein):(proteinFloor()||'—');
+  var track=it.track||it.goal||'Lean';
+  var gw=(isFinite(+it.goalweight)&&+it.goalweight>0)?Math.round(+it.goalweight):null;
+  // status vs ±100
+  var statusHTML='';
+  if(avg!=null){
+    var d=Math.round(avg-target), on=Math.abs(d)<=100;
+    var word=on?'On track':(d>0?'Lock in':'Tighten up');
+    statusHTML='<div class="tgeyebrow">Weekly average</div>'
+      +'<div class="tgstat">'+(d>=0?'+':'−')+Math.abs(d)+' vs '+target.toLocaleString()+'</div>'
+      +'<span class="kstatpill '+(on?'ok':'off')+'">'+word+'</span>';
+  } else {
+    statusHTML='<div class="tgeyebrow">Daily target</div><div class="tgstat">Start checking in<br>to set your read</div>';
+  }
+  // step goal — target shown; live count wires in when Apple/Google Health is connected
+  var stepGoal=10000;
+  var stepTile='<div class="mtile step"><div><div class="k">'+stepGoal.toLocaleString()+' <span style="color:var(--ink-faint);font-size:13px">steps</span></div>'
+    +'<div class="l">Daily step goal · connect Health</div></div><div style="color:var(--gold);font-weight:800;font-size:11px">Connect ↗</div></div><div class="kbar"><i style="width:0%"></i></div>';
+
+  var h='<div class="k-slabel">Daily Target <span class="sub">'+esc(track)+' phase</span></div>'
+    +'<div class="dt"><div class="dt-top">'+kRingSVG(avg,target)
+    +'<div class="dt-goalwrap">'
+    +'<span class="goalpill">🎯 '+esc(track)+(gw?(' · goal '+gw+' lb'):'')+'</span>'
+    +'<div style="margin-top:10px">'+statusHTML+'</div>'
+    +'<div class="editgoal" onclick="showClientTab(\'nutrition\')">✎ Edit target</div>'
+    +'</div></div>'
+    +'<div class="tiles3"><div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories / day</div></div>'
+    +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein / day</div></div>'
+    +stepTile+'</div></div>';
+
+  // Your Program — overview: hero (%) → weeks → day list. Tapping a day opens its workout overview.
+  var ap=(typeof assignedProgram==='function')?assignedProgram():null;
+  if(ap){
+    var pct=isFinite(ap.pct)?ap.pct:0, off=Math.round(132*(1-pct/100));
+    h+='<div class="k-slabel">Your Program <span class="va" onclick="showClientTab(\'workouts\')">Library →</span></div>'
+      +'<div class="phero"><div class="art"></div>'
+      +'<span class="pswitch" onclick="showClientTab(\'workouts\')">⇆ Switch</span>'
+      +'<div class="ppct"><svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="21" stroke="rgba(255,255,255,.15)" stroke-width="5" fill="none"/><circle cx="26" cy="26" r="21" stroke="#C1AD72" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="'+off+'"/></svg><div class="rt">'+pct+'%</div></div>'
+      +'<div class="phero-body"><div class="pname">'+esc(ap.name)+'</div><div class="ptag">'+((ap.days&&ap.days.length)||0)+' days · '+(ap.weeks||4)+' weeks</div></div></div>';
+    // week chips
+    var nwk=ap.weeks||4, wk='';
+    for(var w=1; w<=nwk; w++){ wk+='<div class="kwchip'+(w===1?' on':'')+'">Week '+w+'</div>'; }
+    h+='<div class="kweeks" style="overflow-x:auto">'+wk+'</div>';
+    // day overview
+    (ap.days||[]).forEach(function(d,i){
+      var title=(typeof d==='string')?d:d.t, mins=(d&&d.mins)||null, ex=(d&&d.ex)||null;
+      var pills='';
+      if(mins) pills+='<span class="pill">'+mins+' min</span>';
+      if(ex) pills+='<span class="pill">'+ex+' exercises</span>';
+      h+='<div class="kday'+(i===0?' today':'')+'" onclick="openWorkoutDay('+i+')">'
+        +'<div class="thumb"><div class="em">🏋️</div></div>'
+        +'<div class="rb"><div class="dn">Day '+(i+1)+(i===0?' · Today':'')+'</div><div class="dt2">'+esc(title)+'</div>'
+        +'<div class="dpills">'+pills+'</div></div><div class="go">›</div></div>';
+    });
+  } else {
+    h+='<div class="k-slabel">Your Program <span class="va" onclick="showClientTab(\'workouts\')">Library →</span></div>'
+      +'<div class="krow" onclick="showClientTab(\'workouts\')"><div class="ic">🏋️</div><div class="rb"><div class="rt2">Find your program</div><div class="rs">Browse the program library</div></div><div class="go">›</div></div>';
+  }
+
+  // Weekly Check-In
+  h+='<div class="kcheckin" onclick="showCheckin()"><div class="ci">📅</div>'
+    +'<div class="cb"><div class="ct">Weekly Check-In</div><div class="cs">Check in each week to keep track of your progress.</div></div>'
+    +'<div class="ar">→</div></div>';
+
   box.innerHTML=h;
 }
 /* Nutrition hero — the same ring, plus protein target + the water floor (deep numbers). */
+/* NUTRITION — the simple Kino screen: Your Targets (weekly-avg ring + the 4 numbers) →
+   Cronometer log tile → Meal Plan → Tools → Freedom Week. */
+function nutForceShow(id){ var c=g(id); if(c){ c.classList.add('force-show'); c.scrollIntoView({behavior:'smooth',block:'start'}); } }
+function nutMealRow(m,mi){
+  var opts=(m&&m.options)||[];
+  var feat=opts.length?opts[0]:{name:(m&&m.name)||'Meal', items:(m&&m.items)||[], cal:(m&&m.cal), protein:(m&&m.protein)};
+  var title=feat.name || ((feat.items&&feat.items[0])||'') || (m&&m.slot) || 'Meal';
+  var slot=(m&&m.slot)||(m&&m.name)||'Meal';
+  var ic=/break/i.test(slot)?'🍳':(/lunch/i.test(slot)?'🥗':(/dinner/i.test(slot)?'🍽️':'🍴'));
+  var mac='';
+  if(feat.protein) mac+='<span class="pill">'+feat.protein+'g protein</span>';
+  if(feat.cal) mac+='<span class="pill">'+feat.cal+' cal</span>';
+  var head='<div class="krow" onclick="toggleMealOpts('+mi+')"><div class="ic">'+ic+'</div>'
+    +'<div class="rb"><div class="opt">'+esc(slot)+(opts.length?(' · '+opts.length+' options'):'')+'</div>'
+    +'<div class="rt2">'+esc(title)+'</div><div class="macros">'+mac+'</div></div><div class="go" id="mchev'+mi+'">›</div></div>';
+  var body='<div class="mealopts" id="mopts'+mi+'" style="display:none">';
+  (opts.length?opts:[feat]).forEach(function(o,oi){
+    var om=''; if(o.protein)om+='<span class="pill">'+o.protein+'g P</span>'; if(o.cal)om+='<span class="pill">'+o.cal+' cal</span>';
+    body+='<div class="mopt'+(oi===0?' star':'')+'"><div class="mn">'+esc(o.name||('Option '+(oi+1)))+'</div>'
+      +'<div class="mi">'+esc((o.items||[]).join(' · '))+'</div><div class="mm">'+om+'</div></div>';
+  });
+  body+='</div>';
+  return head+body;
+}
+function toggleMealOpts(mi){ var b=g('mopts'+mi), c=g('mchev'+mi); if(!b)return; var open=b.style.display==='none'; b.style.display=open?'block':'none'; if(c)c.textContent=open?'⌄':'›'; }
 function renderNutritionHero(){
   var box=g("nutHeroBox"); if(!box) return;
   var it=M.intake;
   if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }
   var target=Math.round(it.pfs.calories);
   var avg=avgRecentCal(M.checkins,4);
-  var pfloor=proteinFloor() || (isFinite(it.pfs.protein)?Math.round(it.pfs.protein):null);
-  var goalTxt=it.track||it.goal||'';
+  var protein=isFinite(it.pfs.protein)?Math.round(it.pfs.protein):(proteinFloor()||'—');
+  var track=it.track||it.goal||'Lean';
   var cks=M.checkins||[], last=cks.length?cks[cks.length-1]:null;
   var bw=(last&&last.weight)||it.weight||null, water=bw?Math.round(bw/2):null;
-  var h=calRingHtml(avg, target, goalTxt)
-    +'<div class="nh-duo">'
-    +'<div class="nh-mini"><div class="nh-l">Protein target</div><div class="nh-v">'+(isFinite(it.pfs.protein)?Math.round(it.pfs.protein):(pfloor||'—'))+'<small> g</small></div>'+(pfloor&&isFinite(it.pfs.protein)&&pfloor<Math.round(it.pfs.protein)?'<div class="nh-l" style="margin-top:4px;opacity:.75">never below '+pfloor+' g</div>':'')+'</div>'
-    +'<div class="nh-mini"><div class="nh-l">Water floor</div><div class="nh-v">'+(water||'—')+'<small> oz</small></div></div>'
-    +'</div>';
+  // status vs ±100
+  var statusHTML='';
+  if(avg!=null){
+    var d=Math.round(avg-target), on=Math.abs(d)<=100, word=on?'On track':(d>0?'Lock in':'Tighten up');
+    statusHTML='<div class="tgeyebrow">Weekly average</div><div class="tgstat">'+(d>=0?'+':'−')+Math.abs(d)+' vs '+target.toLocaleString()+'</div>'
+      +'<span class="kstatpill '+(on?'ok':'off')+'">'+word+'</span>';
+  } else {
+    statusHTML='<div class="tgeyebrow">Your targets</div><div class="tgstat">Start checking in<br>to set your read</div>';
+  }
+  var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">'+esc(track)+' Phase</p><h1 style="text-transform:uppercase;font-size:30px">Nutrition</h1></div>'
+    +'<div class="k-slabel">Your Targets <span class="sub">The 4 numbers</span></div>'
+    +'<div class="dt"><div class="dt-ringwrap">'+kRingSVG(avg,target,150)+'</div>'
+    +'<div class="dt-status">'+statusHTML+'<div class="editgoal">✎ Aim within ±100 cal</div></div>'
+    +'<div class="tiles3">'
+    +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories</div></div>'
+    +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein · 1g / lb</div></div>'
+    +'<div class="mtile"><div class="k">600–800g</div><div class="l">Produce</div></div>'
+    +'<div class="mtile"><div class="k">'+(water||'—')+' oz</div><div class="l">Water · half BW</div></div>'
+    +'</div></div>';
+  // Cronometer log tile
+  h+='<div class="logtile" onclick="var l=cronoAppLink&&cronoAppLink();if(l)window.open(l,\'_blank\',\'noopener\')">'
+    +'<img src="cronometer-icon.png" alt="Cronometer"><div class="rb"><div class="rt2">Log your food</div><div class="rs">Open Cronometer to track today</div></div><div class="go" style="color:var(--gold)">↗</div></div>';
+  // Meal plan — the day's meals, each with its options viewable
+  var mp=M.mealplan, meals=(mp&&mp.days&&mp.days[0]&&mp.days[0].meals)||[];
+  h+='<div class="k-slabel">Your Meal Plan'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
+  if(meals.length){
+    meals.forEach(function(m,mi){ h+=nutMealRow(m,mi); });
+    h+='<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else window.location.href=\'build/\'"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new plan</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
+  } else {
+    h+='<div class="krow" onclick="window.location.href=\'build/\'"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Build a new plan</div><div class="rs">The Complete Nutrition System · CNS</div></div><div class="go">›</div></div>';
+  }
+  h+='<div class="krow" onclick="window.open(\'library/\',\'_self\')"><div class="ic">🧭</div><div class="rb"><div class="rt2">Your protocol</div><div class="rs">Macro Freedom Framework — how your plan is built</div></div><div class="go">›</div></div>';
+  // Tools
+  h+='<div class="k-slabel">Tools</div>'
+    +'<div class="krow" onclick="window.open(\'power-food-list/\',\'_self\')"><div class="ic">📋</div><div class="rb"><div class="rt2">Power Food List</div><div class="rs">106 foods, sorted into tiers</div></div><div class="go">›</div></div>'
+    +'<div class="krow" onclick="if(typeof openEatingOut===\'function\'){openEatingOut();}nutForceShow(\'fastFoodCard\')"><div class="ic">🍔</div><div class="rb"><div class="rt2">Eating Out</div><div class="rs">Restaurant macros · 48 chains</div></div><div class="go">›</div></div>';
+  // Freedom Week
+  h+='<div class="kcheckin" onclick="window.open(\'library/\',\'_self\')"><div class="ci">🔥</div><div class="cb"><div class="ct">Freedom Week</div><div class="cs">Lean phase: earn your free meals with the 4-2-1 rule.</div></div><div class="ar">→</div></div>';
   box.innerHTML=h;
 }
 function renderPFS(){
@@ -4651,7 +5119,8 @@ function demoBoot(){
   var dd=generateMealOptions({pfs:it.pfs}, dsel, 'Rachel');
   M.mealplan={ title:"Rachel's Lean Phase", note:"Built around your favorites. Protein anchors every meal.", ts:now,
     days:[ {day:1,label:"Everyday",meals:dd.slots.map(function(sl){ var o=sl.options[0];
-      return {name:sl.name+(o.name?' · '+o.name:''), items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0)}; })} ] };
+      return {name:sl.name, slot:sl.name, items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0),
+        options:(sl.options||[]).map(function(op){ return {name:op.name||'', items:op.items||[], cal:Math.round(op.cal||0), protein:Math.round(op.protein||0), carbs:Math.round(op.carbs||0), fat:Math.round(op.fat||0)}; }) }; })} ] };
   ID={ name:"Rachel", email:"rachel@demo.legacy", gender:"woman" };
   serverOk=true; applyTheme("charcoal", false); showHome();
 }
@@ -4664,7 +5133,7 @@ function jaymeBoot(){
   try{ localStorage.setItem('lp_preview_acct','jayme'); }catch(e){}
   buildModel(null);
   var now=Date.now(), day=86400000;
-  var it={ done:true, signal:"clear", sex:"Male", age:39, height:71, weight:201, goalweight:186,
+  var it={ done:true, signal:"clear", sex:"Male", age:39, height:71, weight:201, goalweight:175,
     activity:"Active", track:"Lean", steps:"10,000+", trackingexp:"Yes, I track well",
     trainloc:"Home / garage", traindays:"4–5", pregnant:"No", diethistory:"3+ years",
     fueling:"Eating well", filters:[], priorities:["Lean","Strong","Long"],
@@ -4694,7 +5163,8 @@ function jaymeBoot(){
   var dd=generateMealOptions({pfs:it.pfs}, dsel, 'Jayme');
   M.mealplan={ title:"Jayme's Lean Phase", note:"Protein anchors every meal. Built from your foods.", ts:now,
     days:[ {day:1,label:"Everyday",meals:dd.slots.map(function(sl){ var o=sl.options[0];
-      return {name:sl.name+(o.name?' · '+o.name:''), items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0)}; })} ] };
+      return {name:sl.name, slot:sl.name, items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0),
+        options:(sl.options||[]).map(function(op){ return {name:op.name||'', items:op.items||[], cal:Math.round(op.cal||0), protein:Math.round(op.protein||0), carbs:Math.round(op.carbs||0), fat:Math.round(op.fat||0)}; }) }; })} ] };
   ID={ name:"Jayme", email:JAYME_EMAIL, gender:"man" };
   try{ saveLS(LS_ID, ID); }catch(e){}
   serverOk=true; applyTheme("charcoal", false); showHome();

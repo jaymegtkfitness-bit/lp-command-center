@@ -497,7 +497,7 @@ var MEAL_TEMPLATES=[
    fat:['cheese','avocado','hummus'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Sandwich'+(r.f?' with '+mealNice(r.f):''); }, needsAny:['whole-wheat bread','sourdough','English muffin','bagel']},
   {id:'nc_wrap', slot:'pm', nocook:true, veg:true, protein:['canned chicken','deli turkey','canned tuna'], carb:['flour tortilla','corn tortilla'],
    fat:['avocado','hummus','cheese'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Wrap'; }, needsAny:['flour tortilla','corn tortilla']},
-  {id:'nc_plate', slot:'pm', nocook:true, veg:true, protein:['canned tuna','canned chicken','deli turkey'], carb:['chickpeas','rice cakes','whole-wheat bread'],
+  {id:'nc_plate', slot:'pm', nocook:true, veg:true, protein:['low-fat cottage cheese','nonfat Greek yogurt','2% Greek yogurt','canned tuna','canned chicken','deli turkey'], carb:['chickpeas','rice cakes','whole-wheat bread'],
    fat:['hummus','avocado','olives'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' and '+mealNice(r.f||'hummus')+' Plate'; }},
   {id:'nc_plant', slot:'pm', nocook:true, veg:true, protein:['edamame','extra-firm tofu','plant protein powder','2% Greek yogurt','low-fat cottage cheese'], carb:['chickpeas','black beans','whole-wheat bread','sourdough','rice cakes'],
    fat:['hummus','avocado'], vegs:RAW_VEG, lead:['edamame','extra-firm tofu'], boost:['plant protein powder'],
