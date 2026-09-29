@@ -5375,6 +5375,18 @@ function jaymeBoot(){
   ID={ name:"Jayme", email:JAYME_EMAIL, gender:"man" };
   try{ saveLS(LS_ID, ID); }catch(e){}
   serverOk=true; applyTheme("charcoal", false); showHome();
+  // Pull the private workout program from the doorway (served by email, gitignored — never in the
+  // public repo) and cache it, so ?jayme=1 loads Min-Max like a real assigned program on any device.
+  try{
+    if(typeof fetchClientData==='function'){
+      fetchClientData("email="+encodeURIComponent(JAYME_EMAIL), 12000, function(server){
+        var sp=(server&&server.program&&server.program.length)?server.program[server.program.length-1]:null;
+        if(sp && sp['Program']){ ungzB64(sp['Program']).then(function(raw){
+          if(raw && raw.charAt(0)==='{'){ try{ localStorage.setItem('lp_prog_data', raw); }catch(e){} }
+        }).catch(function(){}); }
+      });
+    }
+  }catch(e){}
 }
 (function(){
   // ?demo=1 (or ?rachel=1) → Jayme's all-access preview app. Clean, no dev bench, everything unlocked.
