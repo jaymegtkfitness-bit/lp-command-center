@@ -875,6 +875,68 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 #homeEyebrow{font-family:'Cinzel',serif;letter-spacing:.14em}
 #greeting{text-transform:uppercase;font-size:38px!important;margin-top:2px}
 #home > #homeSub{display:none!important}
+
+/* ============ PHONE POLISH (Sep 29): safe-area, bigger text, tighter space, larger nav ============ */
+/* Top safe area — logo + hamburger + gear drop below the notch/speaker so they're reachable */
+header{height:auto!important;padding-top:calc(env(safe-area-inset-top) + 8px)!important}
+header .brand{top:auto!important;position:static!important;transform:none!important;display:flex;justify-content:center}
+header{display:flex!important;align-items:center;justify-content:center;pointer-events:none}
+header .brand img{height:52px!important}
+.topbtn{top:calc(env(safe-area-inset-top) + 12px)!important}
+.wrap{padding-top:calc(env(safe-area-inset-top) + 74px)!important;padding-left:16px!important;padding-right:16px!important;padding-bottom:calc(env(safe-area-inset-bottom) + 96px)!important}
+/* Nutrition: bigger centered avg-cal ring */
+.dt-ringwrap{padding:10px 0 4px!important}
+.dt-ringwrap .kring .rt b{font-size:38px!important}
+.dt-ringwrap .kring .rt span{font-size:11px!important}
+/* Header text drops down + bigger */
+#homeEyebrow,.eyebrow{font-size:14px!important}
+#greeting{font-size:42px!important}
+.ptitle{font-size:34px!important}
+.k-slabel{font-size:15px!important;margin:22px 2px 12px!important}
+.k-slabel .sub{font-size:12.5px!important}
+/* Daily Target / tiles — bigger, tighter */
+.dt{padding:18px 16px 16px!important}
+.goalpill{font-size:14px!important;padding:8px 14px!important}
+.tgeyebrow{font-size:11px!important}
+.tgstat{font-size:15px!important}
+.kstatpill{font-size:13px!important;padding:7px 13px!important}
+.editgoal{font-size:13px!important}
+.mtile .k{font-size:23px!important}
+.mtile .l{font-size:11.5px!important}
+.tiles3{gap:9px!important}
+.mtile{padding:14px 15px!important}
+/* Day rows — bigger title/pills, fill the space */
+.kday{padding:13px!important;gap:14px!important}
+.kday .thumb{width:64px!important;height:64px!important}
+.kday .dn{font-size:11px!important}
+.kday .dt2{font-size:16.5px!important}
+.kday .dpills{margin-top:7px!important}
+.pill{font-size:11.5px!important;padding:4px 10px!important}
+.kday .go{font-size:24px!important}
+/* Program hero — bigger name, less dead space */
+.pname{font-size:27px!important}
+.ptag{font-size:12.5px!important}
+.kweeks{gap:7px!important}
+.kwchip{font-size:12px!important;padding:11px 0!important}
+/* generic rows (nutrition/wellness tiles) bigger */
+.krow{padding:14px!important;gap:14px!important}
+.krow .ic{width:50px!important;height:50px!important;font-size:24px!important}
+.krow .rt2{font-size:15.5px!important}
+.krow .rs{font-size:12.5px!important}
+.krow .go{font-size:22px!important}
+/* Weekly check-in bigger */
+.kcheckin{padding:16px!important}
+.kcheckin .ct{font-size:16px!important}
+.kcheckin .cs{font-size:12.5px!important}
+/* ---- Bottom nav: larger + near full width (edge to edge) ---- */
+nav.ctabs{bottom:calc(env(safe-area-inset-bottom) + 10px)!important;padding:0 10px!important}
+.navbar{width:100%!important;justify-content:space-between!important;padding:6px 12px!important;border-radius:24px!important}
+nav.ctabs .ctab{width:auto!important;flex:1!important;height:48px!important;gap:3px!important;font-size:10px!important}
+nav.ctabs .ctab .ico{width:auto!important;padding:0 14px!important;height:32px!important}
+nav.ctabs .ctab svg{width:23px!important;height:23px!important}
+nav.ctabs .ctab-coach{flex:0 0 auto!important;width:74px!important}
+nav.ctabs .ctab-coach .navshield{width:66px!important;height:66px!important;transform:translateY(-18px)!important}
+nav.ctabs .ctab-coach .navshield img{width:35px!important;height:35px!important}
 </style>
 </head>
 <body>
@@ -3982,7 +4044,7 @@ function renderNutritionHero(){
   }
   var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">'+esc(track)+' Phase</p><h1 style="text-transform:uppercase;font-size:30px">Nutrition</h1></div>'
     +'<div class="k-slabel">Your Targets <span class="sub">The 4 numbers</span></div>'
-    +'<div class="dt"><div class="dt-ringwrap">'+kRingSVG(avg,target,150)+'</div>'
+    +'<div class="dt"><div class="dt-ringwrap">'+kRingSVG(avg,target,184)+'</div>'
     +'<div class="dt-status">'+statusHTML+'<div class="editgoal">✎ Aim within ±100 cal</div></div>'
     +'<div class="tiles3">'
     +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories</div></div>'
