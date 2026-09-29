@@ -1787,6 +1787,7 @@ function renderWorkouts(){
 /* ---- LP Coach: Kino Portal + coaching read ---- */
 var COACH_RANGE=3;   // months shown on the weight trend
 var COACH_METRIC='weight';   // weight | waist | chest | arms — which measurement the chart shows
+var COACH_SEL=null;          // tapped data-point index on the trend (null = show latest)
 var CORE_EDIT=false;
 var CORE_DEFAULT=[{n:"Bench Press",v:""},{n:"Back Squat",v:""},{n:"Deadlift",v:""},{n:"Overhead Press",v:""}];
 function loadCoreLifts(){ try{ var a=JSON.parse(localStorage.getItem('lp_client_corelifts')||'null'); return (a&&a.length)?a:CORE_DEFAULT.slice(); }catch(e){ return CORE_DEFAULT.slice(); } }
@@ -1795,8 +1796,9 @@ function toggleCoreEdit(){ if(CORE_EDIT) saveCoreEdits(); else { CORE_EDIT=true;
 function saveCoreEdits(){ var a=loadCoreLifts(); a.forEach(function(l,i){ var nn=g('cln'+i), vv=g('clv'+i); if(nn)l.n=nn.value; if(vv)l.v=vv.value; }); saveCoreLifts(a); CORE_EDIT=false; renderCoach(); }
 function addCoreLift(){ var a=loadCoreLifts(); a.push({n:"",v:""}); saveCoreLifts(a); CORE_EDIT=true; renderCoach(); }
 function delCoreLift(i){ var a=loadCoreLifts(); a.splice(i,1); saveCoreLifts(a); renderCoach(); }
-function setCoachRange(m){ COACH_RANGE=m; renderCoach(); }
-function setCoachMetric(m){ COACH_METRIC=m; renderCoach(); }
+function setCoachRange(m){ COACH_RANGE=m; COACH_SEL=null; renderCoach(); }
+function setCoachMetric(m){ COACH_METRIC=m; COACH_SEL=null; renderCoach(); }
+function selectPoint(i){ COACH_SEL=(COACH_SEL===i?null:i); renderCoach(); }
 function messageCoach(){ var n=(CONFIG.coachSmsNumber||"").replace(/[^0-9+]/g,""); if(n){ window.location.href='sms:'+n; } else { alert('Messaging your coach is coming soon.'); } }
 function bookCall(){ var u=CONFIG.onboardCallUrl||""; if(u){ window.open(u,'_blank','noopener'); } else { alert('Your booking link is coming soon.'); } }
 function ftIn(inches){ if(!isFinite(inches)) return '—'; var f=Math.floor(inches/12), i=Math.round(inches%12); return f+"'"+i+'"'; }
@@ -1827,18 +1829,26 @@ function metricTrendSVG(metric, months){
   function md(ts){ var d=new Date(ts); return ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][d.getMonth()]+' '+d.getDate(); }
   var poly=pts.map(function(v,i){return xs[i].toFixed(0)+','+y(v).toFixed(0);}).join(' ');
   var area='18,90 '+poly+' 318,90';
-  // data-point dots (gold, brand) at every check-in
-  var dots=rows.map(function(r,i){ return '<circle cx="'+xs[i].toFixed(0)+'" cy="'+y(r.w).toFixed(0)+'" r="3.4" fill="#C1AD72" stroke="#0e0d0b" stroke-width="1.5"/>'; }).join('');
+  var sel=(COACH_SEL!=null && COACH_SEL>=0 && COACH_SEL<rows.length)?COACH_SEL:null;
+  // vertical guide behind the selected point
+  var guide=(sel!=null)?'<line x1="'+xs[sel].toFixed(0)+'" y1="10" x2="'+xs[sel].toFixed(0)+'" y2="92" stroke="#C1AD72" stroke-opacity=".28" stroke-width="1"/>':'';
+  // data-point dots — tappable (bigger transparent hit target behind each); selected dot highlights
+  var dots=rows.map(function(r,i){
+    var cx=xs[i].toFixed(0), cy=y(r.w).toFixed(0), on=(i===sel);
+    return '<circle cx="'+cx+'" cy="'+cy+'" r="12" fill="transparent" style="cursor:pointer" onclick="selectPoint('+i+')"/>'
+      +'<circle cx="'+cx+'" cy="'+cy+'" r="'+(on?5:3.4)+'" fill="'+(on?'#fff':'#C1AD72')+'" stroke="'+(on?'#C1AD72':'#0e0d0b')+'" stroke-width="'+(on?2:1.5)+'" style="pointer-events:none"/>';
+  }).join('');
   var last=rows.length-1;
   // range dates under the first + last points
   var labels='<text x="18" y="103" fill="#8a8578" font-size="10" font-family="Montserrat,system-ui,sans-serif" text-anchor="start">'+md(rows[0].ts)+'</text>'
     +'<text x="318" y="103" fill="#8a8578" font-size="10" font-family="Montserrat,system-ui,sans-serif" text-anchor="end">'+md(rows[last].ts)+'</text>';
   var svg='<svg width="100%" viewBox="0 0 336 112" style="margin-top:8px">'
     +'<polygon points="'+area+'" fill="url(#ga)" opacity="0.5"/>'
-    +'<polyline points="'+poly+'" fill="none" stroke="#7d9463" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
+    +guide
+    +'<polyline points="'+poly+'" fill="none" stroke="#7d9463" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"/>'
     +dots+labels
     +'<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d9463" stop-opacity=".5"/><stop offset="1" stop-color="#7d9463" stop-opacity="0"/></linearGradient></defs></svg>';
-  return {svg:svg, cur:pts[pts.length-1], unit:unit};
+  return {svg:svg, cur:(sel!=null?rows[sel].w:pts[pts.length-1]), unit:unit, sel:(sel!=null?{date:md(rows[sel].ts), val:rows[sel].w}:null)};
 }
 function renderCoach(){
   var box=g("ctab-coach"); if(!box) return;
@@ -1873,7 +1883,7 @@ function renderCoach(){
     +'</div></div>';
   // measurements + trend
   h+='<div class="chips">'+metrics.map(function(mm){ return '<div class="chip'+(mm[0]===COACH_METRIC?' on':'')+'" onclick="setCoachMetric(\''+mm[0]+'\')">'+mm[1]+'</div>'; }).join('')+'</div>'
-    +'<div class="chartcard"><div class="ch-top"><div class="cv">'+wt.cur+' <span>'+(wt.unit||'lb')+'</span></div>'
+    +'<div class="chartcard"><div class="ch-top"><div class="cv">'+wt.cur+' <span>'+(wt.unit||'lb')+'</span>'+(wt.sel?'<span style="font-size:12px;color:var(--gold-soft,#c9b98a);font-weight:700;margin-left:8px">'+esc(wt.sel.date)+'</span>':'')+'</div>'
     +'<select class="rng" onchange="setCoachRange(+this.value)">'+ranges.map(function(m){return '<option value="'+m+'"'+(m===COACH_RANGE?' selected':'')+'>'+m+' Month'+(m>1?'s':'')+'</option>';}).join('')+'</select></div>'
     +wt.svg+'</div>';
   // core lifts (editable)
