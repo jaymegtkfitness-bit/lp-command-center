@@ -933,7 +933,21 @@ header .brand img{height:3.9rem!important}
 .mtile .l{font-size:.81rem!important}
 .mtile{padding:.8rem .9rem!important}
 /* Produce range fits on one line + leaves room for a 4-digit upper number (600–1000g) */
-.mtile.wide .k{font-size:1.28rem!important;white-space:nowrap!important;letter-spacing:-.01em!important}
+.mtile.wide .k{font-size:1.2rem!important;white-space:nowrap!important;letter-spacing:-.02em!important}
+/* target-tile labels stay on one line */
+.mtile .l.nowrap{white-space:nowrap!important;font-size:.76rem!important;letter-spacing:.02em!important}
+/* Nutrition "aim within" — small, sits under the On track pill */
+.aim-note{font-size:.72rem!important;color:var(--ink-faint)!important;font-weight:600!important;margin-top:.4rem!important}
+/* Cohesive + larger Back / Done buttons across every modal flow */
+.btn{font-size:1.05rem!important;padding:1rem 1.2rem!important;border-radius:.9rem!important}
+.btn.btn-ghost[onclick*="backToApp"],.btn.btn-ghost#wizBackBtn,.btn.btn-ghost#deepBackBtn{flex:0 0 auto!important;min-width:7rem!important}
+/* Check-in / monthly / quarterly / intake sections — bigger font for older eyes */
+#checkin,#monthly,#quarterly,#booking,#deep,#wizard{font-size:1.02rem}
+#checkin h1,#monthly h1,#quarterly h1,#booking h1,#deep h1,#wizard h1{font-size:2.1rem!important}
+#checkin .eyebrow,#monthly .eyebrow,#quarterly .eyebrow,#booking .eyebrow{font-size:1rem!important}
+#checkin label,#monthly label,#quarterly label,#deep label,#wizard label{font-size:1rem!important}
+#checkin .input,#checkin .chip,#monthly .chip,#quarterly .chip,#deep .chip,#wizard .chip,#deep .input,#wizard .input{font-size:1.02rem!important}
+#checkin .sub,#monthly .sub,#quarterly .sub{font-size:1rem!important}
 /* iOS-style toggle switch (protein shake, and any future on/off) */
 .lp-switch{position:relative;display:inline-block;width:3.25rem;height:1.9rem;flex:0 0 auto}
 .lp-switch input{opacity:0;width:0;height:0;position:absolute}
@@ -1421,7 +1435,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
       <div id="ci_phase2" class="hidden"></div>
       <div class="actions"><button class="btn btn-primary" onclick="submitCheckin()" id="ciSubmit">Submit check-in</button><div class="status" id="ciStatus"></div></div>
     </div>
-    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="backToApp()">← Back</button></div>
   </section>
 
   <!-- ============ THE BUILD (end-of-check-in scorecard) ============ -->
@@ -1451,7 +1465,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
       <div class="field"><label>Anything you want help with? <span class="hint">(optional)</span></label><textarea class="input" id="mo_help" rows="2"></textarea></div>
       <div class="actions"><button class="btn btn-primary" onclick="submitMonthly()" id="moSubmit">Submit monthly debrief</button><div class="status" id="moStatus"></div></div>
     </div>
-    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="backToApp()">← Back</button></div>
   </section>
 
   <!-- ============ QUARTERLY DIRECTION ============ -->
@@ -1469,7 +1483,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
       <div class="field"><label>Your One Thing — what does success look like 90 days from now?</label><textarea class="input" id="qt_onething" rows="3"></textarea></div>
       <div class="actions"><button class="btn btn-primary" onclick="submitQuarterly()" id="qtSubmit">Set my direction</button><div class="status" id="qtStatus"></div></div>
     </div>
-    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="backToApp()">← Back</button></div>
   </section>
 
   <!-- ============ CNS SETUP ============ -->
@@ -1478,7 +1492,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
     <h1>Let's build your plan around your foods</h1>
     <p class="sub">The more you tell me, the more your plan feels made for you — because it is. Pick everything you actually like and eat.</p>
     <div class="card"><div id="cnsForm"></div></div>
-    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="backToApp()">← Back</button></div>
   </section>
 
   <!-- ============ MEAL BUILDER ============ -->
@@ -1487,7 +1501,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
     <h1>Customize your foods</h1>
     <p class="sub">Turn foods on or off, then regenerate — your plan rebuilds instantly around what you actually eat. Free, anytime. Something stop sitting well? Just switch it off.</p>
     <div class="card"><div id="foodEditor"></div></div>
-    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="backToApp()">← Back</button></div>
   </section>
 
   <!-- ============ GENETICS SETUP ============ -->
@@ -1496,7 +1510,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
     <h1>Let's set up your Genetic Blueprint</h1>
     <p class="sub">A few quick questions so your results come back mapped to what matters most for you. Your kit ships to the address on your order.</p>
     <div class="card"><div id="genForm"></div></div>
-    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="showHome()">← Back</button></div>
+    <div style="margin-top:10px"><button class="btn btn-ghost" onclick="backToApp()">← Back</button></div>
   </section>
 
 </div>
@@ -1861,6 +1875,8 @@ function goBack(){
   showHome();
 }
 function showHome(){ applyTheme(currentTheme()); renderHome(); show("home"); showClientTab("home"); applyLite(); jumpToHash(); }  // theme + reset to Home tab on entry
+/* Back/Done from any modal flow → return to the tab you came FROM (not always Home). */
+function backToApp(){ var t=(typeof CLIENT_TAB!=='undefined'&&CLIENT_TAB)?CLIENT_TAB:"home"; showHome(); showClientTab(t); }
 /* LITE (free tier): same URL, membership-gated. Free members keep the Power Food System + weekly
    check-in; everything else locks behind the upgrade CTA → Skool. Toggled by M.lite. */
 function applyLite(){
@@ -2766,7 +2782,7 @@ function renderBuildScore(grade, sent){
   }
   var note=sustainNote();
   h+='<div class="bs-note"><span class="bs-tag">'+esc(note.p)+'</span><p>'+esc(note.n)+'</p></div>';
-  h+='<div class="actions" style="margin-top:14px"><button class="btn btn-primary" onclick="showHome()">Done — back home</button>'
+  h+='<div class="actions" style="margin-top:14px"><button class="btn btn-primary" onclick="backToApp()">Done</button>'
     +'<div class="status" style="color:var(--good-tx);margin-top:8px">'+(sent?'Sent ✓ your coach can see this week.':'Saved on your device ✓ (syncs when back online).')+'</div></div>';
   g("bsBody").innerHTML=h;
   show("buildscore");
@@ -4039,8 +4055,8 @@ function renderHomeHero(){
   if(ap){
     var pct=isFinite(ap.pct)?ap.pct:0, off=Math.round(132*(1-pct/100));
     h+='<div class="k-slabel">Your Program <span class="va" onclick="showClientTab(\'workouts\')">Library →</span></div>'
-      +'<div class="phero"><div class="art"></div>'
-      +'<span class="pswitch" onclick="showClientTab(\'workouts\')">⇆ Switch</span>'
+      +'<div class="phero" onclick="openWorkoutDay(0)" style="cursor:pointer"><div class="art"></div>'
+      +'<span class="pswitch" onclick="event.stopPropagation();showClientTab(\'workouts\')">⇆ Switch</span>'
       +'<div class="ppct"><svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="21" stroke="rgba(255,255,255,.15)" stroke-width="5" fill="none"/><circle cx="26" cy="26" r="21" stroke="#C1AD72" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="'+off+'"/></svg><div class="rt">'+pct+'%</div></div>'
       +'<div class="phero-body"><div class="pname">'+esc(ap.name)+'</div><div class="ptag">'+((ap.days&&ap.days.length)||0)+' days · '+(ap.weeks||4)+' weeks</div></div></div>';
     // week chips (clickable — selects the week the day list tracks against)
@@ -4122,12 +4138,12 @@ function renderNutritionHero(){
   var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">'+esc(track)+' Phase</p><h1 style="text-transform:uppercase;font-size:30px">Nutrition</h1></div>'
     +'<div class="k-slabel">Your Targets <span class="sub">The 4 numbers</span></div>'
     +'<div class="dt"><div class="dt-ringwrap">'+kRingSVG(avg,target,184)+'</div>'
-    +'<div class="dt-status">'+statusHTML+'<div class="editgoal">✎ Aim within ±100 cal</div></div>'
+    +'<div class="dt-status">'+statusHTML+'<div class="aim-note">Aim within ±100 cal</div></div>'
     +'<div class="tiles3">'
-    +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories</div></div>'
-    +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein · 1g / lb</div></div>'
-    +'<div class="mtile wide"><div class="k">600–800g</div><div class="l">Produce</div></div>'
-    +'<div class="mtile"><div class="k">'+(water||'—')+' oz</div><div class="l">Water · half BW</div></div>'
+    +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l nowrap">Calories</div></div>'
+    +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l nowrap">Protein · 1g/lb</div></div>'
+    +'<div class="mtile wide"><div class="k">600–800g</div><div class="l nowrap">Produce</div></div>'
+    +'<div class="mtile"><div class="k">'+(water||'—')+' oz</div><div class="l nowrap">Water · ½ BW</div></div>'
     +'</div></div>';
   // Cronometer log tile
   h+='<div class="logtile" onclick="var l=cronoAppLink&&cronoAppLink();if(l)window.open(l,\'_blank\',\'noopener\')">'
