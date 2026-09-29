@@ -16,6 +16,7 @@
 :root{--ink:#141310;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.3);--soft:#a49d90;--body:#d9d3c8;--field:rgba(255,255,255,.05);--field-line:rgba(242,237,228,.14)}
 *{box-sizing:border-box;margin:0;padding:0}
 html{background:var(--ink)}
+html,body,*{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0;height:0;display:none}
 body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);-webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
   background:radial-gradient(ellipse 70% 34% at 50% 2%, rgba(193,173,114,.09), transparent 60%),radial-gradient(ellipse 105% 50% at 0% 100%, rgba(74,92,62,.5), transparent 74%),linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
 .wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))}
