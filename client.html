@@ -876,73 +876,108 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 #greeting{text-transform:uppercase;font-size:38px!important;margin-top:2px}
 #home > #homeSub{display:none!important}
 
-/* ============ PHONE POLISH v2 (Sep 29): locked frame, bigger everything, taller nav ============ */
-/* No horizontal overflow → the browser can't zoom the frame on first open */
+/* ============ PHONE POLISH v4 (Sep 29): FLUID scaling — one design that grows with the screen ============
+   Everything below is sized in rem. The root rem scales with viewport width (16px at a 390px phone),
+   so the whole UI keeps identical proportions and just gets bigger on a bigger screen, capped so
+   tablets/desktop don't blow up. 1rem ≈ 4.1vw. */
+:root{font-size:clamp(14.5px, 4.1vw, 21px)!important}
+body{font-size:1rem!important}
 html,body{max-width:100%!important;overflow-x:hidden!important}
 .phone,.wrap,.scroll{max-width:100%!important}
-/* Top safe area — logo + hamburger + gear sit well below the notch/speaker */
-header{height:auto!important;padding-top:calc(env(safe-area-inset-top) + 20px)!important;display:flex!important;align-items:center;justify-content:center;pointer-events:none}
-header .brand{top:auto!important;position:static!important;transform:none!important;display:flex;justify-content:center}
-header .brand img{height:56px!important}
-.topbtn{top:calc(env(safe-area-inset-top) + 26px)!important;width:44px!important;height:44px!important;border-radius:13px!important}
-.topbtn svg{width:22px!important;height:22px!important}
-.wrap{padding-top:calc(env(safe-area-inset-top) + 94px)!important;padding-left:16px!important;padding-right:16px!important;padding-bottom:calc(env(safe-area-inset-bottom) + 108px)!important}
-/* Header text — bigger */
-#homeEyebrow,.eyebrow{font-size:15px!important}
-#greeting{font-size:46px!important}
-.ptitle{font-size:36px!important}
-.k-slabel{font-size:16px!important;margin:24px 2px 13px!important}
-.k-slabel .sub{font-size:13px!important}
-/* Daily Target — BIG centered ring + bigger status/tiles */
-.dt{padding:20px 16px 18px!important}
-.dt-top{flex-direction:column!important;align-items:center!important;text-align:center!important;gap:14px!important}
+/* MORE GREEN app-wide (all tabs share this fixed layer) */
+.appbg{background:
+  radial-gradient(ellipse 92% 46% at 100% 100%, rgba(193,173,114,.15), transparent 72%),
+  radial-gradient(ellipse 120% 62% at 0% 100%, rgba(74,92,62,.44), transparent 76%),
+  radial-gradient(ellipse 90% 34% at 100% 0%, rgba(74,92,62,.14), transparent 70%),
+  linear-gradient(180deg,#141311 0%,#0e0d0b 55%,#08090a 100%)!important}
+/* Header = one aligned row: hamburger · logo · gear, dropped below the notch */
+header{height:auto!important;top:0!important;padding:calc(env(safe-area-inset-top) + 1.5rem) 1rem 0!important;display:flex!important;align-items:center!important;justify-content:space-between!important;pointer-events:none!important;background:transparent!important}
+header .menubtn,header .gearbtn,.topbtn{position:static!important;pointer-events:auto!important;width:2.875rem!important;height:2.875rem!important;border-radius:.8rem!important;flex:0 0 auto!important;margin:0!important}
+header .gearbtn svg,.topbtn svg{width:1.45rem!important;height:1.45rem!important}
+header .menubtn span{width:1.2rem!important;height:.15rem!important}
+header .brand{position:static!important;transform:none!important;top:auto!important;left:auto!important;right:auto!important;pointer-events:auto!important;display:flex;align-items:center}
+header .brand img{height:3.9rem!important}
+.wrap{padding-top:calc(env(safe-area-inset-top) + 6.5rem)!important;padding-left:1rem!important;padding-right:1rem!important;padding-bottom:calc(env(safe-area-inset-bottom) + 7rem)!important}
+/* Header text */
+#homeEyebrow,.eyebrow{font-size:1rem!important}
+#greeting{font-size:3.15rem!important}
+.ptitle{font-size:2.35rem!important}
+.k-slabel{font-size:1.06rem!important;margin:1.5rem .12rem .8rem!important}
+.k-slabel .sub{font-size:.84rem!important}
+.va{font-size:.82rem!important}
+/* Rings scale with rem (override the JS px so they grow on bigger screens) */
+.kring{width:9.4rem!important;height:9.4rem!important}
+.kring svg{width:100%!important;height:100%!important}
+.dt-ringwrap .kring{width:11.5rem!important;height:11.5rem!important}
+.kring .rt b{font-size:2.4rem!important}
+.kring .rt span{font-size:.72rem!important}
+.dt-ringwrap .kring .rt b{font-size:2.9rem!important}
+.dt-ringwrap .kring .rt span{font-size:.8rem!important}
+/* Daily Target — TWO COLUMNS: ring over Calories (left), status over Protein (right) */
+.dt{padding:1.1rem .95rem 1rem!important}
+.dt-grid{display:grid!important;grid-template-columns:1fr 1fr!important;gap:.75rem!important;align-items:start!important}
+.dt-col{display:flex!important;flex-direction:column!important;gap:.75rem!important;align-items:center!important;min-width:0!important}
+.dt-col .mtile{width:100%!important}
+.dt-col .kring{margin:0 auto!important}
 .dt-goalwrap{width:100%!important;text-align:center!important}
-.dt-goalwrap .editgoal{justify-content:center!important}
-.kring .rt b{font-size:40px!important}
-.kring .rt span{font-size:12px!important}
-.dt-ringwrap .kring .rt b{font-size:44px!important}
-.dt-ringwrap .kring .rt span{font-size:12px!important}
-.goalpill{font-size:15px!important;padding:9px 16px!important}
-.tgeyebrow{font-size:12px!important}
-.tgstat{font-size:16px!important}
-.kstatpill{font-size:14px!important;padding:8px 15px!important}
-.editgoal{font-size:14px!important}
-.mtile .k{font-size:26px!important}
-.mtile .l{font-size:12.5px!important}
-.tiles3{gap:10px!important}
-.mtile{padding:15px 16px!important}
-/* Day rows — bigger */
-.kday{padding:14px!important;gap:14px!important}
-.kday .thumb{width:66px!important;height:66px!important}
-.kday .dn{font-size:11.5px!important}
-.kday .dt2{font-size:18px!important}
-.kday .dpills{margin-top:8px!important}
-.pill{font-size:12px!important;padding:5px 11px!important}
-.kday .go{font-size:26px!important}
-/* Program hero — bigger */
-.pname{font-size:29px!important}
-.ptag{font-size:13px!important}
-.kweeks{gap:8px!important}
-.kwchip{font-size:13px!important;padding:12px 0!important}
-/* generic rows (nutrition/wellness tiles) bigger */
-.krow{padding:15px!important;gap:14px!important}
-.krow .ic{width:52px!important;height:52px!important;font-size:25px!important}
-.krow .rt2{font-size:16.5px!important}
-.krow .rs{font-size:13px!important}
-.krow .go{font-size:24px!important}
-/* Weekly check-in bigger */
-.kcheckin{padding:17px!important}
-.kcheckin .ct{font-size:17px!important}
-.kcheckin .cs{font-size:13px!important}
-/* ---- Bottom nav: TALLER + bigger tabs, near full width ---- */
-nav.ctabs{bottom:calc(env(safe-area-inset-bottom) + 10px)!important;padding:0 8px!important}
-.navbar{width:100%!important;box-sizing:border-box!important;justify-content:space-between!important;padding:8px 10px!important;border-radius:26px!important}
-nav.ctabs .ctab{width:auto!important;flex:1!important;height:58px!important;gap:4px!important;font-size:11px!important}
-nav.ctabs .ctab .ico{width:auto!important;padding:0 12px!important;height:38px!important;border-radius:13px!important}
-nav.ctabs .ctab svg{width:26px!important;height:26px!important}
-nav.ctabs .ctab-coach{flex:0 0 auto!important;width:76px!important}
-nav.ctabs .ctab-coach .navshield{width:70px!important;height:70px!important;transform:translateY(-18px)!important;border-radius:22px!important}
-nav.ctabs .ctab-coach .navshield img{width:37px!important;height:37px!important}
+.dt-goalwrap .editgoal{justify-content:center!important;margin-top:.5rem!important}
+.dt-col .goalpill{font-size:.8rem!important;padding:.44rem .6rem!important}
+.dt-col .tgstat{font-size:.88rem!important}
+.dt-col .kstatpill{font-size:.8rem!important;padding:.44rem .72rem!important}
+.goalpill{font-size:.875rem!important}
+.tgeyebrow{font-size:.75rem!important}
+.tgstat{font-size:1rem!important}
+.kstatpill{font-size:.875rem!important}
+.editgoal{font-size:.84rem!important}
+.mtile .k{font-size:1.75rem!important}
+.mtile .l{font-size:.81rem!important}
+.mtile{padding:.95rem .95rem!important}
+/* Day rows */
+.kday{padding:1rem!important;gap:.94rem!important}
+.kday .thumb{width:4.6rem!important;height:4.6rem!important}
+.kday .dn{font-size:.78rem!important}
+.kday .dt2{font-size:1.25rem!important}
+.kday .dpills{margin-top:.56rem!important}
+.pill{font-size:.81rem!important;padding:.31rem .75rem!important}
+.kday .go{font-size:1.75rem!important}
+/* Program hero — large + prominent */
+.phero{min-height:13.1rem!important}
+.phero-body{min-height:13.1rem!important;padding:1.1rem!important}
+.pname{font-size:2.13rem!important}
+.ptag{font-size:.875rem!important}
+.kweeks{gap:.5rem!important}
+.kwchip{font-size:.875rem!important;padding:.8rem 0!important}
+/* generic rows (nutrition/wellness tiles) */
+.krow{padding:1rem!important;gap:.94rem!important}
+.krow .ic{width:3.375rem!important;height:3.375rem!important;font-size:1.625rem!important}
+.krow .rt2{font-size:1.125rem!important}
+.krow .rs{font-size:.84rem!important}
+.krow .go{font-size:1.625rem!important}
+/* Weekly check-in */
+.kcheckin{padding:1.1rem!important}
+.kcheckin .ci{width:3.125rem!important;height:3.125rem!important;font-size:1.56rem!important}
+.kcheckin .ct{font-size:1.19rem!important}
+.kcheckin .cs{font-size:.875rem!important}
+/* Stack / supplements / peptides / coach text */
+.stack .sh .t,.pepwrap .pn,.suprow .sn,.peprow .pn{font-size:.94rem!important}
+.suprow .sm,.peprow .pm{font-size:.78rem!important}
+.read p{font-size:.94rem!important}.read .rt{font-size:.84rem!important}
+.sg .k{font-size:1.06rem!important}.sg .l{font-size:.66rem!important}
+.lift .ln{font-size:.94rem!important}.lift .lv{font-size:1.06rem!important}
+.ci-row .cd{font-size:.9rem!important}.ci-row .cw{font-size:1.06rem!important}
+.mopt .mn{font-size:.875rem!important}.mopt .mi{font-size:.78rem!important}
+.opt{font-size:.75rem!important}.chip{font-size:.8rem!important}
+.stack{padding:1rem!important}.pepwrap{padding:.5rem .9rem .9rem!important}
+/* ---- Bottom nav: fit-to-screen with small side margin, tighter tabs ---- */
+nav.ctabs{bottom:calc(env(safe-area-inset-bottom) + .6rem)!important;padding:0 .6rem!important}
+.navbar{width:100%!important;box-sizing:border-box!important;justify-content:space-between!important;gap:0!important;padding:.5rem .38rem!important;border-radius:1.6rem!important}
+nav.ctabs .ctab{width:auto!important;flex:1 1 0!important;height:3.9rem!important;gap:.3rem!important;font-size:.75rem!important}
+nav.ctabs .ctab .ico{width:auto!important;padding:0 .6rem!important;height:2.5rem!important;border-radius:.88rem!important}
+nav.ctabs .ctab svg{width:1.8rem!important;height:1.8rem!important}
+nav.ctabs .ctab .nl,nav.ctabs .ctab-coach .nl{font-size:.72rem!important}
+nav.ctabs .ctab-coach{flex:0 0 auto!important;width:5rem!important}
+nav.ctabs .ctab-coach .navshield{width:4.6rem!important;height:4.6rem!important;transform:translateY(-1.1rem)!important;border-radius:1.44rem!important}
+nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!important}
 </style>
 </head>
 <body>
@@ -3957,15 +3992,15 @@ function renderHomeHero(){
     +'<div class="l">Daily step goal · connect Health</div></div><div style="color:var(--gold);font-weight:800;font-size:11px">Connect ↗</div></div><div class="kbar"><i style="width:0%"></i></div>';
 
   var h='<div class="k-slabel">Daily Target <span class="sub">'+esc(track)+' phase</span></div>'
-    +'<div class="dt"><div class="dt-top">'+kRingSVG(avg,target,158)
-    +'<div class="dt-goalwrap">'
+    +'<div class="dt"><div class="dt-grid">'
+    +'<div class="dt-col">'+kRingSVG(avg,target,150)
+    +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories / day</div></div></div>'
+    +'<div class="dt-col"><div class="dt-goalwrap">'
     +'<span class="goalpill">🎯 '+esc(track)+(gw?(' · goal '+gw+' lb'):'')+'</span>'
     +'<div style="margin-top:10px">'+statusHTML+'</div>'
-    +'<div class="editgoal" onclick="showClientTab(\'nutrition\')">✎ Edit target</div>'
-    +'</div></div>'
-    +'<div class="tiles3"><div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories / day</div></div>'
-    +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein / day</div></div>'
-    +stepTile+'</div></div>';
+    +'<div class="editgoal" onclick="showClientTab(\'nutrition\')">✎ Edit target</div></div>'
+    +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein / day</div></div></div>'
+    +'</div>'+stepTile+'</div>';
 
   // Your Program — overview: hero (%) → weeks → day list. Tapping a day opens its workout overview.
   var ap=(typeof assignedProgram==='function')?assignedProgram():null;
