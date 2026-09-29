@@ -1707,6 +1707,7 @@ function renderWorkouts(){
    baseline collector + adjustment engine (see Dashboard-Redesign-Spec.md "Legacy Coach"). */
 /* ---- LP Coach: Kino Portal + coaching read ---- */
 var COACH_RANGE=3;   // months shown on the weight trend
+var COACH_METRIC='weight';   // weight | waist | chest | arms — which measurement the chart shows
 var CORE_EDIT=false;
 var CORE_DEFAULT=[{n:"Bench Press",v:""},{n:"Back Squat",v:""},{n:"Deadlift",v:""},{n:"Overhead Press",v:""}];
 function loadCoreLifts(){ try{ var a=JSON.parse(localStorage.getItem('lp_client_corelifts')||'null'); return (a&&a.length)?a:CORE_DEFAULT.slice(); }catch(e){ return CORE_DEFAULT.slice(); } }
@@ -1716,15 +1717,30 @@ function saveCoreEdits(){ var a=loadCoreLifts(); a.forEach(function(l,i){ var nn
 function addCoreLift(){ var a=loadCoreLifts(); a.push({n:"",v:""}); saveCoreLifts(a); CORE_EDIT=true; renderCoach(); }
 function delCoreLift(i){ var a=loadCoreLifts(); a.splice(i,1); saveCoreLifts(a); renderCoach(); }
 function setCoachRange(m){ COACH_RANGE=m; renderCoach(); }
+function setCoachMetric(m){ COACH_METRIC=m; renderCoach(); }
 function messageCoach(){ var n=(CONFIG.coachSmsNumber||"").replace(/[^0-9+]/g,""); if(n){ window.location.href='sms:'+n; } else { alert('Messaging your coach is coming soon.'); } }
 function bookCall(){ var u=CONFIG.onboardCallUrl||""; if(u){ window.open(u,'_blank','noopener'); } else { alert('Your booking link is coming soon.'); } }
 function ftIn(inches){ if(!isFinite(inches)) return '—'; var f=Math.floor(inches/12), i=Math.round(inches%12); return f+"'"+i+'"'; }
-function weightTrendSVG(months){
-  var cks=(M.checkins||[]).filter(function(c){return c.weight!=null && c.ts;}).sort(function(a,b){return a.ts-b.ts;});
+/* Metric trend for the LP Coach chart. metric: weight (from check-ins, lb) | waist/chest/arms
+   (from the Measurements log, in). Dots at every logged point + the tracked date range. */
+var METRIC_META={ weight:{unit:'lb', label:'weight', src:'checkins'}, waist:{unit:'in', label:'waist', src:'measurements', col:'Waist'},
+  chest:{unit:'in', label:'chest', src:'measurements', col:'Chest'}, arms:{unit:'in', label:'arms', src:'measurements', col:'Arms'} };
+function metricTrendSVG(metric, months){
+  var meta=METRIC_META[metric]||METRIC_META.weight, unit=meta.unit;
+  var series;
+  if(meta.src==='measurements'){
+    series=(M.measurements||[]).map(function(m){ return {ts:(ts(m.Timestamp)||m.ts), w:+m[meta.col]}; });
+  } else {
+    series=(M.checkins||[]).map(function(c){ return {ts:c.ts, w:+c.weight}; });
+  }
+  var all=series.filter(function(r){ return r.ts && r.w!=null && isFinite(r.w) && r.w>0; }).sort(function(a,b){return a.ts-b.ts;});
   var cut=Date.now()-months*30*864e5;
-  var rows=cks.filter(function(c){return c.ts>=cut;}).map(function(c){return {ts:c.ts, w:+c.weight};});
-  if(rows.length<2 && cks.length) rows=cks.slice(-8).map(function(c){return {ts:c.ts, w:+c.weight};});   // fall back to last 8
-  if(rows.length<2){ return {svg:'<div style="color:var(--ink-dim);font-size:12px;padding:18px 2px">Your weight trend builds here as you check in.</div>', cur:((rows[0]&&rows[0].w)||(M.intake&&M.intake.weight)||'—')}; }
+  var rows=all.filter(function(r){return r.ts>=cut;});
+  if(rows.length<2 && all.length) rows=all.slice(-8);   // fall back to last 8
+  if(rows.length<2){
+    var seed=(metric==='weight')?((rows[0]&&rows[0].w)||(M.intake&&M.intake.weight)):(rows[0]&&rows[0].w);
+    return {svg:'<div style="color:var(--ink-dim);font-size:12px;padding:18px 2px">Your '+meta.label+' trend builds here as you log measurements.</div>', cur:(seed||'—'), unit:unit};
+  }
   var pts=rows.map(function(r){return r.w;});
   var xs=pts.map(function(_,i){return 18+i*(300/(pts.length-1));});
   var mn=Math.min.apply(null,pts)-1, mx=Math.max.apply(null,pts)+1;
@@ -1743,7 +1759,7 @@ function weightTrendSVG(months){
     +'<polyline points="'+poly+'" fill="none" stroke="#7d9463" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>'
     +dots+labels
     +'<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d9463" stop-opacity=".5"/><stop offset="1" stop-color="#7d9463" stop-opacity="0"/></linearGradient></defs></svg>';
-  return {svg:svg, cur:pts[pts.length-1]};
+  return {svg:svg, cur:pts[pts.length-1], unit:unit};
 }
 function renderCoach(){
   var box=g("ctab-coach"); if(!box) return;
@@ -1758,8 +1774,9 @@ function renderCoach(){
 
   var name=(ID&&ID.name)||"You", initial=name.trim().charAt(0).toUpperCase();
   var cur=(last&&last.weight)||it.weight||'—', gw=(isFinite(+it.goalweight)&&+it.goalweight>0)?Math.round(+it.goalweight):'—';
-  var wt=weightTrendSVG(COACH_RANGE);
+  var wt=metricTrendSVG(COACH_METRIC, COACH_RANGE);
   var ranges=[1,2,3,6];
+  var metrics=[['weight','Body Weight'],['waist','Waist'],['chest','Chest'],['arms','Arms']];
 
   var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">Your Progress</p><h1 style="text-transform:uppercase;font-size:30px">LP Coach</h1></div>';
   // read
@@ -1776,8 +1793,8 @@ function renderCoach(){
     +'<div class="sg"><div class="k">'+gw+' lb</div><div class="l">Target</div></div>'
     +'</div></div>';
   // measurements + trend
-  h+='<div class="chips"><div class="chip on">Body Weight</div><div class="chip">Waist</div><div class="chip">Chest</div><div class="chip">Arms</div></div>'
-    +'<div class="chartcard"><div class="ch-top"><div class="cv">'+wt.cur+' <span>lb</span></div>'
+  h+='<div class="chips">'+metrics.map(function(mm){ return '<div class="chip'+(mm[0]===COACH_METRIC?' on':'')+'" onclick="setCoachMetric(\''+mm[0]+'\')">'+mm[1]+'</div>'; }).join('')+'</div>'
+    +'<div class="chartcard"><div class="ch-top"><div class="cv">'+wt.cur+' <span>'+(wt.unit||'lb')+'</span></div>'
     +'<select class="rng" onchange="setCoachRange(+this.value)">'+ranges.map(function(m){return '<option value="'+m+'"'+(m===COACH_RANGE?' selected':'')+'>'+m+' Month'+(m>1?'s':'')+'</option>';}).join('')+'</select></div>'
     +wt.svg+'</div>';
   // core lifts (editable)
@@ -5324,8 +5341,8 @@ function demoBoot(){
       digdir:"Normal", food:7, energy:3+(i%2), sleep:3, acuity:3, strength:4, digestion:4,
       hunger:3, libido:3, inflammation:3, mood:3+(i%2), recovery:4, stress:3, followups:[] };
   });
-  M.measurements=[0,2].map(function(i){ return { Timestamp:new Date(now-(3-i)*7*day).toISOString(),
-    Weight:+(182-i*1.4).toFixed(1), Waist:+(35-i*0.4).toFixed(1), Hip:42, Units:"in" }; });
+  M.measurements=[0,1,2,3].map(function(i){ return { Timestamp:new Date(now-(3-i)*7*day).toISOString(),
+    Weight:+(182-i*1.4).toFixed(1), Waist:+(35-i*0.4).toFixed(1), Chest:+(41+i*0.1).toFixed(1), Arms:+(14.8+i*0.12).toFixed(1), Hip:42, Units:"in" }; });
   M.lite=false; M.tier="Built for More"; M.complete="Yes"; M.onProtocol="Yes"; M.genetics="in";
   M.geneticsintake=[{Timestamp:new Date(now-30*day).toISOString()}];
   /* Her meal plan is the real engine output (option 1 of every meal), the same meals as her system PDF. */
@@ -5369,8 +5386,8 @@ function jaymeBoot(){
       digdir:"Normal", food:8, energy:4, sleep:4, acuity:4, strength:5, digestion:4,
       hunger:3, libido:4, inflammation:2, mood:4, recovery:4, stress:3, followups:[] };
   });
-  M.measurements=[0,2].map(function(i){ return { Timestamp:new Date(now-(3-i)*7*day).toISOString(),
-    Weight:+(201-i*1.6).toFixed(1), Waist:+(36-i*0.5).toFixed(1), Units:"in" }; });
+  M.measurements=[0,1,2,3].map(function(i){ return { Timestamp:new Date(now-(3-i)*7*day).toISOString(),
+    Weight:+(196-i*2).toFixed(1), Waist:+(37-i*0.6).toFixed(1), Chest:+(43+i*0.15).toFixed(1), Arms:+(15.4+i*0.15).toFixed(1), Units:"in" }; });
   M.lite=false; M.tier="Built for More"; M.complete="Yes"; M.onProtocol="Yes"; M.genetics="in";
   M.geneticsintake=[{Timestamp:new Date(now-30*day).toISOString()}];
   var dsel={protein:['chicken breast','96% ground beef','sirloin steak','salmon','shrimp','nonfat Greek yogurt','whole eggs','egg whites','low-fat cottage cheese','whey protein powder'],
