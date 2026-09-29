@@ -1496,12 +1496,18 @@ function showClientTab(tab){
    a program yet get the getting-started view. Jayme's account carries the Min-Max program. */
 function assignedProgram(){
   if(ID && ID.email && ID.email.toLowerCase()===(typeof JAYME_EMAIL!=='undefined'?JAYME_EMAIL:"")){
-    return { name:"The Min-Max Program", src:"workout/mine/?embed=1", pct:15, weeks:6,
+    // Local dev auto-loads from the (gitignored) private file; the deployed site uses the
+    // content-free mine/ loader (program rides in the private link, cached to the device).
+    var isLocal=/^(localhost$|127\.|192\.168\.|10\.|\[?::1)/.test(location.hostname);
+    var src=isLocal ? "workout/private/?embed=1" : "workout/mine/?embed=1";
+    return { name:"The Min-Max Program", src:src, pct:15, weeks:6,
       days:[{t:"Upper 1",mins:55,ex:8},{t:"Lower 1",mins:40,ex:6},{t:"Upper 2",mins:50,ex:7},{t:"Lower 2",mins:35,ex:5},{t:"Arms/Delts",mins:65,ex:9}] };
   }
   return null;   // no assigned program wired for generic members yet
 }
 /* Open a single day as its own workout overview (where you start the session). */
+var HOME_WK=0;   // 0-based selected week on Home
+function selectWeek(w){ HOME_WK=w; if(typeof renderHomeHero==='function') renderHomeHero(); }
 function openWorkoutDay(i){
   var ap=assignedProgram(); if(!ap) return;
   var ov=g("workoutOverlay"), fr=g("workoutOverlayFrame"), ti=g("workoutOverlayTitle");
@@ -1509,7 +1515,7 @@ function openWorkoutDay(i){
   var d=(ap.days&&ap.days[i]), day=(d&&d.t)?d.t:((typeof d==='string')?d:("Day "+(i+1)));
   if(ti) ti.textContent=day;
   var base=ap.src.indexOf('?')>=0?ap.src:(ap.src+'?embed=1');
-  fr.src=base+"&day="+i+"&v=2";
+  fr.src=base+"&day="+i+"&week="+HOME_WK+"&v=3";
   ov.classList.add("open"); document.body.style.overflow="hidden";
 }
 function closeWorkoutDay(){ var ov=g("workoutOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("workoutOverlayFrame"); if(fr) fr.src="about:blank"; }
@@ -1521,8 +1527,8 @@ function renderWorkouts(){
   var h='<div class="hrow"><p class="eyebrow" id="wkEyebrow">The Library</p><h1 style="text-transform:uppercase;font-size:30px">Programs</h1></div>';
   h+='<div class="k-slabel">Your Program</div>';
   if(ap){
-    h+='<div class="progcard" onclick="showClientTab(\'home\')"><div class="pcnow">Active</div><div class="progcard-body">'
-      +'<div class="pcname">'+esc(ap.name)+'</div><div class="pcpills"><span class="pill">In progress</span><span class="pill">Open on Home →</span></div></div></div>';
+    h+='<div class="progcard" onclick="openWorkoutDay(0)"><div class="pcnow">Active</div><div class="progcard-body">'
+      +'<div class="pcname">'+esc(ap.name)+'</div><div class="pcpills"><span class="pill">In progress</span><span class="pill">Tap to train →</span></div></div></div>';
   }
   h+='<div class="k-slabel">Browse Programs</div>';
   var lib=[
@@ -3902,9 +3908,9 @@ function renderHomeHero(){
       +'<span class="pswitch" onclick="showClientTab(\'workouts\')">⇆ Switch</span>'
       +'<div class="ppct"><svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="21" stroke="rgba(255,255,255,.15)" stroke-width="5" fill="none"/><circle cx="26" cy="26" r="21" stroke="#C1AD72" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="'+off+'"/></svg><div class="rt">'+pct+'%</div></div>'
       +'<div class="phero-body"><div class="pname">'+esc(ap.name)+'</div><div class="ptag">'+((ap.days&&ap.days.length)||0)+' days · '+(ap.weeks||4)+' weeks</div></div></div>';
-    // week chips
+    // week chips (clickable — selects the week the day list tracks against)
     var nwk=ap.weeks||4, wk='';
-    for(var w=1; w<=nwk; w++){ wk+='<div class="kwchip'+(w===1?' on':'')+'">Week '+w+'</div>'; }
+    for(var w=1; w<=nwk; w++){ wk+='<div class="kwchip'+((w-1)===HOME_WK?' on':'')+'" onclick="selectWeek('+(w-1)+')">Week '+w+'</div>'; }
     h+='<div class="kweeks" style="overflow-x:auto">'+wk+'</div>';
     // day overview
     (ap.days||[]).forEach(function(d,i){
@@ -5133,7 +5139,7 @@ function jaymeBoot(){
   try{ localStorage.setItem('lp_preview_acct','jayme'); }catch(e){}
   buildModel(null);
   var now=Date.now(), day=86400000;
-  var it={ done:true, signal:"clear", sex:"Male", age:39, height:71, weight:201, goalweight:175,
+  var it={ done:true, signal:"clear", sex:"Male", age:34, height:68, weight:190, goalweight:175,
     activity:"Active", track:"Lean", steps:"10,000+", trackingexp:"Yes, I track well",
     trainloc:"Home / garage", traindays:"4–5", pregnant:"No", diethistory:"3+ years",
     fueling:"Eating well", filters:[], priorities:["Lean","Strong","Long"],

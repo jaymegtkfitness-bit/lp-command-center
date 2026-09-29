@@ -429,8 +429,11 @@ function bootProg(j){
   if(j.notes){ document.getElementById('notesWrap').innerHTML='<details class="pnotes"><summary>Program notes</summary><div class="body">'+esc(j.notes)+'</div></details>'; }
   document.getElementById('timerBar').style.display='';
   document.getElementById('finishBar').style.display='';
-  /* Home passes ?day=N to open that day's workout directly. */
-  try{ var _dp=new URLSearchParams(location.search).get('day'); if(_dp!=null){ var _di=parseInt(_dp,10); if(isFinite(_di)&&_di>=0) di=_di; } }catch(e){}
+  /* Home passes ?week=N & ?day=N to open that day directly. */
+  try{ var _q=new URLSearchParams(location.search);
+    var _wp=_q.get('week'); if(_wp!=null){ var _wi=parseInt(_wp,10); if(isFinite(_wi)&&_wi>=0) wi=_wi; }
+    var _dp=_q.get('day'); if(_dp!=null){ var _di=parseInt(_dp,10); if(isFinite(_di)&&_di>=0) di=_di; }
+  }catch(e){}
   render();
 }
 async function ungz(b64){
@@ -443,7 +446,7 @@ async function ungz(b64){
   try{
     if(h){ var txt=await ungz(h); try{ localStorage.setItem('lp_prog_data', txt); }catch(e){} bootProg(JSON.parse(txt)); return; }
     var cached=localStorage.getItem('lp_prog_data'); if(cached){ bootProg(JSON.parse(cached)); return; }
-    document.getElementById('list').innerHTML='<div class="load">Open your personal program link to load your training.</div>';
+    document.getElementById('list').innerHTML='<div class="load"><b style="color:#fff;font-size:1rem">Load your training once</b><br><br>Open your private program link (from your coach) one time on this device. It loads your program and remembers it here — after that, your workouts open straight from the app.</div>';
   }catch(e){
     document.getElementById('list').innerHTML='<div class="load">Could not load your program on this browser.<br><span style="font-size:.8rem">Try Safari or Chrome (a recent version).</span></div>';
   }
