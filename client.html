@@ -941,6 +941,10 @@ header .brand img{height:3.9rem!important}
 .lp-slider:before{content:"";position:absolute;height:1.5rem;width:1.5rem;left:.15rem;top:.13rem;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .lp-switch input:checked + .lp-slider{background:linear-gradient(160deg,#7d9463,#4A5C3E);border-color:transparent}
 .lp-switch input:checked + .lp-slider:before{transform:translateX(1.35rem)}
+/* Free-meals block — highlighted so it isn't missed */
+.fe-free-hl{background:linear-gradient(160deg,rgba(193,173,114,.14),rgba(74,92,62,.08))!important;border:1px solid rgba(193,173,114,.4)!important;border-radius:16px!important;padding:1rem 1rem 1.1rem!important;margin-top:.5rem!important}
+.fe-free-badge{display:inline-block;font-weight:800;font-size:1rem;letter-spacing:.02em;color:var(--gold)!important;text-transform:uppercase}
+.fe-free-hl .chip.on{background:var(--gold)!important;color:#161309!important;border-color:var(--gold)!important}
 /* Day rows */
 .kday{padding:1rem!important;gap:.94rem!important}
 .kday .thumb{width:4.6rem!important;height:4.6rem!important}
@@ -4473,8 +4477,8 @@ function freeMealsBlock(){
   for(var n=MACRO_FREEDOM.included; n<=MACRO_FREEDOM.max; n++){
     chips+='<button type="button" class="chip'+(n===cur?' on':'')+'" data-n="'+n+'" onclick="feFreePick(this)">'+n+'</button>';
   }
-  return '<div class="field"><label>Free meals a week</label>'
-    +'<div class="wiz-hint" style="margin:-2px 0 8px">'+MACRO_FREEDOM.included+' are already built into your number. Each extra trades about 100 calories a day, and your protein never moves.</div>'
+  return '<div class="field fe-free-hl"><label style="display:flex;align-items:center;gap:8px"><span class="fe-free-badge">★ Free meals a week</span></label>'
+    +'<div class="wiz-hint" style="margin:6px 0 10px">'+MACRO_FREEDOM.included+' are already built into your number. Each extra trades about 100 calories a day, and your protein never moves.</div>'
     +'<div class="chips" id="fe_free">'+chips+'</div></div>';
 }
 function feFreePick(b){ var box=b.parentNode; Array.prototype.forEach.call(box.children,function(c){c.classList.remove('on');}); b.classList.add('on'); }
@@ -4487,11 +4491,11 @@ function freqBlock(){
 function shakeBlock(){
   var s=loadFoods().shake||{}, on=!!s.on;
   return '<div class="field"><label>Daily protein shake</label>'
-    +'<div class="wiz-hint" style="margin:-2px 0 8px">One shake reserved before your meals are built. Leave the numbers blank for the default (30g protein · 175 cal).</div>'
+    +'<div class="wiz-hint" style="margin:-2px 0 8px">One shake reserved before your meals are built. Leave the numbers blank for the default (30g protein · 150 cal).</div>'
     +'<div class="shk-toggle" style="display:flex;align-items:center;gap:12px;font-weight:600"><label class="lp-switch"><input type="checkbox" id="fe_shake_on" '+(on?'checked':'')+' onchange="feShakeToggle()"><span class="lp-slider"></span></label><span>Add a daily protein shake</span></div>'
     +'<div id="fe_shake_inputs" style="margin-top:10px;'+(on?'display:flex':'display:none')+';gap:10px">'
     +'<div style="flex:1"><label style="font-size:.8rem">Protein (g)</label><input class="input" type="number" id="fe_shake_p" inputmode="numeric" placeholder="30" value="'+(s.protein||'')+'"></div>'
-    +'<div style="flex:1"><label style="font-size:.8rem">Calories</label><input class="input" type="number" id="fe_shake_cal" inputmode="numeric" placeholder="175" value="'+(s.cal||'')+'"></div>'
+    +'<div style="flex:1"><label style="font-size:.8rem">Calories</label><input class="input" type="number" id="fe_shake_cal" inputmode="numeric" placeholder="150" value="'+(s.cal||'')+'"></div>'
     +'</div></div>';
 }
 function feShakeToggle(){ var on=g('fe_shake_on')&&g('fe_shake_on').checked, box=g('fe_shake_inputs'); if(box) box.style.display=on?'flex':'none'; }
@@ -4523,7 +4527,7 @@ function doGenerate(){
   sel.mealsPerDay=meals;
   sel.shake={on:shakeOn, protein:shakeP||'', cal:shakeC||''};
   sel.frequency=String(meals)+(shakeOn?' + shake':'');
-  if(shakeOn){ sel.shakeGrams=shakeP||30; sel.shakeCal=shakeC||175; }
+  if(shakeOn){ sel.shakeGrams=shakeP||30; sel.shakeCal=shakeC||150; }
   saveFoods(sel);
   var plan=generateMealPlan(M.intake, sel, 3, (ID&&ID.name)||"");
   M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
