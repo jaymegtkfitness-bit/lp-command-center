@@ -978,6 +978,25 @@ nav.ctabs .ctab .nl,nav.ctabs .ctab-coach .nl{font-size:.72rem!important}
 nav.ctabs .ctab-coach{flex:0 0 auto!important;width:5rem!important}
 nav.ctabs .ctab-coach .navshield{width:4.6rem!important;height:4.6rem!important;transform:translateY(-1.1rem)!important;border-radius:1.44rem!important}
 nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!important}
+/* header spacer keeps the logo centered now that only the hamburger (right) remains */
+.topspacer{width:2.875rem!important;flex:0 0 auto!important;pointer-events:none!important}
+/* Home step tile — bigger Connect */
+.mtile.step .k{font-size:1.75rem!important}
+.mtile.step .l{font-size:.84rem!important}
+.mtile.step div[style*="Connect"],.mtile.step > div:last-child{font-size:.9rem!important}
+/* LOGIN screen — a touch bigger for older eyes */
+#onboard .sub{font-size:1.05rem!important;line-height:1.5!important}
+#onboard .field label{font-size:.9rem!important}
+#onboard .input{font-size:1.1rem!important;padding:1rem!important}
+#onboard .btn{font-size:1.15rem!important;padding:1.1rem!important}
+#onboard .foot{font-size:.9rem!important;line-height:1.5!important}
+#onboard .eyebrow{font-size:.95rem!important}
+/* Slide-out drawer — bigger items, closer to full width */
+.drawer-nav a,.drawer-nav button{font-size:1.15rem!important;padding:1.05rem .4rem!important}
+.drawer-nav .drawer-cta{font-size:1.15rem!important;padding:1.1rem!important}
+.drawer-group{font-size:.85rem!important}
+.drawer-nav a small{font-size:.8rem!important}
+.drawer{width:min(88vw,22rem)!important}
 </style>
 </head>
 <body>
@@ -985,9 +1004,9 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 <div id="bootLoader"><img src="logo-white-gold.png" alt="Legacy Performance"><div class="bl-spin"></div><div class="bl-txt">Loading your dashboard…</div></div>
 <div class="safe"></div>
 <header>
-  <button class="menubtn" onclick="openMenu()" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+  <div class="topspacer" aria-hidden="true"></div>
   <div class="brand" onclick="if(window.ID&&ID.email)showHome()" style="cursor:pointer" title="Home"><img src="logo-white-gold.png" alt="Legacy Performance" /></div>
-  <button class="gearbtn" onclick="openMenu()" id="gearBtn" aria-label="Settings"><svg viewBox="0 0 24 24" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></button>
+  <button class="menubtn" onclick="openMenu()" id="menuBtn" aria-label="Menu"><span></span><span></span><span></span></button>
 </header>
 
 <!-- slide-out menu -->
@@ -4063,7 +4082,11 @@ function nutMealRow(m,mi){
   body+='</div>';
   return head+body;
 }
-function toggleMealOpts(mi){ var b=g('mopts'+mi), c=g('mchev'+mi); if(!b)return; var open=b.style.display==='none'; b.style.display=open?'block':'none'; if(c)c.textContent=open?'⌄':'›'; }
+function toggleMealOpts(mi){ var b=g('mopts'+mi), c=g('mchev'+mi); if(!b)return; var open=b.style.display==='none';
+  /* accordion: only one meal open at a time — close the others first */
+  document.querySelectorAll('.mealopts').forEach(function(el){ if(el!==b) el.style.display='none'; });
+  document.querySelectorAll('[id^="mchev"]').forEach(function(el){ if(el!==c) el.textContent='›'; });
+  b.style.display=open?'block':'none'; if(c)c.textContent=open?'⌄':'›'; }
 function renderNutritionHero(){
   var box=g("nutHeroBox"); if(!box) return;
   var it=M.intake;
@@ -4098,12 +4121,12 @@ function renderNutritionHero(){
     +'<img src="cronometer-icon.png" alt="Cronometer"><div class="rb"><div class="rt2">Log your food</div><div class="rs">Open Cronometer to track today</div></div><div class="go" style="color:var(--gold)">↗</div></div>';
   // Meal plan — the day's meals, each with its options viewable
   var mp=M.mealplan, meals=(mp&&mp.days&&mp.days[0]&&mp.days[0].meals)||[];
-  h+='<div class="k-slabel">Your Meal Plan'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
+  h+='<div class="k-slabel">Your Nutrition System'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
   if(meals.length){
     meals.forEach(function(m,mi){ h+=nutMealRow(m,mi); });
-    h+='<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else window.location.href=\'build/\'"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new plan</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
+    h+='<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else window.location.href=\'build/\'"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
   } else {
-    h+='<div class="krow" onclick="window.location.href=\'build/\'"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Build a new plan</div><div class="rs">The Complete Nutrition System · CNS</div></div><div class="go">›</div></div>';
+    h+='<div class="krow" onclick="window.location.href=\'build/\'"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">The Complete Nutrition System · CNS</div></div><div class="go">›</div></div>';
   }
   h+='<div class="krow" onclick="window.open(\'library/\',\'_self\')"><div class="ic">🧭</div><div class="rb"><div class="rt2">Your protocol</div><div class="rs">Macro Freedom Framework — how your plan is built</div></div><div class="go">›</div></div>';
   // Tools
