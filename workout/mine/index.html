@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- Generic personal workout tracker shell. Holds NO program of its own — the program loads from
-     the viewer's own private link (#fragment, gzip+base64) and is cached to their device only.
-     Safe to deploy: this file contains no program content; logging is localStorage per device. -->
+<!-- PRIVATE personal workout tracker — Jayme only. Loads a program the user OWNS (personal use).
+     This folder is GITIGNORED: never published, never part of the for-sale product.
+     Reads ./min-max.json (the parsed program). Logging is localStorage on this device. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
@@ -97,6 +97,75 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 </style>
 </head>
 <body>
+<!-- When embedded inside the dashboard's Workouts tab, hide this page's own header (the app frames it). -->
+<script>try{if(new URLSearchParams(location.search).get('embed')||window.self!==window.top)document.documentElement.classList.add('embed');}catch(e){if(window.self!==window.top)document.documentElement.classList.add('embed');}</script>
+<style>html.embed .eyebrow,html.embed #title{display:none}html.embed .wrap{padding-top:12px}
+.celebrate{position:fixed;inset:0;z-index:50;display:none;align-items:center;justify-content:center;padding:22px;background:rgba(8,9,7,.8);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.cel-card{max-width:400px;width:100%;max-height:88vh;overflow-y:auto;text-align:center;background:linear-gradient(160deg,rgba(193,173,114,.16),rgba(84,106,70,.12)),#141510;border:1px solid rgba(193,173,114,.34);border-radius:22px;padding:28px 24px 22px;box-shadow:0 30px 70px rgba(0,0,0,.6)}
+.cel-emoji{font-size:4.8rem;line-height:1;margin:10px 0 2px}
+.cel-sec{margin-top:16px;text-align:left;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:14px;padding:12px 14px}
+.cel-sh{font-size:.62rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-bottom:4px}
+.cel-row{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid rgba(143,169,122,.12);font-size:.9rem;color:var(--body)}
+.cel-row:last-child{border-bottom:0}.cel-row b{color:#fff;font-weight:800;white-space:nowrap}
+.cel-h{font-weight:900;text-transform:uppercase;font-size:1.15rem;letter-spacing:.02em;color:#fff}
+.cel-lab{font-size:.6rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:800;margin-top:16px}
+.cel-num{font-family:Cinzel,serif;font-weight:700;font-size:2.7rem;color:#fff;line-height:1;margin-top:4px;font-variant-numeric:tabular-nums}
+.cel-cmp{font-size:1.02rem;color:var(--body);margin-top:8px}.cel-cmp b{color:var(--gold)}
+.cel-alt{font-size:.8rem;color:var(--soft);margin-top:4px}.cel-alt b{color:var(--soft)}
+.cel-share{width:100%;background:var(--gold);color:var(--ink);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.95rem;padding:15px;margin-top:22px;cursor:pointer}
+.cel-done{width:100%;background:transparent;border:1px solid var(--field-line);color:var(--parch);border-radius:12px;font-family:inherit;font-weight:700;font-size:.9rem;padding:13px;margin-top:10px;cursor:pointer}
+/* Workout OVERVIEW (day detail before you start) */
+.ovhero{position:relative;border-radius:18px;overflow:hidden;padding:20px 16px;margin-bottom:14px;min-height:150px;display:flex;flex-direction:column;justify-content:flex-end;background:linear-gradient(180deg,rgba(8,9,7,.05) 18%,rgba(8,9,7,.88) 100%),linear-gradient(120deg,#2b3327,#15130f 72%)}
+.ovhero:after{content:"";position:absolute;inset:0;background:radial-gradient(80% 120% at 82% 0%,rgba(125,148,99,.4),transparent 60%),radial-gradient(60% 90% at 8% 92%,rgba(193,173,114,.28),transparent 60%);opacity:.6}
+.ovttl{position:relative;font-family:Montserrat,sans-serif;font-weight:900;font-size:1.55rem;text-transform:uppercase;color:#fff;line-height:1.05;letter-spacing:.005em}
+.ovpills{position:relative;display:flex;gap:8px;margin-top:11px}
+.ovpill{font-size:.72rem;font-weight:700;color:var(--parch);background:rgba(0,0,0,.35);border:1px solid rgba(255,255,255,.14);padding:6px 13px;border-radius:999px;backdrop-filter:blur(3px)}
+.ovdesc{font-size:.9rem;color:var(--soft);line-height:1.5;margin-bottom:18px}
+.ovh{font-family:Montserrat,sans-serif;font-weight:800;font-size:1.15rem;color:#fff;margin:6px 0 12px}
+.ovex{display:flex;align-items:center;gap:13px;background:var(--field);border:1px solid var(--field-line);border-radius:14px;padding:11px;margin-bottom:10px}
+.ovthumb{width:58px;height:58px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;font-size:1rem;color:var(--gold);background:linear-gradient(140deg,#2b3327,#14140f)}
+.ovb{flex:1;min-width:0}
+.ovnm{font-weight:700;font-size:.98rem;color:#fff}
+.ovsr{font-size:.8rem;color:var(--soft);margin-top:3px}
+/* big center workout timer */
+.timer.big{flex-direction:column;gap:10px;align-items:center;text-align:center;background:linear-gradient(160deg,rgba(84,106,70,.18),rgba(20,19,16,.85));padding:16px 14px}
+.timer.big .tk-big{font-family:Montserrat,sans-serif;font-weight:900;font-size:2.7rem;color:#fff;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.timer.big .tk-rest{display:flex;align-items:center;gap:10px;font-size:.85rem}
+.timer.big .tk-rest .tval{font-size:1rem}
+.timer.big .tk-rest .tbtn{padding:6px 12px;font-size:.7rem}
+/* Kino-style exercise card */
+.kx{margin-top:12px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:18px;padding:14px}
+.kx.done{border-color:var(--olive-dim);background:rgba(84,106,70,.08)}
+.kx-top{display:flex;align-items:flex-start;gap:12px}
+.kx-thumb{width:58px;height:58px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:var(--gold);background:linear-gradient(140deg,#2b3327,#14140f)}
+.kx-nm{flex:1;min-width:0;font-family:Montserrat,sans-serif;font-weight:800;font-size:1.02rem;color:#fff;line-height:1.2;padding-top:2px}
+.kx-tools{display:flex;flex-direction:column;gap:6px;flex:none}
+.kx-tool{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid var(--field-line);color:var(--gold);border-radius:9px;font-family:inherit;font-weight:700;font-size:.72rem;padding:6px 10px;cursor:pointer;white-space:nowrap}
+.kx-info{font-size:.82rem;color:var(--soft);line-height:1.45;margin-top:12px}
+.kx-info .ii{color:var(--gold);font-weight:800}
+.kx-info.clip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.kx-more{color:var(--gold);font-weight:700;font-size:.78rem;margin-top:5px;cursor:pointer;display:inline-block}
+.kx-btns{display:flex;gap:8px;margin-top:12px}
+.kx-btn{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;background:transparent;border:1px solid var(--field-line);color:var(--parch);border-radius:11px;font-family:inherit;font-weight:700;font-size:.78rem;padding:10px;cursor:pointer}
+.kx-panel{margin-top:10px;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:11px 12px;font-size:.83rem;color:var(--body);line-height:1.5}
+.kx-panel textarea{width:100%;background:rgba(0,0,0,.25);border:1px solid var(--field-line);border-radius:9px;color:#fff;font-family:inherit;font-size:.85rem;padding:9px;min-height:64px;resize:vertical}
+.kx-sets{display:flex;justify-content:space-between;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--field-line)}
+.kx-sets .sl{font-weight:800;font-size:.82rem;color:#fff}
+.kx-sets .sr{font-size:.8rem;color:var(--soft)}
+.kx-weight{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:12px}
+.kx-weight .k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:700}
+.kx-wv{font-family:Montserrat,sans-serif;font-weight:900;font-size:1.5rem;color:#fff;background:transparent;border:none;text-align:center;width:74px;font-variant-numeric:tabular-nums;-moz-appearance:textfield}
+.kx-wv::-webkit-outer-spin-button,.kx-wv::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.kx-wv:focus{outline:none;color:var(--gold)}
+.kx-sbtn{width:38px;height:38px;border-radius:11px;border:1px solid var(--field-line);background:rgba(255,255,255,.04);color:var(--parch);font-size:1.3rem;font-weight:700;cursor:pointer;line-height:1}
+.kx-sbtn:active{background:var(--gold);color:var(--ink)}
+.kx-bubbles{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
+.kx-bub{flex:1;min-width:82px;text-align:center;padding:12px 6px;border-radius:13px;border:1px solid var(--gold-dim);background:rgba(193,173,114,.06);color:var(--gold-soft,#d8c789);font-weight:800;font-size:.9rem;cursor:pointer}
+.kx-bub.done{background:linear-gradient(160deg,var(--olive),#3f5233);border-color:transparent;color:#fff}
+.kx-bub.done .bw{display:block;font-size:.68rem;font-weight:700;color:rgba(255,255,255,.8);margin-top:2px}
+.kx-bub .pr{color:var(--gold)}
+.kx-prev{font-size:.78rem;color:var(--soft);margin-top:12px}
+.kx-hint{font-size:.8rem;color:var(--soft);margin:2px 2px 0;display:flex;align-items:center;gap:7px}</style>
 <main class="wrap">
   <div class="eyebrow">Private · Personal use</div>
   <h1 id="title">My Training</h1>
@@ -105,17 +174,32 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
   <div class="nav" id="weeks"></div>
   <div class="navlabel" id="dayLabel" style="display:none">Day</div>
   <div class="nav" id="days"></div>
-  <div class="timer" id="timerBar" style="display:none">
-    <div class="tcol"><div class="tlab">Workout</div><div class="tval" id="wkTime">0:00</div></div>
-    <div class="tcol"><div class="tlab">Rest</div><div class="tval gold" id="restTime">0:00</div></div>
-    <button class="tbtn ghost" onclick="resetRest()">Reset rest</button>
+  <div class="timer big" id="timerBar" style="display:none">
+    <div class="tk-main"><div class="tlab">Workout</div><div class="tk-big" id="wkTime">0:00</div></div>
+    <div class="tk-rest"><span class="tlab">Rest</span><span class="tval gold" id="restTime">0:00</span><button class="tbtn ghost" onclick="resetRest()">Reset rest</button></div>
   </div>
   <div id="list"><div class="load">Loading your program…</div></div>
 </main>
 <div class="finish" id="finishBar" style="display:none"><div class="fin-in"><div class="prog" id="prog"></div><button class="fbtn" onclick="finish()">Finish workout ✓</button></div></div>
 
+<!-- Post-workout celebration (revealed on Finish, shareable) -->
+<div class="celebrate" id="celebrate" style="display:none">
+  <div class="cel-card">
+    <div class="cel-h">Workout complete</div>
+    <div class="cel-lab">Total moved this workout</div>
+    <div class="cel-emoji" id="celEmoji">🏋️</div>
+    <div class="cel-num" id="celNum">0 lb</div>
+    <div class="cel-cmp" id="celCmp"></div>
+    <div class="cel-sec" id="celPRs" style="display:none"><div class="cel-sh">★ New PRs</div><div id="celPRList"></div></div>
+    <div class="cel-sec" id="celLevel" style="display:none"><div class="cel-sh">◆ Go heavier next time</div><div id="celLevelList"></div></div>
+    <button class="cel-share" id="celShare" onclick="shareTonnage()">Share my workout →</button>
+    <button class="cel-done" onclick="closeCelebrate()">Done</button>
+  </div>
+</div>
+
+<script src="../tonnage.js"></script>
 <script>
-var PROG=null, wi=0, di=0, openIdx=0, LOG={}, SWAPS={};
+var PROG=null, wi=0, di=0, openIdx=0, LOG={}, SWAPS={}, MODE='overview';
 try{ LOG=JSON.parse(localStorage.getItem('lp_myprog')||'{}'); }catch(e){ LOG={}; }
 try{ SWAPS=JSON.parse(localStorage.getItem('lp_myprog_swaps')||'{}'); }catch(e){ SWAPS={}; }
 function swapTo(ei, nm){ SWAPS[exKey(ei)]=nm; try{ localStorage.setItem('lp_myprog_swaps', JSON.stringify(SWAPS)); }catch(e){} renderList(); }
@@ -152,45 +236,125 @@ function coachRec(ei,ex){ var sets=LOG[exKey(ei)]||[]; var r=rng(ex.repRange); v
   if(work.some(function(s){return s.r<r[0];})) return 'That was heavy. Hold this weight and build back to '+r[0]+' clean reps.';
   return 'Stay here and add reps until you hit '+r[1]+' on every set, then go heavier.';
 }
+var HIDDEN={}, PANEL={}, NOTES={};      // removed-for-today · open panel · personal notes
+try{ NOTES=JSON.parse(localStorage.getItem('lp_myprog_notes')||'{}'); }catch(e){}
 function renderList(){
   var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
-  document.getElementById('list').innerHTML=(d.exercises||[]).map(function(ex,ei){
-    var r=rng(ex.repRange); var sets=LOG[exKey(ei)]||[]; var need=+((ex.workingSets||'').match(/\d+/)||[3])[0]||3; var done=sets.length>=need;
-    var activeName=SWAPS[exKey(ei)]||ex.exercise; var opts=[ex.exercise,ex.sub1,ex.sub2].filter(Boolean);
-    var setHtml=sets.map(function(s,si){ return '<div class="setrow"><div class="sn">'+(si+1)+'</div><div class="sv">'+s.w+' <small>lb</small> × '+s.r+' <small>reps</small></div>'+(s.pr?'<div class="pr">★ PR</div>':'<div></div>')+'</div>'; }).join('');
-    var rec=coachRec(ei,ex); var recHtml=rec?('<div class="coach"><div class="ck">◆ LP Coach</div><div class="ct">'+esc(rec)+'</div></div>'):'';
-    var custActive=opts.indexOf(activeName)<0;
-    var subs='<details class="swap"><summary>⇄ Swap this exercise</summary><div class="subs">'
-      +(custActive?'<button class="sub on">✓ '+esc(activeName)+'<span class="tag">yours</span></button>':'')
-      +opts.map(function(nm,oi){var on=(nm===activeName);return '<button class="sub'+(on?' on':'')+'" data-nm="'+esc(nm).replace(/"/g,'&quot;')+'" onclick="swapTo('+ei+',this.getAttribute(\'data-nm\'))">'+(on?'✓ ':'')+esc(nm)+(oi===0?'<span class="tag">original</span>':'')+'</button>';}).join('')
-      +'<div class="addown"><input class="custinp" id="cust'+ei+'" type="text" placeholder="Type your own exercise"><button class="custbtn" onclick="swapCustom('+ei+')">Use</button></div>'
-      +'</div></details>';
-    var startW = sets.length?sets[sets.length-1].w:0;
-    return '<div class="ex'+(ei===openIdx?' open':'')+(done?' done':'')+'">'
-      +'<div class="ex-head" onclick="toggle('+ei+')"><div class="blk">'+(ei+1)+'</div>'
-      +'<div><div class="ex-name">'+esc(activeName)+'</div><div class="ex-meta">'+esc((ex.workingSets||'')+' × '+(ex.repRange||''))+' · '+esc(rirStr(ex.rir))+'</div></div><div class="chev">›</div></div>'
-      +'<div class="ex-body">'
-      +'<div class="detail">'
-        +'<div class="d"><span>Warm-up</span><b>'+esc(ex.warmupSets||'—')+'</b></div>'
-        +'<div class="d"><span>Working</span><b>'+esc((ex.workingSets||'')+' × '+(ex.repRange||''))+'</b></div>'
-        +'<div class="d"><span>Intensity</span><b>'+esc(rirStr(ex.rir)||'—')+'</b></div>'
-        +'<div class="d"><span>Rest</span><b>'+esc(ex.rest||'—')+'</b></div>'
-      +'</div>'
-      +(ex.note?'<div class="note">'+esc(ex.note)+'</div>':'')
-      +subs
-      +(setHtml?'<div class="sets">'+setHtml+'</div>':'')
-      +recHtml
-      +'<div class="logger">'
-      +'<div class="stepper"><div class="k">Weight (lb)</div><div class="row"><button class="sbtn" onclick="bump('+ei+',\'w\',-2.5)">−</button><input class="sinp" id="w'+ei+'" type="number" inputmode="decimal" step="2.5" value="'+startW+'"><button class="sbtn" onclick="bump('+ei+',\'w\',2.5)">+</button></div></div>'
-      +'<div class="stepper"><div class="k">Reps</div><div class="row"><button class="sbtn" onclick="bump('+ei+',\'r\',-1)">−</button><input class="sinp" id="r'+ei+'" type="number" inputmode="numeric" step="1" value="'+r[0]+'"><button class="sbtn" onclick="bump('+ei+',\'r\',1)">+</button></div></div>'
-      +'<button class="save" onclick="saveSet('+ei+')">Save set '+(sets.length+1)+' →</button>'
-      +'</div></div></div>';
+  var exs=d.exercises||[];
+  var html='<div class="kx-hint">ⓘ Set your weight, then tap the reps you hit to log a set.</div>';
+  html+=exs.map(function(ex,ei){
+    if(HIDDEN[exKey(ei)]) return '';
+    var name=SWAPS[exKey(ei)]||ex.exercise;
+    var r=rng(ex.repRange); var need=+((ex.workingSets||'').match(/\d+/)||[3])[0]||3;
+    var sets=LOG[exKey(ei)]||[]; var done=sets.length>=need;
+    var startW=sets.length?sets[sets.length-1].w:0;
+    var note=ex.note||'';
+    // rep option bubbles across the range (tap to log a set at the current weight)
+    var repOpts=[]; for(var rr=r[0]; rr<=r[1] && repOpts.length<7; rr++) repOpts.push(rr);
+    if(!repOpts.length) repOpts=[r[0]];
+    var bubbles=repOpts.map(function(rr){ return '<div class="kx-bub" onclick="logRep('+ei+','+rr+')">'+rr+' reps</div>'; }).join('');
+    var logged=sets.map(function(s){ return '<div class="kx-bub done">'+s.r+' reps<span class="bw">'+s.w+' lb'+(s.pr?' <span class="pr">★</span>':'')+'</span></div>'; }).join('');
+    var prev=sets.length?(sets[sets.length-1].w+' lb × '+sets[sets.length-1].r+' reps'):'—';
+    var infoId='info'+ei;
+    return '<div class="kx'+(done?' done':'')+'">'
+      +'<div class="kx-top"><div class="kx-thumb">▶</div><div class="kx-nm">'+esc(name)+'</div>'
+      +'<div class="kx-tools"><button class="kx-tool" onclick="toggleKxPanel('+ei+',\'swap\')">⇄ Switch</button>'
+      +'<button class="kx-tool" onclick="delEx('+ei+')">🗑 Delete</button></div></div>'
+      +(note?'<div class="kx-info clip" id="'+infoId+'"><span class="ii">ⓘ</span> '+esc(note)+'</div><span class="kx-more" id="more'+ei+'" onclick="toggleInfo('+ei+')">Show more ▾</span>':'')
+      +'<div class="kx-btns"><button class="kx-btn" onclick="toggleKxPanel('+ei+',\'edit\')">✎ Edit</button>'
+      +'<button class="kx-btn" onclick="toggleKxPanel('+ei+',\'history\')">↻ History</button>'
+      +'<button class="kx-btn" onclick="toggleKxPanel('+ei+',\'notes\')">▤ Notes</button></div>'
+      +'<div id="panel'+ei+'">'+panelHTML(ei,ex)+'</div>'
+      +'<div class="kx-sets"><div class="sl">Sets</div><div class="sr">'+need+' × '+esc(ex.repRange||'')+' reps · '+sets.length+'/'+need+' done</div></div>'
+      +(logged?'<div class="kx-bubbles">'+logged+'</div>':'')
+      +'<div class="kx-weight"><button class="kx-sbtn" onclick="wbump('+ei+',-5)">−</button>'
+      +'<div style="text-align:center"><div class="k">Weight (lb)</div><input class="kx-wv" id="kw'+ei+'" type="number" inputmode="decimal" step="2.5" value="'+startW+'"></div>'
+      +'<button class="kx-sbtn" onclick="wbump('+ei+',5)">+</button></div>'
+      +'<div class="kx-bubbles">'+bubbles+'</div>'
+      +'<div class="kx-prev">Previous lift: '+esc(prev)+'</div>'
+      +'</div>';
   }).join('');
-  var exs=(d.exercises||[]); var doneN=exs.filter(function(_,ei){var need=+((exs[ei].workingSets||'').match(/\d+/)||[3])[0]||3;return (LOG[exKey(ei)]||[]).length>=need;}).length;
+  document.getElementById('list').innerHTML=html;
+  var doneN=exs.filter(function(_,ei){var need=+((exs[ei].workingSets||'').match(/\d+/)||[3])[0]||3;return (LOG[exKey(ei)]||[]).length>=need;}).length;
   var totalSets=exs.reduce(function(a,_,ei){return a+((LOG[exKey(ei)]||[]).length);},0);
-  document.getElementById('prog').textContent=doneN+' of '+exs.length+' exercises · '+totalSets+' sets logged';
+  var pe=document.getElementById('prog'); if(pe) pe.textContent=doneN+' of '+exs.length+' exercises · '+totalSets+' sets logged';
 }
-function render(){ renderNav(); renderList(); }
+/* Per-exercise expandable panel: Switch / Edit / History / Notes. */
+function panelHTML(ei,ex){
+  var kind=PANEL[exKey(ei)]; if(!kind) return '';
+  var activeName=SWAPS[exKey(ei)]||ex.exercise;
+  if(kind==='swap'){
+    var opts=[ex.exercise,ex.sub1,ex.sub2].filter(Boolean); var custActive=opts.indexOf(activeName)<0;
+    return '<div class="kx-panel"><div style="font-weight:800;color:#fff;margin-bottom:8px">Switch exercise</div>'
+      +(custActive?'<button class="kx-btn" style="width:100%;justify-content:flex-start;margin-bottom:6px;color:var(--gold)">✓ '+esc(activeName)+' (yours)</button>':'')
+      +opts.map(function(nm){var on=(nm===activeName);return '<button class="kx-btn" style="width:100%;justify-content:flex-start;margin-bottom:6px;'+(on?'color:var(--gold);border-color:var(--gold-dim)':'')+'" data-nm="'+esc(nm).replace(/"/g,'&quot;')+'" onclick="swapTo('+ei+',this.getAttribute(\'data-nm\'))">'+(on?'✓ ':'')+esc(nm)+'</button>';}).join('')
+      +'<div style="display:flex;gap:8px;margin-top:6px"><input class="kx-wv" style="flex:1;width:auto;text-align:left;font-size:.9rem;font-family:inherit;font-weight:600;background:rgba(0,0,0,.25);border:1px solid var(--field-line);border-radius:9px;padding:9px" id="cust'+ei+'" type="text" placeholder="Type your own"><button class="kx-tool" onclick="swapCustom('+ei+')">Use</button></div></div>';
+  }
+  if(kind==='edit'){
+    return '<div class="kx-panel"><div style="font-weight:800;color:#fff;margin-bottom:8px">Add a set manually</div>'
+      +'<div style="display:flex;gap:8px;align-items:end"><div><div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);font-weight:700">Weight</div><input class="kx-wv" id="ew'+ei+'" type="number" step="2.5" value="'+((LOG[exKey(ei)]||[]).slice(-1)[0]||{}).w+'" style="width:70px"></div>'
+      +'<div><div style="font-size:.6rem;letter-spacing:.14em;text-transform:uppercase;color:var(--soft);font-weight:700">Reps</div><input class="kx-wv" id="er'+ei+'" type="number" step="1" value="'+rng(ex.repRange)[0]+'" style="width:60px"></div>'
+      +'<button class="kx-tool" style="padding:11px 14px" onclick="logManual('+ei+')">Add set</button></div></div>';
+  }
+  if(kind==='history'){
+    var sets=LOG[exKey(ei)]||[]; var best=bestFor(exKey(ei));
+    var rows=sets.length?sets.map(function(s,i){return '<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--field-line)"><span>Set '+(i+1)+'</span><b style="color:#fff">'+s.w+' lb × '+s.r+(s.pr?' ★':'')+'</b></div>';}).join(''):'<div style="color:var(--soft)">No sets logged yet.</div>';
+    return '<div class="kx-panel"><div style="font-weight:800;color:#fff;margin-bottom:8px">This session</div>'+rows+(best?'<div style="margin-top:8px;color:var(--gold);font-weight:700">Best set volume: '+best+'</div>':'')+'</div>';
+  }
+  if(kind==='notes'){
+    var nv=NOTES[exKey(ei)]||'';
+    return '<div class="kx-panel"><div style="font-weight:800;color:#fff;margin-bottom:8px">Your notes</div>'
+      +'<textarea id="nt'+ei+'" placeholder="Cues, tweaks, how it felt…">'+esc(nv)+'</textarea>'
+      +'<button class="kx-tool" style="margin-top:8px" onclick="saveNote('+ei+')">Save note</button></div>';
+  }
+  return '';
+}
+function toggleKxPanel(ei,kind){ var k=exKey(ei); PANEL[k]=(PANEL[k]===kind?null:kind); renderList(); }
+function toggleInfo(ei){ var el=document.getElementById('info'+ei), m=document.getElementById('more'+ei); if(!el)return; var clip=el.classList.toggle('clip'); if(m) m.textContent=clip?'Show more ▾':'Show less ▴'; }
+function wbump(ei,d){ var el=document.getElementById('kw'+ei); if(!el)return; var v=(parseFloat(el.value)||0)+d; el.value=Math.max(0,Math.round(v*2)/2); }
+function logRep(ei,reps){ var w=parseFloat((document.getElementById('kw'+ei)||{}).value)||0; pushSet(ei,w,reps); }
+function logManual(ei){ var w=parseFloat((document.getElementById('ew'+ei)||{}).value)||0, r=parseInt((document.getElementById('er'+ei)||{}).value,10)||0; if(r){ PANEL[exKey(ei)]=null; pushSet(ei,w,r); } }
+function pushSet(ei,w,r){ if(!r) return; var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); renderList(); }
+function delEx(ei){ if(!confirm('Remove this exercise for today?')) return; HIDDEN[exKey(ei)]=1; renderList(); }
+function saveNote(ei){ var el=document.getElementById('nt'+ei); if(!el)return; NOTES[exKey(ei)]=el.value; try{ localStorage.setItem('lp_myprog_notes', JSON.stringify(NOTES)); }catch(e){} PANEL[exKey(ei)]=null; renderList(); }
+/* Day OVERVIEW — shown first when a day opens: title, description, exercise list, Start Workout. */
+function renderOverview(){
+  var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
+  var exs=d.exercises||[];
+  var mins=Math.max(30, Math.round(exs.length*7/5)*5);
+  var desc='Your '+(d.day||'training')+' session. Warm up, hit your working sets inside the rep range, and log every set — the app remembers your numbers for next time.';
+  var rows=exs.map(function(ex,ei){
+    var nm=SWAPS[exKey(ei)]||ex.exercise;
+    var sr=(ex.workingSets||'')+' sets · '+(ex.repRange||'')+' reps';
+    return '<div class="ovex"><div class="ovthumb">▶</div><div class="ovb"><div class="ovnm">'+esc(nm)+'</div><div class="ovsr">'+esc(sr)+'</div></div></div>';
+  }).join('');
+  document.getElementById('list').innerHTML=
+    '<div class="ovhero"><div class="ovttl">'+esc(d.day||'Workout')+'</div>'
+    +'<div class="ovpills"><span class="ovpill">'+mins+' min</span><span class="ovpill">'+exs.length+' exercises</span></div></div>'
+    +'<div class="ovdesc">'+esc(desc)+'</div>'
+    +'<div class="ovh">Exercises</div>'+rows;
+}
+function setBar(){
+  var fb=document.getElementById('finishBar'); if(!fb) return;
+  fb.style.display='';
+  if(MODE==='overview'){
+    fb.innerHTML='<div class="fin-in"><button class="fbtn" style="width:100%" onclick="startWorkout()">Start Workout →</button></div>';
+  } else {
+    fb.innerHTML='<div class="fin-in"><div class="prog" id="prog"></div><button class="fbtn" onclick="finish()">Finish workout ✓</button></div>';
+  }
+}
+function toggleNav(show){
+  ["wkLabel","weeks","dayLabel","days"].forEach(function(id){ var el=document.getElementById(id); if(el) el.style.display=show?'':'none'; });
+}
+function startWorkout(){ MODE='active'; render(); window.scrollTo(0,0); }
+function render(){
+  var ov=(MODE==='overview');
+  renderNav();
+  toggleNav(!ov);
+  var tb=document.getElementById('timerBar'); if(tb) tb.style.display=ov?'none':'';
+  setBar();
+  if(ov) renderOverview(); else renderList();
+}
 function pickWeek(i){ wi=i; di=0; openIdx=0; render(); }
 function pickDay(i){ di=i; openIdx=0; render(); window.scrollTo(0,0); }
 function toggle(i){ openIdx=(openIdx===i?-1:i); startClock(); renderList(); }
@@ -206,17 +370,67 @@ function tick(){ var now=Date.now();
 function startClock(){ if(!sessionStart)sessionStart=Date.now(); if(!CLK)CLK=setInterval(tick,1000); tick(); }
 function markSet(){ lastSet=Date.now(); startClock(); }
 function resetRest(){ lastSet=Date.now(); startClock(); }
-function finish(){ alert('Session saved on this device. This is your private trial of the LP workout system.'); }
+/* Finish -> the celebration SCREEN: tonnage (with an image), new PRs, and where to add
+   weight next time (exercises where every working set hit the top of the rep range). */
+function nounFor(s){ return s.count+' '+(s.count===1?s.name:s.plural); }
+/* Tonnage for THIS workout only (the current day's exercises), not the whole program. */
+function tonnageThisWorkout(){
+  var d=currentDay(), exs=(d&&d.exercises)||[], t=0;
+  for(var ei=0;ei<exs.length;ei++){ var sets=LOG[exKey(ei)]||[]; for(var i=0;i<sets.length;i++){ t+=(+sets[i].w||0)*(+sets[i].r||0); } }
+  return Math.round(t);
+}
+/* Which theme drives the comparison — default 'animals'; a Conquer Challenge can set
+   window.TONNAGE_THEME to a character theme later (integration hook). */
+function tonnageWhich(){ return (typeof window!=='undefined' && window.TONNAGE_THEME) ? 'characters' : 'animals'; }
+function finish(){
+  var lb = tonnageThisWorkout();
+  var say = (typeof tonnageSay==='function') ? tonnageSay(lb, tonnageWhich()) : null;
+  document.getElementById('celEmoji').textContent = (say&&say.emoji)||'🏋️';
+  document.getElementById('celNum').textContent = lb.toLocaleString()+' lb';
+  document.getElementById('celCmp').innerHTML = say ? ('That’s <b>'+nounFor(say)+'</b>') : '';
 
-/* This page holds NO program of its own. Your program rides in your PRIVATE link's #fragment
-   (gzip+base64). First open loads it and caches it to this device, so after that it works from
-   your home screen even without the link. Nothing is stored on the server. */
-function boot(j){
+  var d=currentDay(), exs=(d&&d.exercises)||[], prs=[], level=[];
+  exs.forEach(function(ex,ei){
+    var name=SWAPS[exKey(ei)]||ex.exercise||ex.name||('Exercise '+(ei+1));
+    var sets=LOG[exKey(ei)]||[]; if(!sets.length) return;
+    var prSet=null; sets.forEach(function(s){ if(s.pr && (!prSet || s.w*s.r>prSet.w*prSet.r)) prSet=s; });
+    if(prSet) prs.push({name:name,w:prSet.w,r:prSet.r});
+    var r=rng(ex.repRange), need=+((ex.workingSets||'').match(/\d+/)||[3])[0]||3;
+    if(sets.length>=need){ var work=sets.slice(-need);
+      if(work.every(function(s){return s.r>=r[1];})){ var w=work[work.length-1].w; level.push({name:name,from:w,to:w+5}); } }
+  });
+  var prBox=document.getElementById('celPRs');
+  if(prs.length){ prBox.style.display=''; document.getElementById('celPRList').innerHTML=prs.map(function(p){ return '<div class="cel-row"><span>'+esc(p.name)+'</span><b>'+p.w+' lb × '+p.r+'</b></div>'; }).join(''); }
+  else prBox.style.display='none';
+  var lvBox=document.getElementById('celLevel');
+  if(level.length){ lvBox.style.display=''; document.getElementById('celLevelList').innerHTML=level.map(function(l){ return '<div class="cel-row"><span>'+esc(l.name)+'</span><b>'+l.from+' → '+l.to+' lb</b></div>'; }).join(''); }
+  else lvBox.style.display='none';
+
+  window._celShareText = 'I moved '+lb.toLocaleString()+' lb'+(say?(' — that’s '+nounFor(say)+' '+say.emoji):'')+'! 💪 #BuiltForMore #LegacyPerformance';
+  var card=document.querySelector('.cel-card'); if(card) card.scrollTop=0;
+  document.getElementById('celebrate').style.display='flex';
+}
+function closeCelebrate(){ document.getElementById('celebrate').style.display='none'; }
+/* Share → copy the stat + open the Skool community thread so they can paste and celebrate
+   with everyone. TODO(Jayme): point SKOOL_WORKOUT_THREAD at the specific workout-share thread. */
+var SKOOL_WORKOUT_THREAD = "https://www.skool.com/legacy-performance";
+function shareTonnage(){
+  var text=window._celShareText||'Just crushed a workout. 💪 #BuiltForMore';
+  try{ navigator.clipboard.writeText(text); }catch(e){}
+  var b=document.getElementById('celShare'); if(b){ var o=b.textContent; b.textContent='Copied — opening the community…'; setTimeout(function(){ b.textContent=o; }, 2400); }
+  window.open(SKOOL_WORKOUT_THREAD, '_blank', 'noopener');
+}
+
+/* DEPLOYABLE loader — this file holds NO program content. Your program rides in your PRIVATE
+   link's #fragment (gzip+base64) and is cached to this device only. Nothing on the server. */
+function bootProg(j){
   PROG=j;
   document.getElementById('title').textContent=(j.title||'My Training').replace(/\.xlsx$/i,'').replace(/_/g,' ');
   if(j.notes){ document.getElementById('notesWrap').innerHTML='<details class="pnotes"><summary>Program notes</summary><div class="body">'+esc(j.notes)+'</div></details>'; }
   document.getElementById('timerBar').style.display='';
   document.getElementById('finishBar').style.display='';
+  /* Home passes ?day=N to open that day's workout directly. */
+  try{ var _dp=new URLSearchParams(location.search).get('day'); if(_dp!=null){ var _di=parseInt(_dp,10); if(isFinite(_di)&&_di>=0) di=_di; } }catch(e){}
   render();
 }
 async function ungz(b64){
@@ -227,11 +441,11 @@ async function ungz(b64){
 (async function(){
   var h=decodeURIComponent((location.hash||'').replace(/^#/,''));
   try{
-    if(h){ var txt=await ungz(h); try{ localStorage.setItem('lp_prog_data', txt); }catch(e){} boot(JSON.parse(txt)); return; }
-    var cached=localStorage.getItem('lp_prog_data'); if(cached){ boot(JSON.parse(cached)); return; }
+    if(h){ var txt=await ungz(h); try{ localStorage.setItem('lp_prog_data', txt); }catch(e){} bootProg(JSON.parse(txt)); return; }
+    var cached=localStorage.getItem('lp_prog_data'); if(cached){ bootProg(JSON.parse(cached)); return; }
     document.getElementById('list').innerHTML='<div class="load">Open your personal program link to load your training.</div>';
   }catch(e){
-    document.getElementById('list').innerHTML='<div class="load">Could not load your program on this browser.<br><span style="font-size:.8rem">Try Safari or Chrome (needs a recent version).</span></div>';
+    document.getElementById('list').innerHTML='<div class="load">Could not load your program on this browser.<br><span style="font-size:.8rem">Try Safari or Chrome (a recent version).</span></div>';
   }
 })();
 </script>

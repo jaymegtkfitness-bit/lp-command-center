@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Season Cycle · Legacy Performance</title>
+<meta name="description" content="Every diet you ever finished went silent the day you hit goal weight. Your body doesn't run in diets. It runs in seasons: Reverse, Lean, Sustain, Strong, and back. Here is the map with no finish line.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;
+  --gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a1a;color:var(--parch);font-family:Montserrat,-apple-system,sans-serif;font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:relative;z-index:1;height:5px;background:linear-gradient(90deg,#4A5C3E 0%,#8FA97A 45%,#C1AD72 85%,#e3d3a1)}
+.page{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:0 30px 80px}
+img{max-width:100%;border:0}
+a{color:var(--gold)}
+em{color:var(--parch);font-style:italic}
+strong{color:var(--parch);font-weight:700}
+.head{display:flex;align-items:center;padding:28px 0 0}
+.head img{height:46px;width:auto;margin-left:-6px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:block}
+.ch{font-family:Cinzel,Georgia,serif;font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600;display:block}
+h1{font-weight:900;font-size:clamp(2.3rem,6.4vw,3.4rem);line-height:.98;text-transform:uppercase;color:#fff;margin-top:18px;letter-spacing:-.018em}
+h2{font-weight:900;font-size:clamp(1.5rem,3.9vw,2.2rem);line-height:1.04;text-transform:uppercase;color:#fff;margin-top:12px;letter-spacing:-.012em}
+h3{font-weight:800;font-size:1.04rem;color:#fff;letter-spacing:.01em;margin-top:24px}
+.sub{font-family:Cinzel,Georgia,serif;color:var(--gold);font-size:1.02rem;margin-top:12px;line-height:1.4}
+.gold{color:var(--gold)}
+p{color:var(--body);margin-top:14px}
+.lead{font-size:1.12rem;margin-top:20px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:26px 0}
+.chapter{padding:52px 0;border-top:1px solid var(--olive-dim)}
+.cover{padding:40px 0 18px;border:0}
+.tile{background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:24px 26px;margin-top:22px}
+.panel{background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:18px;padding:28px 30px;margin-top:24px}
+ol,ul{margin-top:16px;padding-left:0;list-style:none}
+ol li,ul li{position:relative;padding-left:34px;color:var(--body);margin-top:13px}
+ol{counter-reset:c}
+ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:50%;
+  background:var(--gold);color:var(--ink);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+ul li:before{content:"";position:absolute;left:5px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--olive-lt)}
+.callout{border-left:4px solid var(--gold);padding:6px 0 6px 22px;margin:24px 0}
+.callout p{color:var(--parch);font-weight:600;font-size:1.06rem;margin:0}
+.btn{display:block;background:var(--gold);color:var(--ink);font-weight:800;font-size:.92rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:18px 26px;border-radius:12px;text-align:center;text-decoration:none;max-width:440px;margin:26px auto 0}
+.btn.line{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);margin-top:14px}
+.foot{border-top:1px solid var(--olive-dim);margin-top:52px;padding-top:24px;font-size:.78rem;color:#8f8a80}
+.disc{font-size:.72rem;color:#77726a;margin-top:14px}
+/* season rows */
+.season{display:grid;grid-template-columns:70px 1fr;gap:18px;align-items:start;padding:22px 0;border-bottom:1px solid var(--olive-dim)}
+.season:last-child{border-bottom:0}
+.season .tag{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--olive-lt);text-align:center;padding-top:6px;line-height:1.3}
+.season .dot{display:block;width:14px;height:14px;border-radius:50%;margin:0 auto 8px;background:var(--gold)}
+.season h3{margin-top:0}
+.diagram{display:block;max-width:420px;margin:30px auto 6px}
+.diagram text{font-family:Montserrat,sans-serif}
+@media (max-width:620px){.page{padding:0 19px 54px}.season{grid-template-columns:54px 1fr;gap:13px}}
+@media print{
+  body{background:#1a1a1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11.5pt}
+  .bg{position:absolute;height:100%}
+  .chapter{break-before:page;padding:30px 0 0;border-top:0}
+  .cover{break-after:page}
+  .tile,.panel,.callout,.season,.diagram{break-inside:avoid}
+  h1,h2,h3{break-after:avoid}
+  .btn{display:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="bg"></div>
+<div class="page">
+
+  <header class="head"><img src="../logo-white-gold.png" alt="Legacy Performance"></header>
+
+  <!-- ============ COVER ============ -->
+  <section class="cover">
+    <span class="eyebrow">The Legacy Performance OS</span>
+    <h1>The<br>Season<br><span class="gold">Cycle</span></h1>
+    <p class="sub">Every diet you finished went silent<br>at goal weight. This one has no finish line.</p>
+    <div class="rule"></div>
+    <p class="lead">Your body does not run in diets. It runs in seasons. There is a time to lose, a time to build, a time to hold, and a time to recover the floor a decade of dieting took from you. Here is the map.</p>
+    <p>You can find your season today. Nothing in here needs to be bought, and nothing in here expires.</p>
+  </section>
+
+  <!-- ============ 1 ============ -->
+  <section class="chapter">
+    <span class="ch">One</span>
+    <h2>The Question No<br><span class="gold">Diet Answered</span></h2>
+    <p class="sub">What are you supposed to do the day after you hit your goal?</p>
+
+    <p>Think about every diet you have ever finished.</p>
+    <p>Each one told you exactly what to do right up until the day you hit the number. And then it went quiet. No diet you have ever run had a chapter called <em>what to do now that it worked.</em> They all end at the finish line and leave you standing there alone.</p>
+    <p>So you did the only thing there was to do. You drifted back, slowly, and eventually you started another one. You have not failed at keeping weight off. You have been handed a series of tools that were each designed to abandon you at the exact moment you succeeded.</p>
+
+    <div class="callout"><p>A diet is a sprint with no plan for the finish line. Your life is not a sprint.</p></div>
+
+    <p>The reason this keeps happening is not you and it is not the specific diet. It is a category error. Fat loss was sold to you as a destination, a thing you arrive at and are done with. It is not a destination. It is one season out of several, and a season is by definition something you pass through on the way to the next one.</p>
+    <p>Once you see your body as a thing that moves through seasons, the whole panic about maintenance disappears, because maintenance stops being the scary void after the diet and becomes a season with a name, a job, and a way to run it.</p>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="chapter">
+    <span class="ch">Two</span>
+    <h2>Seasons, <span class="gold">Not Diets</span></h2>
+    <p class="sub">The map, in one picture.</p>
+
+    <p>Coaches call this nutritional periodization. You can just call it seasons. Your body cycles through them the same way a farm does, and for the same reason. You cannot plant, grow, and harvest at the same time. There is an order.</p>
+
+    <svg class="diagram" viewBox="0 0 360 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Season Cycle: Reverse to Lean to Sustain to Strong to Sustain, repeating, spiraling upward each lap">
+      <defs>
+        <marker id="a2" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#C1AD72"/>
+        </marker>
+      </defs>
+      <!-- rising baseline to show the spiral / higher floor each lap -->
+      <line x1="20" y1="250" x2="340" y2="150" stroke="#8FA97A" stroke-opacity=".25" stroke-width="1.5" stroke-dasharray="4 5"/>
+      <text x="20" y="270" fill="#8FA97A" font-size="9.5" font-weight="600" letter-spacing="1">EACH LAP, THE FLOOR IS HIGHER &rarr;</text>
+      <!-- the loop -->
+      <g fill="none" stroke="#C1AD72" stroke-opacity=".55" stroke-width="2">
+        <path d="M62,150 C62,96 150,96 178,120" marker-end="url(#a2)"/>
+        <path d="M188,120 C224,96 300,110 300,150" marker-end="url(#a2)"/>
+        <path d="M300,160 C300,210 210,214 188,190" marker-end="url(#a2)"/>
+        <path d="M178,190 C150,214 62,208 62,160" marker-end="url(#a2)"/>
+      </g>
+      <!-- nodes -->
+      <g fill="#1a1a1a" stroke="#C1AD72" stroke-width="1.5">
+        <circle cx="62" cy="155" r="30"/>
+        <circle cx="183" cy="112" r="26"/>
+        <circle cx="300" cy="155" r="30"/>
+        <circle cx="183" cy="196" r="30"/>
+      </g>
+      <g fill="#F2EDE4" font-size="11.5" font-weight="800" text-anchor="middle" letter-spacing="0.4">
+        <text x="62" y="159">REVERSE</text>
+        <text x="183" y="116">LEAN</text>
+        <text x="300" y="159">STRONG</text>
+      </g>
+      <text x="183" y="193" fill="#C1AD72" font-size="12" font-weight="900" text-anchor="middle" letter-spacing="0.5">SUSTAIN</text>
+      <text x="183" y="208" fill="#8FA97A" font-size="8.5" font-weight="700" text-anchor="middle" letter-spacing="1">THE HINGE</text>
+    </svg>
+    <p style="text-align:center;font-size:.82rem;color:#9f998e;margin-top:2px">Reverse &rarr; Lean &rarr; Sustain &rarr; Strong &rarr; Sustain &rarr; and around again, higher.</p>
+
+    <p>Notice what sits in the middle. Sustain is not the bottom of the list or the place you retire to. It is the hinge every hard season swings through. You will pass through it more than any other season, and learning to run it well is the entire difference between someone who holds their results and someone who starts over every January.</p>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="chapter">
+    <span class="ch">Three</span>
+    <h2>The <span class="gold">Seasons</span></h2>
+    <p class="sub">Four jobs. Each one is temporary. Each one earns the next.</p>
+
+    <div class="season">
+      <div class="tag"><span class="dot"></span>Reverse</div>
+      <div>
+        <h3>Rebuild the floor</h3>
+        <p>You eat more, on purpose, to walk your metabolism back up after years of it being driven down. This is the season most people skip, and skipping it is why nothing else worked. You cannot lose fat from a floor that is already on the ground. Reverse raises the floor so there is room to work.</p>
+      </div>
+    </div>
+    <div class="season">
+      <div class="tag"><span class="dot"></span>Lean</div>
+      <div>
+        <h3>Lose the fat</h3>
+        <p>The season everyone wants to live in permanently, which is exactly why it stops working. Lean is a deliberate deficit with a cap on it. You run it hard, you get the result, and then you leave, because a body cannot be in a deficit forever and the ones who try are the ones who rebound.</p>
+      </div>
+    </div>
+    <div class="season">
+      <div class="tag"><span class="dot"></span>Sustain</div>
+      <div>
+        <h3>Hold what you built. The hinge.</h3>
+        <p>Not the void after the diet. A season with a job, and the one you will spend the most time in. You eat at your maintenance, you keep training, and you prove to your body that this weight is the new normal, not a temporary low it needs to reverse. Sustain is where results become permanent.</p>
+      </div>
+    </div>
+    <div class="season">
+      <div class="tag"><span class="dot"></span>Strong</div>
+      <div>
+        <h3>Build the engine</h3>
+        <p>You eat more and you train hard to add muscle, because muscle is the organ that makes every future season easier. More muscle means a higher floor, better numbers, and a body that burns more just existing. This is the season that makes the next Lean season the easiest one you have ever run.</p>
+      </div>
+    </div>
+
+    <div class="tile">
+      <h3 style="margin-top:0">Every season is temporary on purpose</h3>
+      <p>None of these is where you live. Each has a job, you do the job, and you move on. The failure was never picking the wrong season. The failure was believing one of them was permanent, and grinding it until it broke.</p>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="chapter">
+    <span class="ch">Four</span>
+    <h2>Why Sustain Is<br><span class="gold">The Whole Point</span></h2>
+    <p class="sub">The hinge, not the endpoint. Read this one twice.</p>
+
+    <p>Look at the map again and count how many times Sustain appears. It sits between every hard season. Lean into Sustain. Strong into Sustain. It is not a stop on the route, it is the intersection the whole route runs through.</p>
+    <p>This is the piece every diet got catastrophically wrong. They treated maintenance as the afterthought, the thing you figure out on your own once the program is over. In reality it is the most important skill in the entire system, because it is the one you use most and the one nobody ever taught you.</p>
+
+    <div class="callout"><p>Anyone who thinks Sustain is where the program ends has misunderstood the whole thing. It is where the program lives.</p></div>
+
+    <p>Here is what Sustain actually does. When you finish a Lean season, your body is not yet convinced the new weight is real. Left alone, it will drift you back, because as far as it is concerned you just survived a shortage and it wants to restock. Sustain is the season where you hold steady long enough that your body updates its own thermostat and accepts the new number as home. Skip it and every result is a rental. Run it and results become yours.</p>
+    <p>It is also the season that protects you. A body cannot diet indefinitely, so a large goal is never one endless Lean season. It is a Lean season, then Sustain to consolidate and recover, then another Lean season from a stronger place. Sustain is what makes a fifty pound goal survivable instead of a death march.</p>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="chapter">
+    <span class="ch">Five</span>
+    <h2>A Spiral, <span class="gold">Not A Circle</span></h2>
+    <p class="sub">The answer to the question you are already asking.</p>
+
+    <p>There is a fear that shows up the moment someone hears the word cycle, and it deserves a straight answer.</p>
+    <p><em>Haven't I done this before? Am I just going in circles again?</em></p>
+    <p>No. You have done circles before. This is a spiral, and the difference is the entire promise of the model.</p>
+
+    <div class="panel">
+      <span class="eyebrow">The difference that changes everything</span>
+      <h3 style="margin-top:14px;font-size:1.16rem">A circle returns you to where you started. A spiral returns you higher.</h3>
+      <p>Every lap through these seasons, the floor comes up. You end each Strong season with more muscle than you started. You end each Sustain season with a body that holds a lower weight more easily. You arrive back at the top of the cycle stronger than the last time you were there, not back at square one.</p>
+      <p>Your old dieting was a circle. Lose, rebound, lose the same twenty pounds again, land exactly where you began. This is the opposite motion. Same shape on paper, completely different direction in your life.</p>
+    </div>
+
+    <p>That is why there is no finish line and why you do not need one. The goal was never to arrive somewhere and stop. It was to keep spiraling up, adding a little more capacity each lap, for the rest of a long life. A finish line would actually be the worst thing that could happen to you, because standing still is the only way to start sliding back down.</p>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="chapter">
+    <span class="ch">Six</span>
+    <h2>Where You <span class="gold">Start</span></h2>
+    <p class="sub">Probably not where you think, and how long each season runs.</p>
+
+    <p>Almost everyone wants to start at Lean, because almost everyone arrives wanting to lose fat. And for most people arriving here, that is the wrong door.</p>
+    <p>Most people who come to this have been dieting, on and off, for a decade. They arrive with a floor that has been driven into the ground and a metabolism running on fumes. Telling that person to start a deficit is telling them to dig a hole in a hole.</p>
+
+    <div class="callout"><p>Most people should start at Reverse. That is the honest default, not the edge case.</p></div>
+
+    <p>It is a hard truth to hear when you want to lose weight now, but it is the truth that finally makes the losing work. You spend a season eating more and rebuilding the floor, and then Lean actually delivers, because there is finally somewhere to cut from. The people who insist on skipping Reverse are the people who have been stuck for years.</p>
+
+    <h3>How long is a season</h3>
+    <p>A Lean season has a cap on it, roughly twelve to sixteen weeks, and then you rotate out whether you are at your final goal or not. That is not a limitation, it is the mechanism. A body held in a deficit past that window starts fighting you, so you bank the progress in a Sustain season and come back for more later, from a stronger place.</p>
+    <p>Sustain and Strong seasons vary with your goals and your life, and that is exactly where a coach earns their keep, reading your data and calling the season. But the shape holds for everyone. Run a hard season, pass through the hinge, run the next one. Forever, and higher each time.</p>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="chapter">
+    <span class="ch">Seven</span>
+    <h2>What This Is <span class="gold">Part Of</span></h2>
+    <p class="sub">The map, and the instrument panel that runs alongside it.</p>
+
+    <p>The Season Cycle is your map. It answers the big question, the one about the quarter and the year. What season am I in, and what is its job.</p>
+    <p>It has a companion you should read next, the Awareness Circle, which is the daily and weekly instrument panel. If the Season Cycle tells you where you are going this quarter, the Awareness Circle tells you what to do this week to get there. One is the map, the other is the dashboard. You need both, and neither works without the other.</p>
+
+    <div class="callout"><p>Fat loss is a season. So is building, and so is holding. The number changes from season to season. The system does not.</p></div>
+
+    <h3>Two things you can do right now, both free</h3>
+    <p><strong>Come run it with people.</strong> The Legacy Performance Project is our community, and it is free to join. The courses are in there, the live calls are open, and nobody should have to run a hard season by themselves. If you take one step off the back of this guide, make it this one.</p>
+    <a class="btn" href="https://www.skool.com/legacy-performance/about">Join the free community &rarr;</a>
+
+    <p style="margin-top:30px"><strong>And find your season.</strong> Five minutes, nothing to buy. You will get your starting numbers, and the honest answer to the one question that matters most right now, which season you should actually start in. For a lot of people that answer is a genuine surprise, and it is the reason the last decade did not work.</p>
+    <a class="btn line" href="https://dashboard.legacyperformance.co/build">Find my season &rarr;</a>
+    <p style="text-align:center;font-size:.84rem;color:#9f998e;margin-top:12px">dashboard.legacyperformance.co/build</p>
+
+    <p style="margin-top:34px">You do not need another diet. You have finished plenty of those, and they left you exactly where you started. You need a map with no finish line, and a way to keep climbing it for the rest of a long, strong life.</p>
+    <p>You have the map now. Find your season and start.</p>
+  </section>
+
+  <p class="godeeper" style="border-top:1px solid var(--olive-dim);margin-top:40px;padding-top:22px;font-size:.95rem;color:var(--soft)"><strong style="color:#fff">Want the deeper why?</strong> This guide is the action version — the exact steps to run. The full teaching, and the reasons behind every one of them, lives in the free community’s classroom. <a href="https://www.skool.com/legacy-performance/about">Go deeper in the course &rarr;</a></p>
+
+  <footer class="foot">
+    <span>&copy; 2026 Legacy Performance &middot; Build a body that's Built for More.</span>
+    <p class="disc">Educational coaching guidance, not medical advice. Individual results vary and no specific outcome is guaranteed. Consult your physician before changing your diet or training, especially if you have a medical condition.</p>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Macro Freedom Framework · Legacy Performance</title>
+<meta name="description" content="Structure first. Freedom second. The four numbers that run your nutrition, the nine meals you build once, and the two free meals a week that keep it survivable.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;
+  --gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a1a;color:var(--parch);font-family:Montserrat,-apple-system,sans-serif;font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:relative;z-index:1;height:5px;background:linear-gradient(90deg,#4A5C3E 0%,#8FA97A 45%,#C1AD72 85%,#e3d3a1)}
+.page{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:0 30px 80px}
+img{max-width:100%;border:0}
+a{color:var(--gold)}
+em{color:var(--parch);font-style:italic}
+strong{color:var(--parch);font-weight:700}
+.head{display:flex;align-items:center;padding:28px 0 0}
+.head img{height:46px;width:auto;margin-left:-6px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:block}
+.ch{font-family:Cinzel,Georgia,serif;font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600;display:block}
+h1{font-weight:900;font-size:clamp(2.3rem,6.4vw,3.4rem);line-height:.98;text-transform:uppercase;color:#fff;margin-top:18px;letter-spacing:-.018em}
+h2{font-weight:900;font-size:clamp(1.5rem,3.9vw,2.2rem);line-height:1.04;text-transform:uppercase;color:#fff;margin-top:12px;letter-spacing:-.012em}
+h3{font-weight:800;font-size:1.04rem;color:#fff;letter-spacing:.01em;margin-top:24px}
+.sub{font-family:Cinzel,Georgia,serif;color:var(--gold);font-size:1.02rem;margin-top:12px;line-height:1.4}
+.gold{color:var(--gold)}
+p{color:var(--body);margin-top:14px}
+.lead{font-size:1.12rem;margin-top:20px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:26px 0}
+.chapter{padding:52px 0;border-top:1px solid var(--olive-dim)}
+.cover{padding:40px 0 18px;border:0}
+.tile{background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:24px 26px;margin-top:22px}
+.panel{background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:18px;padding:28px 30px;margin-top:24px}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.num{background:linear-gradient(160deg,rgba(84,106,70,.2),rgba(255,255,255,.03));border:1px solid var(--olive-dim);border-radius:16px;padding:22px}
+.num .n{font-family:Cinzel,Georgia,serif;font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--olive-lt)}
+.num .v{display:block;font-weight:900;color:var(--gold);font-size:1.42rem;line-height:1.15;margin:8px 0 6px}
+.num p{font-size:.88rem;color:var(--soft);margin-top:6px}
+ol,ul{margin-top:16px;padding-left:0;list-style:none}
+ol li,ul li{position:relative;padding-left:34px;color:var(--body);margin-top:13px}
+ol{counter-reset:c}
+ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:50%;
+  background:var(--gold);color:var(--ink);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+ul li:before{content:"";position:absolute;left:5px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--olive-lt)}
+.callout{border-left:4px solid var(--gold);padding:6px 0 6px 22px;margin:24px 0}
+.callout p{color:var(--parch);font-weight:600;font-size:1.06rem;margin:0}
+.wk{display:grid;grid-template-columns:96px 1fr;gap:18px;align-items:start;padding:20px 0;border-bottom:1px solid var(--olive-dim)}
+.wk:last-child{border-bottom:0}
+.wk .k{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:.82rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);padding-top:3px}
+.wk p{margin-top:6px;font-size:.95rem}
+.ex{display:grid;grid-template-columns:1fr 1fr;gap:10px 22px;margin-top:18px}
+.ex div{border-bottom:1px solid var(--olive-dim);padding-bottom:9px;font-size:.93rem;color:var(--soft)}
+.ex div b{color:var(--gold);float:right;font-weight:800}
+.btn{display:block;background:var(--gold);color:var(--ink);font-weight:800;font-size:.92rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:18px 26px;border-radius:12px;text-align:center;text-decoration:none;max-width:440px;margin:26px auto 0}
+.btn.line{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);margin-top:14px}
+.foot{border-top:1px solid var(--olive-dim);margin-top:52px;padding-top:24px;font-size:.78rem;color:#8f8a80}
+.disc{font-size:.72rem;color:#77726a;margin-top:14px}
+/* ---- email gate (same lead system as the Legacy Score: shared lp_lead + doorway) ---- */
+.gate{background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:18px;padding:28px 30px;margin:48px 0 0}
+.gate h3{margin-top:10px;font-size:1.26rem;color:#fff;text-transform:uppercase;font-weight:900;line-height:1.15}
+.gate p{margin-top:12px}
+.gfields{margin-top:20px;display:grid;gap:12px}
+.gfields label{display:block;font-family:Cinzel,Georgia,serif;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--olive-lt);margin-bottom:6px}
+.gfields input{width:100%;background:rgba(255,255,255,.05);border:1.5px solid rgba(242,237,228,.14);border-radius:12px;color:var(--parch);font-family:inherit;font-size:1rem;padding:14px;outline:none;transition:border-color .15s,box-shadow .15s}
+.gfields input:focus{border-color:var(--gold);box-shadow:0 0 0 3px var(--gold-dim)}
+.gate .btn{margin-top:4px}
+.gerr{color:#e6a27a;font-size:.86rem;margin-top:10px;min-height:1px}
+.gfine{font-size:.76rem;color:#8f8a80;margin-top:12px}
+.galt{font-size:.9rem;color:var(--soft);margin-top:18px;padding-top:16px;border-top:1px solid var(--olive-dim)}
+.galt a{font-weight:700}
+.locked{display:none}
+.locked.open{display:block}
+@media (max-width:620px){.nums,.ex{grid-template-columns:1fr}.page{padding:0 19px 54px}.wk{grid-template-columns:1fr;gap:4px}}
+@media print{
+  body{background:#1a1a1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11.5pt}
+  .bg{position:absolute;height:100%}
+  .chapter{break-before:page;padding:30px 0 0;border-top:0}
+  .cover{break-after:page}
+  .num,.tile,.panel,.callout,.wk,.ex{break-inside:avoid}
+  h1,h2,h3{break-after:avoid}
+  .btn{display:none}
+  .gate{display:none!important}
+  .locked{display:block!important}
+}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="bg"></div>
+<div class="page">
+
+  <header class="head"><img src="../logo-white-gold.png" alt="Legacy Performance"></header>
+
+  <!-- ============ COVER ============ -->
+  <section class="cover">
+    <span class="eyebrow">The Legacy Performance OS</span>
+    <h1>The Macro<br>Freedom<br><span class="gold">Framework</span></h1>
+    <p class="sub">Structure first. Freedom second.<br>And an end to dieting every day of the year.</p>
+    <div class="rule"></div>
+    <p class="lead">Four numbers that run your nutrition. Nine meals you build once. Two free meals a week that are in the plan on purpose. And one rule for the week the scale stops moving.</p>
+    <p>You can start this on Monday. Nothing in here needs to be bought, and nothing in here expires.</p>
+  </section>
+
+  <!-- ============ 1 ============ -->
+  <section class="chapter">
+    <span class="ch">One</span>
+    <h2>Structure First.<br><span class="gold">Freedom Second.</span></h2>
+    <p class="sub">Why eating intuitively fails when your intuition has been wrong for a decade.</p>
+
+    <p>You have been told to listen to your body.</p>
+    <p>It is good advice given at the wrong time. Your body is talking. The problem is that after ten years of restricting, restarting, skipping breakfast to save calories and eating past full at nine at night, the signal has been drowned out by the noise.</p>
+    <p>Telling someone in that position to eat intuitively is like handing them a compass that has been sitting on a magnet.</p>
+    <p>So here is the honest order, and it is the whole framework in two sentences.</p>
+
+    <div class="callout"><p>You flex the tracking muscle hard, for one week, on purpose. Then you use what that week shows you to build a system you can run without tracking every bite for the rest of your life.</p></div>
+
+    <p><strong>Macro</strong> is the structure. <strong>Freedom</strong> is the intuition you earn on the other side of it. <strong>Framework</strong> is what holds the two together so neither one collapses.</p>
+
+    <h3>Why this is not another diet</h3>
+    <p>A diet is a to-do list with an end date. It tells you what to do and it goes silent the day you finish. That is why you have completed several of them and have nothing today that you can still run.</p>
+    <p>You did not fail those diets. You finished them, and nobody told you what came next.</p>
+    <p>This framework has no finish line, because it is not built around a deficit. It is built around a set of numbers and a set of rules that stay true whether you are losing fat, building muscle, or holding what you have. Only the numbers move. The structure does not.</p>
+  </section>
+
+  <!-- ============ EMAIL GATE (reuses the shared lp_lead lead system) ============ -->
+  <div class="gate" id="gate">
+    <span class="eyebrow">Keep reading &mdash; free</span>
+    <h3>Your four numbers, your nine meals, and the two free meals a week.</h3>
+    <p>You have the principle now. The rest of this framework is the system itself: the four numbers that run everything, the one week that shows you your real intake, and how to build meals you never have to think about again. Tell me where to send it and it opens right here. I will also email you a copy to keep.</p>
+    <form id="gateForm" class="gfields" novalidate>
+      <div><label for="fname">First name</label><input id="fname" autocomplete="given-name" required></div>
+      <div><label for="gemail">Email</label><input id="gemail" type="email" autocomplete="email" required></div>
+      <button class="btn" type="submit">Unlock the rest &rarr;</button>
+    </form>
+    <p class="gerr" id="gerr"></p>
+    <p class="gfine">No spam. One email with your copy, then short, useful notes you can unsubscribe from any time.</p>
+    <p class="galt">Would rather just be in the room? <a href="https://www.skool.com/legacy-performance/about">Join the free community &rarr;</a> The whole framework is taught in there too, alongside everyone else running it.</p>
+  </div>
+
+  <div class="locked" id="locked">
+
+  <!-- ============ 2 ============ -->
+  <section class="chapter">
+    <span class="ch">Two</span>
+    <h2>The Four <span class="gold">Numbers</span></h2>
+    <p class="sub">Everything runs on four starting points. You can write them on an index card.</p>
+
+    <p>Before the numbers, the thing that makes them work.</p>
+    <p>They are anchored to your <strong>goal weight</strong>, not your current weight.</p>
+    <p>That distinction sounds small and it is not. Anchoring to your current weight means your targets shrink every single time you succeed. You eat less and less to hold the same result, and you walk yourself into the exact hole most people are already standing in.</p>
+    <p>Anchoring to your goal weight means the number you start on is the number you keep. You feed the body you are building, not the one you are leaving.</p>
+
+    <div class="nums">
+      <div class="num"><span class="n">Calories</span><span class="v">Goal weight &times; 13</span>
+        <p>The universal fat loss starting point. It is deliberately not aggressive, because there are two free meals living inside it.</p></div>
+      <div class="num"><span class="n">Protein</span><span class="v">1 g per lb of goal weight</span>
+        <p>With an absolute floor at 0.8 g that you never go below, in any phase, ever. A floor, not a weekly average.</p></div>
+      <div class="num"><span class="n">Produce</span><span class="v">600 to 800 g a day</span>
+        <p>Fruits and vegetables by weight. The simplest way to hit your fiber without ever thinking about fiber.</p></div>
+      <div class="num"><span class="n">Water</span><span class="v">Half your bodyweight in oz</span>
+        <p>This one uses your current weight. Unglamorous, and the first thing that quietly wrecks a good week when it slips.</p></div>
+    </div>
+
+    <h3>A worked example</h3>
+    <p>A woman currently at 185 lbs whose goal weight is 160.</p>
+    <div class="ex">
+      <div>Calories <b>2,080</b></div>
+      <div>Protein target <b>160 g</b></div>
+      <div>Protein floor <b>128 g</b></div>
+      <div>Produce <b>600 to 800 g</b></div>
+      <div>Water <b>92 oz</b></div>
+      <div>Free meals <b>2 per week</b></div>
+    </div>
+    <p>That is the entire prescription. Not a list of banned foods, not a window she is allowed to eat in, not a rule about carbs after six.</p>
+
+    <div class="tile">
+      <h3 style="margin-top:0">All four are starting points, and that is not a hedge</h3>
+      <p>They are accurate enough to work on day one for almost everybody, which is exactly what a starting point is for. They get sharpened later by your own data, and sharper still by bloodwork and genetics if you ever go that deep.</p>
+      <p>What they are not is a guess. Anyone who tells you they can hand you a perfect number before watching you eat for a week is selling you precision they do not have.</p>
+    </div>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="chapter">
+    <span class="ch">Three</span>
+    <h2>The Week That<br><span class="gold">Changes Everything</span></h2>
+    <p class="sub">Track honestly. Change nothing. This is the hardest week and the most valuable one.</p>
+
+    <p>Before you change anything, you look at it.</p>
+    <p>Seven days of honest tracking where you change <em>nothing</em>. Not one thing. You eat exactly how you already eat, and you write all of it down.</p>
+
+    <h3>What "all of it" means</h3>
+    <ul>
+      <li>The oil in the pan, not just what is in the pan</li>
+      <li>The sauces, the dressings, the condiments</li>
+      <li>The wine, and the second glass</li>
+      <li>The handful of something on the way through the kitchen</li>
+      <li>The bites off someone else's plate</li>
+      <li>The chips and salsa before the food comes out</li>
+      <li>The creamer, every time, not once</li>
+    </ul>
+    <p>Weigh what you can. A food scale for a week is not a life sentence, it is a calibration. After that week you will be able to eyeball portions for years.</p>
+
+    <div class="callout"><p>Your job this week is not to perform. It is to observe.</p></div>
+
+    <p>Most people cannot do this, and that by itself tells you something worth knowing. The urge to clean it up the moment you start writing it down is the entire problem in miniature.</p>
+
+    <h3>What the week is actually for</h3>
+    <p>It is not to shame you. It is to sort you, because there are two completely different situations that produce the identical sentence, <em>"I am eating 1,400 calories and nothing is happening."</em></p>
+    <p>If seven honest days land near 1,400, your metabolism has genuinely adapted down. You ate less and did more for years and your body lowered the floor to match. The answer is <strong>more food, not less</strong>. You walk the calories up, rebuild the engine, and build muscle so there is somewhere for the food to go.</p>
+    <p>If seven honest days land at 1,900 when you would have sworn it was 1,400, nothing is wrong with your metabolism. There were three to five hundred calories a day you genuinely could not see. The answer is <strong>learning to see them</strong>, which you just did.</p>
+    <p>Those two situations need opposite interventions, and getting it backwards is the one genuinely harmful mistake in all of this. Add food to someone who was already eating more than she thought and she gains, and you have confirmed the worst thing she believes about herself. Tell someone with an exhausted metabolism to try harder and you drive her further into the ground.</p>
+    <p>Nobody has to guess, and nobody has to be told they were wrong. Your own data settles it in seven days.</p>
+
+    <div class="tile">
+      <h3 style="margin-top:0">You are not lying to anyone</h3>
+      <p>The chips before the meal. The wine with dinner. The bite off his plate. None of it registered as a decision, so none of it entered the math. That is not dishonesty. It is the most normal thing in the world, and nobody ever showed you how to look.</p>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="chapter">
+    <span class="ch">Four</span>
+    <h2>Your Nine <span class="gold">Meals</span></h2>
+    <p class="sub">Build it once. Eat it ninety percent of the time. Stop deciding.</p>
+
+    <p>Off the back of that week, you build meals that hit your numbers and that you actually want to eat.</p>
+    <p>Three breakfasts. Three lunches. Three dinners. You rotate them.</p>
+    <p>Those nine become roughly <strong>ninety percent</strong> of your eating, which means ninety percent of your food decisions are already made before the week starts.</p>
+
+    <h3>How to actually build them</h3>
+    <ol>
+      <li><strong>Start with the protein.</strong> Pick the protein first in every single meal and size it so the day lands on your target. Protein is the hardest number to hit and the easiest to fix by building around it instead of bolting it on afterward.</li>
+      <li><strong>Add the produce.</strong> Volume before anything else. This is where the 600 to 800 grams lives, and it is what makes a lower calorie day feel like enough food instead of a punishment.</li>
+      <li><strong>Fill the rest with what you like.</strong> Carbs and fats make up the remainder. There is no banned food here. If you want rice, eat rice. If you want bread, eat bread.</li>
+      <li><strong>Save them in your tracker.</strong> Every good tracker lets you save a meal. Do it once, then copy and paste. This is the step people skip, and it is the one that decides whether you are still doing this in March.</li>
+    </ol>
+
+    <p>The other ten percent, the things outside the rotation, you do track. But you are tracking off the back of real awareness now instead of white knuckle logging, and it takes a fraction of the effort it used to.</p>
+
+    <div class="callout"><p>You are not tired of eating well. You are tired of deciding.</p></div>
+
+    <p>You make a hundred decisions a day for people who count on you. What is for dinner, how much of it, whether a meal out ruined the week. Your food should not be another hundred decisions. Nine meals, built once, is how you stop.</p>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="chapter">
+    <span class="ch">Five</span>
+    <h2>The Free <span class="gold">Meals</span></h2>
+    <p class="sub">Two a week. In the plan on purpose. Nothing to count and nothing to log.</p>
+
+    <p>Every plan you have ever run required a clean week to work.</p>
+    <p>There is no clean week. There is a birthday, a work dinner, a Friday you are too tired to cook, a holiday, a trip. So the plan has to work on your worst days, not just your best ones, or it is not a plan.</p>
+    <p>Which is why two free meals a week are built in from the start. They are not a cheat and they are not a reward for good behavior. They are structural.</p>
+
+    <div class="callout"><p>A free meal is a meal where you eat pretty much whatever you want, and you do not track it.</p></div>
+
+    <p>Read that again, because the second half is the part nobody believes. You do not track it. There is no number attached to it, no logging it afterward, no doing math to see what it cost you.</p>
+    <p>What makes that safe is not arithmetic. It is what the rest of the day looks like.</p>
+
+    <h3>The two rules, and they both live outside the meal</h3>
+    <ol>
+      <li><strong>Hit your protein floor from your other meals.</strong> All of it, before the free meal happens. If your floor is 120 grams, that is two meals at 50 grams each plus a protein shake, and you are already there. Then the free meal is genuinely free, because you were never counting on it for protein in the first place.</li>
+      <li><strong>Get your 600 grams of fruit and vegetables across those same meals.</strong> Same logic. The free meal is not where that comes from.</li>
+    </ol>
+    <p>Those two rules are the whole mechanism. Meet them and the free meal takes care of itself. Miss them and no amount of careful eating at dinner fixes the day.</p>
+
+    <h3>Three things inside the meal itself</h3>
+    <ul>
+      <li>A <strong>noticeable protein source.</strong> Not a token amount. Something you would point at and call the protein.</li>
+      <li>A <strong>fruit or a vegetable.</strong> One, and it does not have to be at the table. An apple in the car on the way to the restaurant counts. So does a bag of baby carrots before you leave the house. Getting it in early also makes the next rule a great deal easier.</li>
+      <li><strong>Stop when you are 80 percent full.</strong> You are not going to engorge yourself. That is the only limit there is, and it is a feel, not a number.</li>
+    </ul>
+
+    <div class="panel">
+      <span class="eyebrow">The part nobody else will tell you</span>
+      <h3 style="margin-top:14px;font-size:1.16rem">There is no number on a free meal.</h3>
+      <p>I am not going to tell you what it is supposed to come to, because the moment I hand you a number for Thanksgiving dinner I have handed you one more thing to fail at.</p>
+      <p>You manage the <strong>composition</strong> of that plate, not the arithmetic of it. A protein. Something that grew. Eat what you actually want otherwise, and stop satisfied rather than stuffed.</p>
+      <p>You earned it from the rest of the day. That is the entire accounting.</p>
+    </div>
+
+    <h3>Forecast on Sunday</h3>
+    <p>Sit down with the week ahead and decide where your two are going. The work dinner on Thursday. Sunday lunch with your parents. Put them on the calendar.</p>
+    <p>This is the rule that changes December. A free meal you planned on Sunday is part of the system. The same meal, unplanned on a Thursday, is the thing that makes you write off the rest of the week.</p>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="chapter">
+    <span class="ch">Six</span>
+    <h2>When The Scale <span class="gold">Stalls</span></h2>
+    <p class="sub">A rule instead of a feeling.</p>
+
+    <p>It will stall. That is not pessimism, it is arithmetic. Somewhere in the next few months there is a holiday, a trip, a stressful stretch, and a week where the number does not move.</p>
+    <p>If your only answer to a stall is to try harder, the first bad week ends the whole thing.</p>
+
+    <h3>First, how to read the scale at all</h3>
+    <p>Weigh three times a week, on the same three days, first thing, before you eat or drink. Then look at the <strong>line across two weeks</strong>, never a single morning.</p>
+    <p>One day is noise. Two weeks is a trend.</p>
+    <p>The scale is a tool, not a verdict. It is telling you what happened last week. It is not telling you who you are, and it is not a measure of whether you are a disciplined person.</p>
+
+    <h3>Then, the three doors</h3>
+    <ul>
+      <li><strong>Hold.</strong> One flat week is noise. You change nothing and you keep running. This is the correct answer far more often than people believe.</li>
+      <li><strong>Adjust your portions.</strong> The trend has genuinely flattened across two weeks or more with your adherence intact. You make a small change, once, and you give it two more weeks.</li>
+      <li><strong>Change your phase.</strong> You have been in a deficit long enough that a smaller number is no longer the answer. Fat loss is a season, not a permanent state, and the way out is up rather than further down.</li>
+    </ul>
+
+    <p>Three doors. You pick one based on what the trend says, not on how you feel about yourself that morning. That is the entire difference between a system and a diet.</p>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="chapter">
+    <span class="ch">Seven</span>
+    <h2>Your First <span class="gold">Four Weeks</span></h2>
+    <p class="sub">The order of operations. Do not skip ahead, and do not do two at once.</p>
+
+    <div class="wk">
+      <div class="k">Week One</div>
+      <div><h3 style="margin-top:0">The read</h3>
+        <p>Track everything, honestly, and change nothing. Weigh three times on the same three days. Do not adjust your eating, do not start a deficit, do not join a gym. Observe. At the end of the week you will know your real intake and which of the two situations you are in.</p></div>
+    </div>
+    <div class="wk">
+      <div class="k">Week Two</div>
+      <div><h3 style="margin-top:0">Build your nine</h3>
+        <p>Set your four numbers off your goal weight. Build three breakfasts, three lunches and three dinners that hit them, protein first, produce second. Save every one of them in your tracker. Eat them this week and adjust the ones you do not enjoy, because a meal you dislike will not survive a hard week.</p></div>
+    </div>
+    <div class="wk">
+      <div class="k">Week Three</div>
+      <div><h3 style="margin-top:0">Run it, with the free meals in</h3>
+        <p>Sunday, forecast your two free meals for the week ahead and put them on the calendar. Then run the rotation, and hit your protein floor and your produce from your structured meals every single day, so that when a free meal lands you have already met the day. Hit your water. Keep weighing three times.</p></div>
+    </div>
+    <div class="wk">
+      <div class="k">Week Four</div>
+      <div><h3 style="margin-top:0">Read the trend</h3>
+        <p>Look at the line across weeks three and four. Hold, adjust your portions, or change your phase. One decision, made from data, then back to week three.</p></div>
+    </div>
+
+    <p style="margin-top:26px">After that you repeat weeks three and four, indefinitely. That is the whole loop, and it does not have an end date because it was never a diet.</p>
+
+    <div class="tile">
+      <h3 style="margin-top:0">If you only remember one thing</h3>
+      <p>Do not start in week two. Everyone wants to skip the read and go straight to the numbers, and it is the single most common way this fails. Numbers built on a guess are just a more confident guess.</p>
+    </div>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="chapter">
+    <span class="ch">Eight</span>
+    <h2>What This Is <span class="gold">Part Of</span></h2>
+    <p class="sub">One framework out of a system that does not end.</p>
+
+    <p>What you have just read runs your fuel. It is one piece of a larger operating system, and the other pieces answer the questions this one does not.</p>
+    <p>How to read what your body is actually telling you, not just what is on your plate. How to train so the food you are eating has somewhere to go. What happens at your goal weight, which is the question every diet you have ever finished refused to answer.</p>
+    <p>Fat loss is a season. So is building. So is holding what you built, and that last one is where you will spend most of your life. The numbers change from season to season. Everything you just read does not.</p>
+
+    <div class="callout"><p>Not another diet. Diets end. This does not.</p></div>
+
+    <h3>Two things you can do right now, both free</h3>
+    <p><strong>Get your own numbers.</strong> This document gave you the method, which is the same for everybody, because the physiology is the same for everybody. Your numbers are yours. Five minutes, no card, nothing to buy. You will get your calorie target, your protein floor, the phase you should start in, and the one thing that is actually in your way.</p>
+    <a class="btn" href="https://dashboard.legacyperformance.co/build">Get my numbers &rarr;</a>
+    <p style="text-align:center;font-size:.84rem;color:#9f998e;margin-top:12px">dashboard.legacyperformance.co/build</p>
+
+    <p style="margin-top:30px"><strong>Come run it with people.</strong> The Legacy Performance Project is our community and it is free to join. The courses are in there, the live calls are open, and nobody has to do a hard season by themselves.</p>
+    <a class="btn line" href="https://www.skool.com/legacy-performance/about">Join the community &rarr;</a>
+
+    <p style="margin-top:34px">Nobody is coming to save your health. Not a program, not an app, not a coach. The goal was never for you to need one. It is for you to be able to read your own body and run your own system.</p>
+    <p>You now have the part that runs your food. Go use it.</p>
+  </section>
+
+  </div><!-- /#locked -->
+
+  <p class="godeeper" style="border-top:1px solid var(--olive-dim);margin-top:40px;padding-top:22px;font-size:.95rem;color:var(--soft)"><strong style="color:#fff">Want the deeper why?</strong> This guide is the action version — the exact steps to run. The full teaching, and the reasons behind every one of them, lives in the free community’s classroom. <a href="https://www.skool.com/legacy-performance/about">Go deeper in the course &rarr;</a></p>
+
+  <footer class="foot">
+    <span>&copy; 2026 Legacy Performance &middot; Build a body that's Built for More.</span>
+    <p class="disc">Educational coaching guidance, not medical advice. Individual results vary and no specific outcome is guaranteed. Consult your physician before changing your diet or training, especially if you have a medical condition.</p>
+  </footer>
+
+</div>
+<script>
+/* Email gate — the SAME lead system as the Legacy Score and Find Your Phase:
+   shared localStorage "lp_lead" + the same Apps Script doorway + the same type:'lead'
+   payload. A lead who opted in anywhere walks straight in; a new opt-in flows into the
+   same Sheet/GHL workflow. Only source differs. */
+var WRITE_URL="https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec";
+function $(id){return document.getElementById(id);}
+function load(k){try{return JSON.parse(localStorage.getItem(k));}catch(e){return null;}}
+function store(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function track(ev,d){try{if(window.fbq)fbq('track',ev,d||{});}catch(e){}}
+function post(p){p.ts=new Date().toISOString();p.ref=location.search||'';if(!WRITE_URL||!p.email)return;try{fetch(WRITE_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(p)});}catch(e){}}
+function unlock(){$('gate').style.display='none';$('locked').classList.add('open');}
+(function(){
+  var lead=load('lp_lead');
+  if(lead&&lead.email){ unlock(); return; }
+  var f=$('gateForm'); if(!f) return;
+  f.addEventListener('submit',function(e){
+    e.preventDefault();
+    var name=$('fname').value.trim(), email=$('gemail').value.trim();
+    if(!name){ $('gerr').textContent='Add your first name.'; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email)){ $('gerr').textContent='That email does not look right.'; return; }
+    store('lp_lead',{name:name,email:email});
+    post({type:'lead',source:'macro-freedom',name:name,email:email});
+    track('Lead',{content_name:'macro_freedom_ebook'});
+    unlock();
+    $('locked').scrollIntoView({behavior:'smooth',block:'start'});
+  });
+})();
+</script>
+</body>
+</html>

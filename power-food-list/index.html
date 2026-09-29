@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Power Food List · Legacy Performance</title>
+<meta name="description" content="Not a diet. Not a list of banned foods. A ranked list of real food that tells you, at a glance, how much room each choice takes on your plate. Build on Tier 1, step up when you want to. Every food you love is still here.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.20);--parch:#F2EDE4;
+  --gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#b7b1a6;--body:#d9d3c8;--ink:#161512}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0b0b0a;color:var(--parch);font-family:Montserrat,-apple-system,sans-serif;font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 26% at 100% 0%, rgba(193,173,114,.10), transparent 68%),
+    radial-gradient(ellipse 90% 52% at 0% 100%, rgba(74,92,62,.42), transparent 72%),
+    linear-gradient(180deg,#121110 0%,#0c0c0b 55%,#08090a 100%)}
+.topbar{position:relative;z-index:1;height:5px;background:linear-gradient(90deg,#4A5C3E 0%,#8FA97A 45%,#C1AD72 85%,#e3d3a1)}
+.page{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:0 30px 80px}
+img{max-width:100%;border:0}
+a{color:var(--gold)}
+em{color:var(--parch);font-style:italic}
+strong{color:#fff;font-weight:700}
+.head{display:flex;align-items:center;padding:28px 0 0}
+.head img{height:46px;width:auto;margin-left:-6px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:block}
+.ch{font-family:Cinzel,Georgia,serif;font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600;display:block}
+h1{font-weight:900;font-size:clamp(2.4rem,6.6vw,3.5rem);line-height:.98;text-transform:uppercase;color:#fff;margin-top:18px;letter-spacing:-.018em}
+h2{font-weight:900;font-size:clamp(1.5rem,3.9vw,2.2rem);line-height:1.04;text-transform:uppercase;color:#fff;margin-top:12px;letter-spacing:-.012em}
+h3{font-weight:800;font-size:1.04rem;color:#fff;letter-spacing:.01em;margin-top:24px}
+h3.cat{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:1.3rem;color:var(--gold);text-transform:uppercase;letter-spacing:.06em;margin-top:34px;padding-bottom:8px;border-bottom:1px solid var(--olive-dim)}
+.sub{font-family:Cinzel,Georgia,serif;color:var(--gold);font-size:1.02rem;margin-top:12px;line-height:1.4}
+.gold{color:var(--gold)}
+p{color:var(--body);margin-top:14px}
+.lead{font-size:1.12rem;margin-top:20px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:26px 0}
+.chapter{padding:50px 0;border-top:1px solid var(--olive-dim)}
+.cover{padding:40px 0 18px;border:0}
+.tile{background:linear-gradient(90deg,rgba(84,106,70,.14),rgba(255,255,255,.03));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:22px 24px;margin-top:22px}
+.panel{background:linear-gradient(90deg,rgba(84,106,70,.2),rgba(255,255,255,.03));border:1px solid var(--olive-dim);border-radius:18px;padding:26px 28px;margin-top:24px}
+.callout{border-left:4px solid var(--gold);padding:6px 0 6px 22px;margin:24px 0}
+.callout p{color:#fff;font-weight:600;font-size:1.06rem;margin:0}
+ol,ul{margin-top:16px;padding-left:0;list-style:none}
+ol li,ul li{position:relative;padding-left:34px;color:var(--body);margin-top:13px}
+ol{counter-reset:c}
+ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:50%;
+  background:var(--gold);color:var(--ink);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+ul li:before{content:"";position:absolute;left:5px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--olive-lt)}
+/* tier list */
+.tierblk{margin-top:16px;border-radius:14px;overflow:hidden;border:1px solid var(--olive-dim)}
+.tierhd{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:12px 16px;background:rgba(255,255,255,.03)}
+.tname{font-weight:900;text-transform:uppercase;letter-spacing:.08em;font-size:.86rem;color:#fff}
+.ttag{font-size:.72rem;color:var(--olive-lt);font-weight:700;text-transform:uppercase;letter-spacing:.08em}
+.t1 .tierhd{border-left:4px solid var(--olive-lt)}
+.t2 .tierhd{border-left:4px solid var(--gold)}
+.t3 .tierhd{border-left:4px solid #a8683e}
+.foods{padding:6px 16px 14px}
+.food{display:flex;align-items:baseline;justify-content:space-between;gap:14px;padding:9px 0;border-bottom:1px solid rgba(143,169,122,.12)}
+.food:last-child{border-bottom:0}
+.fn{color:#fff;font-weight:600;font-size:.94rem;text-transform:capitalize}
+.fm{color:var(--soft);font-size:.8rem;font-weight:600;white-space:nowrap;text-align:right}
+.fm em{color:#8f8a80;font-style:normal;font-weight:500}
+.btn{display:block;background:var(--gold);color:var(--ink);font-weight:800;font-size:.92rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:18px 26px;border-radius:12px;text-align:center;text-decoration:none;max-width:460px;margin:26px auto 0}
+.btn.line{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);margin-top:14px}
+.foot{border-top:1px solid var(--olive-dim);margin-top:52px;padding-top:24px;font-size:.78rem;color:#8f8a80}
+.disc{font-size:.72rem;color:#726d65;margin-top:14px}
+@media (max-width:620px){.page{padding:0 19px 54px}.fm{font-size:.74rem}}
+@media print{body{background:#0b0b0a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11pt}
+  .bg{position:absolute;height:100%}.chapter{break-before:page;padding:28px 0 0;border-top:0}.cover{break-after:page}
+  .tile,.panel,.callout,.tierblk{break-inside:avoid}h1,h2,h3{break-after:avoid}.btn{display:none}}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="bg"></div>
+<div class="page">
+
+  <header class="head"><img src="../logo-white-gold.png" alt="Legacy Performance"></header>
+
+  <!-- COVER -->
+  <section class="cover">
+    <span class="eyebrow">The Legacy Performance OS</span>
+    <h1>The Power<br>Food <span class="gold">List</span></h1>
+    <p class="sub">Not a diet. Not a list of foods you can't have.<br>A smarter way to see the food you already eat.</p>
+    <div class="rule"></div>
+    <p class="lead">Every food you love is on this list. What the list tells you, at a glance, is how much room each one takes on your plate. Learn that, and you can build a meal that hits your numbers without weighing your soul against a spreadsheet.</p>
+    <p>106 real foods, ranked and ready. Nothing here needs to be bought, and nothing here is off limits.</p>
+  </section>
+
+  <!-- 1 -->
+  <section class="chapter">
+    <span class="ch">One</span>
+    <h2>There Are No <span class="gold">Bad Foods</span></h2>
+    <p class="sub">Only foods that cost more room than others. That is the whole idea.</p>
+    <p>Every diet you have tried worked by taking things away. No carbs. No sugar. No eating after seven. A list of villains, and a promise that if you could just avoid them, the weight would come off.</p>
+    <p>It is exhausting, and it is backwards. Food is not good or bad. A chicken breast and a ribeye are both just protein. The only real difference is how much room each one takes on your plate for the same job.</p>
+    <div class="callout"><p>A power food is not a special food. It is a food that gives you the most for the least — the most protein, the most fiber, the most fullness, for the fewest calories.</p></div>
+    <p>That is all a "power food" means. It is the food that does the most work for the room it takes. Once you can see your food that way, you stop banning things and start spending your calories on purpose, the same way you spend money you actually respect.</p>
+  </section>
+
+  <!-- 2 -->
+  <section class="chapter">
+    <span class="ch">Two</span>
+    <h2>How The <span class="gold">Tiers Work</span></h2>
+    <p class="sub">Three tiers in every food group. It is a ranking, not a rulebook.</p>
+    <p>Every food group — your proteins, your carbs, your fats, your fruit — is sorted into three tiers. The tier is not about whether a food is allowed. It is about how much it gives you for the room it takes.</p>
+    <div class="tile">
+      <h3 style="margin-top:0"><span class="gold">Tier 1</span> — build here first</h3>
+      <p>The leanest, most filling, most nutrient-dense options. The most protein or the most fiber for the fewest calories. These are the foods that let you eat more actual food and still land on your numbers. Most of your plate, most of the time, comes from here.</p>
+    </div>
+    <div class="tile">
+      <h3 style="margin-top:0"><span class="gold">Tier 2</span> — great, mind the portion</h3>
+      <p>Excellent foods that carry a little more fat or a little less fiber. Salmon, steak, rice, quinoa, whole eggs, nut butters. Nothing wrong with a single one of them. You just watch the portion a touch more, because they take a bit more room.</p>
+    </div>
+    <div class="tile">
+      <h3 style="margin-top:0"><span class="gold">Tier 3</span> — save room for these</h3>
+      <p>The richest, most calorie-dense choices. Ribeye, oils, bagels, dark chocolate. Not banned, not bad — just expensive in room. You spend here on purpose, when the flavor is worth it, and you build the rest of the day to make space.</p>
+    </div>
+    <div class="callout"><p>The rule in one line: build the plate on Tier 1, and step up to Tier 2 and Tier 3 on purpose, when you want the variety or the flavor.</p></div>
+    <p>That is the entire method. Not "never eat this." Just "know what everything costs, spend where it counts." You will never feel deprived, because nothing is forbidden. You are just building from the foods that give you the most freedom first.</p>
+  </section>
+
+  <!-- 3 -->
+  <section class="chapter">
+    <span class="ch">Three</span>
+    <h2>Vegetables Are <span class="gold">Free</span></h2>
+    <p class="sub">The one group that does not get counted.</p>
+    <p>Before the lists, the easiest win in all of nutrition. Non-starchy vegetables — leafy greens, broccoli, peppers, zucchini, cauliflower, asparagus, mushrooms, green beans, tomatoes, cucumber — are the foundation of every plate and you do not count them.</p>
+    <p>They are almost pure volume and fiber for almost no calories. They fill your plate and your stomach, they carry the nutrients a hard training block demands, and they make a lower-calorie day feel like enough food instead of a punishment. Pile them on. This is the one place where more is simply better.</p>
+  </section>
+
+  <!-- 4 THE LISTS -->
+  <section class="chapter">
+    <span class="ch">Four</span>
+    <h2>The <span class="gold">List</span></h2>
+    <p class="sub">Every food, ranked. The number shown is the anchor macro and the calories per serving — the only two numbers you need to see.</p>
+    <p>Here it is, the whole thing. Build your plate from the top of each group and work down only when you want to. The small print on each food is its main macro and its calories for a normal serving, so you can compare like for like at a glance.</p>
+
+    <h3 class="cat">Protein</h3><div class="tierblk t1"><div class="tierhd"><span class="tname">Tier 1</span><span class="ttag">Build here first</span></div><div class="foods"><div class="food"><span class="fn">chicken breast</span><span class="fm">9g · 47 cal <em>/ oz</em></span></div><div class="food"><span class="fn">turkey breast</span><span class="fm">8g · 42 cal <em>/ oz</em></span></div><div class="food"><span class="fn">93% ground turkey</span><span class="fm">8g · 60 cal <em>/ oz</em></span></div><div class="food"><span class="fn">white fish (cod or tilapia)</span><span class="fm">7g · 33 cal <em>/ oz</em></span></div><div class="food"><span class="fn">canned tuna</span><span class="fm">5g · 26 cal <em>/ oz</em></span></div><div class="food"><span class="fn">shrimp</span><span class="fm">7g · 28 cal <em>/ oz</em></span></div><div class="food"><span class="fn">egg whites</span><span class="fm">4g · 17 cal <em>/ each</em></span></div><div class="food"><span class="fn">nonfat Greek yogurt</span><span class="fm">23g · 138 cal <em>/ cup</em></span></div><div class="food"><span class="fn">low-fat cottage cheese</span><span class="fm">28g · 163 cal <em>/ cup</em></span></div><div class="food"><span class="fn">whey protein powder</span><span class="fm">24g · 120 cal <em>/ scoop</em></span></div><div class="food"><span class="fn">plant protein powder</span><span class="fm">21g · 150 cal <em>/ serving</em></span></div><div class="food"><span class="fn">96% ground beef</span><span class="fm">8g · 55 cal <em>/ oz</em></span></div><div class="food"><span class="fn">eye of round steak</span><span class="fm">8g · 46 cal <em>/ oz</em></span></div><div class="food"><span class="fn">deli turkey</span><span class="fm">4g · 30 cal <em>/ oz</em></span></div></div></div><div class="tierblk t2"><div class="tierhd"><span class="tname">Tier 2</span><span class="ttag">Great — mind the portion</span></div><div class="foods"><div class="food"><span class="fn">salmon</span><span class="fm">6g · 58 cal <em>/ oz</em></span></div><div class="food"><span class="fn">sirloin steak</span><span class="fm">9g · 52 cal <em>/ oz</em></span></div><div class="food"><span class="fn">93% ground beef</span><span class="fm">8g · 59 cal <em>/ oz</em></span></div><div class="food"><span class="fn">chicken thighs</span><span class="fm">7g · 51 cal <em>/ oz</em></span></div><div class="food"><span class="fn">pork tenderloin</span><span class="fm">7g · 40 cal <em>/ oz</em></span></div><div class="food"><span class="fn">whole eggs</span><span class="fm">6g · 72 cal <em>/ each</em></span></div><div class="food"><span class="fn">extra-firm tofu</span><span class="fm">5g · 41 cal <em>/ oz</em></span></div><div class="food"><span class="fn">tempeh</span><span class="fm">6g · 55 cal <em>/ oz</em></span></div><div class="food"><span class="fn">seitan</span><span class="fm">9g · 45 cal <em>/ oz</em></span></div><div class="food"><span class="fn">edamame</span><span class="fm">18g · 188 cal <em>/ cup</em></span></div><div class="food"><span class="fn">90% ground beef</span><span class="fm">8g · 65 cal <em>/ oz</em></span></div><div class="food"><span class="fn">flank steak</span><span class="fm">8g · 53 cal <em>/ oz</em></span></div><div class="food"><span class="fn">filet mignon</span><span class="fm">8g · 55 cal <em>/ oz</em></span></div><div class="food"><span class="fn">NY strip steak</span><span class="fm">8g · 54 cal <em>/ oz</em></span></div><div class="food"><span class="fn">ground bison</span><span class="fm">7g · 51 cal <em>/ oz</em></span></div><div class="food"><span class="fn">ground chicken</span><span class="fm">7g · 54 cal <em>/ oz</em></span></div><div class="food"><span class="fn">pork chop</span><span class="fm">8g · 46 cal <em>/ oz</em></span></div><div class="food"><span class="fn">canned chicken</span><span class="fm">6g · 47 cal <em>/ oz</em></span></div><div class="food"><span class="fn">2% Greek yogurt</span><span class="fm">22g · 166 cal <em>/ cup</em></span></div></div></div><div class="tierblk t3"><div class="tierhd"><span class="tname">Tier 3</span><span class="ttag">Save room for these</span></div><div class="foods"><div class="food"><span class="fn">ribeye</span><span class="fm">7g · 81 cal <em>/ oz</em></span></div><div class="food"><span class="fn">80/20 ground beef</span><span class="fm">8g · 77 cal <em>/ oz</em></span></div><div class="food"><span class="fn">beef jerky</span><span class="fm">9g · 116 cal <em>/ oz</em></span></div></div></div>
+    <h3 class="cat">Carbs & starches</h3><div class="tierblk t1"><div class="tierhd"><span class="tname">Tier 1</span><span class="ttag">Build here first</span></div><div class="foods"><div class="food"><span class="fn">potatoes</span><span class="fm">31g · 134 cal <em>/ cup</em></span></div><div class="food"><span class="fn">sweet potato</span><span class="fm">41g · 180 cal <em>/ cup</em></span></div><div class="food"><span class="fn">oats</span><span class="fm">55g · 307 cal <em>/ cup dry</em></span></div><div class="food"><span class="fn">lentils</span><span class="fm">40g · 230 cal <em>/ cup</em></span></div><div class="food"><span class="fn">black beans</span><span class="fm">41g · 227 cal <em>/ cup</em></span></div><div class="food"><span class="fn">chickpeas</span><span class="fm">45g · 269 cal <em>/ cup</em></span></div><div class="food"><span class="fn">green peas</span><span class="fm">23g · 125 cal <em>/ cup</em></span></div><div class="food"><span class="fn">butternut squash</span><span class="fm">22g · 82 cal <em>/ cup</em></span></div><div class="food"><span class="fn">corn</span><span class="fm">31g · 143 cal <em>/ cup</em></span></div><div class="food"><span class="fn">pinto beans</span><span class="fm">45g · 245 cal <em>/ cup</em></span></div><div class="food"><span class="fn">kidney beans</span><span class="fm">40g · 225 cal <em>/ cup</em></span></div><div class="food"><span class="fn">barley</span><span class="fm">44g · 193 cal <em>/ cup</em></span></div><div class="food"><span class="fn">popcorn</span><span class="fm">6g · 31 cal <em>/ cup</em></span></div></div></div><div class="tierblk t2"><div class="tierhd"><span class="tname">Tier 2</span><span class="ttag">Great — mind the portion</span></div><div class="foods"><div class="food"><span class="fn">white rice</span><span class="fm">44g · 205 cal <em>/ cup</em></span></div><div class="food"><span class="fn">brown rice</span><span class="fm">52g · 248 cal <em>/ cup</em></span></div><div class="food"><span class="fn">quinoa</span><span class="fm">39g · 222 cal <em>/ cup</em></span></div><div class="food"><span class="fn">sourdough</span><span class="fm">22g · 117 cal <em>/ slice</em></span></div><div class="food"><span class="fn">whole-wheat pasta</span><span class="fm">42g · 209 cal <em>/ cup</em></span></div><div class="food"><span class="fn">corn tortilla</span><span class="fm">11g · 52 cal <em>/ tortilla</em></span></div><div class="food"><span class="fn">whole-wheat bread</span><span class="fm">14g · 81 cal <em>/ slice</em></span></div><div class="food"><span class="fn">English muffin</span><span class="fm">29g · 140 cal <em>/ each</em></span></div><div class="food"><span class="fn">rice cakes</span><span class="fm">7g · 35 cal <em>/ cake</em></span></div><div class="food"><span class="fn">cream of rice</span><span class="fm">28g · 127 cal <em>/ cup</em></span></div><div class="food"><span class="fn">couscous</span><span class="fm">36g · 176 cal <em>/ cup</em></span></div></div></div><div class="tierblk t3"><div class="tierhd"><span class="tname">Tier 3</span><span class="ttag">Save room for these</span></div><div class="foods"><div class="food"><span class="fn">white pasta</span><span class="fm">43g · 221 cal <em>/ cup</em></span></div><div class="food"><span class="fn">bagel</span><span class="fm">55g · 277 cal <em>/ each</em></span></div><div class="food"><span class="fn">flour tortilla</span><span class="fm">24g · 146 cal <em>/ tortilla</em></span></div><div class="food"><span class="fn">granola</span><span class="fm">66g · 597 cal <em>/ cup</em></span></div></div></div>
+    <h3 class="cat">Fruit</h3><div class="tierblk t1"><div class="tierhd"><span class="tname">Tier 1</span><span class="ttag">Build here first</span></div><div class="foods"><div class="food"><span class="fn">berries</span><span class="fm">17g · 67 cal <em>/ cup</em></span></div><div class="food"><span class="fn">apple</span><span class="fm">25g · 95 cal <em>/ each</em></span></div><div class="food"><span class="fn">raspberries</span><span class="fm">15g · 64 cal <em>/ cup</em></span></div><div class="food"><span class="fn">blackberries</span><span class="fm">14g · 62 cal <em>/ cup</em></span></div><div class="food"><span class="fn">strawberries</span><span class="fm">11g · 46 cal <em>/ cup</em></span></div><div class="food"><span class="fn">blueberries</span><span class="fm">22g · 84 cal <em>/ cup</em></span></div><div class="food"><span class="fn">pear</span><span class="fm">27g · 101 cal <em>/ each</em></span></div><div class="food"><span class="fn">orange</span><span class="fm">16g · 62 cal <em>/ each</em></span></div><div class="food"><span class="fn">kiwi</span><span class="fm">10g · 42 cal <em>/ each</em></span></div><div class="food"><span class="fn">grapefruit</span><span class="fm">13g · 52 cal <em>/ half</em></span></div></div></div><div class="tierblk t2"><div class="tierhd"><span class="tname">Tier 2</span><span class="ttag">Great — mind the portion</span></div><div class="foods"><div class="food"><span class="fn">banana</span><span class="fm">27g · 105 cal <em>/ each</em></span></div><div class="food"><span class="fn">peach</span><span class="fm">14g · 58 cal <em>/ each</em></span></div><div class="food"><span class="fn">cherries</span><span class="fm">25g · 97 cal <em>/ cup</em></span></div><div class="food"><span class="fn">pineapple</span><span class="fm">22g · 82 cal <em>/ cup</em></span></div><div class="food"><span class="fn">mango</span><span class="fm">25g · 99 cal <em>/ cup</em></span></div><div class="food"><span class="fn">cantaloupe</span><span class="fm">13g · 54 cal <em>/ cup</em></span></div><div class="food"><span class="fn">watermelon</span><span class="fm">11g · 46 cal <em>/ cup</em></span></div></div></div><div class="tierblk t3"><div class="tierhd"><span class="tname">Tier 3</span><span class="ttag">Save room for these</span></div><div class="foods"><div class="food"><span class="fn">grapes</span><span class="fm">27g · 104 cal <em>/ cup</em></span></div><div class="food"><span class="fn">raisins</span><span class="fm">11g · 42 cal <em>/ box</em></span></div><div class="food"><span class="fn">dates</span><span class="fm">18g · 66 cal <em>/ each</em></span></div></div></div>
+    <h3 class="cat">Fats</h3><div class="tierblk t1"><div class="tierhd"><span class="tname">Tier 1</span><span class="ttag">Build here first</span></div><div class="foods"><div class="food"><span class="fn">avocado</span><span class="fm">21g · 227 cal <em>/ each</em></span></div><div class="food"><span class="fn">chia seeds</span><span class="fm">4g · 58 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">ground flaxseed</span><span class="fm">3g · 37 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">hemp seeds</span><span class="fm">5g · 55 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">walnuts</span><span class="fm">5g · 48 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">olives</span><span class="fm">1g · 10 cal <em>/ tbsp</em></span></div></div></div><div class="tierblk t2"><div class="tierhd"><span class="tname">Tier 2</span><span class="ttag">Great — mind the portion</span></div><div class="foods"><div class="food"><span class="fn">almonds</span><span class="fm">4g · 52 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">almond butter</span><span class="fm">9g · 98 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">peanut butter</span><span class="fm">8g · 96 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">tahini</span><span class="fm">8g · 89 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">pumpkin seeds</span><span class="fm">4g · 45 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">hummus</span><span class="fm">3g · 36 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">cheese</span><span class="fm">10g · 116 cal <em>/ oz</em></span></div><div class="food"><span class="fn">sunflower seeds</span><span class="fm">4g · 47 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">cashews</span><span class="fm">4g · 49 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">pistachios</span><span class="fm">4g · 44 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">pecans</span><span class="fm">5g · 47 cal <em>/ tbsp</em></span></div></div></div><div class="tierblk t3"><div class="tierhd"><span class="tname">Tier 3</span><span class="ttag">Save room for these</span></div><div class="foods"><div class="food"><span class="fn">olive oil</span><span class="fm">1g · 9 cal <em>/ g</em></span></div><div class="food"><span class="fn">butter</span><span class="fm">12g · 102 cal <em>/ tbsp</em></span></div><div class="food"><span class="fn">avocado oil</span><span class="fm">1g · 9 cal <em>/ g</em></span></div><div class="food"><span class="fn">coconut oil</span><span class="fm">1g · 9 cal <em>/ g</em></span></div><div class="food"><span class="fn">dark chocolate</span><span class="fm">12g · 170 cal <em>/ oz</em></span></div></div></div>
+
+    <div class="tile" style="margin-top:30px">
+      <h3 style="margin-top:0">One honest note on the numbers</h3>
+      <p>You do not have to memorize a single figure above. They are there so you can see, in black and white, why a Tier 1 food gives you more room than a Tier 3 one. Once you have seen it a few times, you will feel it without doing any math at all.</p>
+    </div>
+  </section>
+
+  <!-- 5 build a plate -->
+  <section class="chapter">
+    <span class="ch">Five</span>
+    <h2>Build A Plate <span class="gold">With It</span></h2>
+    <p class="sub">Same order, every meal. It becomes automatic fast.</p>
+    <ol>
+      <li><strong>Start with a Tier 1 protein.</strong> Pick it first and size it to your protein target. Protein is the hardest number to hit and the easiest to build a meal around. This is the anchor of the plate.</li>
+      <li><strong>Pile on the free vegetables.</strong> Volume before anything else. This is what makes the plate feel like plenty.</li>
+      <li><strong>Add a Tier 1 carb or fruit.</strong> Potatoes, rice, beans, berries, an apple. Real energy, and it keeps a training body fed.</li>
+      <li><strong>Finish with a thumb of fat.</strong> A little goes a long way. Tier 1 and Tier 2 fats first; the oils and butters are Tier 3 for a reason.</li>
+      <li><strong>Spend a Tier 2 or Tier 3 choice on purpose.</strong> Want the ribeye, the bagel, the square of dark chocolate? Build the rest of the day leaner and enjoy it with zero guilt. That is the system working exactly as designed.</li>
+    </ol>
+    <div class="callout"><p>Protein first, vegetables free, Tier 1 by default, everything else on purpose. That is a plate you can build for the rest of your life.</p></div>
+  </section>
+
+  <!-- 6 the honest CTA -->
+  <section class="chapter">
+    <span class="ch">Six</span>
+    <h2>If You Did All Of This, <span class="gold">You'd Win</span></h2>
+    <p class="sub">And here is the honest part nobody in this industry will say to you.</p>
+    <p>If you implemented everything in this guide — built every plate on Tier 1, kept your vegetables free, spent your Tier 2 and Tier 3 choices on purpose — you would see genuinely amazing results. No app, no coach, no product required. The method above is complete, and it is yours to keep.</p>
+    <p>But I am going to be straight with you, because that is the whole point of this brand.</p>
+    <div class="callout"><p>You have a life. You have a job, a family, a calling, and about a hundred decisions a day that matter more than what tier your dinner is.</p></div>
+    <p>Knowing the method and having the time and focus to run it, meal after meal, week after week, are two different things. Most people do not fall short because they lack the knowledge. They fall short because they run out of room — of time, of attention, of willpower at the end of a long day.</p>
+    <p>So for the people who would rather not do all this work by hand, I built something that does it for you. You give it your numbers and the foods you actually like, and it builds your meals for you — every one of them landing on your protein and your calories, every one built on Tier 1, every one made of food you chose. It is the entire method above, done for you, and it keeps being right as your numbers change.</p>
+    <p>It is called the <strong>Legacy Nutrition System</strong>. This guide is the thinking behind it. The system is the shortcut through it.</p>
+    <a class="btn" href="https://dashboard.legacyperformance.co/build">Get the Nutrition System &rarr;</a>
+    <p style="text-align:center;font-size:.84rem;color:#9f998e;margin-top:12px">Your meals, built for you, from this exact list.</p>
+
+    <p style="margin-top:34px"><strong>And either way, come run it with people.</strong> The Legacy Performance Project is our community and it is free to join. This guide, the live calls, and everyone else building their plates the same way are all in there.</p>
+    <a class="btn line" href="https://www.skool.com/legacy-performance/about">Join the free community &rarr;</a>
+
+    <p style="margin-top:34px">Nobody is coming to save your health. Not a list, not a system, not a coach. The list is the knowledge. The system is the time back. What you do with both is the legacy.</p>
+    <p>Now go build a plate.</p>
+  </section>
+
+  <p class="godeeper" style="border-top:1px solid var(--olive-dim);margin-top:40px;padding-top:22px;font-size:.95rem;color:var(--soft)"><strong style="color:#fff">Want the deeper why?</strong> This guide is the action version — the exact steps to run. The full teaching, and the reasons behind every one of them, lives in the free community’s classroom. <a href="https://www.skool.com/legacy-performance/about">Go deeper in the course &rarr;</a></p>
+
+  <footer class="foot">
+    <span>&copy; 2026 Legacy Performance &middot; Build a body that's Built for More.</span>
+    <p class="disc">Educational coaching guidance, not medical advice. Individual results vary and no specific outcome is guaranteed. Macros are per typical serving from USDA data and will vary by brand and preparation. Consult your physician before changing your diet, especially with a medical condition.</p>
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Awareness Circle · Legacy Performance</title>
+<meta name="description" content="You don't have a discipline problem. You have an awareness problem. Your body is a feedback loop with four parts, and almost everyone works one and ignores the other three. Here is the whole circle.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;
+  --gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a1a;color:var(--parch);font-family:Montserrat,-apple-system,sans-serif;font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:relative;z-index:1;height:5px;background:linear-gradient(90deg,#4A5C3E 0%,#8FA97A 45%,#C1AD72 85%,#e3d3a1)}
+.page{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:0 30px 80px}
+img{max-width:100%;border:0}
+a{color:var(--gold)}
+em{color:var(--parch);font-style:italic}
+strong{color:var(--parch);font-weight:700}
+.head{display:flex;align-items:center;padding:28px 0 0}
+.head img{height:46px;width:auto;margin-left:-6px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:block}
+.ch{font-family:Cinzel,Georgia,serif;font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600;display:block}
+h1{font-weight:900;font-size:clamp(2.3rem,6.4vw,3.4rem);line-height:.98;text-transform:uppercase;color:#fff;margin-top:18px;letter-spacing:-.018em}
+h2{font-weight:900;font-size:clamp(1.5rem,3.9vw,2.2rem);line-height:1.04;text-transform:uppercase;color:#fff;margin-top:12px;letter-spacing:-.012em}
+h3{font-weight:800;font-size:1.04rem;color:#fff;letter-spacing:.01em;margin-top:24px}
+.sub{font-family:Cinzel,Georgia,serif;color:var(--gold);font-size:1.02rem;margin-top:12px;line-height:1.4}
+.gold{color:var(--gold)}
+p{color:var(--body);margin-top:14px}
+.lead{font-size:1.12rem;margin-top:20px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:26px 0}
+.chapter{padding:52px 0;border-top:1px solid var(--olive-dim)}
+.cover{padding:40px 0 18px;border:0}
+.tile{background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:24px 26px;margin-top:22px}
+.panel{background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:18px;padding:28px 30px;margin-top:24px}
+.nums{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.num{background:linear-gradient(160deg,rgba(84,106,70,.2),rgba(255,255,255,.03));border:1px solid var(--olive-dim);border-radius:16px;padding:22px}
+.num .n{font-family:Cinzel,Georgia,serif;font-size:.7rem;letter-spacing:.24em;text-transform:uppercase;color:var(--olive-lt)}
+.num .v{display:block;font-weight:900;color:var(--gold);font-size:1.42rem;line-height:1.15;margin:8px 0 6px}
+.num p{font-size:.88rem;color:var(--soft);margin-top:6px}
+ol,ul{margin-top:16px;padding-left:0;list-style:none}
+ol li,ul li{position:relative;padding-left:34px;color:var(--body);margin-top:13px}
+ol{counter-reset:c}
+ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:50%;
+  background:var(--gold);color:var(--ink);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+ul li:before{content:"";position:absolute;left:5px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--olive-lt)}
+.callout{border-left:4px solid var(--gold);padding:6px 0 6px 22px;margin:24px 0}
+.callout p{color:var(--parch);font-weight:600;font-size:1.06rem;margin:0}
+.btn{display:block;background:var(--gold);color:var(--ink);font-weight:800;font-size:.92rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:18px 26px;border-radius:12px;text-align:center;text-decoration:none;max-width:440px;margin:26px auto 0}
+.btn.line{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);margin-top:14px}
+.foot{border-top:1px solid var(--olive-dim);margin-top:52px;padding-top:24px;font-size:.78rem;color:#8f8a80}
+.disc{font-size:.72rem;color:#77726a;margin-top:14px}
+/* ---- the circle diagram ---- */
+.circle{display:block;max-width:360px;margin:30px auto 6px}
+.circle text{font-family:Montserrat,sans-serif}
+.dom{display:grid;grid-template-columns:64px 1fr;gap:18px;align-items:start;padding:22px 0;border-bottom:1px solid var(--olive-dim)}
+.dom:last-child{border-bottom:0}
+.dom .step{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:1.5rem;color:var(--gold);text-align:center;line-height:1;padding-top:4px}
+.dom h3{margin-top:0}
+@media (max-width:620px){.nums{grid-template-columns:1fr}.page{padding:0 19px 54px}.dom{grid-template-columns:44px 1fr;gap:14px}}
+@media print{
+  body{background:#1a1a1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11.5pt}
+  .bg{position:absolute;height:100%}
+  .chapter{break-before:page;padding:30px 0 0;border-top:0}
+  .cover{break-after:page}
+  .num,.tile,.panel,.callout,.dom,.circle{break-inside:avoid}
+  h1,h2,h3{break-after:avoid}
+  .btn{display:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="bg"></div>
+<div class="page">
+
+  <header class="head"><img src="../logo-white-gold.png" alt="Legacy Performance"></header>
+
+  <!-- ============ COVER ============ -->
+  <section class="cover">
+    <span class="eyebrow">The Legacy Performance OS</span>
+    <h1>The<br>Awareness<br><span class="gold">Circle</span></h1>
+    <p class="sub">You don't have a discipline problem.<br>You have an awareness problem.</p>
+    <div class="rule"></div>
+    <p class="lead">Your body is a feedback loop with four parts. Almost everyone works one of them, ignores the other three, and calls the result a lack of willpower. It isn't. Here is the whole circle.</p>
+    <p>You can start reading your own loop today. Nothing in here needs to be bought, and nothing in here expires.</p>
+  </section>
+
+  <!-- ============ 1 ============ -->
+  <section class="chapter">
+    <span class="ch">One</span>
+    <h2>It Was Never<br><span class="gold">Discipline</span></h2>
+    <p class="sub">The reframe that changes everything after it.</p>
+
+    <p>You have been told the problem is discipline.</p>
+    <p>You have heard it so many times that you say it about yourself now. If I could just be more consistent. If I could just stick to it. If I just wanted it badly enough.</p>
+    <p>I want to offer you a different sentence, because I have watched it be true for hundreds of people who were sure they were the exception.</p>
+
+    <div class="callout"><p>You do not have a discipline problem. You have an awareness problem.</p></div>
+
+    <p>Think about how you run every other part of your life that works. You do not lead your team on willpower. You read the numbers, you see what is happening, and you make a decision from what you see. You do not white knuckle your calendar. You look at it.</p>
+    <p>Your body is the one system you have been told to run blind, on feel and effort, with no instrument panel. And then you have been blamed for the crash.</p>
+    <p>Discipline is what you reach for when you cannot see. The moment you can see the whole loop, you stop needing heroic amounts of it, because the right next move becomes obvious instead of hard.</p>
+
+    <h3>Why one change never holds</h3>
+    <p>Here is the pattern, and you will recognize it. You get serious, so you fix the food. Or you get serious, so you start training. One slice. You go hard at it for a few weeks, you get a result, and then it quietly comes undone and you cannot say exactly why.</p>
+    <p>It comes undone because the part you fixed depends on three parts you never touched. You cannot out-diet terrible sleep. You cannot out-train a body that is running on empty and screaming at you in signals you were never taught to read. A loop does not care how hard you work one arc of it. It cares whether the whole thing is turning.</p>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="chapter">
+    <span class="ch">Two</span>
+    <h2>Your Body <span class="gold">Is A Loop</span></h2>
+    <p class="sub">Four parts, in order, feeding each other. Not four boxes on a checklist.</p>
+
+    <p>The whole model fits in one picture.</p>
+
+    <svg class="circle" viewBox="0 0 320 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The Awareness Circle: Signals, Fuel, Output, Recovery, looping back to Signals">
+      <defs>
+        <marker id="ah" viewBox="0 0 10 10" refX="6" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#C1AD72"/>
+        </marker>
+      </defs>
+      <circle cx="160" cy="160" r="118" fill="none" stroke="#8FA97A" stroke-opacity=".28" stroke-width="1.5"/>
+      <!-- arcs suggesting flow -->
+      <path d="M160,42 A118,118 0 0,1 278,160" fill="none" stroke="#C1AD72" stroke-opacity=".55" stroke-width="2" marker-end="url(#ah)"/>
+      <path d="M278,160 A118,118 0 0,1 160,278" fill="none" stroke="#C1AD72" stroke-opacity=".55" stroke-width="2" marker-end="url(#ah)"/>
+      <path d="M160,278 A118,118 0 0,1 42,160" fill="none" stroke="#C1AD72" stroke-opacity=".55" stroke-width="2" marker-end="url(#ah)"/>
+      <path d="M42,160 A118,118 0 0,1 160,42" fill="none" stroke="#C1AD72" stroke-opacity=".55" stroke-width="2" marker-end="url(#ah)"/>
+      <!-- nodes -->
+      <g fill="#1a1a1a" stroke="#C1AD72" stroke-width="1.5">
+        <circle cx="160" cy="42" r="30"/><circle cx="278" cy="160" r="30"/>
+        <circle cx="160" cy="278" r="30"/><circle cx="42" cy="160" r="30"/>
+      </g>
+      <g fill="#F2EDE4" font-size="12" font-weight="800" text-anchor="middle" letter-spacing="0.5">
+        <text x="160" y="46">SIGNALS</text>
+        <text x="278" y="164">FUEL</text>
+        <text x="160" y="282">OUTPUT</text>
+        <text x="42" y="164">RECOVERY</text>
+      </g>
+      <text x="160" y="156" fill="#C1AD72" font-size="11" font-weight="700" text-anchor="middle" font-family="Cinzel,serif" letter-spacing="2">READ IT</text>
+      <text x="160" y="172" fill="#8FA97A" font-size="10" font-weight="600" text-anchor="middle" letter-spacing="1">THEN RUN IT</text>
+    </svg>
+    <p style="text-align:center;font-size:.82rem;color:#9f998e;margin-top:2px">Signals &rarr; Fuel &rarr; Output &rarr; Recovery &rarr; back to Signals.</p>
+
+    <p>Four domains. They run in order and each one feeds the next. What you take in changes what your body can put out. What you put out changes what you need to recover from. What you recover, or fail to recover, changes the signals you wake up with tomorrow. And those signals tell you what to do next.</p>
+    <p>It is a circle, not a list, and that is the entire point. A list you can do three of and skip the fourth. A circle turns or it doesn't.</p>
+
+    <div class="callout"><p>Awareness is not doing more. It is seeing the whole circle instead of one slice of it.</p></div>
+
+    <p>Most people live their whole health at one node. The dieter lives in Fuel. The gym person lives in Output. The exhausted high performer lives nowhere, just reacting to Signals they were never taught to name. None of them are looking at the loop. Once you do, you stop asking <em>am I doing enough</em> and start asking a far better question. <em>Which part of my loop is actually broken right now.</em> That is a question you can answer, and answer cheaply.</p>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="chapter">
+    <span class="ch">Three</span>
+    <h2>Signals <span class="gold">/ Read It</span></h2>
+    <p class="sub">What is going on inside. The part you were taught to ignore.</p>
+
+    <p>Signals are the readout. It is your body telling you, every single day, how the system is running. You were taught to push through it. You are going to learn to read it instead.</p>
+
+    <div class="dom">
+      <div class="step">&bull;</div>
+      <div>
+        <h3>The everyday read: biofeedback</h3>
+        <p>Free, always available, and more honest than the scale. Your energy through the day. How you slept and how you feel about how you slept. Your digestion. Your hunger, real and otherwise. Your mood and your patience with the people you love. None of these are soft. They are data, and they move before the scale does.</p>
+      </div>
+    </div>
+    <div class="dom">
+      <div class="step">&bull;</div>
+      <div>
+        <h3>The deep read: blood and DNA</h3>
+        <p>When you are ready to go past feel, bloodwork and genetics are the same signal at higher resolution. Your labs show what a decade of the old approach actually did. Your DNA shows the tendencies you have been fighting without a name for them. This is the deep read of the same node, not a separate world.</p>
+      </div>
+    </div>
+
+    <div class="tile">
+      <h3 style="margin-top:0">Start with the free version</h3>
+      <p>You do not need a blood panel to begin. You need to start noticing. For one week, at the same time each day, put a number from one to ten on your energy, your sleep, and your hunger. That is it. Inside a week you will see patterns you have walked past for years, and every one of them points at another part of the circle.</p>
+    </div>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="chapter">
+    <span class="ch">Four</span>
+    <h2>Fuel <span class="gold">/ What Goes In</span></h2>
+    <p class="sub">The node everyone lives at, done as one part of a loop instead of the whole religion.</p>
+
+    <p>Fuel is what you put in. Nutrition. It is the node with the most noise around it and the most shame attached to it, and it is only one quarter of the circle.</p>
+    <p>The good news is that fuel done right is simple, and it is simple because your Signals tell you whether it is working. You are not guessing anymore. You eat, and the loop reports back.</p>
+    <p>The Legacy approach to fuel runs on a small number of starting points anchored to the body you are building, not the one you are leaving. Enough protein to hold muscle. Enough real food volume to feel fed. Enough water. A structure you build once so you stop making the same hundred food decisions every day. We put the whole method in its own guide, the Macro Freedom Framework, so this one can stay focused on the loop.</p>
+
+    <div class="callout"><p>Fuel is not the enemy and it is not the answer. It is one arc of the circle, and it only holds when the other three are turning.</p></div>
+
+    <p>Here is the trap, and you have lived it. When fuel is the only node you work, every result depends on eating perfectly forever, so the first hard week ends the whole thing. When fuel is one part of a loop you can read, a hard week is just information. The circle keeps turning while you handle your life.</p>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="chapter">
+    <span class="ch">Five</span>
+    <h2>Output <span class="gold">/ What Comes Out</span></h2>
+    <p class="sub">The part almost everyone gets half right. There are two layers, and the second one is the whole reason you are doing this.</p>
+
+    <p>Output is what your body puts into the world. Most people hear that and think exercise. That is half of it, and it is the smaller half.</p>
+
+    <div class="dom">
+      <div class="step">1</div>
+      <div>
+        <h3>The lever: movement and training</h3>
+        <p>This is the part you control directly. Walking, steps, and training that asks your body to be strong. Its main job inside the loop is to give the fuel somewhere to go and to hold the muscle that keeps the whole system running well for decades. This is the lever you pull. It is not the point.</p>
+      </div>
+    </div>
+    <div class="dom">
+      <div class="step">2</div>
+      <div>
+        <h3>The payoff: how you actually show up</h3>
+        <p>This is the point. The energy you have left for the people who count on you. Your presence at dinner instead of a body at the table and a mind somewhere else. Your patience. Your drive. Your capacity for the mission you are actually here for. A well run body pays out here, and this is the part no scale will ever show you.</p>
+      </div>
+    </div>
+
+    <div class="panel">
+      <span class="eyebrow">The part I care about most</span>
+      <h3 style="margin-top:14px;font-size:1.16rem">Your relationships are an output of a well run body.</h3>
+      <p>Not a competing priority. An output. The reason to run this loop was never a number on a scale or a photo. It was to have something left over for your marriage, your kids, your team, and the work you were put here to do.</p>
+      <p>Keep the two layers straight. The training is the lever you can measure. Showing up for people is the proof the lever is working. When you feel the second one climbing, you are not imagining it. That is the whole machine paying out.</p>
+    </div>
+  </section>
+
+  <!-- ============ 6 ============ -->
+  <section class="chapter">
+    <span class="ch">Six</span>
+    <h2>Recovery <span class="gold">/ It Closes</span></h2>
+    <p class="sub">Sleep, stress, rest. The node high performers skip, and the one that feeds tomorrow's Signals.</p>
+
+    <p>Recovery is sleep, stress, and genuine rest. It is the node that closes the loop, because what you recover tonight becomes the Signals you wake up with tomorrow.</p>
+    <p>It is also the first thing a driven person sacrifices. You treat sleep as the budget you raid to buy more hours. You wear your stress like proof you are carrying something important. And then you cannot understand why the food and the training stopped working.</p>
+
+    <div class="callout"><p>You cannot out-eat and you cannot out-train a body that never recovers. Recovery is not the reward at the end. It is part of the work.</p></div>
+
+    <p>Watch how the circle punishes a skipped node. Poor recovery raises your stress hormones, which drives your hunger and steals your patience. So your Signals come in loud and wrong, your Fuel gets harder to hold, and your Output drops in both layers. You have less to train with and less to give the people you love. One neglected arc drags the entire loop down, and you will swear it was a willpower problem.</p>
+    <p>It wasn't. It was a broken node, and a broken node is fixable the moment you can see which one it is.</p>
+
+    <div class="tile">
+      <h3 style="margin-top:0">And then it starts again</h3>
+      <p>Recovery feeds Signals. Signals tell you about Fuel. Fuel changes Output. Output creates what you recover from. That is the loop, and it never stops turning as long as you are alive. Your only job is to keep reading it and to fix the one arc that is dragging.</p>
+    </div>
+  </section>
+
+  <!-- ============ 7 ============ -->
+  <section class="chapter">
+    <span class="ch">Seven</span>
+    <h2>How To Run <span class="gold">The Circle</span></h2>
+    <p class="sub">You do not fix all four at once. You find the one that is broken and you turn there.</p>
+
+    <p>The mistake would be to walk away from this thinking you now have four times as much to do. You do not. The circle makes your life simpler, not busier, because it tells you where to aim.</p>
+
+    <ol>
+      <li><strong>Read your Signals first.</strong> One week of noticing your energy, sleep, and hunger. This is the free instrument panel, and it is where every decision starts.</li>
+      <li><strong>Find the arc that is dragging.</strong> It is almost never the one you have been grinding on. The person killing themselves in Output usually has a Recovery problem. The person obsessing over Fuel usually has a sleep or a stress problem feeding it.</li>
+      <li><strong>Fix that one node.</strong> Give your attention to the broken arc, not the one that already feels productive. Then let the loop carry the change to the others, because it will.</li>
+      <li><strong>Read again.</strong> A week later, look at your Signals. The loop will tell you whether it worked and what to turn to next. You are running your body the way you run everything else that works.</li>
+    </ol>
+
+    <div class="tile">
+      <h3 style="margin-top:0">One thing to keep straight</h3>
+      <p>The Awareness Circle is your daily and weekly instrument panel. It answers <em>what should I do this week.</em> It has a companion, the Season Cycle, which is the months-long map that answers <em>what should I do this quarter</em>, when to lose, when to build, and when to hold. Different time scales, same system. This guide is the panel. Learn to read it first.</p>
+    </div>
+  </section>
+
+  <!-- ============ 8 ============ -->
+  <section class="chapter">
+    <span class="ch">Eight</span>
+    <h2>What This Is <span class="gold">Part Of</span></h2>
+    <p class="sub">The operating system this circle sits inside.</p>
+
+    <p>What you have just read is how you see. It is the awareness layer of a larger operating system, and the other pieces are what you do once you can see clearly.</p>
+    <p>How to run your Fuel without dieting every day of the year. How to train so your Output climbs in both layers. What to do across a whole year of seasons, so you are never again finished with nothing left to run. The circle is where all of it starts, because none of it works while you are still blind.</p>
+
+    <div class="callout"><p>Not another program to obey. A system you can finally read for yourself.</p></div>
+
+    <h3>Two things you can do right now, both free</h3>
+    <p><strong>Come run it with people.</strong> The Legacy Performance Project is our community, and it is free to join. The courses are in there, the live calls are open, and nobody has to learn to read their own body alone. If you take one step off the back of this guide, make it this one.</p>
+    <a class="btn" href="https://www.skool.com/legacy-performance/about">Join the free community &rarr;</a>
+
+    <p style="margin-top:30px"><strong>And get your own numbers.</strong> The circle is the same for everybody, because the physiology is. Your starting numbers are yours. Five minutes, nothing to buy. You will get your calorie target, your protein floor, the season you should start in, and the one arc of your circle that is most in your way.</p>
+    <a class="btn line" href="https://dashboard.legacyperformance.co/build">Get my numbers &rarr;</a>
+    <p style="text-align:center;font-size:.84rem;color:#9f998e;margin-top:12px">dashboard.legacyperformance.co/build</p>
+
+    <p style="margin-top:34px">Nobody is coming to save your health. Not a program, not an app, not a coach, not even me. The goal was never for you to need one. It is for you to see the whole circle and run your own loop.</p>
+    <p>You can see it now. Go read yours.</p>
+  </section>
+
+  <p class="godeeper" style="border-top:1px solid var(--olive-dim);margin-top:40px;padding-top:22px;font-size:.95rem;color:var(--soft)"><strong style="color:#fff">Want the deeper why?</strong> This guide is the action version — the exact steps to run. The full teaching, and the reasons behind every one of them, lives in the free community’s classroom. <a href="https://www.skool.com/legacy-performance/about">Go deeper in the course &rarr;</a></p>
+
+  <footer class="foot">
+    <span>&copy; 2026 Legacy Performance &middot; Build a body that's Built for More.</span>
+    <p class="disc">Educational coaching guidance, not medical advice. Individual results vary and no specific outcome is guaranteed. Consult your physician before changing your diet or training, especially if you have a medical condition.</p>
+  </footer>
+
+</div>
+</body>
+</html>

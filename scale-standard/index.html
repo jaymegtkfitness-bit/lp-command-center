@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Scale Standard · Legacy Performance</title>
+<meta name="description" content="The scale is a tool, not a verdict. Weighing more often is not judging yourself more often. Here is how to read the number without letting it read you: three times a week, same days, and the trend across two weeks — never a single morning.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;
+  --gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#1a1a1a;color:var(--parch);font-family:Montserrat,-apple-system,sans-serif;font-size:16.5px;line-height:1.66;-webkit-font-smoothing:antialiased}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:relative;z-index:1;height:5px;background:linear-gradient(90deg,#4A5C3E 0%,#8FA97A 45%,#C1AD72 85%,#e3d3a1)}
+.page{position:relative;z-index:1;max-width:740px;margin:0 auto;padding:0 30px 80px}
+img{max-width:100%;border:0}
+a{color:var(--gold)}
+em{color:var(--parch);font-style:italic}
+strong{color:var(--parch);font-weight:700}
+.head{display:flex;align-items:center;padding:28px 0 0}
+.head img{height:46px;width:auto;margin-left:-6px}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.78rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);display:block}
+.ch{font-family:Cinzel,Georgia,serif;font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600;display:block}
+h1{font-weight:900;font-size:clamp(2.3rem,6.4vw,3.4rem);line-height:.98;text-transform:uppercase;color:#fff;margin-top:18px;letter-spacing:-.018em}
+h2{font-weight:900;font-size:clamp(1.5rem,3.9vw,2.2rem);line-height:1.04;text-transform:uppercase;color:#fff;margin-top:12px;letter-spacing:-.012em}
+h3{font-weight:800;font-size:1.04rem;color:#fff;letter-spacing:.01em;margin-top:24px}
+.sub{font-family:Cinzel,Georgia,serif;color:var(--gold);font-size:1.02rem;margin-top:12px;line-height:1.4}
+.gold{color:var(--gold)}
+p{color:var(--body);margin-top:14px}
+.lead{font-size:1.12rem;margin-top:20px}
+.rule{width:110px;height:3px;border-radius:2px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:26px 0}
+.chapter{padding:52px 0;border-top:1px solid var(--olive-dim)}
+.cover{padding:40px 0 18px;border:0}
+.tile{background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:24px 26px;margin-top:22px}
+.panel{background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:18px;padding:28px 30px;margin-top:24px}
+ol,ul{margin-top:16px;padding-left:0;list-style:none}
+ol li,ul li{position:relative;padding-left:34px;color:var(--body);margin-top:13px}
+ol{counter-reset:c}
+ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top:2px;width:22px;height:22px;border-radius:50%;
+  background:var(--gold);color:var(--ink);font-weight:900;font-size:.78rem;display:flex;align-items:center;justify-content:center}
+ul li:before{content:"";position:absolute;left:5px;top:10px;width:8px;height:8px;border-radius:50%;background:var(--olive-lt)}
+.callout{border-left:4px solid var(--gold);padding:6px 0 6px 22px;margin:24px 0}
+.callout p{color:var(--parch);font-weight:600;font-size:1.06rem;margin:0}
+.btn{display:block;background:var(--gold);color:var(--ink);font-weight:800;font-size:.92rem;letter-spacing:.06em;text-transform:uppercase;
+  padding:18px 26px;border-radius:12px;text-align:center;text-decoration:none;max-width:440px;margin:26px auto 0}
+.btn.line{background:transparent;color:var(--gold);border:1px solid var(--gold-dim);margin-top:14px}
+.foot{border-top:1px solid var(--olive-dim);margin-top:52px;padding-top:24px;font-size:.78rem;color:#8f8a80}
+.disc{font-size:.72rem;color:#77726a;margin-top:14px}
+/* trend illustration */
+.trend{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:24px}
+.tcard{background:linear-gradient(160deg,rgba(84,106,70,.2),rgba(255,255,255,.03));border:1px solid var(--olive-dim);border-radius:16px;padding:20px}
+.tcard .n{font-family:Cinzel,Georgia,serif;font-size:.7rem;letter-spacing:.22em;text-transform:uppercase;color:var(--olive-lt)}
+.tcard .v{display:block;font-weight:900;color:var(--gold);font-size:1.2rem;line-height:1.2;margin:8px 0 4px}
+.tcard p{font-size:.86rem;color:var(--soft);margin-top:6px}
+@media (max-width:620px){.trend{grid-template-columns:1fr}.page{padding:0 19px 54px}}
+@media print{
+  body{background:#1a1a1a!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;font-size:11.5pt}
+  .bg{position:absolute;height:100%}
+  .chapter{break-before:page;padding:30px 0 0;border-top:0}
+  .cover{break-after:page}
+  .tile,.panel,.callout,.tcard{break-inside:avoid}
+  h1,h2,h3{break-after:avoid}
+  .btn{display:none}
+}
+</style>
+</head>
+<body>
+<div class="topbar"></div>
+<div class="bg"></div>
+<div class="page">
+
+  <header class="head"><img src="../logo-white-gold.png" alt="Legacy Performance"></header>
+
+  <!-- ============ COVER ============ -->
+  <section class="cover">
+    <span class="eyebrow">The Legacy Performance OS</span>
+    <h1>The Scale<br><span class="gold">Standard</span></h1>
+    <p class="sub">A tool, not a verdict.<br>The number is not you.</p>
+    <div class="rule"></div>
+    <p class="lead">Weighing more often is not judging yourself more often. The scale has been misused on you for so long that you either check it obsessively or refuse to look, and neither one is data. Here is how to read the number without letting it read you.</p>
+    <p>You can put this into practice on your very next weigh-in. Nothing here needs to be bought.</p>
+  </section>
+
+  <!-- ============ 1 ============ -->
+  <section class="chapter">
+    <span class="ch">One</span>
+    <h2>A Tool, <span class="gold">Not A Verdict</span></h2>
+    <p class="sub">Everything else in this guide fails if you skip this part.</p>
+
+    <p>Before a single number, the frame, because the frame is the whole thing.</p>
+
+    <div class="callout"><p>You are going to learn to use the scale as a tool, not a verdict.</p></div>
+
+    <p>A tool measures something. A verdict decides something about you. Diet culture spent years teaching you that the number on the scale is not a measurement, it is a judgment, a grade on whether you were good this week and, underneath that, whether you are a disciplined person or a failing one.</p>
+    <p>That is a lie, and it is the specific lie that made the scale unusable for you. A bathroom scale measures the gravitational pull on your body at one moment in time. That is all it does. It knows nothing about your worth, your effort, your character, or your week. It cannot, because it is a spring and a screen.</p>
+    <p>A diet is a tool. Training is a tool. The scale is a tool. Not one of them is a measure of who you are. Hold that, and the number goes quiet. Skip it, and everything below turns into another way to grade yourself, which is the opposite of what it is for.</p>
+  </section>
+
+  <!-- ============ 2 ============ -->
+  <section class="chapter">
+    <span class="ch">Two</span>
+    <h2>Two Ways To <span class="gold">Get It Wrong</span></h2>
+    <p class="sub">Both of them feel like caring. Neither one is data.</p>
+
+    <p>When the number is treated as a verdict, there are only two places to land, and you have probably lived in both.</p>
+
+    <div class="trend">
+      <div class="tcard"><span class="n">Failure One</span><span class="v">Weighing obsessively</span>
+        <p>Every morning, sometimes twice, riding the number up and down. A good number makes the day and a bad one ruins it. That is not measurement, it is a mood swing on a spring, and it tells you nothing because a single morning is pure noise.</p></div>
+      <div class="tcard"><span class="n">Failure Two</span><span class="v">Refusing to look</span>
+        <p>The scale in a closet, or in the trash. Understandable, given how it has been used on you. But it leaves you flying blind, guessing at whether anything is working, unable to tell a plateau from progress until months have gone by.</p></div>
+    </div>
+
+    <p>Notice they are opposites that come from the same root. Both treat the number as a judge. One obeys the judge every morning. The other fires the judge and loses the instrument along with it.</p>
+    <p>The standard is a third option. You keep the tool and you retire the judge. You look often enough to have real data, and you read it in a way that makes a single bad morning meaningless. That is the whole move.</p>
+  </section>
+
+  <!-- ============ 3 ============ -->
+  <section class="chapter">
+    <span class="ch">Three</span>
+    <h2>How To <span class="gold">Actually Read It</span></h2>
+    <p class="sub">Three numbers a week, the same days, and never a single morning.</p>
+
+    <p>Here is the mechanic, and it is short.</p>
+
+    <ol>
+      <li><strong>Weigh at least three times a week, on the same days each week.</strong> First thing in the morning, after the bathroom, before you eat or drink. Same days matters, because it controls for your weekend, your travel, and your training rhythm so you are comparing like to like. One weigh-in is noise. Two is barely a data point. Three is an average you can trust.</li>
+      <li><strong>Log the weekly average, never a single number.</strong> You do not care what Tuesday said. You care what the whole week averaged out to. The daily numbers exist only to be averaged and then ignored.</li>
+      <li><strong>Read the trend, not the week.</strong> Put this week's average next to the last two. A line across weeks is a direction. A single week, even a single average, is still just a data point.</li>
+    </ol>
+
+    <div class="panel">
+      <span class="eyebrow">The calling card of the whole system</span>
+      <h3 style="margin-top:14px;font-size:1.28rem">One day is noise. Two weeks is a trend.</h3>
+      <p>Your weight swings two, three, four pounds in a day on water, salt, sleep, hormones, and what is still in your system. None of that is fat, and all of it is invisible to a spring. A morning that spikes three pounds after a salty dinner is not a setback, it is a Tuesday.</p>
+      <p>So you never make a decision off one morning, and you never make one off a single average week either. You wait for the line across two weeks or more to actually point somewhere. That patience is the entire difference between reading the scale and being ruled by it.</p>
+    </div>
+
+    <p>This is also what protects a hard week. When the number is a two week trend instead of a daily verdict, one flat or ugly week cannot end your effort, because you already know one week is not a direction. You keep running, and you let the trend tell the truth.</p>
+  </section>
+
+  <!-- ============ 4 ============ -->
+  <section class="chapter">
+    <span class="ch">Four</span>
+    <h2>If You Won't <span class="gold">Weigh</span></h2>
+    <p class="sub">Allowed. Not a fight worth having. But you have to replace the data, not just remove it.</p>
+
+    <p>For some people the scale carries too much history to be a tool yet. If that is you, you are allowed to put it away. This is not a fight worth having, and nobody here is going to shame the choice.</p>
+    <p>There is one condition. You replace the data, you do not just delete it. Blind is not a strategy.</p>
+
+    <h3>The substitute: a tape measure, monthly</h3>
+    <ul>
+      <li><strong>Neck, thigh, and waist</strong> at the navel, measured once a month, same time of day, relaxed.</li>
+      <li>Track those three across months the same way you would track the scale trend. The direction over time is the signal, never one measurement.</li>
+    </ul>
+
+    <div class="tile">
+      <h3 style="margin-top:0">Read the waist first, and expect the others to surprise you</h3>
+      <p>Your waist at the navel is the primary fat-loss signal. That is the number to watch when the goal is losing fat. Your neck and your thigh can actually <em>increase</em> on a good training program, because you are adding muscle, and that is real progress that reads as failure if nobody warns you first. A thigh that grows while your waist shrinks is exactly what winning looks like. Do not panic at it, celebrate it.</p>
+    </div>
+
+    <div class="callout"><p>Skipping the scale is allowed. What it costs you is data. Fewer data points means it takes longer to tell whether this is working, and longer to know what to change.</p></div>
+
+    <p>That is the honest trade, stated plainly and without judgment. Choose the tape measure if the scale is not ready to be a tool for you. Just do not choose to fly blind, because blind is the one option that never works.</p>
+  </section>
+
+  <!-- ============ 5 ============ -->
+  <section class="chapter">
+    <span class="ch">Five</span>
+    <h2>What This Is <span class="gold">Part Of</span></h2>
+    <p class="sub">One instrument, read correctly, inside a system that does not end.</p>
+
+    <p>The scale is one gauge on a larger instrument panel. Read it right and it becomes what it was always supposed to be, a quiet source of truth you check, interpret, and act on, the same way you read any other number in a life you run well.</p>
+    <p>It sits inside the Awareness Circle, where it is one of the Signals your body sends, and it takes its meaning from the Season Cycle, because a rising number during a Strong season is a triumph and the identical number during a Lean season is a signal to adjust. The number is never the whole story. The system around it is.</p>
+
+    <div class="callout"><p>You check the tool. The tool does not get to check you.</p></div>
+
+    <h3>Two things you can do right now, both free</h3>
+    <p><strong>Come run it with people.</strong> The Legacy Performance Project is our community, and it is free to join. The courses are in there, the live calls are open, and it is a good place to practice reading the number without letting it read you. If you take one step off the back of this guide, make it this one.</p>
+    <a class="btn" href="https://www.skool.com/legacy-performance/about">Join the free community &rarr;</a>
+
+    <p style="margin-top:30px"><strong>And get your own numbers.</strong> Five minutes, nothing to buy. You will get your starting targets, the season you should begin in, and the one thing most in your way, so the number on the scale finally has a plan around it.</p>
+    <a class="btn line" href="https://dashboard.legacyperformance.co/build">Get my numbers &rarr;</a>
+    <p style="text-align:center;font-size:.84rem;color:#9f998e;margin-top:12px">dashboard.legacyperformance.co/build</p>
+
+    <p style="margin-top:34px">The scale was never your judge. It was always just a tool, waiting for you to pick it up and use it like one.</p>
+    <p>Go weigh in. Read the trend. Keep going.</p>
+  </section>
+
+  <p class="godeeper" style="border-top:1px solid var(--olive-dim);margin-top:40px;padding-top:22px;font-size:.95rem;color:var(--soft)"><strong style="color:#fff">Want the deeper why?</strong> This guide is the action version — the exact steps to run. The full teaching, and the reasons behind every one of them, lives in the free community’s classroom. <a href="https://www.skool.com/legacy-performance/about">Go deeper in the course &rarr;</a></p>
+
+  <footer class="foot">
+    <span>&copy; 2026 Legacy Performance &middot; Build a body that's Built for More.</span>
+    <p class="disc">Educational coaching guidance, not medical advice. Individual results vary and no specific outcome is guaranteed. If you have a history of disordered eating, talk with a qualified professional before adopting any weighing or measurement routine.</p>
+  </footer>
+
+</div>
+</body>
+</html>

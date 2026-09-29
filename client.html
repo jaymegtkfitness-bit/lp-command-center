@@ -1496,7 +1496,7 @@ function showClientTab(tab){
    a program yet get the getting-started view. Jayme's account carries the Min-Max program. */
 function assignedProgram(){
   if(ID && ID.email && ID.email.toLowerCase()===(typeof JAYME_EMAIL!=='undefined'?JAYME_EMAIL:"")){
-    return { name:"The Min-Max Program", src:"workout/private/?embed=1", pct:15, weeks:6,
+    return { name:"The Min-Max Program", src:"workout/mine/?embed=1", pct:15, weeks:6,
       days:[{t:"Upper 1",mins:55,ex:8},{t:"Lower 1",mins:40,ex:6},{t:"Upper 2",mins:50,ex:7},{t:"Lower 2",mins:35,ex:5},{t:"Arms/Delts",mins:65,ex:9}] };
   }
   return null;   // no assigned program wired for generic members yet
@@ -1509,7 +1509,7 @@ function openWorkoutDay(i){
   var d=(ap.days&&ap.days[i]), day=(d&&d.t)?d.t:((typeof d==='string')?d:("Day "+(i+1)));
   if(ti) ti.textContent=day;
   var base=ap.src.indexOf('?')>=0?ap.src:(ap.src+'?embed=1');
-  fr.src=base+"&day="+i+"&_="+Date.now();
+  fr.src=base+"&day="+i+"&v=2";
   ov.classList.add("open"); document.body.style.overflow="hidden";
 }
 function closeWorkoutDay(){ var ov=g("workoutOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("workoutOverlayFrame"); if(fr) fr.src="about:blank"; }

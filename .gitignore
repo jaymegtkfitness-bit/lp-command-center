@@ -16,3 +16,9 @@ appsscript/
 
 # internal ops script — not for the public site
 redeploy.sh
+
+# Personal program tracker (owned programs, personal use only — never published/sold)
+workout/private/
+
+# Claude Code local config / session settings — never publish to this PUBLIC repo
+.claude/
