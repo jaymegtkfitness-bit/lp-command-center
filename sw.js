@@ -8,18 +8,15 @@
    cached shell (e.g. a big client.html change). It also auto-refreshes in the background
    on every visit, so most changes reach people on their next open without a bump.
    Keep the ?v= values below in sync with the tags in client.html. */
-const CACHE_VERSION = 'lp-v2-2026-09-29';
+const CACHE_VERSION = 'lp-v3-2026-09-29';
 const SHELL  = 'lp-shell-'  + CACHE_VERSION;
 const RUNTIME = 'lp-runtime-' + CACHE_VERSION;
 
 /* The handful of files the app needs to boot. Versioned assets update on their own when
    their ?v= changes (a new URL = a fresh fetch + cache entry). */
 const SHELL_FILES = [
-  './client.html',
-  './nutrition-engine.js?v=42',
-  './recipe-data.js?v=6',
   './logo-white-gold.png',
-  './shield-navmark.png',
+  './shield-white-gold.png',
   './apple-touch-icon.png'
 ];
 
@@ -46,16 +43,30 @@ self.addEventListener('fetch', function(e){
      Fonts, and any POST — goes straight to the network and is never cached. */
   if (req.method !== 'GET' || url.origin !== self.location.origin) return;
 
+  /* Static assets (images, fonts, icons) rarely change and are versioned by ?v= — cache-first
+     for speed. */
+  if (/\.(png|jpe?g|webp|svg|gif|woff2?|ttf|otf|ico)$/i.test(url.pathname)) {
+    e.respondWith(
+      caches.match(req).then(function(cached){
+        return cached || fetch(req).then(function(res){
+          if (res && res.status === 200 && res.type === 'basic') {
+            var copy = res.clone(); caches.open(RUNTIME).then(function(c){ c.put(req, copy); });
+          }
+          return res;
+        });
+      })
+    );
+    return;
+  }
+
+  /* HTML + JS + everything else → NETWORK-FIRST: always the latest when online, cache only as
+     an offline fallback. Keeps the app fresh during active development and for updates. */
   e.respondWith(
-    caches.match(req).then(function(cached){
-      var network = fetch(req).then(function(res){
-        if (res && res.status === 200 && res.type === 'basic') {
-          var copy = res.clone();
-          caches.open(RUNTIME).then(function(c){ c.put(req, copy); });
-        }
-        return res;
-      }).catch(function(){ return cached; });   // offline → whatever we have cached
-      return cached || network;                  // cache first for speed, else the network
-    })
+    fetch(req).then(function(res){
+      if (res && res.status === 200 && res.type === 'basic') {
+        var copy = res.clone(); caches.open(RUNTIME).then(function(c){ c.put(req, copy); });
+      }
+      return res;
+    }).catch(function(){ return caches.match(req); })
   );
 });

@@ -931,7 +931,9 @@ header .brand img{height:3.9rem!important}
 .editgoal{font-size:.84rem!important}
 .mtile .k{font-size:1.75rem!important}
 .mtile .l{font-size:.81rem!important}
-.mtile{padding:.95rem .95rem!important}
+.mtile{padding:.8rem .9rem!important}
+/* Produce range fits on one line + leaves room for a 4-digit upper number (600–1000g) */
+.mtile.wide .k{font-size:1.28rem!important;white-space:nowrap!important;letter-spacing:-.01em!important}
 /* Day rows */
 .kday{padding:1rem!important;gap:.94rem!important}
 .kday .thumb{width:4.6rem!important;height:4.6rem!important}
@@ -1025,7 +1027,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
     <a href="find-your-phase/">Find your phase</a>
     <a href="score/">Legacy Score</a>
     <div class="drawer-group">Account</div>
-    <button onclick="closeMenu();editIdentity()">Settings</button>
+    <button onclick="closeMenu();if(confirm('Log out of your dashboard?'))editIdentity()">Log out</button>
   </nav>
 </aside>
 
@@ -4113,7 +4115,7 @@ function renderNutritionHero(){
     +'<div class="tiles3">'
     +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories</div></div>'
     +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein · 1g / lb</div></div>'
-    +'<div class="mtile"><div class="k">600–800g</div><div class="l">Produce</div></div>'
+    +'<div class="mtile wide"><div class="k">600–800g</div><div class="l">Produce</div></div>'
     +'<div class="mtile"><div class="k">'+(water||'—')+' oz</div><div class="l">Water · half BW</div></div>'
     +'</div></div>';
   // Cronometer log tile
@@ -5280,7 +5282,7 @@ function jaymeBoot(){
   DEEP=M.deep;
   var pf=proteinFloor()||180;
   M.checkins=[0,1,2,3].map(function(i){
-    return { ts:now-(3-i)*7*day, weight:+(201-i*1.6).toFixed(1), cons:82+i*4, consLabel:"85–95%",
+    return { ts:now-(3-i)*7*day, weight:+(196-i*2).toFixed(1), cons:82+i*4, consLabel:"85–95%",
       cal:it.pfs.calories-30+i*15, protein:pf-10+i*6, steps:10500+i*300, workouts:4, effort:8,
       digdir:"Normal", food:8, energy:4, sleep:4, acuity:4, strength:5, digestion:4,
       hunger:3, libido:4, inflammation:2, mood:4, recovery:4, stress:3, followups:[] };
