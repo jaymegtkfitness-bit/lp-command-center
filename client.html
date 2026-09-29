@@ -777,6 +777,25 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 .wov-back{width:38px;height:38px;border-radius:11px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--gold);font-size:22px;line-height:1;cursor:pointer}
 #workoutOverlayTitle{font-family:'Montserrat',sans-serif;font-weight:900;font-size:17px;text-transform:uppercase;color:#fff;letter-spacing:.01em}
 #workoutOverlayFrame{flex:1;width:100%;border:0;background:#141510}
+/* Generic in-app page overlay — loads a local sub-page (library, tools, build, etc.) in a framed
+   sheet with a Back button, so nothing ever dead-ends outside the app. */
+#pageOverlay{position:fixed;inset:0;z-index:82;background:#0b0b0a;display:none;flex-direction:column}
+#pageOverlay.open{display:flex}
+#pageOverlayFrame{flex:1;width:100%;border:0;background:#0e0d0b}
+#pageOverlayTitle{font-family:'Montserrat',sans-serif;font-weight:900;font-size:17px;text-transform:uppercase;color:#fff;letter-spacing:.01em}
+/* In-app target editor — adjust daily calories/protein without leaving the app. */
+#targetEditor{position:fixed;inset:0;z-index:90;display:none;align-items:flex-end;justify-content:center;background:rgba(0,0,0,.55)}
+#targetEditor.open{display:flex}
+#targetEditor .te-card{width:100%;max-width:520px;background:#141311;border:1px solid var(--line);border-radius:20px 20px 0 0;padding:22px 20px calc(20px + env(safe-area-inset-bottom));box-shadow:0 -10px 40px rgba(0,0,0,.5)}
+#targetEditor .te-h{font-family:'Montserrat',sans-serif;font-weight:900;font-size:19px;text-transform:uppercase;color:#fff;letter-spacing:.01em}
+#targetEditor .te-sub{color:var(--ink-dim);font-size:12.5px;margin:4px 0 16px}
+#targetEditor .te-row{display:flex;gap:12px;margin-bottom:8px}
+#targetEditor .te-field{flex:1}
+#targetEditor .te-field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold-soft,#c9b98a);margin-bottom:6px;font-weight:700}
+#targetEditor .te-field input{width:100%;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:12px;padding:14px;color:#fff;font-family:inherit;font-size:20px;font-weight:800;text-align:center}
+#targetEditor .te-actions{display:flex;gap:10px;margin-top:14px}
+#targetEditor .te-save{flex:1;background:var(--gold,#C1AD72);color:#1c1c1c;border:0;border-radius:12px;padding:15px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit}
+#targetEditor .te-reset{background:transparent;border:1px solid var(--line);color:var(--ink-soft);border-radius:12px;padding:15px 16px;font-weight:700;cursor:pointer;font-family:inherit}
 /* Home hero container becomes the flush Daily Target card */
 #homeHeroCard{padding:0;background:transparent;border:none;box-shadow:none;overflow:visible}
 /* HOME = the simple Kino screen only. Hide every legacy Home card; keep the Daily-Target hero. */
@@ -1056,11 +1075,11 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
     <a id="drawerAccount" href="#" onclick="return openAccount()">Account &amp; billing <small>Portal</small></a>
     <a href="onboarding/community.html" target="_blank" rel="noopener">Community <small>Skool</small></a>
     <div class="drawer-group">Tools &amp; guides</div>
-    <a href="library/">Guides &amp; library</a>
+    <a href="library/" onclick="closeMenu();return openInAppPage('library/','Guides &amp; Library');">Guides &amp; library</a>
     <a href="#" onclick="closeMenu();showClientTab('nutrition');openEatingOut();return false;">Restaurant finder <small>48 chains</small></a>
-    <a href="tools/">Nutrition tools</a>
-    <a href="find-your-phase/">Find your phase</a>
-    <a href="score/">Legacy Score</a>
+    <a href="tools/" onclick="closeMenu();return openInAppPage('tools/','Nutrition Tools');">Nutrition tools</a>
+    <a href="find-your-phase/" onclick="closeMenu();return openInAppPage('find-your-phase/','Find Your Phase');">Find your phase</a>
+    <a href="score/" onclick="closeMenu();return openInAppPage('score/','Legacy Score');">Legacy Score</a>
     <div class="drawer-group">Account</div>
     <button onclick="closeMenu();if(confirm('Log out of your dashboard?'))editIdentity()">Log out</button>
   </nav>
@@ -1070,6 +1089,25 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 <div id="workoutOverlay">
   <div class="wov-head"><button class="wov-back" onclick="closeWorkoutDay()" aria-label="Back">‹</button><div id="workoutOverlayTitle">Workout</div></div>
   <iframe id="workoutOverlayFrame" title="Workout" src="about:blank"></iframe>
+</div>
+
+<!-- Generic in-app page overlay — any local sub-page opens here with a Back button -->
+<div id="pageOverlay">
+  <div class="wov-head"><button class="wov-back" onclick="closeInAppPage()" aria-label="Back">‹</button><div id="pageOverlayTitle">Legacy Performance</div></div>
+  <iframe id="pageOverlayFrame" title="Legacy Performance" src="about:blank"></iframe>
+</div>
+
+<!-- In-app target editor (Edit target) -->
+<div id="targetEditor" onclick="if(event.target===this)closeTargetEditor()">
+  <div class="te-card">
+    <div class="te-h">Edit your targets</div>
+    <div class="te-sub">Fine-tune your daily calories and protein — this drives your ring and weekly read.</div>
+    <div class="te-row">
+      <div class="te-field"><label>Calories / day</label><input id="teCal" type="number" inputmode="numeric" min="800" max="6000"></div>
+      <div class="te-field"><label>Protein / day (g)</label><input id="tePro" type="number" inputmode="numeric" min="40" max="400"></div>
+    </div>
+    <div class="te-actions"><button class="te-save" onclick="saveTarget()">Save targets</button><button class="te-reset" onclick="resetTarget()">Reset to calculated</button></div>
+  </div>
 </div>
 
 <div class="wrap">
@@ -1678,6 +1716,47 @@ function openWorkoutDay(i){
   ov.classList.add("open"); document.body.style.overflow="hidden";
 }
 function closeWorkoutDay(){ var ov=g("workoutOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("workoutOverlayFrame"); if(fr) fr.src="about:blank"; }
+/* Open a local sub-page inside the app (framed, with a Back button) instead of navigating away. */
+function openInAppPage(url, title){
+  var ov=g("pageOverlay"), fr=g("pageOverlayFrame"), ti=g("pageOverlayTitle");
+  if(!ov||!fr){ window.open(url,'_self'); return false; }   // fallback: plain navigate
+  if(ti) ti.textContent=title||"Legacy Performance";
+  fr.src=url;
+  ov.classList.add("open"); document.body.style.overflow="hidden";
+  return false;
+}
+function closeInAppPage(){ var ov=g("pageOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("pageOverlayFrame"); if(fr) fr.src="about:blank"; }
+/* In-app target editor. A saved override sets it.pfs.calories/protein and persists (re-applied on
+   every render); Reset clears it and recomputes from the coefficient scale. */
+function applyTargetOverride(){
+  try{ var o=JSON.parse(localStorage.getItem('lp_target_override')||'null');
+    if(o && M && M.intake && M.intake.pfs){
+      if(isFinite(+o.cal)&&+o.cal>0) M.intake.pfs.calories=+o.cal;
+      if(isFinite(+o.pro)&&+o.pro>0) M.intake.pfs.protein=+o.pro;
+    }
+  }catch(e){}
+}
+function openTargetEditor(){
+  var it=M&&M.intake; if(!it||!it.pfs){ showClientTab('nutrition'); return; }
+  var cal=g('teCal'), pro=g('tePro');
+  if(cal) cal.value=Math.round(it.pfs.calories||0);
+  if(pro) pro.value=Math.round(it.pfs.protein||(typeof proteinFloor==='function'?proteinFloor():0)||0);
+  var m=g('targetEditor'); if(m){ m.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function closeTargetEditor(){ var m=g('targetEditor'); if(m)m.classList.remove('open'); document.body.style.overflow=''; }
+function reRenderTargets(){ if(typeof renderHomeHero==='function') renderHomeHero(); window._nutRendered=false; if(typeof renderNutritionHero==='function') renderNutritionHero(); }
+function saveTarget(){
+  var cal=+(g('teCal')&&g('teCal').value), pro=+(g('tePro')&&g('tePro').value);
+  if(!isFinite(cal)||cal<=0||!isFinite(pro)||pro<=0) return;
+  try{ localStorage.setItem('lp_target_override', JSON.stringify({cal:Math.round(cal),pro:Math.round(pro),ts:Date.now()})); }catch(e){}
+  applyTargetOverride(); closeTargetEditor(); reRenderTargets();
+}
+function resetTarget(){
+  try{ localStorage.removeItem('lp_target_override'); }catch(e){}
+  var it=M&&M.intake;
+  if(it && typeof computePFS==='function'){ try{ it.pfs=computePFS(it, it.track); }catch(e){} }
+  closeTargetEditor(); reRenderTargets();
+}
 /* Workouts tab = the PROGRAM LIBRARY (Kino "Programs"). Your active program lives on Home;
    here you browse every program and switch. */
 function renderWorkouts(){
@@ -4063,6 +4142,7 @@ function kRingSVG(avg, target, size, cls){
    wordy (the read, journey, awareness loop, foundations) lives on other tabs now. */
 function renderHomeHero(){
   var box=g("homeHeroBox"); if(!box) return;
+  if(typeof applyTargetOverride==='function') applyTargetOverride();
   var it=M.intake;
   if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }
   var target=Math.round(it.pfs.calories);
@@ -4093,7 +4173,7 @@ function renderHomeHero(){
     +'<div class="dt-col"><div class="dt-goalwrap">'
     +'<span class="goalpill">🎯 '+esc(track)+(gw?(' · goal '+gw+' lb'):'')+'</span>'
     +'<div style="margin-top:10px">'+statusHTML+'</div>'
-    +'<div class="editgoal" onclick="showClientTab(\'nutrition\')">✎ Edit target</div></div>'
+    +'<div class="editgoal" onclick="openTargetEditor()">✎ Edit target</div></div>'
     +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein / day</div></div></div>'
     +'</div>'+stepTile+'</div>';
 
@@ -4165,6 +4245,7 @@ function toggleMealOpts(mi){ var b=g('mopts'+mi), c=g('mchev'+mi); if(!b)return;
   b.style.display=open?'block':'none'; if(c)c.textContent=open?'⌄':'›'; }
 function renderNutritionHero(){
   var box=g("nutHeroBox"); if(!box) return;
+  if(typeof applyTargetOverride==='function') applyTargetOverride();
   var it=M.intake;
   if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }
   var target=Math.round(it.pfs.calories);
@@ -4200,17 +4281,17 @@ function renderNutritionHero(){
   h+='<div class="k-slabel">Your Nutrition System'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
   if(meals.length){
     meals.forEach(function(m,mi){ h+=nutMealRow(m,mi); });
-    h+='<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else window.location.href=\'build/\'"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
+    h+='<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else openInAppPage(\'build/\',\'Build Your Nutrition System\')"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
   } else {
-    h+='<div class="krow" onclick="window.location.href=\'build/\'"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">The Complete Nutrition System · CNS</div></div><div class="go">›</div></div>';
+    h+='<div class="krow" onclick="openInAppPage(\'build/\',\'Build Your Nutrition System\')"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">The Complete Nutrition System · CNS</div></div><div class="go">›</div></div>';
   }
-  h+='<div class="krow" onclick="window.open(\'library/\',\'_self\')"><div class="ic">🧭</div><div class="rb"><div class="rt2">Your protocol</div><div class="rs">Macro Freedom Framework — how your plan is built</div></div><div class="go">›</div></div>';
+  h+='<div class="krow" onclick="openInAppPage(\'library/\',\'Your Protocol\')"><div class="ic">🧭</div><div class="rb"><div class="rt2">Your protocol</div><div class="rs">Macro Freedom Framework — how your plan is built</div></div><div class="go">›</div></div>';
   // Tools
   h+='<div class="k-slabel">Tools</div>'
-    +'<div class="krow" onclick="window.open(\'power-food-list/\',\'_self\')"><div class="ic">📋</div><div class="rb"><div class="rt2">Power Food List</div><div class="rs">106 foods, sorted into tiers</div></div><div class="go">›</div></div>'
+    +'<div class="krow" onclick="openInAppPage(\'power-food-list/\',\'Power Food List\')"><div class="ic">📋</div><div class="rb"><div class="rt2">Power Food List</div><div class="rs">106 foods, sorted into tiers</div></div><div class="go">›</div></div>'
     +'<div class="krow" onclick="if(typeof openEatingOut===\'function\'){openEatingOut();}nutForceShow(\'fastFoodCard\')"><div class="ic">🍔</div><div class="rb"><div class="rt2">Eating Out</div><div class="rs">Restaurant macros · 48 chains</div></div><div class="go">›</div></div>';
   // Freedom Week
-  h+='<div class="kcheckin" onclick="window.open(\'library/\',\'_self\')"><div class="ci">🔥</div><div class="cb"><div class="ct">Freedom Week</div><div class="cs">Lean phase: earn your free meals with the 4-2-1 rule.</div></div><div class="ar">→</div></div>';
+  h+='<div class="kcheckin" onclick="openInAppPage(\'library/\',\'Freedom Week\')"><div class="ci">🔥</div><div class="cb"><div class="ct">Freedom Week</div><div class="cs">Lean phase: earn your free meals with the 4-2-1 rule.</div></div><div class="ar">→</div></div>';
   box.innerHTML=h;
 }
 function renderPFS(){
@@ -4689,7 +4770,7 @@ function openMySystem(){
     restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
   inp.lowNutrients=(typeof nutrientsFromIntake==='function') ? nutrientsFromIntake(c) : [];
   inp.glp1=(typeof glp1FromIntake==='function') ? (glp1FromIntake(c) || glp1FromIntake(it) || ((typeof DEEP!=='undefined' && DEEP && DEEP.glp1==='On one now') ? 'on' : '')) : '';
-  window.open(systemLink(inp,'system/'),'_blank');
+  openInAppPage(systemLink(inp,'system/'),'Your Nutrition System');
 }
 /* The PDF is the product. It gets its own card on Home so it is never more than one tap away, and
    so a slow or failed load never hides it. */
