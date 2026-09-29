@@ -1144,13 +1144,16 @@ var COMPANION_PROTEIN=20;        // grams, the useful size of a protein top-up
 function generateCompanions(sel, count, name){
   sel=withFruit(sel||{});
   var want=count||COMPANIONS_PER_PLAN, mine=[].concat(sel.protein||[], sel.carb||[], sel.fat||[]);
+  var DIS=dislikeRx(sel.dislikes);   // snacks must honour dislikes too (a removed food can't return as a snack)
   var boost=PROTEIN_BOOSTERS.map(function(b, idx){
     var foods=b.parts.map(function(pt){ var f=foodByName(pt[0]); return {f:f, u:pt[1]*((f&&f.gpu)||1)}; });   // booster portions are written in the old serving units
-    if(foods.some(function(x){ return !x.f || !allowsFood(x.f, sel.style, sel.allergies); })) return null;
+    if(foods.some(function(x){ return !x.f || !allowsFood(x.f, sel.style, sel.allergies) || !dislikesOk(DIS, x.f.n); })) return null;
+    if(!dislikesOk(DIS, b.name)) return null;   // also catch the snack's own name (e.g. a disliked word in the title)
     var score=idx - 5*foods.filter(function(x){ return mine.indexOf(x.f.n)>=0; }).length;
     return {b:b, foods:foods, score:score};
   }).filter(Boolean).sort(function(a,b){ return a.score-b.score; }).slice(0, want);
   var recipeSnacks=(typeof RECIPE_LIBRARY==='undefined'?[]:RECIPE_LIBRARY).filter(function(r){ return r.slot==='snack'; }).map(function(r){
+    if(DIS && (r.ing||[]).some(function(g){ return g[4]!=='ps' && !dislikesOk(DIS, String(g[2])); })) return null;   // no disliked ingredient in a snack recipe
     var ing=recipeIngredients(r, sel); if(!ing) return null;
     return {name:r.name, items:ing.filter(function(g){ return g[1]!=='taste'; }).map(function(g){ return recipeLine(recipeQty(g[0], g[1], g[2]), g[1], g[2], g[4]); }),
             parts:ing.map(function(g){ return {n:g[2], units:recipeQty(g[0], g[1], g[2]), u:g[1], gpe:g[4]||0, whole:!g[1]||g[1]==='ea', sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id}; }),
