@@ -828,6 +828,14 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 .mopt .mi{font-size:11.5px;color:var(--ink-dim);margin-top:3px;line-height:1.4}
 .mopt .mm{margin-top:6px;display:flex;gap:6px;flex-wrap:wrap}
 .mopt.star .mn:before{content:"★ ";color:var(--gold)}
+.mrecipe-btn{display:flex;align-items:center;justify-content:space-between;margin-top:9px;padding-top:9px;border-top:1px solid var(--line);color:var(--gold);font-weight:700;font-size:12px;cursor:pointer;letter-spacing:.01em}
+.mrecipe-btn .mrec-chev{color:var(--gold);font-size:15px;line-height:1}
+.mrecipe{margin-top:9px}
+.mrecipe .mrh{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--gold-soft,#c9b98a);font-weight:800;margin:8px 0 5px}
+.mrecipe .mrl{margin:0;padding-left:17px;color:var(--ink-soft);font-size:12px;line-height:1.55}
+.mrecipe .mrs{margin:0;padding-left:19px;color:var(--ink-soft);font-size:12.5px;line-height:1.6}
+.mrecipe .mrs li{margin-bottom:4px}
+.mrecipe .mrmac{margin-top:9px;font-size:11px;font-weight:700;color:var(--ink-dim)}
 /* LP COACH = simple Kino Portal screen. Hide the legacy progress cards. */
 #ctab-coach{padding:0}
 #ctab-progress{display:none!important}
@@ -4227,6 +4235,60 @@ function renderHomeHero(){
 /* NUTRITION — the simple Kino screen: Your Targets (weekly-avg ring + the 4 numbers) →
    Cronometer log tile → Meal Plan → Tools → Freedom Week. */
 function nutForceShow(id){ var c=g(id); if(c){ c.classList.add('force-show'); c.scrollIntoView({behavior:'smooth',block:'start'}); } }
+/* View-recipe: the option's items ARE the ingredient list (with quantities); we add grouped method
+   steps derived from the foods. No fabricated temps/times — honest structure (cook protein → sides →
+   finish), so it reads like a recipe without claiming specifics we don't have. */
+function mealFoods(list){
+  if(!list||!list.length) return '';
+  var a=list.slice(); if(a.length===1) return a[0];
+  return a.slice(0,-1).join(', ')+' and '+a[a.length-1];
+}
+function mealMethod(o){
+  var items=(o.items||[]).map(function(s){ return String(s); });
+  var side=items.filter(function(x){ return /^on the side:/i.test(x); }).map(function(x){ return x.replace(/^on the side:\s*/i,''); });
+  var main=items.filter(function(x){ return !/^on the side:/i.test(x); });
+  var rxP=/chicken|beef|steak|salmon|shrimp|turkey|pork|tuna|cod|tilapia|\begg|tofu|tempeh|yogurt|cottage|whey|protein powder|ground|bacon|ham|sausage/i;
+  var rxS=/rice|potato|oats|bread|sourdough|bagel|pasta|quinoa|tortilla|granola|couscous|noodle|beans|lentils/i;
+  var rxFat=/oil|butter|avocado|almond|peanut|walnut|cashew|pecan|cheese|feta|olives|seeds|tahini|mayo|hummus|lemon juice|lime juice|vinegar|parsley|cilantro|basil|dill|chives|herbs|maple syrup|honey|hot sauce|soy sauce|salsa|mustard|garlic|ginger|capers/i;
+  var rxFruit=/berries|berry|banana|apple|blueberr|strawberr|mango|grape|orange|pineapple|peach|melon/i;
+  var proteins=main.filter(function(x){ return rxP.test(x); });
+  var starches=main.filter(function(x){ return rxS.test(x); }).concat(side.filter(function(x){ return rxS.test(x); }));
+  var fats=main.filter(function(x){ return rxFat.test(x) && !rxP.test(x); });
+  var fruit=main.filter(function(x){ return rxFruit.test(x); }).concat(side.filter(function(x){ return rxFruit.test(x); }));
+  var veg=main.filter(function(x){ return !rxP.test(x)&&!rxS.test(x)&&!rxFat.test(x)&&!rxFruit.test(x); });
+  var otherSide=side.filter(function(x){ return !rxS.test(x)&&!rxFruit.test(x); });
+  var nocook=!!o.nocook || (proteins.length>0 && proteins.every(function(x){ return /yogurt|cottage|whey|protein powder|granola/i.test(x); }));
+  var steps=[];
+  if(nocook){
+    steps.push('Add '+mealFoods(proteins.concat(fruit))+' to a bowl.');
+    if(fats.length) steps.push('Top with '+mealFoods(fats)+'.');
+    if(starches.length) steps.push('Stir in '+mealFoods(starches)+'.');
+    if(veg.length) steps.push('Add '+mealFoods(veg)+'.');
+  } else {
+    if(proteins.length) steps.push('Season '+mealFoods(proteins)+' and cook through — sear, grill, or bake.');
+    if(starches.length) steps.push('Prepare '+mealFoods(starches)+' on the side.');
+    if(veg.length) steps.push('Add '+mealFoods(veg)+', raw or lightly cooked.');
+    if(fats.length) steps.push('Finish with '+mealFoods(fats)+'.');
+    if(fruit.length) steps.push('Serve '+mealFoods(fruit)+' alongside.');
+  }
+  if(otherSide.length) steps.push('Serve with '+mealFoods(otherSide)+'.');
+  steps.push('Plate it. Target: '+(o.cal||'—')+' cal · '+(o.protein||'—')+'g protein.');
+  return steps;
+}
+function mealRecipeHTML(o){
+  var ing=(o.items||[]).map(function(x){ return '<li>'+esc(x)+'</li>'; }).join('');
+  var steps=mealMethod(o).map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('');
+  var macro=[]; if(o.protein)macro.push(o.protein+'g protein'); if(o.cal)macro.push(o.cal+' cal');
+  if(o.carbs!=null)macro.push(o.carbs+'g carbs'); if(o.fat!=null)macro.push(o.fat+'g fat');
+  return '<div class="mrh">Ingredients</div><ul class="mrl">'+ing+'</ul>'
+    +'<div class="mrh">Method</div><ol class="mrs">'+steps+'</ol>'
+    +(macro.length?'<div class="mrmac">'+esc(macro.join('  ·  '))+'</div>':'');
+}
+function toggleRecipe(mi,oi){
+  var b=g('mrec'+mi+'_'+oi), c=g('mrchev'+mi+'_'+oi); if(!b)return;
+  var open=b.style.display==='none';
+  b.style.display=open?'block':'none'; if(c)c.textContent=open?'⌄':'›';
+}
 function nutMealRow(m,mi){
   var opts=(m&&m.options)||[];
   var feat=opts.length?opts[0]:{name:(m&&m.name)||'Meal', items:(m&&m.items)||[], cal:(m&&m.cal), protein:(m&&m.protein)};
@@ -4243,7 +4305,9 @@ function nutMealRow(m,mi){
   (opts.length?opts:[feat]).forEach(function(o,oi){
     var om=''; if(o.protein)om+='<span class="pill">'+o.protein+'g P</span>'; if(o.cal)om+='<span class="pill">'+o.cal+' cal</span>';
     body+='<div class="mopt'+(oi===0?' star':'')+'"><div class="mn">'+esc(o.name||('Option '+(oi+1)))+'</div>'
-      +'<div class="mi">'+esc((o.items||[]).join(' · '))+'</div><div class="mm">'+om+'</div></div>';
+      +'<div class="mi">'+esc((o.items||[]).join(' · '))+'</div><div class="mm">'+om+'</div>'
+      +'<div class="mrecipe-btn" onclick="toggleRecipe('+mi+','+oi+')"><span>View recipe</span><span class="mrec-chev" id="mrchev'+mi+'_'+oi+'">›</span></div>'
+      +'<div class="mrecipe" id="mrec'+mi+'_'+oi+'" style="display:none">'+mealRecipeHTML(o)+'</div></div>';
   });
   body+='</div>';
   return head+body;
