@@ -934,6 +934,13 @@ header .brand img{height:3.9rem!important}
 .mtile{padding:.8rem .9rem!important}
 /* Produce range fits on one line + leaves room for a 4-digit upper number (600–1000g) */
 .mtile.wide .k{font-size:1.28rem!important;white-space:nowrap!important;letter-spacing:-.01em!important}
+/* iOS-style toggle switch (protein shake, and any future on/off) */
+.lp-switch{position:relative;display:inline-block;width:3.25rem;height:1.9rem;flex:0 0 auto}
+.lp-switch input{opacity:0;width:0;height:0;position:absolute}
+.lp-slider{position:absolute;inset:0;background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:999px;transition:.2s;cursor:pointer}
+.lp-slider:before{content:"";position:absolute;height:1.5rem;width:1.5rem;left:.15rem;top:.13rem;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
+.lp-switch input:checked + .lp-slider{background:linear-gradient(160deg,#7d9463,#4A5C3E);border-color:transparent}
+.lp-switch input:checked + .lp-slider:before{transform:translateX(1.35rem)}
 /* Day rows */
 .kday{padding:1rem!important;gap:.94rem!important}
 .kday .thumb{width:4.6rem!important;height:4.6rem!important}
@@ -4481,7 +4488,7 @@ function shakeBlock(){
   var s=loadFoods().shake||{}, on=!!s.on;
   return '<div class="field"><label>Daily protein shake</label>'
     +'<div class="wiz-hint" style="margin:-2px 0 8px">One shake reserved before your meals are built. Leave the numbers blank for the default (30g protein · 175 cal).</div>'
-    +'<label class="shk-toggle" style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600"><input type="checkbox" id="fe_shake_on" '+(on?'checked':'')+' onchange="feShakeToggle()" style="width:20px;height:20px"> Add a daily protein shake</label>'
+    +'<div class="shk-toggle" style="display:flex;align-items:center;gap:12px;font-weight:600"><label class="lp-switch"><input type="checkbox" id="fe_shake_on" '+(on?'checked':'')+' onchange="feShakeToggle()"><span class="lp-slider"></span></label><span>Add a daily protein shake</span></div>'
     +'<div id="fe_shake_inputs" style="margin-top:10px;'+(on?'display:flex':'display:none')+';gap:10px">'
     +'<div style="flex:1"><label style="font-size:.8rem">Protein (g)</label><input class="input" type="number" id="fe_shake_p" inputmode="numeric" placeholder="30" value="'+(s.protein||'')+'"></div>'
     +'<div style="flex:1"><label style="font-size:.8rem">Calories</label><input class="input" type="number" id="fe_shake_cal" inputmode="numeric" placeholder="175" value="'+(s.cal||'')+'"></div>'
