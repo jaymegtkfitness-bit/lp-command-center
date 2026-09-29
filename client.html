@@ -271,11 +271,7 @@ header{background:transparent;padding:14px 18px 8px;display:flex;align-items:cen
     radial-gradient(ellipse 120% 60% at 0% 100%, rgba(74,92,62,.44), transparent 76%),
     radial-gradient(ellipse 92% 46% at 100% 100%, rgba(193,173,114,.15), transparent 72%),
     linear-gradient(180deg,#141311 0%,#0e0d0b 55%,#08090a 100%)}
-#bootLoader .bl-shield{width:132px;height:auto;opacity:0;filter:drop-shadow(0 8px 26px rgba(0,0,0,.5));animation:blrise .7s cubic-bezier(.2,.7,.2,1) forwards}
-#bootLoader img{width:auto}
-#bootLoader .bl-name{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:-6px;opacity:0;animation:blrise .7s cubic-bezier(.2,.7,.2,1) .12s forwards}
-#bootLoader .bl-legacy{font-family:'Montserrat',system-ui,sans-serif;font-weight:900;font-size:34px;letter-spacing:.01em;color:#fff;line-height:1}
-#bootLoader .bl-perf{font-family:'Montserrat',system-ui,sans-serif;font-weight:600;font-size:13px;letter-spacing:.44em;text-indent:.44em;color:var(--gold)}
+#bootLoader .bl-logo{width:min(58vw,232px);height:auto;opacity:0;filter:drop-shadow(0 8px 26px rgba(0,0,0,.5));animation:blrise .7s cubic-bezier(.2,.7,.2,1) forwards}
 #bootLoader .bl-spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(193,173,114,.2);border-top-color:var(--gold);animation:blspin .8s linear infinite;opacity:0;animation:blspin .8s linear infinite, blfade .5s ease .5s forwards}
 #bootLoader .bl-txt{display:none}
 @keyframes blrise{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
@@ -1042,7 +1038,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 </head>
 <body>
 <div class="appbg"></div>
-<div id="bootLoader"><img class="bl-shield" src="shield-white-gold.png" alt="Legacy Performance"><div class="bl-name"><span class="bl-legacy">LEGACY</span><span class="bl-perf">PERFORMANCE</span></div><div class="bl-spin"></div></div>
+<div id="bootLoader"><img class="bl-logo" src="logo-splash.png" alt="Legacy Performance"><div class="bl-spin"></div></div>
 <div class="safe"></div>
 <header>
   <div class="topspacer" aria-hidden="true"></div>
