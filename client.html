@@ -1498,7 +1498,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=47"></script>
+<script src="nutrition-engine.js?v=48"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -4471,6 +4471,23 @@ function freeMealsBlock(){
     +'<div class="chips" id="fe_free">'+chips+'</div></div>';
 }
 function feFreePick(b){ var box=b.parentNode; Array.prototype.forEach.call(box.children,function(c){c.classList.remove('on');}); b.classList.add('on'); }
+/* Meal frequency (2/3/4) + a daily protein-shake toggle with optional custom numbers. */
+function freqBlock(){
+  var cur=+(loadFoods().mealsPerDay)||3, chips='';
+  [2,3,4].forEach(function(n){ chips+='<button type="button" class="chip'+(n===cur?' on':'')+'" data-n="'+n+'" onclick="feFreePick(this)">'+n+' meals</button>'; });
+  return '<div class="field"><label>Meals per day</label><div class="chips" id="fe_freq">'+chips+'</div></div>';
+}
+function shakeBlock(){
+  var s=loadFoods().shake||{}, on=!!s.on;
+  return '<div class="field"><label>Daily protein shake</label>'
+    +'<div class="wiz-hint" style="margin:-2px 0 8px">One shake reserved before your meals are built. Leave the numbers blank for the default (30g protein · 175 cal).</div>'
+    +'<label class="shk-toggle" style="display:flex;align-items:center;gap:10px;cursor:pointer;font-weight:600"><input type="checkbox" id="fe_shake_on" '+(on?'checked':'')+' onchange="feShakeToggle()" style="width:20px;height:20px"> Add a daily protein shake</label>'
+    +'<div id="fe_shake_inputs" style="margin-top:10px;'+(on?'display:flex':'display:none')+';gap:10px">'
+    +'<div style="flex:1"><label style="font-size:.8rem">Protein (g)</label><input class="input" type="number" id="fe_shake_p" inputmode="numeric" placeholder="30" value="'+(s.protein||'')+'"></div>'
+    +'<div style="flex:1"><label style="font-size:.8rem">Calories</label><input class="input" type="number" id="fe_shake_cal" inputmode="numeric" placeholder="175" value="'+(s.cal||'')+'"></div>'
+    +'</div></div>';
+}
+function feShakeToggle(){ var on=g('fe_shake_on')&&g('fe_shake_on').checked, box=g('fe_shake_inputs'); if(box) box.style.display=on?'flex':'none'; }
 function renderFoodEditor(){
   var saved=loadFoods();
   function catBlock(catKey, id, label){
@@ -4482,8 +4499,8 @@ function renderFoodEditor(){
     }).join('')+'</div></div>';
   }
   g("foodEditor").innerHTML=catBlock('protein','fe_prot','Proteins')+catBlock('carb','fe_carb','Smart carbs')+catBlock('fruit','fe_fruit','Fruit')+catBlock('fat','fe_fat','Fats')+catBlock('veg','fe_veg','Veggies')
-    +freeMealsBlock()
-    +'<div class="actions"><button class="btn btn-primary" onclick="doGenerate()">Generate my plan →</button> <span class="status" id="genPlanStatus"></span></div>';
+    +freqBlock()+shakeBlock()+freeMealsBlock()
+    +'<div class="actions"><button class="btn btn-primary" onclick="doGenerate()">Generate my nutrition system →</button> <span class="status" id="genPlanStatus"></span></div>';
 }
 function showMealBuilder(){ renderFoodEditor(); show("mealbuilder"); }
 function doGenerate(){
@@ -4492,6 +4509,14 @@ function doGenerate(){
   if(!sel.protein.length||!sel.carb.length){ var s2=g('genPlanStatus'); if(s2){s2.textContent="Keep at least one protein and one carb on.";s2.style.color="var(--stall-tx)";} return; }
   var freeSel=document.querySelector('#fe_free .chip.on');
   sel.freeMeals=freeSel?+freeSel.getAttribute('data-n'):MACRO_FREEDOM.included;   // standing choice, saved with foods
+  /* meal frequency + optional daily protein shake (custom or default 30g / 175 cal) */
+  var freqSel=document.querySelector('#fe_freq .chip.on'), meals=freqSel?+freqSel.getAttribute('data-n'):3;
+  var shakeOn=!!(g('fe_shake_on')&&g('fe_shake_on').checked);
+  var shakeP=+((g('fe_shake_p')||{}).value)||0, shakeC=+((g('fe_shake_cal')||{}).value)||0;
+  sel.mealsPerDay=meals;
+  sel.shake={on:shakeOn, protein:shakeP||'', cal:shakeC||''};
+  sel.frequency=String(meals)+(shakeOn?' + shake':'');
+  if(shakeOn){ sel.shakeGrams=shakeP||30; sel.shakeCal=shakeC||175; }
   saveFoods(sel);
   var plan=generateMealPlan(M.intake, sel, 3, (ID&&ID.name)||"");
   M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
