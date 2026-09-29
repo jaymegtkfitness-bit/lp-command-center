@@ -1939,6 +1939,13 @@ function loadClientData(cb){
   });
 }
 
+/* Decode a gzip+base64 blob (how a member's program is stored in their private sheet cell). */
+async function ungzB64(b64){
+  var bin=atob(String(b64).replace(/\s+/g,'')), by=new Uint8Array(bin.length);
+  for(var i=0;i<bin.length;i++) by[i]=bin.charCodeAt(i);
+  var s=new Blob([by]).stream().pipeThrough(new DecompressionStream('gzip'));
+  return await new Response(s).text();
+}
 /* Build the merged model from server rows (authoritative) + local (instant). */
 function buildModel(server){
   serverOk = !!(server && server.ok);
@@ -2048,6 +2055,10 @@ function buildModel(server){
     }catch(e){ M.mealplan=null; } }
   else M.mealplan=null;
   if(!M.mealplan){ try{ var lmp=JSON.parse(localStorage.getItem("lp_client_mealplan")||"null"); if(lmp&&lmp.days&&lmp.days.length) M.mealplan=lmp; }catch(e){} }  // client self-generated plan (device)
+  // ---- private workout program (served ONLY to this authenticated member via the doorway; cached
+  //      to the device so the workout module loads it like any assigned program). ----
+  var sprog=(server&&server.program&&server.program.length)?server.program[server.program.length-1]:null;
+  if(sprog && sprog['Program']){ (async function(){ try{ var raw=await ungzB64(sprog['Program']); if(raw && raw.charAt(0)==='{'){ localStorage.setItem('lp_prog_data', raw); } }catch(e){} })(); }
   // ---- CNS + genetics intake status (drives the setup cards) ----
   M.cnsintake      = (server && server.cnsintake)      ? server.cnsintake      : (M.cnsintake||[]);
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
