@@ -1116,10 +1116,10 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 <aside class="drawer" id="drawer" aria-hidden="true">
   <div class="drawer-head"><img src="logo-white-gold.png" alt="Legacy Performance"><button class="drawer-x" onclick="closeMenu()" aria-label="Close">&times;</button></div>
   <nav class="drawer-nav">
-    <a class="drawer-cta" href="onboarding/community.html" target="_blank" rel="noopener">Join the community</a>
+    <a class="drawer-cta" href="onboarding/community.html" onclick="closeMenu();return openInAppPage('onboarding/community.html','Community');">Join the community</a>
     <div class="drawer-group">My membership</div>
     <a id="drawerAccount" href="#" onclick="return openAccount()">Account &amp; billing <small>Portal</small></a>
-    <a href="onboarding/community.html" target="_blank" rel="noopener">Community <small>Skool</small></a>
+    <a href="onboarding/community.html" onclick="closeMenu();return openInAppPage('onboarding/community.html','Community');">Community <small>Skool</small></a>
     <div class="drawer-group">Tools &amp; guides</div>
     <a href="library/" onclick="closeMenu();return openInAppPage('library/','Guides &amp; Library');">Guides &amp; library</a>
     <a href="#" onclick="closeMenu();showClientTab('nutrition');openEatingOut();return false;">Restaurant finder <small>48 chains</small></a>
@@ -4578,7 +4578,7 @@ function renderNutritionHero(){
     +'<div class="mtile"><div class="k">'+(water||'—')+' oz</div><div class="l nowrap">Water · ½ BW</div></div>'
     +'</div></div>';
   // Cronometer log tile
-  h+='<div class="logtile" onclick="var l=cronoAppLink&&cronoAppLink();if(l)window.open(l,\'_blank\',\'noopener\')">'
+  h+='<div class="logtile" onclick="openInAppPage(\'cronometer.html\',\'Cronometer\')">'
     +'<img src="cronometer-icon.png" alt="Cronometer"><div class="rb"><div class="rt2">Log your food</div><div class="rs">Open Cronometer to track today</div></div><div class="go" style="color:var(--gold)">↗</div></div>';
   // Meal plan — the day's meals, each with its options viewable
   var mp=M.mealplan, meals=(mp&&mp.days&&mp.days[0]&&mp.days[0].meals)||[];

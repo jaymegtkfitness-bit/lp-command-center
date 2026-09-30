@@ -3,12 +3,12 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>Join the community · Legacy Performance</title>
+<title>Log your food · Cronometer · Legacy Performance</title>
 <meta name="theme-color" content="#0d0d0b">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
 <style>
 :root{--ink:#161512;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.20);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.30);--soft:#b7b1a6;--body:#d9d3c8;--line:rgba(242,237,228,.12)}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -29,63 +29,58 @@ h1 .g{color:var(--gold)}
 .card b{color:#fff}
 .card p{font-size:.92rem;color:var(--body);margin-top:6px}
 .btn{display:block;width:100%;background:var(--gold);color:var(--ink);font-weight:800;font-size:1rem;letter-spacing:.02em;text-align:center;text-decoration:none;padding:16px;border-radius:13px;margin-top:14px}
-.btn.line{background:transparent;color:var(--gold);border:1px solid var(--gold-dim)}
 .stores{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}
 .stores a{display:block;text-align:center;text-decoration:none;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--parch);border-radius:12px;padding:12px;font-size:.82rem;font-weight:700}
 .stores a small{display:block;color:var(--soft);font-size:.62rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700}
 .tip{margin-top:20px;font-size:.86rem;color:var(--soft)}
 .tip b{color:var(--gold)}
 .foot{margin-top:30px;font-size:.68rem;letter-spacing:.26em;text-transform:uppercase;color:#7d786d;font-weight:700}
-ol{margin:14px 0 0;padding-left:0;list-style:none}
+ol{margin:14px 0 0;padding-left:0;list-style:none;counter-reset:c}
 ol li{position:relative;padding-left:32px;margin-top:11px;color:var(--body);font-size:.94rem}
 ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top:1px;width:22px;height:22px;border-radius:50%;background:var(--gold);color:var(--ink);font-weight:900;font-size:.76rem;display:flex;align-items:center;justify-content:center}
-ol{counter-reset:c}
 </style>
 </head>
 <body>
 <div class="bg"></div>
 <main class="wrap">
-  <div class="head"><a class="backbtn" href="../client.html" onclick="try{if(window.parent&&window.parent!==window&&window.parent.closeInAppPage){window.parent.closeInAppPage();return false;}}catch(e){} if(history.length>1){history.back();return false;}" aria-label="Back to app">‹</a><img src="../logo-white-gold.png" alt="Legacy Performance"></div>
+  <div class="head"><a class="backbtn" href="client.html" onclick="try{if(window.parent&&window.parent!==window&&window.parent.closeInAppPage){window.parent.closeInAppPage();return false;}}catch(e){} if(history.length>1){history.back();return false;}" aria-label="Back to app">&lsaquo;</a><img src="logo-white-gold.png" alt="Legacy Performance"></div>
 
-  <div class="eyebrow">The community</div>
-  <h1>Join the room.<br><span class="g">Get the app.</span></h1>
-  <p class="lead">The community is where the coaching, the calls, and the courses live. But it only works if you can hear us — so the first step is getting the app, not just the account.</p>
+  <div class="eyebrow">Your food log</div>
+  <h1>Log your food.<br><span class="g">See the truth.</span></h1>
+  <p class="lead">Cronometer is where you track what you actually eat &mdash; the honest number your whole plan is built on. Get the app, log a few days, and your averages tell us your next move.</p>
 
   <div class="card">
-    <b>Why the app matters</b>
-    <p>Most people join on the web and never install the app — so they never get notified when a coach replies, a call goes live, or a new lesson drops. Two minutes now means you never miss a thing.</p>
+    <b>Why Cronometer</b>
+    <p>It counts the water in your food, reads barcodes, and remembers your meals &mdash; so logging gets fast, and the number you land on is real. That number is what your coach reads.</p>
   </div>
 
-  <a class="btn" id="openCommunity" href="https://www.skool.com/legacy-performance/about" target="_blank" rel="noopener">Open the community &rarr;</a>
+  <a class="btn" id="openCrono" href="https://cronometer.com/login/" target="_blank" rel="noopener">Open Cronometer &rarr;</a>
   <p style="text-align:center;font-size:.84rem;color:var(--soft);margin-top:12px">Have the app? That opens it. New here? Grab it &mdash;</p>
   <div class="stores">
-    <a id="storeIos" href="https://apps.apple.com/us/app/skool-communities/id6447270545" target="_blank" rel="noopener"><small>iPhone</small>App Store</a>
-    <a id="storeAnd" href="https://play.google.com/store/apps/details?id=com.skool.skoolcommunities" target="_blank" rel="noopener"><small>Android</small>Google Play</a>
+    <a id="storeIos" href="https://apps.apple.com/us/app/cronometer-calorie-counter/id1145935738" target="_blank" rel="noopener"><small>iPhone</small>App Store</a>
+    <a id="storeAnd" href="https://play.google.com/store/apps/details?id=com.cronometer.android.gold" target="_blank" rel="noopener"><small>Android</small>Google Play</a>
   </div>
 
   <ol>
-    <li>Download and open the Skool app.</li>
-    <li>Search <b style="color:#fff">Legacy Performance</b> and join.</li>
-    <li>Turn <b style="color:var(--gold)">notifications ON</b> so you never miss a coach reply or a call.</li>
+    <li>Download and open the Cronometer app.</li>
+    <li>Create a free account.</li>
+    <li>Log your food for a few days &mdash; barcode scan or search. Your <b style="color:#fff">averages</b> do the rest.</li>
   </ol>
 
-  <p class="tip"><b>Coach tip:</b> notifications on is the whole point. That's how the community actually reaches you.</p>
+  <p class="tip"><b>Coach tip:</b> log honestly, not perfectly. The average over a week is what we read &mdash; not any single day.</p>
 
   <div class="foot">Legacy Performance</div>
 </main>
 <script>
-/* Smart router: "Open the community" tries the Skool app (its universal link opens the app
-   if installed); if the app doesn't take over, it falls back to the app store. Desktop just
-   opens the web group. The visitor's own store button is highlighted. */
 (function(){
   var ua=navigator.userAgent||'';
-  var IOS='https://apps.apple.com/us/app/skool-communities/id6447270545';
-  var AND='https://play.google.com/store/apps/details?id=com.skool.skoolcommunities';
-  var GROUP='https://www.skool.com/legacy-performance/about';
+  var IOS='https://apps.apple.com/us/app/cronometer-calorie-counter/id1145935738';
+  var AND='https://play.google.com/store/apps/details?id=com.cronometer.android.gold';
+  var WEB='https://cronometer.com/login/';
   var isIOS=/iPhone|iPad|iPod/i.test(ua), isAnd=/Android/i.test(ua);
   var mine = isIOS?document.getElementById('storeIos') : isAnd?document.getElementById('storeAnd') : null;
   if(mine){ mine.style.borderColor='var(--gold-dim)'; mine.style.background='rgba(193,173,114,.12)'; }
-  var open=document.getElementById('openCommunity');
+  var open=document.getElementById('openCrono');
   if(open && (isIOS||isAnd)){
     var store = isIOS?IOS:AND;
     open.addEventListener('click', function(e){
@@ -93,8 +88,8 @@ ol{counter-reset:c}
       var left=false, mark=function(){ left=true; };
       document.addEventListener('visibilitychange', function(){ if(document.hidden) left=true; });
       window.addEventListener('pagehide', mark); window.addEventListener('blur', mark);
-      setTimeout(function(){ if(!left) location.href=store; }, 1400);   // app didn't open → store
-      location.href=GROUP;   // universal link — opens the Skool app if it's installed
+      setTimeout(function(){ if(!left) location.href=store; }, 1400);   // app didn't open -> store
+      location.href=WEB;   // opens the app if installed, else the web log
     });
   }
 })();
