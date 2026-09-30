@@ -2622,7 +2622,7 @@ function doseCalcLog(){
 function remLoad(){ try{ return JSON.parse(localStorage.getItem('lp_dose_reminders')||'null')||{days:[],time:'',on:false}; }catch(e){ return {days:[],time:'',on:false}; } }
 function renderDoseReminders(p){
   var r=remLoad(), DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
-  p.innerHTML='<div class="pep-note">Pick the days and time you want a reminder. Reminders show in the app; a phone push needs the app added to your home screen.</div>'
+  p.innerHTML='<div class="pep-note">Pick the days and time you want a reminder. We save it and nudge you in the app; phone push notifications are coming soon (they need the app added to your home screen).</div>'
     +'<div class="ds-days">'+DAYS.map(function(d){ return '<span class="ds-day'+((r.days||[]).indexOf(d)>=0?' on':'')+'" onclick="this.classList.toggle(\'on\')">'+d+'</span>'; }).join('')+'</div>'
     +'<div class="field"><label>Time</label><input class="input" id="remTime" type="time" value="'+esc(r.time||'')+'"></div>'
     +'<label class="lp-switch-row" style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px"><span>Reminders on</span><span class="lp-switch"><input type="checkbox" id="remOn" '+(r.on?'checked':'')+'><span class="lp-slider"></span></span></label>'
