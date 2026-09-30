@@ -1617,7 +1617,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=54"></script>
+<script src="nutrition-engine.js?v=55"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -4611,6 +4611,7 @@ function renderPFS(){
 function fourTwoOneCard(it){
   if(typeof hasCNS==="function" && !hasCNS()) return '';
   if(!it || !it.pfs) return '';
+  if(M&&M.mealplan&&M.mealplan.framework&&M.mealplan.framework!=='421') return '';   // only when the 4-2-1 framework is chosen
   var wk=fourTwoOne(it.pfs.calories, it.pfs.protein, it.sex);
   var cell=function(w){ var m=w.macros; return '<div style="flex:1;min-width:120px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px"><div style="font-size:10.5px;text-transform:uppercase;letter-spacing:.04em;color:var(--muted)">'+w.label+' × '+w.days+' day'+(w.days>1?'s':'')+'</div><div style="font-size:19px;font-weight:700;color:var(--accent);margin:3px 0;font-family:\'Cinzel\',serif">'+m.calories+'</div><div style="font-size:12px;color:var(--ink-soft)">'+m.protein+'g P · '+m.carbs+'g C · '+m.fat+'g F</div></div>'; };
   return '<div class="card"><div class="sec-h"><h2>4-2-1 weekly rhythm</h2></div>'
@@ -4921,13 +4922,27 @@ function saveFoods(sel){ try{ localStorage.setItem(LS_FOODS, JSON.stringify(sel)
    2 are built into the number, each extra trades ~100 cal/day, protein never moves. The pick is
    saved with their foods, so a fresh "build my plan" defaults to what they last chose. */
 function freeMealsBlock(){
-  var cur=+(loadFoods().freeMeals)||MACRO_FREEDOM.included, chips='';
+  var saved=loadFoods();
+  var fw=(saved.framework==='421')?'421':'macro';
+  var curFree=(saved.freeMeals!=null)?+saved.freeMeals:MACRO_FREEDOM.included;
+  var dessert=+saved.dessertCal||0;
+  var subh=function(t){ return '<div style="font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-soft);font-weight:800;margin:12px 0 5px">'+t+'</div>'; };
+  var fwChips='<button type="button" class="chip'+(fw==='macro'?' on':'')+'" data-fw="macro" onclick="feFreePick(this)">Macro Freedom</button>'
+    +'<button type="button" class="chip'+(fw==='421'?' on':'')+'" data-fw="421" onclick="feFreePick(this)">4-2-1 rhythm</button>';
+  var fmChips='<button type="button" class="chip'+(curFree===0?' on':'')+'" data-n="0" onclick="feFreePick(this)">None</button>';
   for(var n=MACRO_FREEDOM.included; n<=MACRO_FREEDOM.max; n++){
-    chips+='<button type="button" class="chip'+(n===cur?' on':'')+'" data-n="'+n+'" onclick="feFreePick(this)">'+n+'</button>';
+    fmChips+='<button type="button" class="chip'+(n===curFree?' on':'')+'" data-n="'+n+'" onclick="feFreePick(this)">'+n+'</button>';
   }
-  return '<div class="field fe-free-hl"><label style="display:flex;align-items:center;gap:8px"><span class="fe-free-badge">★ Free meals a week</span></label>'
-    +'<div class="wiz-hint" style="margin:6px 0 10px">'+MACRO_FREEDOM.included+' are already built into your number. Each extra trades about 100 calories a day, and your protein never moves.</div>'
-    +'<div class="chips" id="fe_free">'+chips+'</div></div>';
+  return '<div class="field fe-free-hl"><label style="display:flex;align-items:center;gap:8px"><span class="fe-free-badge">★ Your flexibility</span></label>'
+    +'<div class="wiz-hint" style="margin:6px 0 2px">How the freedom is built in. Protein and produce never move.</div>'
+    +subh('Framework')+'<div class="chips" id="fe_fw">'+fwChips+'</div>'
+    +subh('Free meals a week')
+    +'<div class="wiz-hint" style="margin:0 0 6px">Each free meal past the first '+MACRO_FREEDOM.included+' trades about 100 cal a day; protein never moves.</div>'
+    +'<div class="chips" id="fe_free">'+fmChips+'</div>'
+    +subh('Save calories for dessert (nightly)')
+    +'<div style="display:flex;align-items:center;gap:10px"><input class="input" type="number" id="fe_dessert" inputmode="numeric" min="0" placeholder="0" value="'+(dessert||'')+'" style="max-width:120px">'
+    +'<span class="wiz-hint" style="margin:0">cal set aside each night — dessert is your call</span></div>'
+    +'</div>';
 }
 function feFreePick(b){ var box=b.parentNode; Array.prototype.forEach.call(box.children,function(c){c.classList.remove('on');}); b.classList.add('on'); }
 /* Meal frequency (2/3/4) + a daily protein-shake toggle with optional custom numbers. */
@@ -4967,7 +4982,10 @@ function doGenerate(){
   var sel={protein:mval('fe_prot').split(', ').filter(Boolean),carb:mval('fe_carb').split(', ').filter(Boolean),fruit:mval('fe_fruit').split(', ').filter(Boolean),fat:mval('fe_fat').split(', ').filter(Boolean),veg:mval('fe_veg').split(', ').filter(Boolean)};
   if(!sel.protein.length||!sel.carb.length){ var s2=g('genPlanStatus'); if(s2){s2.textContent="Keep at least one protein and one carb on.";s2.style.color="var(--stall-tx)";} return; }
   var freeSel=document.querySelector('#fe_free .chip.on');
-  sel.freeMeals=freeSel?+freeSel.getAttribute('data-n'):MACRO_FREEDOM.included;   // standing choice, saved with foods
+  sel.freeMeals=freeSel?+freeSel.getAttribute('data-n'):MACRO_FREEDOM.included;   // standing choice, saved with foods (0 = none)
+  var fwSel=document.querySelector('#fe_fw .chip.on');
+  sel.framework=fwSel?fwSel.getAttribute('data-fw'):'macro';                      // Macro Freedom vs 4-2-1 rhythm
+  sel.dessertCal=Math.max(0, +((g('fe_dessert')||{}).value)||0);                  // nightly dessert reserve (cal)
   /* meal frequency + optional daily protein shake (custom or default 30g / 175 cal) */
   var freqSel=document.querySelector('#fe_freq .chip.on'), meals=freqSel?+freqSel.getAttribute('data-n'):3;
   var shakeOn=!!(g('fe_shake_on')&&g('fe_shake_on').checked);

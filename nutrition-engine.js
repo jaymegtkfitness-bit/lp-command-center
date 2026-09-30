@@ -1021,6 +1021,15 @@ function generateMealPlan(it, sel, days, name){
   p={calories:Math.max(0,p.calories-(S.shake?S.shake.calories:0)),
      protein: Math.max(0,p.protein -(S.shake?S.shake.protein :0)),
      carbs:p.carbs, fat:p.fat};
+  /* DESSERT RESERVE (Jayme 2026-09-30): set aside N calories a night for dessert — carved from
+     carbs + fat only (protein never moves), same idea as the shake. Shows as its own line. */
+  var dessertCal=Math.max(0, Math.round(+sel.dessertCal||0));
+  if(dessertCal>0){
+    dessertCal=Math.min(dessertCal, Math.max(0, Math.round(p.calories*0.5)));   // never more than half the day
+    p.calories=Math.max(0, p.calories-dessertCal);
+    var cf=p.carbs*4 + p.fat*9;
+    if(cf>0){ var dsc=Math.max(0,(cf-dessertCal))/cf; p.carbs=Math.round(p.carbs*dsc); p.fat=Math.round(p.fat*dsc); }
+  }
   /* sel.style / sel.allergies are optional. When present they hard-filter BEFORE the member's
      own picks, so an allergen can never survive into a plan. */
   function pick(cat, names){
@@ -1054,12 +1063,17 @@ function generateMealPlan(it, sel, days, name){
     if(S.shake) meals.push({name:"Protein shake", shake:true,
       items:[S.shake.protein+"g protein shake"],
       cal:S.shake.calories, protein:S.shake.protein, carbs:0, fat:0});
+    if(dessertCal>0) meals.push({name:"Dessert", dessert:true,
+      items:["~"+dessertCal+" cal for dessert — your choice"],
+      cal:dessertCal, protein:0, carbs:Math.round(dessertCal*0.55/4), fat:Math.round(dessertCal*0.45/9)});
     out.push({day:d+1,label:"Day "+(d+1),meals:meals});
   }
   var nm=name?(String(name).split(' ')[0]+"'s"):"Your";
   return {title:nm+" meal plan", frequency:S.frequency, label:S.label,
     note:"Built from your favorites. Swap any food and regenerate anytime.", days:out,
-    freeMeals: freedom?freedom.freeMeals:MACRO_FREEDOM.included,
+    freeMeals: freedom?freedom.freeMeals:(+sel.freeMeals?+sel.freeMeals:0),
+    framework: (sel.framework==='421'?'421':'macro'),
+    dessertCal: dessertCal,
     freedom: freedom?{freeMeals:freedom.freeMeals, extra:freedom.extra, cut:freedom.cut, base:freedom.base,
                       mealCal:MACRO_FREEDOM.mealCal, included:MACRO_FREEDOM.included, rules:freedom.rules} : null};
 }
