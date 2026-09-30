@@ -1024,6 +1024,10 @@ header .brand img{height:3.9rem!important}
 .fe-free-hl{background:linear-gradient(160deg,rgba(193,173,114,.14),rgba(74,92,62,.08))!important;border:1px solid rgba(193,173,114,.4)!important;border-radius:16px!important;padding:1rem 1rem 1.1rem!important;margin-top:.5rem!important}
 .fe-free-badge{display:inline-block;font-weight:800;font-size:1rem;letter-spacing:.02em;color:var(--gold)!important;text-transform:uppercase}
 .fe-free-hl .chip.on{background:var(--gold)!important;color:#161309!important;border-color:var(--gold)!important}
+.sched-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.sched-day{width:2.6rem;flex:none;font-weight:800;font-size:.82rem;color:var(--ink-soft)}
+.sched-chips{flex:1;display:flex;gap:6px;justify-content:flex-end}
+.sched-chips .chip{flex:1;max-width:4rem;text-align:center;padding:8px 0;font-size:.8rem}
 /* Day rows */
 .kday{padding:1rem!important;gap:.94rem!important}
 .kday .thumb{width:4.6rem!important;height:4.6rem!important}
@@ -1617,7 +1621,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=55"></script>
+<script src="nutrition-engine.js?v=56"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -4927,8 +4931,18 @@ function freeMealsBlock(){
   var curFree=(saved.freeMeals!=null)?+saved.freeMeals:MACRO_FREEDOM.included;
   var dessert=+saved.dessertCal||0;
   var subh=function(t){ return '<div style="font-size:.74rem;text-transform:uppercase;letter-spacing:.05em;color:var(--gold-soft);font-weight:800;margin:12px 0 5px">'+t+'</div>'; };
-  var fwChips='<button type="button" class="chip'+(fw==='macro'?' on':'')+'" data-fw="macro" onclick="feFreePick(this)">Macro Freedom</button>'
-    +'<button type="button" class="chip'+(fw==='421'?' on':'')+'" data-fw="421" onclick="feFreePick(this)">4-2-1 rhythm</button>';
+  var fwChips='<button type="button" class="chip'+(fw==='macro'?' on':'')+'" data-fw="macro" onclick="feFwPick(this)">Macro Freedom</button>'
+    +'<button type="button" class="chip'+(fw==='421'?' on':'')+'" data-fw="421" onclick="feFwPick(this)">4-2-1 rhythm</button>';
+  var savedSched=(saved.schedule&&saved.schedule.length===7)?saved.schedule:['low','mod','mod','low','mod','high','mod'];
+  var DN=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'], TY=[['mod','Mod'],['low','Low'],['high','High']];
+  var schedRows=DN.map(function(dn,i){ var curT=savedSched[i]||'mod';
+    return '<div class="sched-row"><span class="sched-day">'+dn+'</span><div class="chips sched-chips">'
+      +TY.map(function(t){ return '<button type="button" class="chip'+(t[0]===curT?' on':'')+'" data-t="'+t[0]+'" onclick="feFreePick(this)">'+t[1]+'</button>'; }).join('')+'</div></div>';
+  }).join('');
+  var schedHtml='<div id="fe_sched_wrap" style="'+(fw==='421'?'':'display:none;')+'margin-top:10px">'
+    +subh('Weekly schedule')
+    +'<div class="wiz-hint" style="margin:0 0 6px">Recommended: your 2 low days on <b>Mon &amp; Thu</b>, your high day on <b>Fri or Sat</b>.</div>'
+    +'<div id="fe_sched">'+schedRows+'</div></div>';
   var fmChips='<button type="button" class="chip'+(curFree===0?' on':'')+'" data-n="0" onclick="feFreePick(this)">None</button>';
   for(var n=MACRO_FREEDOM.included; n<=MACRO_FREEDOM.max; n++){
     fmChips+='<button type="button" class="chip'+(n===curFree?' on':'')+'" data-n="'+n+'" onclick="feFreePick(this)">'+n+'</button>';
@@ -4936,6 +4950,8 @@ function freeMealsBlock(){
   return '<div class="field fe-free-hl"><label style="display:flex;align-items:center;gap:8px"><span class="fe-free-badge">★ Your flexibility</span></label>'
     +'<div class="wiz-hint" style="margin:6px 0 2px">How the freedom is built in. Protein and produce never move.</div>'
     +subh('Framework')+'<div class="chips" id="fe_fw">'+fwChips+'</div>'
+    +'<div class="wiz-hint" style="margin:7px 0 2px;line-height:1.5"><b style="color:var(--ink)">Macro Freedom:</b> one daily target with your free meals built in — eat to the numbers, flex the rest.<br><b style="color:var(--ink)">4-2-1 rhythm:</b> 4 moderate days, 2 low, 1 higher — same weekly total, protein holds every day. Meals lead with protein, fruit &amp; veggies, then carbs &amp; fats fill what\'s left.</div>'
+    +schedHtml
     +subh('Free meals a week')
     +'<div class="wiz-hint" style="margin:0 0 6px">Each free meal past the first '+MACRO_FREEDOM.included+' trades about 100 cal a day; protein never moves.</div>'
     +'<div class="chips" id="fe_free">'+fmChips+'</div>'
@@ -4945,6 +4961,7 @@ function freeMealsBlock(){
     +'</div>';
 }
 function feFreePick(b){ var box=b.parentNode; Array.prototype.forEach.call(box.children,function(c){c.classList.remove('on');}); b.classList.add('on'); }
+function feFwPick(b){ feFreePick(b); var w=g('fe_sched_wrap'); if(w) w.style.display=(b.getAttribute('data-fw')==='421')?'':'none'; }
 /* Meal frequency (2/3/4) + a daily protein-shake toggle with optional custom numbers. */
 function freqBlock(){
   var cur=+(loadFoods().mealsPerDay)||3, chips='';
@@ -4986,6 +5003,11 @@ function doGenerate(){
   var fwSel=document.querySelector('#fe_fw .chip.on');
   sel.framework=fwSel?fwSel.getAttribute('data-fw'):'macro';                      // Macro Freedom vs 4-2-1 rhythm
   sel.dessertCal=Math.max(0, +((g('fe_dessert')||{}).value)||0);                  // nightly dessert reserve (cal)
+  if(sel.framework==='421'){                                                       // 4-2-1 weekly schedule (Mon..Sun day-types)
+    var srows=document.querySelectorAll('#fe_sched .sched-row'), sch=[];
+    Array.prototype.forEach.call(srows,function(r){ var on=r.querySelector('.chip.on'); sch.push(on?on.getAttribute('data-t'):'mod'); });
+    if(sch.length===7) sel.schedule=sch;
+  }
   /* meal frequency + optional daily protein shake (custom or default 30g / 175 cal) */
   var freqSel=document.querySelector('#fe_freq .chip.on'), meals=freqSel?+freqSel.getAttribute('data-n'):3;
   var shakeOn=!!(g('fe_shake_on')&&g('fe_shake_on').checked);

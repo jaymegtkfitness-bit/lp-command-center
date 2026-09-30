@@ -232,6 +232,26 @@ function fourTwoOne(cal, protein, sex){
     {label:"High",     days:1, macros:macrosFrom(Math.round(cal*1.4), protein, sex)}
   ];
 }
+/* 4-2-1 weekly schedule = 7 entries Mon..Sun, each 'mod'|'low'|'high'. Recommended default (Jayme
+   2026-09-30, anti-compensation): the two LOW days on Mon + Thu, the HIGH day on Sat (Fri is the
+   easy alternative). A saved schedule overrides it. */
+var FTO_MULT={mod:1, low:0.8, high:1.4};
+var FTO_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+var FTO_TYPEL={mod:'Moderate', low:'Low', high:'High'};
+function sched421(s){
+  var def=['low','mod','mod','low','mod','high','mod'];   // Mon,Tue,Wed,Thu,Fri,Sat,Sun
+  if(Array.isArray(s) && s.length===7) return s.map(function(x){ return (x==='low'||x==='high')?x:'mod'; });
+  return def;
+}
+/* One fruit serving (~22g carbs) for the produce-lead 4-2-1 meal shape. */
+function fruitServing(Fr, seed){
+  if(!Fr || !Fr.length) return null;
+  var f=Fr[seed % Fr.length];
+  var u=unitsFor(f, 22); if(!(u>0)) u=1;
+  var mm=macrosOf(f, u);
+  return {item:fmtQty(f, null, u), cal:Math.round(mm.kcal), carbs:Math.round(mm.c),
+    part:{n:f.n, units:mm.units, fruit:true}};
+}
 
 /* Reverse Diet start — anchor on what they're ACTUALLY eating (recent avg calories), not the generic
    formula, then climb. avgCal = their recent weekly average calories (null if not logged yet). */
@@ -1043,7 +1063,17 @@ function generateMealPlan(it, sel, days, name){
   var names=S.names;
   var split=MEAL_SPLIT[Math.min(m,5)-1]||MEAL_SPLIT[2];
   var out=[];
-  for(var d=0;d<days;d++){
+  /* 4-2-1 framework builds a real day-typed WEEK (7 days) from the schedule; meals lead with
+     protein + fruit + veggies, then carbs/fat fill the rest. Macro Freedom keeps the flat build. */
+  var sex=it.sex||sel.sex||'';
+  var FW421=(sel.framework==='421');
+  var SCHED=FW421?sched421(sel.schedule):null;
+  var Fr=FW421?pick('fruit', sel.fruit):null;
+  var nDays=FW421?7:days;
+  for(var d=0;d<nDays;d++){
+    /* per-day budget: moderate 100% / low 80% / high 140% cal, protein held (macrosFrom) */
+    var dp=p, dtype='mod', dlabel="Day "+(d+1);
+    if(FW421){ dtype=SCHED[d]||'mod'; dp=macrosFrom(Math.round(p.calories*FTO_MULT[dtype]), p.protein, sex); dlabel=FTO_DAYS[d]+" · "+FTO_TYPEL[dtype]; }
     var meals=[];
     for(var k=0;k<m;k++){
       var s=split[k]||split[split.length-1];
@@ -1051,13 +1081,19 @@ function generateMealPlan(it, sel, days, name){
          index 0 is not automatically breakfast and must not be fed breakfast food. */
       var slot=(names[k]==='Breakfast')?'am':'pm';
       var seed=d+k;
-      var target={protein:Math.round(p.protein*s.pro), carbs:Math.round(p.carbs*s.e), fat:Math.round(p.fat*s.e)};
+      /* PRODUCE LEAD (4-2-1): reserve a fruit serving first, then build carbs/fat around it. */
+      var fr=FW421?fruitServing(Fr, seed):null;
+      var target={protein:Math.round(dp.protein*s.pro),
+                  carbs:Math.max(0, Math.round(dp.carbs*s.e) - (fr?fr.carbs:0)),
+                  fat:Math.round(dp.fat*s.e)};
       /* Same meal builder as the /build deck (buildOption), so the dashboard's "Build my meal plan"
          gets the same accuracy fixes instead of a second, older copy of the fill logic. */
       var o=buildOption(P, C, F, V, target, slot, seed, d*m+k, null,
                         sel.starred||{}, {protein:sel.protein, carb:sel.carb, fat:sel.fat});
-      meals.push({name:names[k]||("Meal "+(k+1)), items:o.items,
-        cal:o.cal, protein:o.protein, carbs:o.carbs, fat:o.fat});
+      var mItems=o.items, mCal=o.cal, mCarbs=o.carbs;
+      if(fr){ mItems=o.items.concat([fr.item]); mCal=(o.cal||0)+fr.cal; mCarbs=(o.carbs||0)+fr.carbs; }
+      meals.push({name:names[k]||("Meal "+(k+1)), items:mItems,
+        cal:mCal, protein:o.protein, carbs:mCarbs, fat:o.fat});
     }
     /* The shake is its own slot, always last, so its protein is never double-counted. */
     if(S.shake) meals.push({name:"Protein shake", shake:true,
@@ -1066,13 +1102,14 @@ function generateMealPlan(it, sel, days, name){
     if(dessertCal>0) meals.push({name:"Dessert", dessert:true,
       items:["~"+dessertCal+" cal for dessert — your choice"],
       cal:dessertCal, protein:0, carbs:Math.round(dessertCal*0.55/4), fat:Math.round(dessertCal*0.45/9)});
-    out.push({day:d+1,label:"Day "+(d+1),meals:meals});
+    out.push({day:d+1,label:dlabel,type:dtype,meals:meals});
   }
   var nm=name?(String(name).split(' ')[0]+"'s"):"Your";
   return {title:nm+" meal plan", frequency:S.frequency, label:S.label,
     note:"Built from your favorites. Swap any food and regenerate anytime.", days:out,
     freeMeals: freedom?freedom.freeMeals:(+sel.freeMeals?+sel.freeMeals:0),
     framework: (sel.framework==='421'?'421':'macro'),
+    schedule: SCHED,
     dessertCal: dessertCal,
     freedom: freedom?{freeMeals:freedom.freeMeals, extra:freedom.extra, cut:freedom.cut, base:freedom.base,
                       mealCal:MACRO_FREEDOM.mealCal, included:MACRO_FREEDOM.included, rules:freedom.rules} : null};
