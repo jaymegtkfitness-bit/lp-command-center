@@ -2480,7 +2480,7 @@ function renderProgressHero(){
    peptides route to the order-request; the customized stack unlocks with the Genetic Blueprint. */
 function wellOpen(id,msg){ var c=g(id); if(c){ c.classList.add('force-show'); c.scrollIntoView({behavior:'smooth',block:'start'}); } else if(msg){ alert(msg); } }
 function shopLink(u){ if(u){ window.open(u,'_blank','noopener'); } else { alert('Shop link coming soon.'); } }
-function peptideOrder(){ var u=CONFIG.peptideOrderUrl||''; if(u){ window.open(u,'_blank','noopener'); } else { alert('Your peptide order form is coming soon. For now, message the Patient Care Team to reorder.'); } }
+function peptideOrder(){ var u=CONFIG.peptideOrderUrl||''; if(u){ window.open(u,'_blank','noopener'); } else { alert('Your order form is coming soon.\n\nHow it works: you place your order, the licensed provider group reviews your intake, and if approved it ships from the pharmacy. If it is not approved, you are refunded. Eligibility, prescriptions, and dosing are determined solely by the licensed provider group.\n\nFor now, tap Request a Consult to reorder.'); } }
 function renderWellnessTiles(){
   var box=g("wellTilesBox"); if(!box) return;
   var it=M.intake||{}, track=(it&&it.track)||'Lean';
@@ -2508,7 +2508,7 @@ function renderWellnessTiles(){
       +'<div class="peprow" onclick="wellOpen(\'doseCard\')"><div class="pi">🧮</div><div class="pb"><div class="pn">Dosing calculator</div><div class="pm">Measure your prescribed dose in units</div></div><div class="go">›</div></div>'
       +'<div class="peprow" onclick="alert(\'Dose reminders are coming soon — pick a day &amp; time and get a push.\')"><div class="pi">🔔</div><div class="pb"><div class="pn">Dose reminders</div><div class="pm">Pick your day &amp; time — push notification</div></div><div class="go">›</div></div>'
       +'<div class="peprow" onclick="wellOpen(\'rxCard\',\'Prescriber notes are coming soon.\')"><div class="pi">📝</div><div class="pb"><div class="pn">Prescriber notes</div><div class="pm">Keep your provider\'s instructions handy</div></div><div class="go">›</div></div>'
-      +'<div class="peprow" onclick="peptideOrder()"><div class="pi">🧾</div><div class="pb"><div class="pn">Order / reorder peptides</div><div class="pm">Member pricing &middot; reorder before the weekly cutoff</div></div><div class="go">›</div></div>'
+      +'<div class="peprow" onclick="peptideOrder()"><div class="pi">🧾</div><div class="pb"><div class="pn">Order / reorder peptides</div><div class="pm">Provider-guided &middot; reviewed before it ships, refunded if not approved</div></div><div class="go">›</div></div>'
       +'<div class="compliance">Your prescribed protocol. The app never recommends or changes a dose — it only helps you measure and follow what your provider prescribed. Questions about a dose or symptom → Request a consult.</div>'
       +'</div>';
   }
