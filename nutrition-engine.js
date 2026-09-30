@@ -2249,6 +2249,19 @@ var NUTRIENT_NOTE={
 function nutrientsFromIntake(row){ row=row||{}; var v=row.lowNutrients||row['Low nutrients']||row['Flagged low']||'';
   if(!v){ var m=String(row.Notes||row.notes||'').match(/Flagged low:\s*([^|]+)/i); if(m) v=m[1]; }
   return nutrientKeys(v); }
+/* Bloodwork → food focus (Jayme 2026-09-29): out-of-range markers become the same nutrient flags the
+   genetics intake uses, so the meal engine leans the plan toward the right foods. Food-first, sex-neutral,
+   conservative thresholds; the provider still reads the labs and sets any dose (NUTRIENT_NOTE.provider). */
+function nutrientsFromBloodwork(bw){
+  bw=bw||{}; var out=[];
+  function n(v){ v=parseFloat(v); return isFinite(v)?v:null; }
+  var vd=n(bw.vitd), fe=n(bw.ferritin), b12=n(bw.b12), crp=n(bw.crp), tg=n(bw.trig);
+  if(vd!=null  && vd<30)   out.push('vitamin D');    // 25-OH < 30 ng/mL = insufficient
+  if(fe!=null  && fe<50)   out.push('iron');         // ferritin < 50 ng/mL = low stores
+  if(b12!=null && b12<400) out.push('vitamin B12');  // functional low < 400 pg/mL
+  if((crp!=null && crp>1.0) || (tg!=null && tg>150)) out.push('omega-3');  // inflammation / high triglycerides
+  return nutrientKeys(out);
+}
 function nutrientKeys(list){
   var map={'vitamin d':'vitamin D','d':'vitamin D','b12':'vitamin B12','vitamin b12':'vitamin B12','iron':'iron','ferritin':'iron','iron/ferritin':'iron',
     'folate':'folate','folic acid':'folate','mthfr':'folate','magnesium':'magnesium','omega-3':'omega-3','omega 3':'omega-3','calcium':'calcium','zinc':'zinc'};

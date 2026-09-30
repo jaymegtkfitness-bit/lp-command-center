@@ -1592,7 +1592,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=53"></script>
+<script src="nutrition-engine.js?v=54"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -2216,6 +2216,7 @@ function buildModel(server){
   M.cnsintake      = (server && server.cnsintake)      ? server.cnsintake      : (M.cnsintake||[]);
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
   M.requests       = (server && server.requests)       ? server.requests       : (M.requests||[]);
+  M.bloodwork      = (server && server.bloodwork)       ? server.bloodwork      : (M.bloodwork||[]);
   // ---- tier + Complete Nutrition System entitlement ----
   M.tier = (server && server.tier) || M.tier || '';
   // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
@@ -2555,7 +2556,19 @@ var BLOOD_PANELS=[
     ['vitd','Vitamin D (25-OH)','ng/mL'],['ferritin','Ferritin','ng/mL'],
     ['b12','Vitamin B12','pg/mL'],['crp','hs-CRP','mg/L'] ]}
 ];
-function bwData(){ try{ return JSON.parse(localStorage.getItem('lp_client_labs_v2')||'{}')||{}; }catch(e){ return {}; } }
+function bwData(){
+  /* server (coach-synced) first, else the on-device copy. The server row keeps the full object as
+     JSON in a Data column. */
+  var s=(M&&M.bloodwork&&M.bloodwork.length)?M.bloodwork[M.bloodwork.length-1]:null;
+  if(s && s['Data']){ try{ var o=JSON.parse(s['Data']); if(o && typeof o==='object') return o; }catch(e){} }
+  try{ return JSON.parse(localStorage.getItem('lp_client_labs_v2')||'{}')||{}; }catch(e){ return {}; }
+}
+/* Flags that steer the food plan = what genetics flagged + what the bloodwork numbers flag. */
+function flaggedNutrients(c){
+  var a=(typeof nutrientsFromIntake==='function')?nutrientsFromIntake(c||{}):[];
+  var b=(typeof nutrientsFromBloodwork==='function')?nutrientsFromBloodwork(bwData()):[];
+  return a.concat(b).filter(function(k,i,arr){ return k && arr.indexOf(k)===i; });
+}
 function bwCustomRow(name,val){
   return '<div class="bw-row bw-custom"><input class="bw-cn" placeholder="Marker name" value="'+esc(name||'')+'">'
     +'<input class="bw-in" type="number" inputmode="decimal" step="any" placeholder="value" value="'+esc(val!=null?val:'')+'">'
@@ -2593,7 +2606,12 @@ function saveBloodwork(){
     if(nm && vv && nm.value.trim() && vv.value!=='') out._custom.push({name:nm.value.trim(), val:vv.value});
   }); }
   try{ localStorage.setItem('lp_client_labs_v2', JSON.stringify(out)); }catch(e){}
-  var s=g("labsStatus"); if(s){ s.textContent="Saved on your device."; s.style.color="var(--accent)"; setTimeout(function(){ if(g("labsStatus")) g("labsStatus").textContent="";},1800); }
+  // Submit to the coach (doorway) — a readable summary + the full object as JSON.
+  var parts=[]; BLOOD_PANELS.forEach(function(pan){ pan.m.forEach(function(mk){ if(out[mk[0]]!=null) parts.push(mk[1].replace(/\s*\(.*/,'')+' '+out[mk[0]]); }); });
+  (out._custom||[]).forEach(function(c){ parts.push(c.name+' '+c.val); });
+  var summary=(out._date?out._date+' — ':'')+parts.join(' · ');
+  if(CONFIG.writeUrl && ID && ID.email){ postToSheet({ type:'bloodwork', email:ID.email, ts:new Date().toISOString(), date:out._date||'', summary:summary, data:JSON.stringify(out) }); }
+  var s=g("labsStatus"); if(s){ s.textContent=CONFIG.writeUrl?"Saved &amp; sent to your coach.":"Saved on your device."; s.innerHTML=CONFIG.writeUrl?"Saved &amp; sent to your coach.":"Saved on your device."; s.style.color="var(--accent)"; setTimeout(function(){ if(g("labsStatus")) g("labsStatus").textContent="";},2200); }
 }
 function renderRx(){
   var box=g("rxBox"); if(!box) return;
@@ -4909,7 +4927,7 @@ function openMySystem(){
     dislikes:c['Allergies/dislikes']||c['Dislikes']||'',
     protein:list(f.protein||c['Proteins']), carb:list(f.carb||c['Carbs']), fruit:list(f.fruit||c['Fruits']), fat:list(f.fat||c['Fats']), veg:list(f.veg||c['Veg']),
     restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
-  inp.lowNutrients=(typeof nutrientsFromIntake==='function') ? nutrientsFromIntake(c) : [];
+  inp.lowNutrients=(typeof flaggedNutrients==='function') ? flaggedNutrients(c) : [];
   inp.glp1=(typeof glp1FromIntake==='function') ? (glp1FromIntake(c) || glp1FromIntake(it) || ((typeof DEEP!=='undefined' && DEEP && DEEP.glp1==='On one now') ? 'on' : '')) : '';
   openInAppPage(systemLink(inp,'system/'),'Your Nutrition System');
 }
@@ -5021,7 +5039,7 @@ function renderSwaps(){
 /* Nutrient focus: what her labs or genetics flagged, food first, then a supplement option (engine NUTRIENT_GUIDE). */
 function nutrientHTML(){
   var c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
-  var NF=nutrientFocus(nutrientsFromIntake(c), null, {style:c['Eating style']||'', allergies:String(c['Allergen keys']||'').split(',').map(function(x){return x.trim();}).filter(Boolean)});
+  var NF=nutrientFocus(flaggedNutrients(c), null, {style:c['Eating style']||'', allergies:String(c['Allergen keys']||'').split(',').map(function(x){return x.trim();}).filter(Boolean)});
   if(!NF.length) return '<p class="wiz-hint" style="margin-top:12px"><b>Sharpen it with labs and genetics.</b> '+esc(NUTRIENT_NOTE.how)+' Share your bloodwork or a genetic report and your next build adds a nutrient focus.</p>';
   return '<details style="margin-top:12px" open><summary style="cursor:pointer;font-weight:600">Your nutrient focus: '+esc(NF.map(function(x){return x.key;}).join(', '))+'</summary>'
     +NF.map(function(x){ return '<div style="margin:10px 0"><div class="lp-sub">'+esc(x.key.charAt(0).toUpperCase()+x.key.slice(1))+'</div>'
