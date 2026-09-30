@@ -1685,11 +1685,38 @@ function restaurantMeals(chain, target, opts){
   combos.forEach(function(c){ c.t=rmTotals(c.parts); c.s=rmScore(c, calT, proT); });
   var fits=combos.filter(function(c){ return c.t.kcal<=calT*1.10 && c.t.p>=proT*0.90; });
   var pool=(fits.length? fits : combos).sort(function(a,b){ return a.s-b.s; });
-  var picked=[], seenKey={};
-  for(var i=0;i<pool.length && picked.length<want;i++){
-    var c=pool[i], key=c.kind!=='main' ? c.kind+':'+c.protein.map(function(p){return p.name;}).sort()[0]+(c.bunless?':wrap':'') : c.anchor.name;
-    if(seenKey[key]) continue; seenKey[key]=1; picked.push(c);
+  /* Variety (Jayme 2026-09-29): the 3 eating-out options should be genuinely different — no repeated
+     ENTRÉE protein (chicken sandwich + chicken bowl is still "chicken") and no repeated SIDE. Strict
+     pass enforces both; a relaxed second pass fills any remaining seats so we still return 3. */
+  function rmProtKey(nm){ nm=String(nm||'').toLowerCase();
+    if(/chicken|nugget|tender(?!loin)|\bwing/.test(nm)) return 'chicken';
+    if(/turkey/.test(nm)) return 'turkey';
+    if(/salmon/.test(nm)) return 'salmon';
+    if(/shrimp|prawn/.test(nm)) return 'shrimp';
+    if(/\bfish\b|cod|tilapia|tuna|haddock|pollock|filet[\s-]*o/.test(nm)) return 'fish';
+    if(/steak|sirloin|ribeye|brisket|burger|cheeseburger|patty|angus|roast beef|prime rib|\bbeef\b|meatball/.test(nm)) return 'beef';
+    if(/carnitas|barbacoa|pulled pork|\bpork\b|bacon|\bham\b|sausage/.test(nm)) return 'pork';
+    if(/\begg\b/.test(nm)) return 'egg';
+    if(/tofu|veggie|black bean|\bbean\b|lentil|falafel|impossible|beyond/.test(nm)) return 'veg';
+    return nm; }
+  function rmEntree(c){ if(c.kind==='main' && c.anchor) return rmProtKey(c.anchor.name); var p=(c.protein&&c.protein[0]); return p?rmProtKey(p.name):(c.anchor?rmProtKey(c.anchor.name):''); }
+  function rmSides(c){ return (c.parts||[]).filter(function(p){ return p.cat==='side'; }).map(function(p){ return String(p.name).toLowerCase(); }); }
+  var picked=[], seenKey={}, usedEntree={}, usedSide={};
+  function rmKey(c){ return c.kind!=='main' ? c.kind+':'+c.protein.map(function(p){return p.name;}).sort()[0]+(c.bunless?':wrap':'') : c.anchor.name; }
+  function rmPass(strict){
+    for(var i=0;i<pool.length && picked.length<want;i++){
+      var c=pool[i], key=rmKey(c);
+      if(seenKey[key]) continue;
+      if(strict){
+        var es=rmEntree(c); if(es && usedEntree[es]) continue;
+        if(rmSides(c).some(function(s){ return usedSide[s]; })) continue;
+      }
+      seenKey[key]=1; picked.push(c);
+      var e2=rmEntree(c); if(e2) usedEntree[e2]=1;
+      rmSides(c).forEach(function(s){ usedSide[s]=1; });
+    }
   }
+  rmPass(true); rmPass(false);
   var options=picked.map(function(c){
     var counts={}, rows=[];
     c.parts.forEach(function(p){ var k=p.name+'|'+p.serving+(p.half?'|half':''); if(counts[k]){ counts[k].qty++; return; } counts[k]={item:p, qty:1}; rows.push(counts[k]); });
