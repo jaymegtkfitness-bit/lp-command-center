@@ -908,6 +908,31 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 .peprow .pm{font-size:11px;color:var(--ink-dim);margin-top:1px}
 .peprow .go{color:var(--ink-faint);font-size:19px}
 .compliance{font-size:10.5px;color:var(--ink-faint);line-height:1.4;margin-top:10px;padding:10px;border-radius:12px;background:rgba(255,255,255,.02);border:1px solid var(--line)}
+/* Wellness accordion panels + dose UI */
+.pep-panel{display:none;padding:2px 2px 14px 46px}
+.pep-panel.open{display:block}
+.pep-note{font-size:11.5px;color:var(--ink-dim);line-height:1.5;margin-bottom:10px}
+.pep-subh{font-family:'Montserrat',sans-serif;font-weight:800;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;color:var(--gold-soft,#c9b98a);margin:14px 0 8px}
+.pep-empty{font-size:12.5px;color:var(--ink-dim);padding:8px 0 12px}
+.ds-list{margin-bottom:6px}
+.ds-item{display:flex;align-items:center;gap:10px;background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:10px 12px;margin-bottom:8px}
+.ds-main{flex:1;font-size:13px;color:var(--ink)}
+.ds-sub{font-size:11px;color:var(--ink-dim);margin-top:2px}
+.ds-x{color:var(--ink-faint);cursor:pointer;font-size:13px;padding:2px 4px}
+.ds-form{display:flex;flex-direction:column;gap:8px;margin-bottom:6px}
+.ds-form .input{font-size:15px}
+.ds-row{display:flex;gap:8px}.ds-row .input{flex:1;min-width:0}
+.ds-days{display:flex;gap:5px;flex-wrap:wrap}
+.ds-day{flex:1;min-width:2.1rem;text-align:center;padding:9px 0;border:1px solid var(--line);border-radius:9px;font-size:11.5px;font-weight:700;color:var(--ink-dim);cursor:pointer;user-select:none}
+.ds-day.on{background:var(--gold,#C1AD72);color:#1c1c1c;border-color:var(--gold,#C1AD72)}
+.ds-summary{font-size:12px;font-weight:700;color:var(--gold-soft,#c9b98a);margin:10px 0 8px}
+.ds-loglist{display:flex;flex-direction:column;gap:5px}
+.ds-logrow{display:flex;justify-content:space-between;font-size:12px;color:var(--ink-soft);padding:7px 10px;background:rgba(255,255,255,.02);border-radius:8px}
+.ds-when{color:var(--ink-faint);font-size:11px}
+.ord-list{display:flex;flex-direction:column;gap:8px}
+.ord-row{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:11px;padding:10px 12px}
+.ord-main b{font-size:13px;color:var(--ink)}
+.ord-sub{font-size:11px;color:var(--ink-dim);margin-top:2px}
 /* keep the home header eyebrow/greeting clean */
 #homeEyebrow{font-family:'Cinzel',serif;letter-spacing:.14em}
 #greeting{text-transform:uppercase;font-size:38px!important;margin-top:2px}
@@ -2217,6 +2242,8 @@ function buildModel(server){
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
   M.requests       = (server && server.requests)       ? server.requests       : (M.requests||[]);
   M.bloodwork      = (server && server.bloodwork)       ? server.bloodwork      : (M.bloodwork||[]);
+  M.orders         = (server && server.orders)          ? server.orders         : (M.orders||[]);
+  M.doses          = (server && server.doses)           ? server.doses          : (M.doses||[]);
   // ---- tier + Complete Nutrition System entitlement ----
   M.tier = (server && server.tier) || M.tier || '';
   // Roster "Complete" column (Yes = bought an Accelerator / has the Complete Nutrition System).
@@ -2504,17 +2531,133 @@ function renderWellnessTiles(){
   if(onPep){
     h+='<div class="k-slabel">Peptide Protocol <span class="wbadge gold" style="align-self:center">On protocol</span></div>'
       +'<div class="pepwrap">'
-      +'<div class="peprow" onclick="wellOpen(\'doseCard\')"><div class="pi">📅</div><div class="pb"><div class="pn">Dosing schedule</div><div class="pm">Your prescribed days &amp; times</div></div><div class="go">›</div></div>'
-      +'<div class="peprow" onclick="wellOpen(\'doseCard\')"><div class="pi">🧮</div><div class="pb"><div class="pn">Dosing calculator</div><div class="pm">Measure your prescribed dose in units</div></div><div class="go">›</div></div>'
-      +'<div class="peprow" onclick="alert(\'Dose reminders are coming soon — pick a day &amp; time and get a push.\')"><div class="pi">🔔</div><div class="pb"><div class="pn">Dose reminders</div><div class="pm">Pick your day &amp; time — push notification</div></div><div class="go">›</div></div>'
-      +'<div class="peprow" onclick="wellOpen(\'rxCard\',\'Prescriber notes are coming soon.\')"><div class="pi">📝</div><div class="pb"><div class="pn">Prescriber notes</div><div class="pm">Keep your provider\'s instructions handy</div></div><div class="go">›</div></div>'
-      +'<div class="peprow" onclick="peptideOrder()"><div class="pi">🧾</div><div class="pb"><div class="pn">Order / reorder peptides</div><div class="pm">Provider-guided &middot; reviewed before it ships, refunded if not approved</div></div><div class="go">›</div></div>'
+      +pepAcc('ds','📅','Dosing schedule','Your days, times &amp; doses — and log each one')
+      +pepAcc('dc','🧮','Dosing calculator','Measure a dose in units, then log it')
+      +pepAcc('dr','🔔','Dose reminders','Pick your day &amp; time')
+      +pepAcc('rx','📝','Prescriber notes','Keep your provider\'s instructions handy')
+      +pepAcc('od','🧾','Order / reorder peptides','Your orders — reorder or start a new one')
       +'<div class="compliance">Your prescribed protocol. The app never recommends or changes a dose — it only helps you measure and follow what your provider prescribed. Questions about a dose or symptom → Request a consult.</div>'
       +'</div>';
   }
-  // Request a Consult
+  // Request a Consult — always LAST on the Wellness tab
   h+='<div class="kcheckin" onclick="bookCall()" style="margin-top:14px"><div class="ci">🩺</div><div class="cb"><div class="ct">Request a Consult</div><div class="cs">Any medical, dosing, or symptom question goes to the Patient Care Team.</div></div><div class="ar">→</div></div>';
   box.innerHTML=h;
+  // content now lives inline in the accordions — hide the old standalone cards
+  ['doseCard','rxCard'].forEach(function(id){ var el=g(id); if(el) el.style.display='none'; });
+}
+/* ---- Wellness accordions (Jayme 2026-09-29): peptide items drop down inline like the nutrition
+   meals. Header toggles a panel; content renders lazily on first open. ---- */
+function pepAcc(id,icon,title,sub){
+  return '<div class="peprow" onclick="pepToggle(\''+id+'\')"><div class="pi">'+icon+'</div><div class="pb"><div class="pn">'+title+'</div><div class="pm">'+sub+'</div></div><div class="go" id="pepchev-'+id+'">›</div></div>'
+    +'<div class="pep-panel" id="pep-'+id+'"></div>';
+}
+function pepToggle(id){
+  var p=g('pep-'+id), c=g('pepchev-'+id); if(!p) return;
+  var open=!p.classList.contains('open');
+  document.querySelectorAll('.pep-panel').forEach(function(el){ if(el!==p) el.classList.remove('open'); });
+  document.querySelectorAll('[id^="pepchev-"]').forEach(function(el){ if(el!==c) el.textContent='›'; });
+  p.classList.toggle('open', open); if(c) c.textContent=open?'⌄':'›';
+  if(open){ ({ds:renderDoseSched, dc:renderDoseCalcInline, dr:renderDoseReminders, rx:renderRxInline, od:renderOrdersInline}[id]||function(){})(p); }
+}
+/* ---- dose schedule + dose log ---- */
+function doseSchedLoad(){ try{ return JSON.parse(localStorage.getItem('lp_dose_schedule')||'[]')||[]; }catch(e){ return []; } }
+function doseSchedSave(a){ try{ localStorage.setItem('lp_dose_schedule', JSON.stringify(a)); }catch(e){} }
+function doseLogLoad(){
+  var srv=(M&&M.doses)||[];
+  if(srv.length) return srv.map(function(r){ return {ts:ts(r.Timestamp)||Date.now(), peptide:r.Peptide, amount:r.Amount, unit:r.Unit}; });
+  try{ return JSON.parse(localStorage.getItem('lp_dose_log')||'[]')||[]; }catch(e){ return []; }
+}
+function doseLogPush(e){
+  try{ var a=JSON.parse(localStorage.getItem('lp_dose_log')||'[]'); a.push(e); localStorage.setItem('lp_dose_log', JSON.stringify(a)); }catch(err){}
+  if(CONFIG.writeUrl && ID && ID.email){ postToSheet({type:'dose', email:ID.email, ts:new Date(e.ts).toISOString(), peptide:e.peptide||'', amount:e.amount||'', unit:e.unit||''}); }
+}
+function renderDoseSched(p){
+  var sched=doseSchedLoad();
+  var DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var h='<div class="pep-note">Your schedule, from your provider. The app never sets or changes a dose — enter what you were prescribed.</div><div class="ds-list">';
+  if(sched.length){ sched.forEach(function(d,i){ h+='<div class="ds-item"><div class="ds-main"><b>'+esc(d.peptide||'Dose')+'</b>'+(d.amount?' — '+esc(d.amount)+' '+esc(d.unit||''):'')+'<div class="ds-sub">'+esc((d.days||[]).join(', ')||'—')+(d.time?' · '+esc(d.time):'')+(d.count?' · '+esc(d.count)+'×':'')+'</div></div><span class="ds-x" onclick="doseSchedDel('+i+')">✕</span></div>'; }); }
+  else { h+='<div class="pep-empty">No doses scheduled yet — add your first below.</div>'; }
+  h+='</div>';
+  h+='<div class="pep-subh">Add a scheduled dose</div><div class="ds-form">'
+    +'<input class="input" id="dsPep" placeholder="Peptide (e.g. Tirzepatide)">'
+    +'<div class="ds-row"><input class="input" id="dsAmt" type="number" step="any" inputmode="decimal" placeholder="Amount"><input class="input" id="dsUnit" placeholder="unit (mg)" value="mg"></div>'
+    +'<div class="ds-days">'+DAYS.map(function(d){ return '<span class="ds-day" onclick="this.classList.toggle(\'on\')">'+d+'</span>'; }).join('')+'</div>'
+    +'<div class="ds-row"><input class="input" id="dsTime" type="time"><input class="input" id="dsCount" type="number" min="1" placeholder="# doses"></div>'
+    +'<button class="btn btn-primary" onclick="doseSchedAdd()">Add to schedule</button></div>';
+  var log=doseLogLoad().slice().sort(function(a,b){return b.ts-a.ts;});
+  var weeks = log.length? Math.max(1, Math.ceil((Date.now()-log[log.length-1].ts)/6048e5)) : 0;
+  h+='<div class="pep-subh">Log a dose you took</div><div class="ds-form">'
+    +'<div class="ds-row"><input class="input" id="dlPep" placeholder="Peptide" value="'+esc((sched[0]&&sched[0].peptide)||'')+'"><input class="input" id="dlAmt" type="number" step="any" inputmode="decimal" placeholder="Amount"></div>'
+    +'<button class="btn btn-primary" onclick="doseLogAdd()">✓ I took this dose</button></div>';
+  if(log.length){ h+='<div class="ds-summary">'+log.length+' dose'+(log.length>1?'s':'')+' logged · '+weeks+' week'+(weeks>1?'s':'')+' on protocol</div>'
+    +'<div class="ds-loglist">'+log.slice(0,8).map(function(e){ return '<div class="ds-logrow"><span>'+esc(e.peptide||'Dose')+(e.amount?' '+esc(e.amount)+(e.unit?' '+esc(e.unit):''):'')+'</span><span class="ds-when">'+fmtDate(e.ts)+'</span></div>'; }).join('')+'</div>'; }
+  p.innerHTML=h;
+}
+function doseSchedAdd(){
+  var days=[]; document.querySelectorAll('#pep-ds .ds-day.on').forEach(function(el){ days.push(el.textContent); });
+  var d={ peptide:(g('dsPep').value||'').trim(), amount:(g('dsAmt').value||'').trim(), unit:(g('dsUnit').value||'mg').trim(), days:days, time:g('dsTime').value, count:g('dsCount').value };
+  if(!d.peptide){ g('dsPep').focus(); return; }
+  var a=doseSchedLoad(); a.push(d); doseSchedSave(a); renderDoseSched(g('pep-ds'));
+}
+function doseSchedDel(i){ var a=doseSchedLoad(); a.splice(i,1); doseSchedSave(a); renderDoseSched(g('pep-ds')); }
+function doseLogAdd(){
+  var amt=(g('dlAmt')&&g('dlAmt').value||'').trim(), pep=(g('dlPep')&&g('dlPep').value||'').trim();
+  if(!amt && !pep){ return; }
+  var s=doseSchedLoad();
+  doseLogPush({ ts:Date.now(), peptide:pep, amount:amt, unit:(s[0]&&s[0].unit)||'mg' });
+  renderDoseSched(g('pep-ds'));
+}
+/* ---- dosing calculator (inline) + log ---- */
+function renderDoseCalcInline(p){
+  p.innerHTML=doseCalcHtml()+'<button class="btn btn-primary" id="dcLogBtn" onclick="doseCalcLog()" style="margin-top:10px">✓ Log this dose as taken</button>';
+  ['dcMg','dcMl','dcDose'].forEach(function(id){ var el=g(id); if(el) el.addEventListener('input', doseCalc); });
+}
+function doseCalcLog(){
+  var dose=parseFloat(g('dcDose')&&g('dcDose').value); if(!(dose>0)){ alert('Enter the dose (mg) first.'); return; }
+  var s=doseSchedLoad();
+  doseLogPush({ ts:Date.now(), peptide:(s[0]&&s[0].peptide)||'Dose', amount:dose, unit:'mg' });
+  var b=g('dcLogBtn'); if(b){ b.textContent='✓ Logged'; setTimeout(function(){ if(g('dcLogBtn')) g('dcLogBtn').textContent='✓ Log this dose as taken'; },1600); }
+}
+/* ---- dose reminders ---- */
+function remLoad(){ try{ return JSON.parse(localStorage.getItem('lp_dose_reminders')||'null')||{days:[],time:'',on:false}; }catch(e){ return {days:[],time:'',on:false}; } }
+function renderDoseReminders(p){
+  var r=remLoad(), DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  p.innerHTML='<div class="pep-note">Pick the days and time you want a reminder. Reminders show in the app; a phone push needs the app added to your home screen.</div>'
+    +'<div class="ds-days">'+DAYS.map(function(d){ return '<span class="ds-day'+((r.days||[]).indexOf(d)>=0?' on':'')+'" onclick="this.classList.toggle(\'on\')">'+d+'</span>'; }).join('')+'</div>'
+    +'<div class="field"><label>Time</label><input class="input" id="remTime" type="time" value="'+esc(r.time||'')+'"></div>'
+    +'<label class="lp-switch-row" style="display:flex;align-items:center;justify-content:space-between;margin:6px 0 12px"><span>Reminders on</span><span class="lp-switch"><input type="checkbox" id="remOn" '+(r.on?'checked':'')+'><span class="lp-slider"></span></span></label>'
+    +'<button class="btn btn-primary" onclick="remSave()">Save reminders</button> <span class="status" id="remStatus" style="font-size:12px;margin-left:8px"></span>';
+}
+function remSave(){
+  var days=[]; document.querySelectorAll('#pep-dr .ds-day.on').forEach(function(el){ days.push(el.textContent); });
+  var r={days:days, time:(g('remTime')&&g('remTime').value)||'', on:!!(g('remOn')&&g('remOn').checked)};
+  try{ localStorage.setItem('lp_dose_reminders', JSON.stringify(r)); }catch(e){}
+  if(r.on && typeof Notification!=='undefined' && Notification.permission==='default'){ try{ Notification.requestPermission(); }catch(e){} }
+  var s=g('remStatus'); if(s){ s.textContent='Saved.'; s.style.color='var(--accent)'; setTimeout(function(){ if(g('remStatus'))g('remStatus').textContent='';},1600); }
+}
+/* ---- prescriber notes (inline) ---- */
+function renderRxInline(p){
+  var saved=(M&&M.prescriberNote)?M.prescriberNote:rxLoad();
+  p.innerHTML='<div class="pep-note">Keep your provider’s instructions and schedule here so they’re always with you.</div>'
+    +'<textarea class="input" id="rxText" rows="4" placeholder="Your provider’s instructions, schedule, reminders…">'+esc(saved)+'</textarea>'
+    +'<div class="actions" style="margin-top:8px"><button class="btn btn-primary" onclick="saveRx()">Save notes</button> <span id="rxStatus" style="font-size:12px;color:var(--muted);margin-left:8px"></span></div>';
+}
+/* ---- orders / reorder (inline) ---- */
+function renderOrdersInline(p){
+  var orders=(M&&M.orders)||[];
+  var h='';
+  if(orders.length){
+    h+='<div class="pep-subh">Your orders</div><div class="ord-list">';
+    orders.slice().reverse().slice(0,6).forEach(function(o){
+      var prod=o.Items||o.Product||o.Item||'Order', when=o.Timestamp?fmtDate(ts(o.Timestamp)||Date.now()):'', status=o.Status||'Requested';
+      h+='<div class="ord-row"><div class="ord-main"><b>'+esc(prod)+'</b><div class="ord-sub">'+esc(when)+' · '+esc(status)+'</div></div></div>';
+    });
+    h+='</div><div class="ds-row" style="margin-top:10px"><button class="btn btn-primary" onclick="peptideOrder()">Reorder</button> <button class="btn btn-ghost" onclick="peptideOrder()">New order</button></div>';
+  } else {
+    h+='<div class="pep-empty">You haven’t placed an order yet.</div><button class="btn btn-primary" onclick="peptideOrder()">Place your first order →</button>';
+  }
+  h+='<div class="pep-note" style="margin-top:12px">Provider-guided. You order, the licensed provider group reviews, and if approved it ships from the pharmacy — otherwise you’re refunded.</div>';
+  p.innerHTML=h;
 }
 /* Supplements — the consumer stack (Huel/Thorne/Equip). General wellness education, partner
    links, no medical claims. Foundation base for everyone + an optional phase add-on. */
@@ -3911,7 +4054,9 @@ function gateTiers(){
 }
 function gateProtocolCards(){
   var on=isOnProtocol();
-  ["doseCard","symptomCard","rxCard"].forEach(function(id){ var el=g(id); if(el) el.style.display = on ? "" : "none"; });
+  // doseCard + rxCard content now lives inline in the Wellness accordions — keep them hidden.
+  ["doseCard","rxCard"].forEach(function(id){ var el=g(id); if(el) el.style.display="none"; });
+  var sc=g("symptomCard"); if(sc) sc.style.display = on ? "" : "none";
   if(on) renderSymptoms();
 }
 
