@@ -3031,6 +3031,25 @@ function journeyPanel(d, email){
   } else h+='<div class="tool-d">'+(gv==='none'?'No Genetic Blueprint yet.':'Purchased — no intake submitted yet.')+'</div>';
   h+='</div></div>';
 
+  // ---- Bloodwork (member-submitted labs) ----
+  var bw=(d.bloodwork&&d.bloodwork.length)?d.bloodwork[d.bloodwork.length-1]:null;
+  h+='<div class="section-head" style="margin-top:22px"><h2>Bloodwork</h2><span class="rule"></span></div><div class="tile">';
+  if(bw){
+    h+='<div style="font-size:13px;color:var(--ink)"><b>'+esc(bw['Date']||fmtDate(parseTs(bw['Timestamp'])||Date.now()))+'</b></div>'
+      +'<div style="font-size:12.5px;color:var(--ink-soft);margin-top:5px;line-height:1.6">'+esc(bw['Summary']||'(no summary)')+'</div>'
+      +((d.bloodwork||[]).length>1?'<div style="font-size:11.5px;color:var(--muted);margin-top:6px">'+d.bloodwork.length+' submissions on file</div>':'');
+  } else h+='<div class="tool-d">No labs submitted yet.</div>';
+  h+='</div>';
+
+  // ---- Dose Log (member-logged doses) ----
+  var doseRows=(d.doses||[]).slice().filter(function(r){return parseTs(r['Timestamp']);}).sort(function(a,b){return parseTs(b['Timestamp'])-parseTs(a['Timestamp']);});
+  h+='<div class="section-head" style="margin-top:18px"><h2>Dose Log</h2><span class="rule"></span></div><div class="tile">';
+  if(doseRows.length){
+    h+='<div style="font-size:12px;color:var(--muted);margin-bottom:6px">'+doseRows.length+' dose'+(doseRows.length>1?'s':'')+' logged</div>'
+      +doseRows.slice(0,8).map(function(r){ return '<div style="display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);padding:6px 0;border-top:1px solid var(--line)"><span>'+esc(r['Peptide']||'Dose')+' '+esc(r['Amount']||'')+' '+esc(r['Unit']||'')+'</span><span style="color:var(--muted)">'+esc(fmtDate(parseTs(r['Timestamp'])))+'</span></div>'; }).join('');
+  } else h+='<div class="tool-d">No doses logged yet.</div>';
+  h+='</div>';
+
   return h;
 }
 
