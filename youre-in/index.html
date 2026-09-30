@@ -11,7 +11,7 @@
 <title>You're In | Legacy Performance</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Inter:wght@400;500;600&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <link rel="apple-touch-icon" href="../apple-touch-icon.png">
 <style>
 :root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.22);--parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.28);--soft:#bdb7ac;--body:#d9d3c8}
@@ -19,6 +19,7 @@
 html{background:var(--ink)}
 body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);
   -webkit-font-smoothing:antialiased;line-height:1.6;overflow-x:hidden;background:#1a1a1a}
+.lead,.step p,.addon p,.addon .soft,.pt span,.guar p,.notes{font-family:Inter,-apple-system,BlinkMacSystemFont,sans-serif}
 /* The background is its own fixed layer (not background-attachment:fixed, which iPhone ignores). */
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;
   background:
@@ -33,7 +34,7 @@ body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'S
 .head img{height:56px;width:auto;margin-left:-10px}
 .tag{font-size:.62rem;letter-spacing:.32em;text-transform:uppercase;color:var(--gold);font-weight:700;text-align:right;line-height:1.7}
 .hero{margin-top:48px}
-.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.85rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold)}
+.eyebrow{font-family:Montserrat,sans-serif;font-weight:700;font-size:.85rem;letter-spacing:.3em;text-transform:uppercase;color:var(--gold)}
 h1{font-weight:900;font-size:clamp(3.4rem,13vw,5.6rem);line-height:.95;letter-spacing:-.01em;margin-top:8px;text-transform:uppercase}
 h1 span{color:var(--gold)}
 .lead{margin-top:16px;font-size:1.02rem;color:var(--body);max-width:560px}
@@ -42,15 +43,24 @@ h1 span{color:var(--gold)}
 .step{display:grid;grid-template-columns:78px 1fr auto;align-items:center;gap:16px;
   background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.035));
   border:1px solid var(--olive-dim);border-left:3px solid var(--olive-lt);border-radius:16px;padding:18px 20px 18px 14px}
-.n{font-family:Cinzel,Georgia,serif;font-weight:700;font-size:2.6rem;color:var(--gold);text-align:center;line-height:1}
+.n{font-family:Montserrat,sans-serif;font-weight:800;font-size:2.6rem;color:var(--gold);text-align:center;line-height:1}
 .step h2{font-size:1.02rem;font-weight:800;letter-spacing:.02em;text-transform:uppercase;color:#fff}
 .step p{font-size:.88rem;color:var(--soft);margin-top:4px}
+.addon{margin:26px 0 0;background:linear-gradient(90deg,rgba(193,173,114,.13),rgba(255,255,255,.03));
+  border:1px solid rgba(193,173,114,.34);border-left:3px solid var(--gold);border-radius:16px;padding:22px 22px 20px}
+.addon .tag{font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;color:var(--gold);font-weight:700}
+.addon h3{font-family:Montserrat,sans-serif;font-weight:800;font-size:1.35rem;color:#fff;margin:8px 0 12px;line-height:1.25}
+.addon p{font-size:.9rem;color:var(--soft);margin-bottom:10px;max-width:640px}
+.addon .price{font-size:1rem;color:#fff;margin:16px 0 14px}
+.addon .price b{font-family:Cinzel,Georgia,serif;font-weight:700;color:var(--gold)}
+.addon .soft{font-size:.82rem;color:var(--body);margin-top:14px;margin-bottom:0}
+@media(max-width:560px){.addon{padding:18px 16px}.addon h3{font-size:1.15rem}}
 .url{display:block;font-size:.76rem;color:var(--gold);margin-top:6px;word-break:break-all;font-weight:600}
 .btn{display:inline-block;white-space:nowrap;background:var(--gold);color:var(--ink);font-weight:800;font-size:.8rem;letter-spacing:.06em;
   text-transform:uppercase;padding:12px 16px;border-radius:10px;text-decoration:none;text-align:center;transition:transform .15s,box-shadow .15s}
 .btn:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(193,173,114,.25)}
 .next{margin-top:40px}
-.next h3{font-family:Cinzel,Georgia,serif;font-size:.8rem;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);font-weight:600}
+.next h3{font-family:Montserrat,sans-serif;font-size:.8rem;letter-spacing:.22em;text-transform:uppercase;color:var(--olive-lt);font-weight:600}
 .line{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:16px;position:relative}
 .line:before{content:"";position:absolute;left:6px;right:6px;top:6px;height:2px;background:linear-gradient(90deg,var(--olive-lt),var(--olive))}
 .pt{position:relative;padding-top:22px}
@@ -59,7 +69,7 @@ h1 span{color:var(--gold)}
 .pt span{display:block;font-size:.8rem;color:var(--soft);margin-top:4px}
 .guar{margin-top:40px;display:flex;align-items:center;gap:18px;background:linear-gradient(90deg,rgba(84,106,70,.24),rgba(255,255,255,.035));border:1px solid var(--olive-dim);border-radius:16px;padding:18px 20px}
 .guar img{height:54px;width:auto;flex:none}
-.guar b{font-family:Cinzel,Georgia,serif;font-size:1.05rem;color:var(--gold);font-weight:700;letter-spacing:.04em}
+.guar b{font-family:Montserrat,sans-serif;font-size:1.05rem;color:var(--gold);font-weight:800;letter-spacing:.04em}
 .guar p{font-size:.9rem;color:var(--body);margin-top:3px}
 .notes{margin-top:28px;display:grid;gap:8px;font-size:.84rem;color:#9f998e}
 .notes a,.foot a{color:var(--gold);text-decoration:none;font-weight:600}
@@ -115,13 +125,24 @@ h1 span{color:var(--gold)}
     </div>
   </div>
 
+  <section class="addon">
+    <div class="tag">Optional, and there is no rush</div>
+    <h3>Want to know why your body does what it does?</h3>
+    <p>Your system is built from what you can see. Your weight, your training, your history. That is enough to get you moving, and for most people it is enough, full stop.</p>
+    <p>Your genetics answer the questions observation cannot. Which nutrients your body handles well and which ones it tends to run short on. Whether you respond more to pulling calories down or to moving more. What kind of training your body actually answers to.</p>
+    <p>Your genetics do not start your plan. They sharpen it. Results come back in about four weeks, and then your plan gets rebuilt around what we learn.</p>
+    <p class="price">Add your Genetic Blueprint, <b>$500</b></p>
+    <a class="btn gold" data-link="geneticsUrl">Add my Genetic Blueprint</a>
+    <p class="soft">Or skip it. We will talk about whether it is your right next step on your setup call, with your numbers in front of both of us.</p>
+  </section>
+
   <section class="next">
     <h3>What happens from here</h3>
     <div class="line">
       <div class="pt"><b>Today</b><span>Your answers are with me. Nothing else to fill out.</span></div>
       <div class="pt"><b>Within 2 business days</b><span>Your system is built. Meal plans, restaurant orders and your swap guide.</span></div>
       <div class="pt"><b>Setup call</b><span>We walk through it together, including eating out and what to do at a stall.</span></div>
-      <div class="pt"><b>For life</b><span>New meal plans any time, a weekly check-in, and numbers that move with you.</span></div>
+      <div class="pt"><b>For life</b><span>New meal plans any time, and numbers that move with you as you progress.</span></div>
     </div>
   </section>
 

@@ -631,6 +631,11 @@ function recipeLine(q, u, name, gpe){
   if(!u && /^can /.test(name)) return t+' '+(many?'cans ':'can ')+name.slice(4);
   if(!u && !many && /eggs$/.test(name)) return t+' '+name.replace(/eggs$/,'egg');
   if(!u) return t+' '+(many && !/s$/.test(name) && !/tuna|zucchini|shrimp|celery stick$|fillet$/.test(name) ? name+'s' : name);
+  if(u==='oz'){   // recipe meats/fish: q is already RAW oz → show raw main + cooked equivalent
+    var nmClean=name.replace(/\s*\(raw\)\s*$/i,'').replace(/,\s*raw\s*$/i,'');
+    if(rawCookOK(nmClean)) return dualOzRaw(q, nmClean);
+    return t+' oz '+nmClean;
+  }
   var uu=u;
   if(many && (u==='cup'||u==='slice'||u==='clove'||u==='scoop')) uu=u+'s';
   if(many && u==='handful') uu='handfuls';
@@ -810,6 +815,20 @@ function macrosOf(f, units){
   return {kcal:u*(f.kcal||0), p:u*(f.p||0), c:u*(f.c||0), f:u*(f.f||0), units:u};
 }
 
+/* Raw vs cooked (Jayme 2026-09-29): meat and fish are shown RAW (what you weigh before cooking)
+   with the cooked equivalent in parentheses — "8 oz chicken breast (raw, ~6 oz cooked)". USDA macros
+   are cooked-basis, so ~25% is lost cooking. This is a DISPLAY rule only; macros are unchanged.
+   Canned/cured/deli meats are already cooked, so they skip the conversion. */
+var RAWCOOK_YIELD=0.75;
+function rawCookOK(name, k){
+  var n=String(name||'').toLowerCase();
+  if(/\bcan\b|canned|deli|prosciutto|bacon|jerky|smoked|cured|lunch meat|pepperoni|rotisserie|hot dog|cooked|pre-?cooked|leftover|roasted/.test(n)) return false;
+  if(k && !/meat|fish|shellfish/.test(k)) return false;
+  return /chicken|turkey|beef|steak|salmon|shrimp|pork|fish|cod|tilapia|tuna|bison|lamb|ground|tenderloin|thigh|breast|fillet|filet|chop|ribeye|sirloin|round|flank|brisket|scallop/.test(n);
+}
+function ozRawFromCooked(ck){ return Math.round((ck/RAWCOOK_YIELD)*2)/2; }
+function ozCookedFromRaw(rw){ return Math.round((rw*RAWCOOK_YIELD)*2)/2; }
+function dualOzRaw(rawOz, name){ return fracText(rawOz)+' oz '+name+' (raw, ~'+fracText(ozCookedFromRaw(rawOz))+' oz cooked)'; }
 /* Render a quantity of ONE food. Pass an explicit unit count to override the target-derived one. */
 function fmtQty(f, targetG, unitsOverride){
   /* Uses displayUnits, the same rounding the macros are counted from. Before this, the card could
@@ -829,7 +848,7 @@ function fmtQty(f, targetG, unitsOverride){
     if(f.u) return q+' '+pluralUnit(f.u,q)+' '+f.n;
     return q+' '+((q!==1 && !/s$/i.test(f.n)) ? f.n+'s' : f.n);   // "2 bananas", never "2 whole eggss"
   }
-  if(f.u==="oz"){ return q+' oz '+f.n; }
+  if(f.u==="oz"){ return rawCookOK(f.n, f.k) ? dualOzRaw(ozRawFromCooked(q), f.n) : (q+' oz '+f.n); }   // meat/fish: q is COOKED oz → show raw main
   if(f.u==="g"){ return q+' g '+f.n; }
 
   return f.u? (q+' '+pluralUnit(f.u,q)+' '+f.n) : (q+' '+f.n);

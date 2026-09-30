@@ -95,7 +95,7 @@ function steps(opt) {
 const cap = s => String(s || '').charAt(0).toUpperCase() + String(s || '').slice(1);
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 
-const cards = [];
+const cards = [], manifest = [];
 deck.slots.filter(s => !/shake/i.test(s.name)).forEach(sl => {
   sl.options.forEach((o, i) => cards.push({ slot: sl.name, idx: i + 1, opt: o, target: sl.target }));
 });
@@ -122,8 +122,11 @@ cards.forEach((card, n) => {
   <ol>${steps(o).map(s => '<li>' + esc(s) + '</li>').join('')}</ol>
   <div class="tile"><b>Weigh it, at least at first</b><p>The numbers on this sheet are only true at these portions. Weigh the protein and the carb until you can call them by eye, and keep the vegetables generous.</p></div>
   ${typeof ctx.mealLink === 'function' ? `<p class="note">Track it in one tap: <a href="${esc(ctx.mealLink(o))}">Log this meal in Cronometer</a></p>` : ''}`;
-  const name = String(n + 1).padStart(2, '0') + '-' + slug(o.name || (card.slot + '-' + card.idx));
-  fs.writeFileSync(path.join(htmlDir, 'recipe-' + name + '.html'), shell(o.name || card.slot, body));
+  const file = 'recipe-' + String(n + 1).padStart(2, '0') + '-' + slug(o.name || (card.slot + '-' + card.idx)) + '.html';
+  fs.writeFileSync(path.join(htmlDir, file), shell(o.name || card.slot, body));
+  /* The filename carries the real meal name and its slot, so two slots that land on the same
+     no-cook plate do not overwrite each other in the client's folder. */
+  manifest.push({ file: file, n: n + 1, slot: card.slot, title: (o.name || (card.slot + ' option ' + card.idx)) });
 });
 
 /* ---- the onboarding guide ---- */
@@ -167,4 +170,5 @@ const guide = `
   <p class="note">Educational coaching guidance, not medical advice. Individual results vary. Talk to your physician before changing your diet, especially with a medical condition.</p>`;
 fs.writeFileSync(path.join(htmlDir, 'onboarding.html'), shell('Start here', guide));
 
+fs.writeFileSync(path.join(htmlDir, 'manifest.json'), JSON.stringify(manifest, null, 1));
 console.log(JSON.stringify({ cards: cards.length, htmlDir }, null, 0));

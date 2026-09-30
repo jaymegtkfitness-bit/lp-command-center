@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>The Last 100 Days · Legacy Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#161616;--olive:#4A5C3E;--olive-lt:#8FA97A;--olive-dim:rgba(143,169,122,.24);
+  --parch:#F2EDE4;--gold:#C1AD72;--gold-dim:rgba(193,173,114,.3);--soft:#bdb7ac;--body:#d9d3c8}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;background:#151515}
+body{font-family:Montserrat,-apple-system,sans-serif;color:var(--parch);-webkit-font-smoothing:antialiased}
+
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(ellipse 55% 30% at 100% 0%, rgba(193,173,114,.15), transparent 70%),
+    radial-gradient(ellipse 85% 55% at 0% 100%, rgba(84,106,70,.55), transparent 72%),
+    radial-gradient(ellipse 90% 55% at 15% 30%, rgba(74,92,62,.07), transparent 72%),
+    linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:fixed;top:0;left:0;right:0;height:5px;z-index:6;
+  background:linear-gradient(90deg,#4A5C3E 0%,#8FA97A 45%,#C1AD72 85%,#e3d3a1)}
+
+.slide{position:fixed;inset:0;z-index:1;display:none;flex-direction:column;justify-content:center;
+  padding:6vh 7vw;opacity:0;transition:opacity .18s}
+.slide.on{display:flex;opacity:1}
+.slide.center{align-items:center;text-align:center}
+
+.logo{position:fixed;right:2.4vw;bottom:2.2vh;height:3.4vh;opacity:.85;z-index:5}
+.num{position:fixed;left:2.4vw;bottom:2.4vh;font-family:Cinzel,serif;font-size:1.5vh;letter-spacing:.2em;color:#6b665e;z-index:5}
+
+.eyebrow{font-family:Cinzel,serif;font-size:1.9vh;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);margin-bottom:2.4vh}
+.kicker{font-family:Cinzel,serif;font-size:1.7vh;letter-spacing:.3em;text-transform:uppercase;color:var(--olive-lt);margin-bottom:2vh}
+h1{font-weight:900;text-transform:uppercase;line-height:.96;letter-spacing:-.02em;font-size:9.5vh;color:#fff}
+h2{font-weight:900;text-transform:uppercase;line-height:1.02;letter-spacing:-.018em;font-size:7vh;color:#fff}
+h3{font-weight:800;font-size:3.1vh;color:#fff;line-height:1.15}
+.big{font-size:11vh;line-height:.94}
+.quote{font-weight:800;font-size:6.6vh;line-height:1.1;color:#fff;font-style:italic}
+.gold{color:var(--gold)}
+.sub{font-size:3vh;color:var(--body);margin-top:3vh;line-height:1.4;max-width:46ch}
+.center .sub{margin-left:auto;margin-right:auto}
+.small{font-size:2.2vh;color:var(--soft);margin-top:2.6vh}
+.rule{width:12vh;height:.6vh;border-radius:3px;background:linear-gradient(90deg,var(--gold),var(--olive-lt));margin:3.2vh 0}
+.center .rule{margin-left:auto;margin-right:auto}
+
+ul.pts{list-style:none;margin-top:4vh;display:grid;gap:2.4vh}
+ul.pts li{position:relative;padding-left:4.6vh;font-size:3.2vh;line-height:1.3;color:var(--body)}
+ul.pts li:before{content:"";position:absolute;left:0;top:1.3vh;width:1.7vh;height:1.7vh;border-radius:50%;background:var(--olive);border:.35vh solid var(--olive-lt)}
+ol.steps{list-style:none;margin-top:4vh;display:grid;gap:2.8vh;counter-reset:s}
+ol.steps li{position:relative;padding-left:6.4vh;font-size:3.1vh;line-height:1.3;color:var(--body)}
+ol.steps li:before{counter-increment:s;content:counter(s);position:absolute;left:0;top:0;width:4.4vh;height:4.4vh;border-radius:50%;
+  background:var(--gold);color:var(--ink);font-weight:900;font-size:2.3vh;display:flex;align-items:center;justify-content:center}
+
+.two{display:grid;grid-template-columns:1fr 1fr;gap:3vw;width:100%;margin-top:3vh}
+.col{border:1px solid var(--olive-dim);border-radius:2vh;padding:3.4vh 2.6vw;background:linear-gradient(160deg,rgba(84,106,70,.16),rgba(255,255,255,.03))}
+.col.hi{border-color:var(--gold-dim);background:linear-gradient(160deg,rgba(193,173,114,.14),rgba(255,255,255,.04))}
+.col .ct{font-family:Cinzel,serif;font-size:1.9vh;letter-spacing:.2em;text-transform:uppercase;color:var(--olive-lt);margin-bottom:2vh}
+.col.hi .ct{color:var(--gold)}
+.col p{font-size:2.5vh;color:var(--body);line-height:1.35;margin-top:1.4vh}
+.col .foot{margin-top:2.6vh;padding-top:2vh;border-top:1px solid var(--olive-dim);font-weight:800;font-size:2.4vh;color:var(--olive-lt)}
+.col.hi .foot{color:var(--gold)}
+
+.loop{display:flex;align-items:center;justify-content:center;gap:2vw;flex-wrap:wrap;margin-top:5vh}
+.node{border:1px solid var(--olive-dim);border-radius:2vh;padding:2.8vh 2vw;min-width:16vw;background:linear-gradient(160deg,rgba(84,106,70,.2),rgba(255,255,255,.03))}
+.node b{display:block;font-family:Cinzel,serif;font-size:2.6vh;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+.node span{display:block;font-size:1.9vh;color:var(--soft);margin-top:1vh;line-height:1.3}
+.arrow{font-size:3.4vh;color:var(--olive-lt)}
+
+table{width:100%;border-collapse:collapse;margin-top:3vh;font-size:2.15vh}
+th,td{text-align:left;padding:1.7vh 1.1vw;border-bottom:1px solid var(--olive-dim);vertical-align:top}
+th{font-family:Cinzel,serif;font-size:1.6vh;letter-spacing:.14em;text-transform:uppercase;color:var(--olive-lt);font-weight:600}
+td:first-child,th:first-child{width:22%}
+td:first-child{color:#fff;font-weight:800}
+td.bud{color:var(--soft)}
+td.diet{color:#7d786f}
+th.lp,td.lp{background:linear-gradient(90deg,rgba(193,173,114,.12),rgba(193,173,114,.05));
+  border-left:1px solid var(--gold-dim);border-right:1px solid var(--gold-dim);width:30%}
+th.lp{color:var(--gold);border-top:1px solid var(--gold-dim)}
+td.lp{color:var(--gold);font-weight:700}
+td.lp small{display:block;color:var(--soft);font-weight:500;font-size:1.75vh;margin-top:.6vh;line-height:1.3}
+
+.stat{font-weight:900;color:var(--gold);font-size:5.4vh;line-height:1.1;margin:1.6vh 0}
+.doors{display:grid;grid-template-columns:repeat(3,1fr);gap:2vw;margin-top:5vh}
+.door{border:1px solid var(--gold-dim);border-radius:2vh;padding:4vh 1.6vw;text-align:center;
+  font-family:Cinzel,serif;font-size:3vh;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);
+  background:linear-gradient(160deg,rgba(193,173,114,.1),rgba(255,255,255,.03))}
+.chain{display:flex;align-items:center;justify-content:center;gap:1.4vw;flex-wrap:wrap;margin-top:5vh;
+  font-family:Cinzel,serif;font-size:2.9vh;letter-spacing:.1em;text-transform:uppercase;color:var(--gold)}
+.chain i{color:var(--olive-lt);font-style:normal}
+
+.hint{position:fixed;left:50%;transform:translateX(-50%);bottom:2.2vh;font-size:1.5vh;color:#5a554e;z-index:5;letter-spacing:.1em;
+  transition:opacity .6s;pointer-events:none}
+.hint.gone{opacity:0}
+.num{transition:opacity .6s}
+.num.gone{opacity:0}
+.shot{display:grid;grid-template-columns:1fr 1fr;gap:2.4vw;align-items:center;width:100%;margin-top:2vh}
+.shot .frame{border:1px solid var(--olive-dim);border-radius:2vh;overflow:hidden;max-height:62vh;display:flex;background:#111}
+.shot .frame img{width:100%;height:100%;object-fit:cover;object-position:top}
+.shots3{display:grid;grid-template-columns:repeat(3,1fr);gap:1.6vw;margin-top:4vh;width:100%}
+.shots3 .frame{border:1px solid var(--olive-dim);border-radius:1.6vh;overflow:hidden;height:52vh;background:#111}
+.shots3 .frame img{width:100%;height:100%;object-fit:cover;object-position:top}
+.shots3 .cap{font-family:Cinzel,serif;font-size:1.7vh;letter-spacing:.16em;text-transform:uppercase;color:var(--olive-lt);margin-top:1.4vh;text-align:center}
+.circle{position:relative;width:50vh;height:50vh;margin:9vh auto 5vh}
+.circle svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.cnode{position:absolute;width:22vh;transform:translate(-50%,-50%);text-align:center;
+  border:1px solid var(--olive-dim);border-radius:1.6vh;padding:1.8vh 1.2vh;
+  background:linear-gradient(160deg,rgba(30,30,30,.97),rgba(26,30,24,.97))}
+.cnode.n{left:50%;top:0}.cnode.e{left:100%;top:50%}.cnode.s{left:50%;top:100%}.cnode.w{left:0;top:50%}
+.cnode b{display:block;font-family:Cinzel,serif;font-size:2.4vh;letter-spacing:.16em;color:var(--gold);text-transform:uppercase}
+.cnode span{display:block;font-size:1.7vh;color:var(--soft);margin-top:.8vh;line-height:1.3}
+.circle .mid{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);text-align:center;width:26vh}
+.circle .mid em{font-family:Cinzel,serif;font-style:normal;font-size:1.9vh;letter-spacing:.2em;text-transform:uppercase;color:var(--olive-lt)}
+.circle .mid p{font-size:1.9vh;color:var(--body);margin-top:1vh;line-height:1.35}
+.cycle{position:relative;width:92vh;max-width:94vw;height:50vh;margin:4vh auto 0}
+.cycle svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.pnode{position:absolute;transform:translate(-50%,-50%);text-align:center;width:13.5vh;
+  border:1px solid var(--gold-dim);border-radius:1.4vh;padding:1.5vh .6vh;
+  background:linear-gradient(160deg,rgba(30,30,30,.97),rgba(32,29,22,.97));
+  font-family:Cinzel,serif;font-size:2.2vh;letter-spacing:.14em;color:var(--gold);text-transform:uppercase}
+.pnode.rev{width:18vh;border-style:dashed;border-color:var(--olive-lt);color:var(--olive-lt)}
+.pnode small{display:block;font-family:Montserrat,sans-serif;font-size:1.5vh;letter-spacing:0;
+  text-transform:none;color:var(--soft);margin-top:.7vh;line-height:1.25}
+.cycle .hinge{position:absolute;left:62%;top:50%;transform:translate(-50%,-50%);width:14vh;text-align:center}
+.cycle .hinge em{font-family:Cinzel,serif;font-style:normal;font-size:1.6vh;letter-spacing:.18em;text-transform:uppercase;color:var(--olive-lt)}
+.cycle .hinge p{font-size:1.5vh;color:var(--body);margin-top:.8vh;line-height:1.3}
+.gene{display:grid;grid-template-columns:repeat(2,1fr);gap:1.6vh 2vw;margin-top:4vh;width:100%}
+.gene .g{border:1px solid var(--olive-dim);border-left:.4vh solid var(--gold);border-radius:1.4vh;padding:2.2vh 1.6vw;
+  background:linear-gradient(90deg,rgba(84,106,70,.16),rgba(255,255,255,.03))}
+.gene .g b{font-family:Cinzel,serif;font-size:2vh;letter-spacing:.14em;color:var(--gold);text-transform:uppercase;display:block}
+.gene .g span{display:block;font-size:2.2vh;color:var(--body);margin-top:.8vh;line-height:1.3}
+.price-row{display:flex;align-items:baseline;justify-content:center;gap:2vw;margin-top:3vh;flex-wrap:wrap}
+.strike{font-size:4vh;color:#7d786f;text-decoration:line-through}
+@media print{html,body{overflow:visible;height:auto}.slide{position:relative;display:flex!important;opacity:1!important;height:100vh;break-after:page}.hint,.num{display:none}}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar"></div>
+<img class="logo" src="../logo-white-gold.png" alt="">
+<div class="num" id="num"></div>
+<div class="hint">← → to move · F for fullscreen</div>
+
+<!-- 1 -->
+<section class="slide center">
+  <span class="eyebrow">Free Live Workshop</span>
+  <h1>The Last<br>100 <span class="gold">Days</span></h1>
+  <p class="sub" style="font-style:italic">Build the system that holds through the holidays.</p>
+  <div class="rule"></div>
+  <p class="small">Jayme Olson · Functional Performance Coach</p>
+  <p class="small" style="color:var(--gold)">Starting at 12:00 PM Eastern</p>
+</section>
+
+<!-- 2 -->
+<section class="slide center">
+  <h2>Finish this year<br><span class="gold">healthier</span> than you started it.</h2>
+  <p class="sub">Not in January. In the 100 days that are left.</p>
+</section>
+
+<!-- 3 -->
+<section class="slide center">
+  <p class="quote">"I'll start in January."</p>
+  <div class="rule"></div>
+  <h3 class="gold" style="font-size:4vh">That's not a delay. That's a restart.</h3>
+</section>
+
+<!-- 4 -->
+<section class="slide center">
+  <p class="quote">"There's no point starting now,<br>not with the holidays."</p>
+  <div class="rule"></div>
+  <h3 class="gold" style="font-size:4vh">The holidays aren't the obstacle. They're the test.</h3>
+</section>
+
+<!-- 5 -->
+<section class="slide center">
+  <p class="quote">"I know what to do,<br>I just don't do it."</p>
+  <div class="rule"></div>
+  <h3 class="gold" style="font-size:4vh">You can't execute on what you can't see yet.</h3>
+</section>
+
+<!-- 6 -->
+<section class="slide center">
+  <p class="quote">"I'm disciplined in every<br>other area of my life."</p>
+  <div class="rule"></div>
+  <h3 class="gold" style="font-size:4.6vh">You're right. You are.</h3>
+</section>
+
+<!-- 7 -->
+<section class="slide">
+  <span class="kicker">Coming up</span>
+  <h2>Three <span class="gold">frameworks</span></h2>
+  <ol class="steps">
+    <li><b style="color:#fff">The Awareness Circle</b><br><span style="color:var(--soft);font-size:2.6vh">Same sentence, opposite answers.</span></li>
+    <li><b style="color:#fff">The Macro Freedom Framework</b><br><span style="color:var(--soft);font-size:2.6vh">The week you track hard so you can stop.</span></li>
+    <li><b style="color:#fff">The Four Questions</b><br><span style="color:var(--soft);font-size:2.6vh">Where every diet you've run broke.</span></li>
+  </ol>
+</section>
+
+<!-- 8 -->
+<section class="slide center">
+  <h2 class="big">On January 1st,<br><span class="gold">nothing changes.</span></h2>
+  <p class="sub">Because there's nothing to restart.</p>
+</section>
+
+<!-- 9 -->
+<section class="slide">
+  <span class="kicker">Why me</span>
+  <h2>I reverse engineered this<br>from the clients who <span class="gold">kept it</span></h2>
+  <ul class="pts">
+    <li><b style="color:#fff">15+ years coaching.</b> A decade competing in CrossFit, bodybuilding and powerlifting.</li>
+    <li><b style="color:#fff">242 → 188.</b> Below my wedding weight.</li>
+    <li>Coached through <b style="color:#fff">Graves', Hashimoto's, lupus, Crohn's, perimenopause.</b> Alongside their doctors, never instead of them.</li>
+    <li>Pro bodybuilders, nationally ranked weightlifters, Muay Thai fighters, Fortune 500 CEOs, <b style="color:#fff">and stay-at-home moms.</b></li>
+    <li><b style="color:var(--gold)">Running it in public right now.</b> 15 lb, 100 days, numbers posted every Wednesday.</li>
+  </ul>
+</section>
+
+<!-- 10 -->
+<section class="slide center">
+  <h1 class="big">IT IS <span class="gold">NOT YOU.</span></h1>
+  <p class="sub" style="font-size:3.4vh;max-width:40ch">You didn't fail six diets. You finished six diets, and nobody told you what came next.</p>
+</section>
+
+<!-- 11 -->
+<section class="slide center">
+  <span class="kicker">Here's what almost everybody believes</span>
+  <p class="quote" style="font-size:7.4vh">"This is the worst<br>possible time to start."</p>
+</section>
+
+<!-- 12 -->
+<section class="slide center">
+  <h2>And it makes <span class="gold">complete sense.</span></h2>
+  <div class="chain" style="font-size:2.5vh">
+    <span>Halloween candy</span><i>·</i><span>Thanksgiving</span><i>·</i><span>The cookie exchange</span><i>·</i><span>The office party</span><i>·</i><span>Travel</span><i>·</i><span>Two weeks of kids home</span>
+  </div>
+  <p class="sub" style="margin-top:5vh">If your plan needs a clean week, you should wait.</p>
+</section>
+
+<!-- 13 -->
+<section class="slide center">
+  <h2 style="font-size:8vh">The next 100 days aren't the wrong time to start.<br><span class="gold">They're the only honest test of whether you have a plan at all.</span></h2>
+</section>
+
+<!-- 14 -->
+<section class="slide center">
+  <h2 class="big">You don't test a roof<br>in <span class="gold">good weather.</span></h2>
+  <p class="sub">The storm doesn't ruin the roof. The storm tells you whether you had one.</p>
+</section>
+
+<!-- 15 -->
+<section class="slide">
+  <span class="kicker">Real results</span>
+  <h2>Kristen</h2>
+  <ul class="pts">
+    <li>Eating like a bird, fasting, and she had <b style="color:#fff">lost her menstrual cycle.</b></li>
+    <li>We went the other way. <b class="gold">1,400 → roughly 2,500 calories.</b></li>
+    <li>Cycle restored. Off a medication for a stretch. Real muscle rebuilt.</li>
+  </ul>
+  <p class="small" style="font-style:italic;font-size:2.6vh;color:var(--gold);margin-top:4vh">"I can track food again without obsessing over clean or dirty."</p>
+</section>
+
+<!-- 16 -->
+<section class="slide">
+  <span class="kicker">Real results</span>
+  <h2>A client of mine</h2>
+  <ul class="pts">
+    <li>Believed she was eating 1,400. The real number was closer to <b style="color:#fff">1,900.</b></li>
+    <li><b class="gold">~15 lbs in six months.</b> Wine and dessert stayed in her life the whole time.</li>
+    <li>Walked away understanding food, with almost every restriction gone.</li>
+  </ul>
+</section>
+
+<!-- 17 -->
+<section class="slide">
+  <span class="kicker">Real results</span>
+  <h2>A woman in her 40s</h2>
+  <ul class="pts">
+    <li>On a low dose of supplementation, wanting to build rather than shrink.</li>
+    <li><b class="gold">165 → 162</b>, and the scale is the least of it.</li>
+    <li>Less inflammation. Less joint pain. Training harder than in years.</li>
+    <li><b style="color:#fff">The dose never went up.</b></li>
+  </ul>
+</section>
+
+<!-- 18 -->
+<section class="slide">
+  <span class="kicker">Real results</span>
+  <h2>A woman in her 60s</h2>
+  <ul class="pts">
+    <li>Convinced her gym time was wasted. Her body scan agreed with her.</li>
+    <li>Fat loss phase worked. Then her body started fighting back.</li>
+    <li><b style="color:#fff">So we did less.</b> A break, adjusted eating, pulled training back.</li>
+    <li><b class="gold">~25 lbs over the last year.</b></li>
+  </ul>
+</section>
+
+<!-- 19 -->
+<section class="slide">
+  <span class="kicker">Real results</span>
+  <h2>Doug</h2>
+  <ul class="pts">
+    <li>Biggest win wasn't the scale. <b class="gold">It was his gut.</b></li>
+    <li>Tolerates far more food than he used to. Getting stronger.</li>
+    <li>Trains two to three times a week without fail.</li>
+  </ul>
+</section>
+
+<!-- 20 -->
+<section class="slide center">
+  <span class="eyebrow">Key One</span>
+  <h1>The Awareness<br><span class="gold">Circle</span></h1>
+  <p class="sub">You don't have a knowledge problem.</p>
+</section>
+
+<!-- 21 -->
+<section class="slide center">
+  <h2 class="big">You have an<br><span class="gold">awareness problem.</span></h2>
+  <p class="sub">You can't change what you can't see, and nobody ever showed you how to look.</p>
+</section>
+
+<!-- 22 -->
+<section class="slide center">
+  <h2 style="font-size:5.4vh">Your body is a <span class="gold">loop</span>, not a checklist</h2>
+  <div class="circle">
+    <svg viewBox="0 0 400 400" aria-hidden="true">
+      <defs>
+        <marker id="ah" markerWidth="7" markerHeight="7" refX="5.2" refY="3.5" orient="auto">
+          <path d="M0,0 L7,3.5 L0,7 z" fill="#C1AD72"></path>
+        </marker>
+        <linearGradient id="ring" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%" stop-color="#8FA97A"></stop><stop offset="100%" stop-color="#C1AD72"></stop>
+        </linearGradient>
+      </defs>
+      <circle cx="200" cy="200" r="150" fill="none" stroke="url(#ring)" stroke-width="1.2" opacity=".28"></circle>
+      <path d="M251.3,58.7 A150,150 0 0 1 341.3,148.7" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah)"></path>
+      <path d="M341.3,251.3 A150,150 0 0 1 251.3,341.3" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah)"></path>
+      <path d="M148.7,341.3 A150,150 0 0 1 58.7,251.3" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah)"></path>
+      <path d="M58.7,148.7 A150,150 0 0 1 148.7,58.7" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah)"></path>
+    </svg>
+    <div class="cnode n"><b>Signals</b><span>Energy, sleep, digestion, hunger, mood. Labs and DNA.</span></div>
+    <div class="cnode e"><b>Fuel</b><span>What goes in.</span></div>
+    <div class="cnode s"><b>Output</b><span>The lever you pull, and the payoff that proves it.</span></div>
+    <div class="cnode w"><b>Recovery</b><span>Sleep, stress, rest.</span></div>
+    <div class="mid"><em>It closes</em><p>Grind one slice and the other three quietly undo it.</p></div>
+  </div>
+</section>
+
+<!-- 23 -->
+<section class="slide">
+  <h2>Why it's <span class="gold">different</span></h2>
+  <div class="two">
+    <div class="col"><div class="ct">Every plan you've run</div>
+      <p>Keto. Whole30. Macros. Fasting. The app. The challenge.</p>
+      <div class="foot">They all prescribe before they observe.</div></div>
+    <div class="col hi"><div class="ct">The Awareness Circle</div>
+      <p>Seven honest days first. Then a plan built on what's actually there.</p>
+      <div class="foot">Observe, then prescribe.</div></div>
+  </div>
+  <p class="small" style="text-align:center;color:var(--gold);font-size:2.8vh;margin-top:4vh">That's the difference between medicine and guessing.</p>
+</section>
+
+<!-- 24 -->
+<section class="slide">
+  <p class="quote" style="font-size:4.2vh;text-align:center">"I'm eating 1,400 calories and nothing is happening."</p>
+  <div class="two" style="margin-top:4vh">
+    <div class="col"><div class="ct">Woman one</div>
+      <h3>Genuinely adapted.</h3>
+      <p>She dieted hard and honestly for a decade. Her body lowered the floor.</p>
+      <div class="foot">Eat more. Rebuild the engine.</div></div>
+    <div class="col hi"><div class="ct">Woman two</div>
+      <h3>Under-reporting by 300 to 500.</h3>
+      <p>The oil, the sauces, the wine, the bites. None of it registered as a decision.</p>
+      <div class="foot">Learn to see it.</div></div>
+  </div>
+  <p class="small" style="text-align:center;color:var(--gold);font-size:3vh;margin-top:3.4vh"><b>Get it backwards and you make it worse.</b></p>
+</section>
+
+<!-- 25 -->
+<section class="slide">
+  <span class="kicker">How it works</span>
+  <h2>Three parts, <span class="gold">in order</span></h2>
+  <ol class="steps">
+    <li><b style="color:#fff">The seven-day read.</b> Track honestly. Change nothing.</li>
+    <li><b style="color:#fff">Sort the bucket.</b> Your own data assigns your starting point.</li>
+    <li><b style="color:#fff">Walk the circle.</b> Signals, Fuel, Output, Recovery, in that order.</li>
+  </ol>
+</section>
+
+<!-- 26 -->
+<section class="slide">
+  <span class="kicker">Proof</span>
+  <h2>A woman in her 40s. Director.<br><span class="gold">Mother first.</span></h2>
+  <ul class="pts">
+    <li>Came in at <b style="color:#fff">313 lbs</b>, leaning on supplementation and not much else.</li>
+    <li>We gave her something sustainable. <b style="color:#fff">Get to the gym. Get the steps in.</b> That was it.</li>
+    <li>She took it from there and <b style="color:#fff">started meal prepping on her own.</b></li>
+    <li><b class="gold">20 lbs in 14 weeks.</b> A steady straight line.</li>
+  </ul>
+  <p class="small" style="color:var(--gold);font-size:2.5vh;margin-top:3vh">She weighed once a week at the start. As it started moving, she began looking more often. That's the awareness, and that's the part that lasts.</p>
+</section>
+
+<!-- 26b -->
+<section class="slide">
+  <span class="kicker">And on the weeks the scale slows down</span>
+  <h2>She can still <span class="gold">feel it</span></h2>
+  <ul class="pts">
+    <li>How her clothes fit.</li>
+    <li>Her energy.</li>
+    <li>How strong she feels.</li>
+    <li>In her own words: <b style="color:#fff">the lower back pain is gone. The knee pain is gone.</b></li>
+  </ul>
+  <div class="rule"></div>
+  <p class="sub" style="font-size:2.9vh;max-width:56ch">And on the craziest weeks in her schedule, she still gets to the gym, still gets her steps, still gets her protein in.</p>
+  <p class="small" style="color:var(--gold);font-size:2.5vh">That is what it looks like when somebody stops reading one number and starts reading the whole circle.</p>
+</section>
+
+<!-- 27 -->
+<section class="slide center">
+  <span class="eyebrow">Key Two</span>
+  <h1>The Macro<br>Freedom <span class="gold">Framework</span></h1>
+  <p class="sub">Structure first. Freedom second.</p>
+</section>
+
+<!-- 28 -->
+<section class="slide center">
+  <h2>You track hard for <span class="gold">one week</span><br>so you never have to track like that again.</h2>
+  <p class="sub">You don't get to eat by feel until the structure has made your feel accurate.</p>
+</section>
+
+<!-- 29 -->
+<section class="slide">
+  <h2>Both camps <span class="gold">break in December</span></h2>
+  <div class="two">
+    <div class="col"><div class="ct">The rules camp</div>
+      <p>Keto, Whole30, clean eating, no carbs after six.</p>
+      <div class="foot">Breaks at your table, with your family.</div></div>
+    <div class="col"><div class="ct">The tracking camp</div>
+      <p>Macros, the app, weigh everything, log everything.</p>
+      <div class="foot">Breaks at somebody else's table.</div></div>
+  </div>
+  <p class="small" style="text-align:center;color:var(--gold);font-size:3vh;margin-top:4vh"><b>Both require a clean week. There isn't one.</b></p>
+</section>
+
+<!-- 30 -->
+<section class="slide center">
+  <h2 style="font-size:7.6vh">The holiday meal isn't a deviation from the plan.<br><span class="gold">It's in the plan, before the week starts.</span></h2>
+</section>
+
+<!-- 31 -->
+<section class="slide">
+  <span class="kicker">The four numbers</span>
+  <h2>Off your <span class="gold">goal weight</span>, not your current one</h2>
+  <ul class="pts">
+    <li><b style="color:#fff">Calories:</b> goal weight × 13</li>
+    <li><b style="color:#fff">Protein:</b> 1 g per lb of goal weight <span style="color:var(--soft)">(floor 0.8, never below, in any phase)</span></li>
+    <li><b style="color:#fff">Produce:</b> 600 to 800 g a day</li>
+    <li><b style="color:#fff">Water:</b> half your bodyweight in ounces</li>
+  </ul>
+  <p class="small" style="margin-top:3.4vh">All four are starting points. Your own data sharpens them.</p>
+</section>
+
+<!-- 32 -->
+<section class="slide">
+  <span class="kicker">The free meals</span>
+  <h2>Two a week. <span class="gold">Built in.</span></h2>
+  <p class="sub" style="max-width:62ch;margin-top:2.4vh">A free meal is a meal where you eat pretty much whatever you want, and <b style="color:#fff">you don't track it.</b></p>
+  <div class="two" style="margin-top:3vh">
+    <div class="col"><div class="ct">Two rules, and they live outside the meal</div>
+      <p><b style="color:#fff">Hit your protein floor from your other meals.</b> If your floor is 120 grams, that's two meals at 50 each plus a shake. Then the free meal is genuinely free.</p>
+      <p><b style="color:#fff">Get your 600 grams of fruit and veg</b> across those same meals.</p></div>
+    <div class="col hi"><div class="ct">Three things inside the meal</div>
+      <p>A <b style="color:#fff">noticeable protein source.</b></p>
+      <p>A <b style="color:#fff">fruit or a vegetable.</b> It does not have to be at the table. Eat it in the car on the way.</p>
+      <p>Stop at <b style="color:#fff">80% full.</b> You are not going to engorge yourself.</p></div>
+  </div>
+  <p class="small" style="color:var(--gold);font-size:2.7vh;margin-top:3vh"><b>Nothing to count. Nothing to log. You earn it from the rest of the day.</b></p>
+</section>
+
+<!-- 33 -->
+<section class="slide">
+  <span class="kicker">Proof</span>
+  <h2>Wine and dessert<br><span class="gold">stayed in</span></h2>
+  <ul class="pts">
+    <li>Believed 1,400 to 1,500. Real number: <b style="color:#fff">1,800 to 2,000.</b></li>
+    <li>Training three to five times a week.</li>
+    <li><b class="gold">~15 lbs in six months.</b></li>
+  </ul>
+  <p class="small" style="font-style:italic;color:var(--gold);font-size:2.7vh;margin-top:3.4vh">"Almost every restriction I was carrying is gone."</p>
+</section>
+
+<!-- 34 -->
+<section class="slide center">
+  <span class="eyebrow">Key Three</span>
+  <h1>The Four<br><span class="gold">Questions</span></h1>
+  <p class="sub">Your budget answers all four.</p>
+</section>
+
+<!-- 35 -->
+<section class="slide">
+  <h2 style="font-size:5vh">Run all three through <span class="gold">the same four questions</span></h2>
+  <table>
+    <tr><th></th><th>Your budget</th><th>Your last diet</th><th class="lp">The Macro Freedom Framework</th></tr>
+    <tr><td>What do I measure?</td><td class="bud">Every dollar in and out</td><td class="diet">"Eat clean"</td><td class="lp">Calories and protein</td></tr>
+    <tr><td>How often do I look?</td><td class="bud">Weekly</td><td class="diet">When I feel brave</td><td class="lp">Two to three times a week</td></tr>
+    <tr><td>What do I do when it's off?</td><td class="bud">Move a line item</td><td class="diet">Try harder</td><td class="lp">Hold, adjust portions, or change phase</td></tr>
+    <tr><td>What happens at the goal?</td><td class="bud">It keeps running</td><td class="diet">It ends</td><td class="lp">You set the next one<small>Maintenance. Muscle. Or a break, then another 10 to 15 lbs.</small></td></tr>
+  </table>
+  <p class="small" style="text-align:center;color:var(--gold);font-size:2.6vh;margin-top:2.6vh"><b>A budget answers all four. Your last diet answered one.</b></p>
+</section>
+
+<!-- 36 -->
+<section class="slide center">
+  <h2 class="big">A diet is not a system.<br><span class="gold">It's a to-do list with an end date.</span></h2>
+</section>
+
+<!-- 37 -->
+<section class="slide center">
+  <h2>You didn't fail six diets.</h2>
+  <div class="rule"></div>
+  <h2 class="gold">You finished six diets,<br>and nobody told you what came next.</h2>
+</section>
+
+<!-- 38 -->
+<section class="slide">
+  <span class="kicker">How it works</span>
+  <h2>Install the <span class="gold">missing answers</span></h2>
+  <ol class="steps">
+    <li><b style="color:#fff">Audit what you're running.</b> Ten seconds. Uncomfortable.</li>
+    <li><b style="color:#fff">Install the missing answers.</b> Four numbers, a weekly rhythm, a written rule.</li>
+    <li><b style="color:#fff">Answer question four before you need it.</b></li>
+  </ol>
+</section>
+
+<!-- 39 -->
+<section class="slide center">
+  <h2>When the scale stalls,<br>you get a <span class="gold">rule</span>, not a feeling</h2>
+  <div class="doors">
+    <div class="door">Hold</div>
+    <div class="door">Adjust<br>portions</div>
+    <div class="door">Change<br>phase</div>
+  </div>
+  <p class="small" style="color:var(--gold);font-size:3vh;margin-top:4vh"><b>A bad week is information, not an ending.</b></p>
+</section>
+
+<!-- 40 -->
+<section class="slide center">
+  <h2 style="font-size:5vh">Fat loss is a <span class="gold">season</span></h2>
+  <div class="cycle">
+    <svg viewBox="0 0 880 520" aria-hidden="true">
+      <defs>
+        <marker id="ah2" markerWidth="7" markerHeight="7" refX="5.2" refY="3.5" orient="auto">
+          <path d="M0,0 L7,3.5 L0,7 z" fill="#C1AD72"></path>
+        </marker>
+        <marker id="ah3" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto">
+          <path d="M0,0 L8,4 L0,8 z" fill="#8FA97A"></path>
+        </marker>
+      </defs>
+      <circle cx="546" cy="260" r="170" fill="none" stroke="#C1AD72" stroke-width="1.2" opacity=".26"></circle>
+      <path d="M617.8,105.9 A170,170 0 0 1 700.1,188.2" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah2)"></path>
+      <path d="M700.1,331.8 A170,170 0 0 1 617.8,414.1" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah2)"></path>
+      <path d="M474.2,414.1 A170,170 0 0 1 391.9,331.8" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah2)"></path>
+      <path d="M391.9,188.2 A170,170 0 0 1 474.2,105.9" fill="none" stroke="#C1AD72" stroke-width="2.6" marker-end="url(#ah2)"></path>
+      <path d="M212,232 C 288,120 392,58 470,80" fill="none" stroke="#8FA97A" stroke-width="2.6"
+            stroke-dasharray="9 7" marker-end="url(#ah3)"></path>
+    </svg>
+    <div class="pnode rev" style="left:13.6%;top:50%">Reverse<small>The on ramp. Rebuild the engine before you ask it to do anything.</small></div>
+    <div class="pnode" style="left:62%;top:17.3%">Lean</div>
+    <div class="pnode" style="left:81.4%;top:50%">Sustain</div>
+    <div class="pnode" style="left:62%;top:82.7%">Strong</div>
+    <div class="pnode" style="left:42.7%;top:50%">Sustain</div>
+    <div class="hinge"><em>The hinge</em><p>It sits on both sides. Not an accident.</p></div>
+  </div>
+  <p class="small" style="font-size:2.4vh;margin-top:4vh;max-width:74ch">For a lot of you, <b style="color:var(--olive-lt)">Reverse is the on ramp</b>, and it sits outside the circle on purpose. You fix the engine first. <b class="gold">Sustain is the hinge</b>, and it is where you actually learn to maintain.</p>
+</section>
+
+<!-- 41 -->
+<section class="slide">
+  <span class="kicker">Proof</span>
+  <h2>The winning move<br>was <span class="gold">doing less</span></h2>
+  <ul class="pts">
+    <li>A woman in her 60s. Gym time felt wasted, and her scan agreed.</li>
+    <li>Fat loss phase worked. <b style="color:#fff">Then her body fought back.</b></li>
+    <li>We took a break, moved calories, and pulled training back.</li>
+    <li><b class="gold">~25 lbs over the last year.</b></li>
+  </ul>
+  <p class="small" style="color:var(--gold);font-size:2.7vh;margin-top:3vh">The only reason doing less was on the table is that she had a rule instead of a feeling.</p>
+</section>
+
+<!-- 42 -->
+<section class="slide center">
+  <h2>One system. <span class="gold">Three keys.</span></h2>
+  <div class="chain" style="font-size:3.4vh;margin-top:6vh">
+    <span>See it</span><i>→</i><span>Build it</span><i>→</i><span>Keep it running</span>
+  </div>
+  <p class="small" style="margin-top:4vh;font-size:2.4vh">The Awareness Circle · The Macro Freedom Framework · The Four Questions</p>
+</section>
+
+<!-- 43 -->
+<section class="slide">
+  <h2>What <span class="gold">breaks</span> when you pull one out</h2>
+  <ul class="pts">
+    <li><b style="color:#fff">One without Two.</b> A very well-documented bad month.</li>
+    <li><b style="color:#fff">Two without One.</b> Perfect execution, wrong direction.</li>
+    <li><b style="color:#fff">One and Two without Three.</b> Works great. For about nine weeks.</li>
+  </ul>
+</section>
+
+<!-- 44 -->
+<section class="slide center">
+  <h1 class="big">Not another diet.<br>Diets end.<br><span class="gold">This doesn't.</span></h1>
+</section>
+
+<!-- 45 -->
+<section class="slide center">
+  <h2 style="font-size:6.4vh">Are you the kind of person who's willing<br>to do what it takes? <span class="gold">Not next year. Now.</span></h2>
+  <p class="sub">Do you build this on your own? Or do you do it with help?</p>
+</section>
+
+<!-- 46 -->
+<section class="slide">
+  <span class="kicker">What we just covered</span>
+  <h2>The whole <span class="gold">system</span></h2>
+  <ol class="steps">
+    <li><b style="color:#fff">The Awareness Circle.</b> See it.</li>
+    <li><b style="color:#fff">The Macro Freedom Framework.</b> Build it.</li>
+    <li><b style="color:#fff">The Four Questions.</b> Keep it running.</li>
+  </ol>
+</section>
+
+<!-- 47 -->
+<section class="slide">
+  <h2 style="text-align:center">Two <span class="gold">paths</span></h2>
+  <div class="two">
+    <div class="col"><div class="ct">Path one: build it yourself</div>
+      <p>Run your own seven-day read and read it yourself.</p>
+      <p>Do your own math on calories and protein.</p>
+      <p>Build your own rotation and free-meal math.</p>
+      <p>Write your own stall rule.</p>
+      <div class="foot">Free. The room is open. Come run it with us.</div></div>
+    <div class="col hi"><div class="ct">Path two: I build it for you</div>
+      <p>Your numbers set off your goal weight, on a call with me.</p>
+      <p>Your meals built and portioned, three options each.</p>
+      <p>Two free meals a week already inside the numbers.</p>
+      <p>Real orders at 48 chains, already sized.</p>
+      <div class="foot">Built for you. Yours for life.</div></div>
+  </div>
+  <p class="small" style="text-align:center;font-size:2.8vh;margin-top:3vh">Same 100 days. Two very different December 31sts.</p>
+</section>
+
+<!-- 48 -->
+<section class="slide center">
+  <span class="eyebrow">Path two</span>
+  <h1>The Legacy Performance<br>Nutrition <span class="gold">System</span></h1>
+  <p class="sub">Not a meal plan. A meal plan only gets you to one goal.</p>
+</section>
+
+<!-- 49 -->
+<section class="slide">
+  <span class="kicker">This is the actual thing</span>
+  <h2>You answer honestly.<br><span class="gold">It builds from that.</span></h2>
+  <div class="shot">
+    <div class="frame"><img src="1-intake.png" alt="The intake"></div>
+    <div>
+      <ul class="pts" style="margin-top:0">
+        <li>What you're really here for. <b style="color:#fff">This sets your phase.</b></li>
+        <li>Where you are and where you want to be. <b style="color:#fff">Your goal weight anchors the protein floor.</b></li>
+        <li>The food you actually eat, the restaurants you actually go to.</li>
+      </ul>
+      <p class="small" style="color:var(--gold);font-size:2.4vh">About five minutes. You see everything that goes into it before you buy.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 49b -->
+<section class="slide">
+  <span class="kicker">What's in it</span>
+  <h2>I build it <span class="gold">for you</span></h2>
+  <ul class="pts">
+    <li>Your numbers, off your goal weight</li>
+    <li>A week of real meals, three options each, with the recipes</li>
+    <li>One shopping list and a prep guide</li>
+    <li>Two free meals a week, built in</li>
+    <li>Real orders at 48 restaurant chains, and a swap guide</li>
+    <li>The whole thing printable, about 12 pages</li>
+    <li><b style="color:#fff">Then we refine it over 30 days</b> until it actually fits your week.</li>
+    <li><b class="gold">And you rebuild it any time your life changes. Forever.</b></li>
+  </ul>
+</section>
+
+<!-- 49c -->
+<section class="slide">
+  <h2 style="text-align:center">And this is what <span class="gold">comes back</span></h2>
+  <div class="shots3">
+    <div><div class="frame"><img src="2-pdf.png" alt="The printed system"></div><div class="cap">The printed system</div></div>
+    <div><div class="frame"><img src="3-dashboard.png" alt="Your dashboard"></div><div class="cap">Your dashboard</div></div>
+    <div><div class="frame"><img src="4-progress-adjustment.png" alt="The weekly read"></div><div class="cap">The weekly read</div></div>
+  </div>
+</section>
+
+<!-- 50 -->
+<section class="slide center">
+  <h1 class="big">$497. <span class="gold">Once.</span></h1>
+  <p class="sub">No subscription. Nothing renews. Yours for life. Klarna at checkout.</p>
+  <div class="rule"></div>
+  <h3 style="font-size:3.6vh">You're not tired of eating well.<br><span class="gold">You're tired of deciding.</span></h3>
+</section>
+
+<!-- 50b -->
+<section class="slide">
+  <span class="kicker">If you want the deeper version</span>
+  <h2>Your genetics don't start your plan.<br><span class="gold">They sharpen it.</span></h2>
+  <p class="sub" style="max-width:60ch">The nutrition system works on its own. This is for the person who wants to stop guessing at the layer underneath it.</p>
+  <div class="gene">
+    <div class="g"><b>How you handle fat and carbs</b><span>Which split your body actually does better on, instead of trying both for a year.</span></div>
+    <div class="g"><b>Common nutrient gaps</b><span>What your genetics suggest you may run short on, so supplementation stops being a guess.</span></div>
+    <div class="g"><b>Appetite and satiety signals</b><span>Why "just eat less" has been harder for you than it looks from the outside.</span></div>
+    <div class="g"><b>Caffeine, and how you recover</b><span>What your training and your sleep should actually look like around it.</span></div>
+  </div>
+  <p class="small" style="font-size:2vh;color:#77726a;margin-top:2.6vh">Educational coaching guidance, not medical advice, and never a diagnosis. It feeds your plan, not a prescription.</p>
+</section>
+
+<!-- 50c -->
+<section class="slide center">
+  <span class="eyebrow">The Legacy Blueprint Bundle</span>
+  <h2>The Blueprint <span class="gold">and</span> the Nutrition System</h2>
+  <div class="price-row">
+    <span class="strike">$1,494 apart</span>
+    <h1 style="font-size:9vh">$997 <span class="gold">together</span></h1>
+  </div>
+  <p class="sub">Your genetics read, and the system built around what they say.</p>
+  <p class="small" style="color:var(--gold);font-size:2.4vh">This is the upgrade, not a different door. If you just want the system, the system is the system.</p>
+</section>
+
+<!-- 51 -->
+<section class="slide center">
+  <h2 style="font-size:6vh">This isn't for you if you want a meal plan<br>you'll follow for six weeks <span class="gold">and throw away.</span></h2>
+  <p class="sub">Everything good about this is on the other side of using it as a system.</p>
+</section>
+
+<!-- 52 -->
+<section class="slide">
+  <span class="kicker">What's actually possible</span>
+  <h2>Nobody reached for a <span class="gold">bigger lever</span></h2>
+  <ul class="pts">
+    <li><b style="color:#fff">Missy, 54.</b> 1,400 calories and about to add cardio. Ended up near 2,000, training three days a week, dog walks for steps. <b class="gold">Earned her pro card.</b> Still eats waffles every Saturday, four years later.</li>
+    <li><b style="color:#fff">A woman in her 40s.</b> 165 → 162, and the scale is the least of it. Less inflammation, less joint pain, training harder than in years.</li>
+  </ul>
+</section>
+
+<!-- 53 -->
+<section class="slide">
+  <span class="kicker">If you're in within 48 hours</span>
+  <h2>The 100 Days <span class="gold">Upgrade</span></h2>
+  <p class="sub" style="color:var(--gold);font-family:Cinzel,serif;font-size:3.4vh;letter-spacing:.08em">Sept 29 → Dec 31</p>
+  <ul class="pts">
+    <li><b style="color:#fff">The LP Coach, unlocked.</b> Your week read with you, not just once at the start.</li>
+    <li><b style="color:#fff">The Last 100 Days Room.</b> My real numbers posted weekly, next to yours.</li>
+  </ul>
+  <p class="small" style="margin-top:3.4vh">Both gone Monday at noon. Nothing auto-bills. It's a switch with a date on it.</p>
+</section>
+
+<!-- 54 -->
+<section class="slide">
+  <h2 style="text-align:center">The first 30 days are the <span class="gold">refinement window</span></h2>
+  <ul class="pts" style="margin-top:5vh">
+    <li><b style="color:#fff">I build it for you. Then we make it fit.</b> You hate two of the meals, your Tuesdays are busier than you said, the portions feel wrong at breakfast. You tell me, I change it.</li>
+    <li>That is what the first month is for. <b style="color:#fff">It is not a refund window.</b></li>
+    <li>And if after all that it still isn't working? <b style="color:#fff">I refund you.</b> No argument.</li>
+    <li><b style="color:#fff">No subscription.</b> Nothing renews on you.</li>
+    <li><b style="color:#fff">And it credits forward</b> if you ever apply and are accepted into <b class="gold">Built 4 More</b>.</li>
+  </ul>
+</section>
+
+<!-- 55 -->
+<section class="slide center">
+  <h2 class="big">Ten this round.<br><span class="gold">Three gone. Seven left.</span></h2>
+  <p class="sub">Because I build every one of them for you, by hand, and then refine it with you over 30 days.</p>
+  <div class="rule"></div>
+  <p class="small" style="font-size:2.7vh">October is the easiest month left on this year. A system built in December is installed in the middle of the storm.</p>
+</section>
+
+<!-- 56 -->
+<section class="slide center">
+  <h1 style="font-size:7vh;text-transform:none;letter-spacing:-.01em">dashboard.legacyperformance.co<span class="gold">/build</span></h1>
+  <p class="sub" style="color:var(--gold);font-size:3.4vh">Your numbers are free. About five minutes. No card.</p>
+  <p class="small">The built version is the button at the end of that page.</p>
+</section>
+
+<!-- 57 -->
+<section class="slide center">
+  <h1 class="big">Let's build<br><span class="gold">two of these.</span></h1>
+  <p class="sub">Picked from people who did the intake.</p>
+</section>
+
+<script>
+const s=[...document.querySelectorAll('.slide')], num=document.getElementById('num');
+let i=0;
+function show(n){ i=Math.max(0,Math.min(s.length-1,n)); s.forEach((el,x)=>el.classList.toggle('on',x===i));
+  num.textContent=(i+1)+' / '+s.length; location.hash=i+1; }
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown','PageDown',' '].includes(e.key)){e.preventDefault();show(i+1);}
+  if(['ArrowLeft','ArrowUp','PageUp'].includes(e.key)){e.preventDefault();show(i-1);}
+  if(e.key==='Home')show(0); if(e.key==='End')show(s.length-1);
+  if(e.key==='f'||e.key==='F'){document.fullscreenElement?document.exitFullscreen():document.documentElement.requestFullscreen();}
+});
+document.addEventListener('click',e=>{ show(e.clientX < innerWidth*0.25 ? i-1 : i+1); });
+show(parseInt(location.hash.slice(1))-1 || 0);
+
+/* Chrome the presenter needs but the recording doesn't: fade the hint after 4s,
+   bring it back on mouse move. Press H to hide the slide counter too. */
+const hint=document.querySelector('.hint');
+let idle;
+function wake(){ hint.classList.remove('gone'); clearTimeout(idle);
+  idle=setTimeout(()=>hint.classList.add('gone'), 4000); }
+document.addEventListener('mousemove', wake);
+document.addEventListener('keydown', e=>{ if(e.key==='h'||e.key==='H'){ num.classList.toggle('gone'); hint.classList.toggle('gone'); } });
+wake();
+</script>
+</body>
+</html>

@@ -5,5 +5,8 @@
 var YI_LINKS = {
   setupCallUrl: "https://legacyperformance.co/onboarding-call",       // GHL: Onboarding Call w/ Jayme Olson
   dashboardUrl: "https://dashboard.legacyperformance.co/client.html",
-  skoolUrl:     "https://www.skool.com/legacy-performance/about"
+  skoolUrl:     "https://www.skool.com/legacy-performance/about",
+  /* $500 Genetic Blueprint upgrade. Leave this EMPTY until the checkout link exists:
+     an empty string hides the whole add-on button automatically. */
+  geneticsUrl:  ""
 };
