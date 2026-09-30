@@ -1788,6 +1788,7 @@ function applyTargetOverride(){
   }catch(e){}
 }
 function openTargetEditor(){
+  if(coachManaged()){ alert('Your coach is managing your plan right now — message your coach to adjust your targets.'); return; }
   var it=M&&M.intake; if(!it||!it.pfs){ showClientTab('nutrition'); return; }
   var cal=g('teCal'), pro=g('tePro');
   if(cal) cal.value=Math.round(it.pfs.calories||0);
@@ -2254,6 +2255,7 @@ function buildModel(server){
   // Built for More auto-qualifies via hasCNS(); until the doorway returns this, only BFM gets CNS.
   M.onProtocol = (server && server.onProtocol!=null) ? String(server.onProtocol) : (M.onProtocol||'');
   M.genetics = (server && server.genetics!=null) ? String(server.genetics) : (M.genetics||'');
+  M.managed = (server && server.managed!=null) ? String(server.managed) : (M.managed||'');   // coach-managed 1-on-1 → self-adjust locked
   M.dob = (server && server.dob) ? String(server.dob) : (M.dob||'');
   M.complete = (server && (server.complete!=null ? server.complete : server.cns)) != null
     ? String(server.complete!=null ? server.complete : server.cns) : (M.complete||'');
@@ -4040,6 +4042,10 @@ function renderCronometer(){
 }
 /* On peptides? Coach flips the OnProtocol flag; this unlocks the dosing + symptom + prescriber tools. */
 function isOnProtocol(){ return /^\s*(y|yes|true|1)/i.test(String(M.onProtocol||"")); }
+/* Coach-managed 1-on-1: when the coach flips this on (Command Center), the client's self-adjust
+   controls lock — they can't change their own targets or rebuild their nutrition system. */
+function coachManaged(){ return /^\s*(y|yes|true|1)/i.test(String((M&&M.managed)||"")); }
+var COACH_LOCK_NOTE='<div class="krow" style="cursor:default;opacity:.9"><div class="ic">🔒</div><div class="rb"><div class="rt2">Your coach is managing your plan</div><div class="rs">Message your coach to change your targets or nutrition system.</div></div></div>';
 /* Cadence + booking by tier: base = weekly · community ($97) = +monthly · 1:1 (BFM) = +quarterly. */
 function cadenceLevel(){ var t=String(M.tier||"").toLowerCase(); if(isOneToOne(M.tier)) return 3; if(/built to last|vip/.test(t)) return 2; return 1; }
 function gateTiers(){
@@ -4425,7 +4431,7 @@ function renderHomeHero(){
     +'<div class="dt-col"><div class="dt-goalwrap">'
     +'<span class="goalpill">🎯 '+esc(track)+(gw?(' · goal '+gw+' lb'):'')+'</span>'
     +'<div style="margin-top:10px">'+statusHTML+'</div>'
-    +'<div class="editgoal" onclick="openTargetEditor()">✎ Edit target</div></div>'
+    +(coachManaged()?'<div class="editgoal" style="color:var(--ink-faint);cursor:default">🔒 Coach-managed</div>':'<div class="editgoal" onclick="openTargetEditor()">✎ Edit target</div>')+'</div>'
     +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein / day</div></div></div>'
     +'</div>'+stepTile+'</div>';
 
@@ -4589,9 +4595,11 @@ function renderNutritionHero(){
   h+='<div class="k-slabel">Your Nutrition System'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
   if(meals.length){
     meals.forEach(function(m,mi){ h+=nutMealRow(m,mi); });
-    h+='<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else openInAppPage(\'build/\',\'Build Your Nutrition System\')"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
-  } else {
+    h+=coachManaged()?COACH_LOCK_NOTE:'<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else openInAppPage(\'build/\',\'Build Your Nutrition System\')"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
+  } else if(!coachManaged()){
     h+='<div class="krow" onclick="openInAppPage(\'build/\',\'Build Your Nutrition System\')"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">The Complete Nutrition System · CNS</div></div><div class="go">›</div></div>';
+  } else {
+    h+=COACH_LOCK_NOTE;
   }
   h+='<div class="krow" onclick="openInAppPage(\'library/\',\'Your Protocol\')"><div class="ic">🧭</div><div class="rb"><div class="rt2">Your protocol</div><div class="rs">Macro Freedom Framework — how your plan is built</div></div><div class="go">›</div></div>';
   // Tools
@@ -4993,7 +5001,7 @@ function renderFoodEditor(){
     +freqBlock()+shakeBlock()+freeMealsBlock()
     +'<div class="actions"><button class="btn btn-primary" onclick="doGenerate()">Generate my nutrition system →</button> <span class="status" id="genPlanStatus"></span></div>';
 }
-function showMealBuilder(){ renderFoodEditor(); show("mealbuilder"); }
+function showMealBuilder(){ if(coachManaged()){ alert('Your coach is managing your nutrition system right now — message your coach to change it.'); return; } renderFoodEditor(); show("mealbuilder"); }
 function doGenerate(){
   if(!M.intake||!M.intake.pfs){ var s=g('genPlanStatus'); if(s){s.textContent="Build your Power Food System first.";s.style.color="var(--stall-tx)";} return; }
   var sel={protein:mval('fe_prot').split(', ').filter(Boolean),carb:mval('fe_carb').split(', ').filter(Boolean),fruit:mval('fe_fruit').split(', ').filter(Boolean),fat:mval('fe_fat').split(', ').filter(Boolean),veg:mval('fe_veg').split(', ').filter(Boolean)};
