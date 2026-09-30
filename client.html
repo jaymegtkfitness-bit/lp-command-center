@@ -1103,6 +1103,27 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
 .drawer-group{font-size:.85rem!important}
 .drawer-nav a small{font-size:.8rem!important}
 .drawer{width:min(88vw,22rem)!important}
+/* ===== DESKTOP FRAMING (Sep 30): mobile-first app presents as a centered phone-width column on wide screens (phones unaffected, <760px) ===== */
+@media(min-width:760px){
+  :root{font-size:17px!important}
+  .wrap{max-width:30rem!important;margin-left:auto!important;margin-right:auto!important}
+  header{max-width:30rem!important;margin-left:auto!important;margin-right:auto!important}
+  #bootLoader .bl-logo{width:200px!important}
+}
+/* ===== CO-BRAND SHELL (?brand=fitbody) — config-driven partner skin: same app, dual-logo lockup + partner-accent backdrop ===== */
+:root[data-brand="fitbody"] .appbg{background:
+  radial-gradient(ellipse 92% 46% at 100% 100%, rgba(193,173,114,.13), transparent 72%),
+  radial-gradient(ellipse 120% 64% at 0% 100%, rgba(10,115,206,.5), transparent 76%),
+  radial-gradient(ellipse 90% 34% at 100% 0%, rgba(10,115,206,.16), transparent 70%),
+  linear-gradient(180deg,#141618 0%,#0f1114 55%,#08090a 100%)!important}
+.cb-lock{display:flex;align-items:center;gap:.4rem;min-width:0}
+header .brand.cb-lock .cb-lp{height:2.7rem!important;width:auto;flex:0 1 auto;min-width:0}
+.cb-lock .cb-x{color:var(--ink-dim,#9a958a);font-size:.95rem;font-weight:300;flex:0 0 auto}
+.cb-lock .cb-fb{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;border:1.5px solid rgba(10,115,206,.42);border-radius:.5rem;padding:.24rem .42rem;background:rgba(10,115,206,.12);line-height:1}
+.cb-lock .cb-fb b{font-weight:900;font-size:.72rem;letter-spacing:.02em;color:#fff}
+.cb-lock .cb-fb i{font-style:normal;font-size:.4rem;letter-spacing:.18em;text-transform:uppercase;color:#4d9fe0;font-weight:700;margin-top:.12rem}
+@media(min-width:760px){ header .brand.cb-lock .cb-lp{height:3.2rem!important} }
+.cb-tag{font-size:.7rem;letter-spacing:.04em;color:var(--fbblue,#4d9fe0);text-align:center;margin-top:.2rem}
 </style>
 </head>
 <body>
@@ -1678,6 +1699,29 @@ var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE=
 var CLIENT_TAB="home";
 var TOKEN=null;   // per-client magic-link token (?k=…) — identity without typing an email
 function getParam(k){ try{ var m=new RegExp('[?&]'+k+'=([^&]+)').exec(location.search); return m?decodeURIComponent(m[1]):null; }catch(e){ return null; } }
+
+/* ============================ CO-BRAND LAYER ============================
+   Config-driven partner skin. ?brand=fitbody (persisted to lp_brand) → the SAME app with a
+   dual-logo lockup + partner-accent backdrop. One codebase, swap the shell. The Fitbody mark is
+   a text placeholder until their official logo is approved (nothing reproduces their branding). */
+var BRAND = (function(){ try{ var p=getParam('brand'); if(p){ localStorage.setItem('lp_brand', p); return p; } return localStorage.getItem('lp_brand')||''; }catch(e){ return getParam('brand')||''; } })();
+var BRANDS = { fitbody:{ short:'FITBODY', sub:'Bootcamp', appTitle:'Legacy × Fitbody', tag:'for Fit Body Bootcamp members' } };
+function applyBrand(){
+  var b = BRANDS[BRAND]; if(!b) return;
+  try{ document.documentElement.setAttribute('data-brand', BRAND); }catch(e){}
+  try{ var mt=document.querySelector('meta[name="apple-mobile-web-app-title"]'); if(mt) mt.setAttribute('content', b.appTitle);
+       if(document.title.indexOf('×')<0) document.title = b.appTitle; }catch(e){}
+  try{ document.querySelectorAll('.brand').forEach(function(el){
+    if(el.getAttribute('data-cobrand')) return; el.setAttribute('data-cobrand','1');
+    var img=el.querySelector('img'); var src=img?img.getAttribute('src'):'logo-white-gold.png';
+    var alt=img?(img.getAttribute('alt')||'Legacy Performance'):'Legacy Performance';
+    el.classList.add('cb-lock');
+    el.innerHTML='<img class="cb-lp" src="'+src+'" alt="'+alt+'">'
+      +'<span class="cb-x">×</span>'
+      +'<span class="cb-fb"><b>'+b.short+'</b><i>'+b.sub+'</i></span>';
+  }); }catch(e){}
+}
+try{ if(BRANDS[BRAND]) document.documentElement.setAttribute('data-brand', BRAND); }catch(e){}  // set ASAP so the accent backdrop is right behind the splash
 
 /* ============================ HELPERS ============================ */
 function g(id){ return document.getElementById(id); }
@@ -5871,6 +5915,7 @@ function setupDemoBoot(){
   showWizard();
 }
 (function(){
+  applyBrand();   // co-brand the shell (logo lockup + accent) before any boot path renders
   // ?setupdemo=1 → the account-setup walkthrough (real wizard, writes blocked, jump-to-app bar).
   if(getParam('setupdemo')){ setupDemoBoot(); return; }
   // ?demo=1 (or ?rachel=1) → Jayme's all-access preview app. Clean, no dev bench, everything unlocked.
