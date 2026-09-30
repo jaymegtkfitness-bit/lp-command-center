@@ -112,10 +112,10 @@ const EXERCISES = {
   --lightgray:#D4D6D2;
 
   /* ---- MASCULINE / DARK (default) ---- */
-  --bg:#1C1C1C;                 /* charcoal = primary background */
-  --header-bg:#141310;          /* near-black warm strip */
-  --surface:#26241f;            /* lifted warm-dark card */
-  --surface-2:#302d26;          /* hover / secondary */
+  --bg:#131210;                 /* matches the client app (warm near-black) */
+  --header-bg:#0e0d0b;          /* darker header strip */
+  --surface:#1f1d18;            /* lifted warm-dark card (client app value) */
+  --surface-2:#292620;          /* hover / secondary (client app value) */
   --headline:#F2EDE4;           /* parchment headlines */
   --ink:#EAE4D8;                /* primary text (parchment) */
   --ink-soft:#cfc9bc;
@@ -170,11 +170,18 @@ const EXERCISES = {
 html,body{margin:0;padding:0}
 body{
   font-family:'Montserrat',system-ui,sans-serif;
-  background:var(--bg);
+  /* matches the client app: charcoal with a green fade bottom-left + gold bottom-right */
+  background:
+    radial-gradient(ellipse 55% 42% at 100% 100%, rgba(193,173,114,.10), transparent 70%),
+    radial-gradient(ellipse 62% 46% at 0% 100%, rgba(74,92,62,.20), transparent 72%),
+    linear-gradient(180deg,#131210 0%,#0e0d0b 60%,#0a0a09 100%);
+  background-attachment:fixed;
   color:var(--ink);
   -webkit-font-smoothing:antialiased;
   line-height:1.45;
 }
+/* light / olive themes keep a flat background (no green fade) */
+:root[data-theme="light"] body,:root[data-theme="parchment"] body,:root[data-theme="olive"] body{background:var(--bg)}
 a{color:var(--accent)}
 .wrap{max-width:1200px;margin:0 auto;padding:0 20px 64px}
 
@@ -224,18 +231,18 @@ a{color:var(--accent)}
    (time, battery, notch) when the dashboard runs as a home-screen app. 0px on desktop. */
 body::before{content:"";display:block;height:env(safe-area-inset-top,0px);background:var(--charcoal)}
 header.top{
-  background:var(--parchment);
-  color:var(--charcoal);
-  border-bottom:3px solid var(--gold);
+  background:var(--header-bg);
+  color:var(--ink);
+  border-bottom:1px solid var(--line);
 }
 .top-inner{max-width:1200px;margin:0 auto;padding:13px 20px;display:flex;align-items:center;gap:18px;flex-wrap:wrap}
 .brand{display:flex;align-items:center;gap:14px;margin-right:auto}
 .brand .logo{height:48px;width:auto;display:block}
 /* Fallback wordmark, shown only if logo.png isn't in the folder yet */
 .brand-fallback{display:flex;align-items:baseline;gap:9px;font-family:'Cinzel',serif;font-weight:600;letter-spacing:.11em;font-size:21px;line-height:1}
-.brand-fallback .lg{color:var(--charcoal)}
+.brand-fallback .lg{color:var(--parchment)}
 .brand-fallback .pf{color:var(--gold)}
-.brand .divider{width:1px;height:30px;background:rgba(28,28,28,.16)}
+.brand .divider{width:1px;height:30px;background:rgba(242,237,228,.14)}
 /* ---- Tasks / This Week ---- */
 .tasks-wrap{max-width:760px}
 .tgroup{margin-bottom:16px}
@@ -692,7 +699,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
     <div class="brand">
       <!-- Drop your logo file in this folder as  logo.png  and it appears here.
            Until then, the on-brand text wordmark below shows automatically. -->
-      <img class="logo" src="logo.png" alt="Legacy Performance"
+      <img class="logo" src="logo-white-gold.png" alt="Legacy Performance"
            onerror="this.remove();document.getElementById('brandFallback').style.display='flex'" />
       <span class="brand-fallback" id="brandFallback" style="display:none">
         <span class="lg">LEGACY</span><span class="pf">PERFORMANCE</span>
