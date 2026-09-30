@@ -1426,6 +1426,35 @@ function generateMealOptions(it, sel, name){
     return {name:nm, target:target, options:options, thin:(options.length<n)};
   });
 
+  /* Variety across the day (Jayme 2026-09-29): the FEATURED option per meal should not repeat the
+     same protein family or the same carb as an earlier meal (the "turkey for breakfast AND lunch"
+     complaint). We only REORDER each slot's options — every option in a slot hits the same numbers —
+     preferring the lowest-tier non-repeating one; if a slot genuinely can't avoid it, keep its best. */
+  (function(){
+    var FAMSET={'ground beef':1,'steak':1,'chicken':1,'turkey':1,'white fish':1,'salmon':1,'tuna':1,'shrimp':1,'pork':1,'yogurt':1,'cottage cheese':1,'eggs':1,'protein powder':1,'tofu':1,'bison':1};
+    var CARB_RX=/rice|potato|oats|bread|sourdough|bagel|pasta|quinoa|tortilla|granola|couscous|noodle|barley|farro|bean|lentil|chickpea|\bpeas\b|corn|english muffin|rice cake|cream of rice/i;
+    function optFam(o){ var ps=(o&&o.parts)||[]; for(var i=0;i<ps.length;i++){ var f=proteinFamily(ps[i].n); if(FAMSET[f] && !/bacon|prosciutto/i.test(ps[i].n)) return f; } return null; }
+    function optCarb(o){ var ps=(o&&o.parts)||[]; for(var i=0;i<ps.length;i++){ if(CARB_RX.test(ps[i].n)) return String(ps[i].n).toLowerCase().replace(/\s*\(.*/,'').trim(); } return null; }
+    var userFams={}; (sel.protein||[]).forEach(function(n){ var f=proteinFamily(n); if(FAMSET[f]) userFams[f]=1; });
+    var hasUser=Object.keys(userFams).length>0;
+    var usedFam={}, usedCarb={};
+    slots.forEach(function(sl){
+      var opts=(sl.options||[]); if(!opts.length) return;
+      /* Lowest penalty wins (ties keep the lower-tier/better option, since it's scanned first):
+         repeat protein 1000 ≫ reach past her chosen proteins 100 ≫ repeat carb 10. */
+      var best=0, bestPen=Infinity;
+      for(var i=0;i<opts.length;i++){
+        var fm=optFam(opts[i]), cb=optCarb(opts[i]), pen=0;
+        if(fm && usedFam[fm]) pen+=1000;
+        if(hasUser && fm && !userFams[fm]) pen+=100;
+        if(cb && usedCarb[cb]) pen+=10;
+        if(pen<bestPen){ bestPen=pen; best=i; if(pen===0) break; }
+      }
+      if(best>0){ opts.unshift(opts.splice(best,1)[0]); }
+      var f0=opts[0], ff=optFam(f0), cc=optCarb(f0); if(ff)usedFam[ff]=1; if(cc)usedCarb[cc]=1;
+    });
+  })();
+
   if(S.shake) slots.push({name:'Protein shake', target:{protein:S.shake.protein},
     options:[{items:[S.shake.protein+'g protein shake'], parts:[{n:'protein shake', shake:true, grams:S.shake.protein}], cal:S.shake.calories,
               protein:S.shake.protein, carbs:0, fat:0}]});
