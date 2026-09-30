@@ -2166,14 +2166,19 @@ function addAddon(){ const client=(document.getElementById('aoClient').value||''
 function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCalls(); }
 
 /* ============================ NAVIGATION + BUSINESS VIEWS ============================ */
+/* Command Center = CLIENT FULFILLMENT only (Jayme 2026-09-30). Business-development tracking now
+   lives in the Ascend OS (the "Olson Operating Order" — the Ledger, fill-a-room, offer/pricing,
+   the weekly report to Mike), so the biz-dev groups below are hidden from the nav to kill the
+   redundancy. Their views + render code are untouched — uncomment a group to bring it back. */
 const NAV = [
-  {group:"Personal", items:[["goals","Big Goals"]]},
   {group:"Plan", items:[["tasks","This Week"],["ea","EA Inbox"]]},
-  {group:"Launch", items:[["launch","Fitbody Launch"]]},
   {group:"Fulfillment", items:[["journey","Member Journey"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["calls","Fulfillment Calls"],["links","Client Links"]]},
-  {group:"Grow", items:[["grow","Conveyor Belt"],["free","Free Members"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
   {group:"Toolkit", items:[["toolkit","Toolkit"]]},
   {group:"System", items:[["integrations","Integrations"]]}
+  // Hidden — biz-dev, owned by the Ascend OS (uncomment to restore):
+  // {group:"Personal", items:[["goals","Big Goals"]]},
+  // {group:"Launch", items:[["launch","Fitbody Launch"]]},
+  // {group:"Grow", items:[["grow","Conveyor Belt"],["free","Free Members"],["revenue","Revenue"],["metrics","Metrics"],["workshops","Workshops"],["content","Content Calendar"]]},
 ];
 function renderSidebar(active){
   document.getElementById("sidebar").innerHTML = NAV.map(g=>
