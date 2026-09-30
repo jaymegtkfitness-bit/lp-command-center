@@ -844,6 +844,9 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 .read .rh .av{width:34px;height:34px;border-radius:10px;flex:none;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.25);padding:5px}
 .read .rh .av img{width:100%;height:100%;object-fit:contain}
 .read .rh .rt{font-family:'Cinzel',serif;font-weight:600;font-size:13px;letter-spacing:.06em;color:var(--gold-soft)}
+.read .rh .rt.rt-fdn{display:flex;flex-direction:column;gap:2px}
+.read .rh .rt .rt-top{font-family:'Montserrat',sans-serif;font-weight:900;font-size:15px;letter-spacing:.02em;text-transform:uppercase;color:#fff;line-height:1.05}
+.read .rh .rt .rt-sub{font-family:'Montserrat',sans-serif;font-weight:600;font-size:11px;letter-spacing:.04em;color:var(--gold-soft);text-transform:uppercase;line-height:1.05}
 .read p{margin:0;font-size:13px;line-height:1.5;color:var(--ink)}
 .read p b{color:#fff}
 .read .cta{display:flex;gap:9px;margin-top:13px}
@@ -1025,6 +1028,16 @@ header .brand img{height:3.9rem!important}
 /* Stack / supplements / peptides / coach text */
 .stack .sh .t,.pepwrap .pn,.suprow .sn,.peprow .pn{font-size:.94rem!important}
 .suprow .sm,.peprow .pm{font-size:.78rem!important}
+/* Bloodwork input grid */
+.bw-group{font-family:'Montserrat',sans-serif;font-weight:800;font-size:.72rem;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-soft,#c9b98a);margin:16px 0 8px;padding-bottom:6px;border-bottom:1px solid var(--line)}
+.bw-row{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.bw-l{flex:1;font-size:.9rem;color:var(--ink-soft);line-height:1.25}
+.bw-u{color:var(--ink-faint,#8a8578);font-size:.75rem;white-space:nowrap}
+.bw-in{width:5.4rem;flex:none;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:9px;padding:9px 8px;color:#fff;font-family:inherit;font-size:1rem;font-weight:700;text-align:center}
+.bw-custom{gap:8px}
+.bw-cn{flex:1;box-sizing:border-box;background:rgba(255,255,255,.04);border:1px solid var(--line);border-radius:9px;padding:9px 10px;color:#fff;font-family:inherit;font-size:.9rem}
+.bw-x{flex:none;color:var(--ink-faint,#8a8578);font-size:.9rem;cursor:pointer;padding:4px 6px}
+.bw-add{margin-top:6px;color:var(--gold);font-weight:800;font-size:.85rem;cursor:pointer}
 .read p{font-size:.94rem!important}.read .rt{font-size:.84rem!important}
 .sg .k{font-size:1.06rem!important}.sg .l{font-size:.66rem!important}
 .lift .ln{font-size:.94rem!important}.lift .lv{font-size:1.06rem!important}
@@ -1598,6 +1611,7 @@ var CONFIG = {
   thorneUrl: "",  // your Thorne dispensary / affiliate link — the supplement tiles link here. "" = placeholder (#).
   huelUrl: "",    // TODO: your Huel affiliate link.
   equipUrl: "",   // TODO: your Equip Foods partner link.
+  peptideOrderUrl: "",  // peptide order / reorder form (GHL). "" = "coming soon" alert until set.
   onboardCallUrl: "",  // dedicated onboarding-call link (separate workflow — Jayme building it). No fallback: Book button hides until set.
   skoolAppUrl: "https://apps.apple.com/us/app/skool-communities/id6447270545",  // Skool app (iOS)
   skoolAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.skool.skoolcommunities",  // Skool app (Android)
@@ -1786,8 +1800,8 @@ function renderWorkouts(){
     h+='<div class="progcard '+p.c+'"><div class="progcard-body"><div class="pcname">'+esc(p.n)+'</div>'
       +'<div class="pcpills">'+p.m.map(function(x){return '<span class="pill">'+esc(x)+'</span>';}).join('')+'</div></div></div>';
   });
-  h+='<div class="krow" style="margin-top:14px"><div class="ic">🏆</div><div class="rb"><div class="rt2">History &amp; PRs</div>'
-    +'<div class="rs">Your core lifts and past sessions — in LP Coach</div></div><div class="go" onclick="showClientTab(\'coach\')">›</div></div>';
+  h+='<div class="krow" style="margin-top:14px;cursor:pointer" onclick="showClientTab(\'coach\')"><div class="ic">🏆</div><div class="rb"><div class="rt2">History &amp; PRs</div>'
+    +'<div class="rs">Your core lifts and past sessions — in LP Coach</div></div><div class="go">›</div></div>';
   box.innerHTML=h;
 }
 /* LP Coach — the decision surface (v1: the read + your track + submit a check-in). Grows into the
@@ -1876,9 +1890,15 @@ function renderCoach(){
   var metrics=[['weight','Body Weight'],['waist','Waist'],['chest','Chest'],['arms','Arms']];
 
   var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">Your Progress</p><h1 style="text-transform:uppercase;font-size:30px">LP Coach</h1></div>';
-  // read
+  // read — during Foundations the byline names the week (Foundations · Week One · Awareness Week)
+  var ORD=['','One','Two','Three','Four','Five','Six','Seven','Eight'];
+  var rtHTML='<div class="rt">From your coach</div>';
+  if(inFdn && typeof fdnWeek==='function'){
+    var _wk=fdnWeek(), _theme=(_wk===1)?'Awareness Week':(((typeof FDN_ARC!=='undefined'&&FDN_ARC[_wk-1])||{}).title||'');
+    rtHTML='<div class="rt rt-fdn"><span class="rt-top">Foundations</span><span class="rt-sub">Week '+(ORD[_wk]||_wk)+(_theme?' · '+esc(_theme):'')+'</span></div>';
+  }
   h+='<div class="k-slabel">This Week\'s Read</div>'
-    +'<div class="read"><div class="rh"><div class="av"><img src="shield-white-gold.png" alt="LP"></div><div class="rt">From your coach</div></div>'
+    +'<div class="read"><div class="rh"><div class="av"><img src="shield-white-gold.png" alt="LP"></div>'+rtHTML+'</div>'
     +'<p>'+esc(read)+'</p>'
     +'<div class="cta"><a class="g" onclick="messageCoach()">Message coach</a><a class="o" onclick="bookCall()">Book a call</a></div></div>';
   // snapshot
@@ -2459,6 +2479,7 @@ function renderProgressHero(){
    peptides route to the order-request; the customized stack unlocks with the Genetic Blueprint. */
 function wellOpen(id,msg){ var c=g(id); if(c){ c.classList.add('force-show'); c.scrollIntoView({behavior:'smooth',block:'start'}); } else if(msg){ alert(msg); } }
 function shopLink(u){ if(u){ window.open(u,'_blank','noopener'); } else { alert('Shop link coming soon.'); } }
+function peptideOrder(){ var u=CONFIG.peptideOrderUrl||''; if(u){ window.open(u,'_blank','noopener'); } else { alert('Your peptide order form is coming soon. For now, message the Patient Care Team to reorder.'); } }
 function renderWellnessTiles(){
   var box=g("wellTilesBox"); if(!box) return;
   var it=M.intake||{}, track=(it&&it.track)||'Lean';
@@ -2468,7 +2489,7 @@ function renderWellnessTiles(){
   var h='<div class="hrow"><p class="eyebrow" style="color:var(--gold-soft)">Functional Performance</p><h1 style="text-transform:uppercase;font-size:30px">Wellness</h1></div>';
   // Your Stack
   h+='<div class="k-slabel">Your Stack <span class="sub">'+esc(track)+' phase</span></div>'
-    +'<div class="stack"><div class="sh"><div class="t">Foundational supplements</div><span class="wbadge">At cost</span></div>'
+    +'<div class="stack"><div class="sh"><div class="t">Foundational supplements</div></div>'
     +'<div class="suprow"><div class="si">🥛</div><div class="sb"><div class="sn">Whey Isolate</div><div class="sm">Daily protein anchor · Thorne</div></div><div class="lk" onclick="shopLink(\''+thorne+'\')">Shop ↗</div></div>'
     +'<div class="suprow"><div class="si">💪</div><div class="sb"><div class="sn">Creatine Monohydrate</div><div class="sm">5 g daily · Thorne</div></div><div class="lk" onclick="shopLink(\''+thorne+'\')">Shop ↗</div></div>'
     +'<div class="suprow"><div class="si">🐟</div><div class="sb"><div class="sn">Fish Oil (Omega-3)</div><div class="sm">Recovery &amp; joints · Equip</div></div><div class="lk" onclick="shopLink(\''+equip+'\')">Shop ↗</div></div>'
@@ -2486,6 +2507,7 @@ function renderWellnessTiles(){
       +'<div class="peprow" onclick="wellOpen(\'doseCard\')"><div class="pi">🧮</div><div class="pb"><div class="pn">Dosing calculator</div><div class="pm">Measure your prescribed dose in units</div></div><div class="go">›</div></div>'
       +'<div class="peprow" onclick="alert(\'Dose reminders are coming soon — pick a day &amp; time and get a push.\')"><div class="pi">🔔</div><div class="pb"><div class="pn">Dose reminders</div><div class="pm">Pick your day &amp; time — push notification</div></div><div class="go">›</div></div>'
       +'<div class="peprow" onclick="wellOpen(\'rxCard\',\'Prescriber notes are coming soon.\')"><div class="pi">📝</div><div class="pb"><div class="pn">Prescriber notes</div><div class="pm">Keep your provider\'s instructions handy</div></div><div class="go">›</div></div>'
+      +'<div class="peprow" onclick="peptideOrder()"><div class="pi">🧾</div><div class="pb"><div class="pn">Order / reorder peptides</div><div class="pm">Member pricing &middot; reorder before the weekly cutoff</div></div><div class="go">›</div></div>'
       +'<div class="compliance">Your prescribed protocol. The app never recommends or changes a dose — it only helps you measure and follow what your provider prescribed. Questions about a dose or symptom → Request a consult.</div>'
       +'</div>';
   }
@@ -2515,18 +2537,63 @@ function renderSupplements(){
 }
 /* Bloodwork — the member records their OWN labs, on-device only. We read the trend to inform
    nutrition & lifestyle, never to diagnose. Raw labs stay private (not sent to the sheet). */
+/* Key blood markers, batched by real panel names. Skewed to our members: older men (sex hormones),
+   peri/menopausal women and fertility (LH/FSH/E2/progesterone), plus the metabolic/lipid/vitamin core.
+   They just type the numbers off their own labs; "Other markers" catches anything else. */
+var BLOOD_PANELS=[
+  {g:'Hormones', m:[
+    ['testTotal','Total Testosterone','ng/dL'],['testFree','Free Testosterone','pg/mL'],
+    ['e2','Estradiol (E2)','pg/mL'],['prog','Progesterone','ng/mL'],
+    ['lh','LH','mIU/mL'],['fsh','FSH','mIU/mL'],
+    ['tsh','TSH','mIU/L'],['ft3','Free T3','pg/mL'] ]},
+  {g:'Metabolic', m:[
+    ['glucose','Fasting Glucose','mg/dL'],['hba1c','HbA1c','%'],['insulin','Fasting Insulin','µIU/mL'] ]},
+  {g:'Lipids', m:[
+    ['chol','Total Cholesterol','mg/dL'],['ldl','LDL','mg/dL'],['hdl','HDL','mg/dL'],
+    ['trig','Triglycerides','mg/dL'],['apob','ApoB','mg/dL'] ]},
+  {g:'Vitamins & Inflammation', m:[
+    ['vitd','Vitamin D (25-OH)','ng/mL'],['ferritin','Ferritin','ng/mL'],
+    ['b12','Vitamin B12','pg/mL'],['crp','hs-CRP','mg/L'] ]}
+];
+function bwData(){ try{ return JSON.parse(localStorage.getItem('lp_client_labs_v2')||'{}')||{}; }catch(e){ return {}; } }
+function bwCustomRow(name,val){
+  return '<div class="bw-row bw-custom"><input class="bw-cn" placeholder="Marker name" value="'+esc(name||'')+'">'
+    +'<input class="bw-in" type="number" inputmode="decimal" step="any" placeholder="value" value="'+esc(val!=null?val:'')+'">'
+    +'<span class="bw-x" onclick="this.parentNode.parentNode.removeChild(this.parentNode)">✕</span></div>';
+}
+function bwAddCustom(){ var box=g("bwCustom"); if(!box) return; box.insertAdjacentHTML('beforeend', bwCustomRow('','')); }
 function renderBloodwork(){
   var box=g("bloodBox"); if(!box) return;
-  var saved=''; try{ saved=localStorage.getItem('lp_client_labs')||''; }catch(e){}
-  var h='<p class="empty" style="text-align:left;margin:0 0 10px">Your labs are yours. Record your latest numbers so we can read the <b>trend over time</b> &mdash; we use it to inform your nutrition and lifestyle, never to diagnose or treat. Anything medical goes to your provider.</p>'
-    +'<div class="field"><label>Your latest labs <span class="hint">&mdash; e.g. Testosterone 620, Vit D 42, Ferritin 90, HbA1c 5.3, hs-CRP 0.8, TSH 1.9 &middot; and the date</span></label>'
-    +'<textarea class="input" id="labsText" rows="4" placeholder="Type your key markers + the date">'+esc(saved)+'</textarea></div>'
-    +'<div class="actions"><button class="btn btn-primary" onclick="saveLabs()">Save my labs</button> <span class="status" id="labsStatus"></span></div>';
+  var data=bwData();
+  var legacy=''; try{ legacy=localStorage.getItem('lp_client_labs')||''; }catch(e){}
+  var h='<p class="empty" style="text-align:left;margin:0 0 10px">Your labs are yours. Type your latest numbers so we can read the <b>trend over time</b> &mdash; we use it to inform your nutrition and lifestyle, never to diagnose or treat. Leave blank anything you don\'t have; anything medical goes to your provider.</p>'
+    +'<div class="field"><label>Date drawn</label><input class="input" type="date" id="bwDate" value="'+esc(data._date||'')+'"></div>';
+  BLOOD_PANELS.forEach(function(pan){
+    h+='<div class="bw-group">'+esc(pan.g)+'</div>';
+    pan.m.forEach(function(mk){
+      var v=(data[mk[0]]!=null?data[mk[0]]:'');
+      h+='<div class="bw-row"><label class="bw-l">'+esc(mk[1])+' <span class="bw-u">'+esc(mk[2])+'</span></label>'
+        +'<input class="bw-in" type="number" inputmode="decimal" step="any" id="bw_'+mk[0]+'" value="'+esc(v)+'"></div>';
+    });
+  });
+  h+='<div class="bw-group">Other markers</div><div id="bwCustom">';
+  (data._custom||[]).forEach(function(c){ h+=bwCustomRow(c.name,c.val); });
+  h+='</div><div class="bw-add" onclick="bwAddCustom()">＋ Add another marker</div>';
+  h+='<div class="field" style="margin-top:14px"><label>Notes <span class="hint">anything else worth recording</span></label>'
+    +'<textarea class="input" id="bwNotes" rows="2" placeholder="e.g. fasted, morning draw, symptoms…">'+esc(data._notes||legacy||'')+'</textarea></div>'
+    +'<div class="actions"><button class="btn btn-primary" onclick="saveBloodwork()">Save my labs</button> <span class="status" id="labsStatus"></span></div>';
   box.innerHTML=h;
 }
-function saveLabs(){
-  var t=g("labsText").value; try{ localStorage.setItem('lp_client_labs', t); }catch(e){}
-  var s=g("labsStatus"); if(s){ s.textContent="Saved on your device."; s.style.color="var(--accent)"; setTimeout(function(){s.textContent="";},1800); }
+function saveBloodwork(){
+  var out={ _date:(g("bwDate")&&g("bwDate").value)||'', _notes:(g("bwNotes")&&g("bwNotes").value)||'', _custom:[] };
+  BLOOD_PANELS.forEach(function(pan){ pan.m.forEach(function(mk){ var el=g('bw_'+mk[0]); if(el && el.value!=='') out[mk[0]]=el.value; }); });
+  var cb=g("bwCustom");
+  if(cb){ Array.prototype.forEach.call(cb.querySelectorAll('.bw-custom'), function(r){
+    var nm=r.querySelector('.bw-cn'), vv=r.querySelector('.bw-in');
+    if(nm && vv && nm.value.trim() && vv.value!=='') out._custom.push({name:nm.value.trim(), val:vv.value});
+  }); }
+  try{ localStorage.setItem('lp_client_labs_v2', JSON.stringify(out)); }catch(e){}
+  var s=g("labsStatus"); if(s){ s.textContent="Saved on your device."; s.style.color="var(--accent)"; setTimeout(function(){ if(g("labsStatus")) g("labsStatus").textContent="";},1800); }
 }
 function renderRx(){
   var box=g("rxBox"); if(!box) return;
