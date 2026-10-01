@@ -25,7 +25,7 @@ const macros = ctx.macrosFrom(inp.cal, inp.pro, inp.sex);
 const sel = {
   frequency: inp.freq || '3', shakeGrams: inp.shake || 30,
   protein: inp.protein || [], carb: inp.carb || [], fruit: inp.fruit || [], fat: inp.fat || [], veg: inp.veg || [],
-  style: inp.style || '', allergies: inp.allergies || [], glp1: inp.glp1 || '', dislikes: inp.dislikes || ''
+  style: inp.style || '', allergies: inp.allergies || [], glp1: inp.glp1 || '', dislikes: inp.dislikes || '', mealNames: inp.mealNames || null
 };
 const deck = ctx.generateMealOptions({ pfs: { calories: inp.cal, protein: inp.pro, carbs: macros.carbs, fat: macros.fat } }, sel, inp.name);
 
@@ -130,7 +130,7 @@ cards.forEach((card, n) => {
 });
 
 /* ---- the onboarding guide ---- */
-const split = ctx.mealSplit({ calories: inp.cal, protein: inp.pro, carbs: macros.carbs, fat: macros.fat }, sel.frequency, sel.shakeGrams);
+const split = ctx.mealSplit({ calories: inp.cal, protein: inp.pro, carbs: macros.carbs, fat: macros.fat }, sel.frequency, sel.shakeGrams, null, sel.mealNames);
 const labels = (typeof ctx.diaryLabels === 'function') ? ctx.diaryLabels(split) : [];
 const CALL = 'https://legacyperformance.co/onboarding-call';
 const DASHBOARD = 'https://dashboard.legacyperformance.co/client.html';

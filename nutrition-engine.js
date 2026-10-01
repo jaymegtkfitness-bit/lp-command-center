@@ -172,16 +172,19 @@ function mealsPerDay(frequency){ return freqOf(frequency).meals; }
    Returns {frequency, meals, shake:{protein,calories}|null, perMeal:{...}, names:[...]}.
    This is the ONE place per-meal math happens — Power Food System, the meal plan generator,
    the Complete Nutrition System and the light dashboard all call it. */
-function mealSplit(targets, frequency, shakeGrams, shakeCal){
+/* names: optional override, so a two-meal day can be Breakfast and Dinner rather than Lunch and
+   Dinner. The name drives the slot kind too, so a Breakfast slot gets breakfast food and recipes. */
+function mealSplit(targets, frequency, shakeGrams, shakeCal, names){
   var f=freqOf(frequency), t=targets||{};
   var sg=f.shake ? (+shakeGrams||SHAKE_PROTEIN_DEFAULT) : 0;
   var sc=f.shake ? ((isFinite(+shakeCal)&&+shakeCal>0) ? Math.round(+shakeCal) : shakeCalories(sg)) : 0;
   var cal=Math.max(0,(+t.calories||0)-sc);
   var pro=Math.max(0,(+t.protein||0)-sg);
   var m=f.meals;
-  var names=(m===2)?["Lunch","Dinner"]
-           :(m===3)?["Breakfast","Lunch","Dinner"]
-                   :["Breakfast","Lunch","Dinner","Meal 4"];
+  var def=(m===2)?["Lunch","Dinner"]
+         :(m===3)?["Breakfast","Lunch","Dinner"]
+                 :["Breakfast","Lunch","Dinner","Meal 4"];
+  names=(Array.isArray(names) && names.length===m) ? names.slice() : def;
   return {
     frequency:(MEAL_FREQUENCY[frequency]?frequency:"3"), label:f.label, meals:m, names:names,
     shake: f.shake ? {protein:sg, calories:sc} : null,
@@ -1035,7 +1038,7 @@ function generateMealPlan(it, sel, days, name){
   }
   /* Frequency drives how many meals get built and whether a shake is carved out first.
      sel.frequency is one of FREQUENCY_ORDER; sel.shakeGrams defaults to 30. */
-  var S=mealSplit(p, sel.frequency, sel.shakeGrams, sel.shakeCal);
+  var S=mealSplit(p, sel.frequency, sel.shakeGrams, sel.shakeCal, sel.mealNames);
   var m=S.meals;
   /* The meals are built from what is LEFT after the shake, so 2 + shake gives two real meals. */
   p={calories:Math.max(0,p.calories-(S.shake?S.shake.calories:0)),
@@ -1330,7 +1333,7 @@ function generateMealOptions(it, sel, name){
     if(keep.filter(function(n){ return fruitN.indexOf(n)<0; }).length<2) keep=keep.concat(['white rice','potatoes'].filter(function(n){ return keep.indexOf(n)<0; }));
     sel=Object.assign({}, sel, {carb:glp1Order(cp.length?keep:[], GLP1.carbFirst, LATER)});
   }
-  var S=mealSplit(p, sel.frequency, sel.shakeGrams, sel.shakeCal);
+  var S=mealSplit(p, sel.frequency, sel.shakeGrams, sel.shakeCal, sel.mealNames);
   /* Meals are built from what is LEFT after the shake is reserved. */
   var base={calories:Math.max(0,p.calories-(S.shake?S.shake.calories:0)),
             protein: Math.max(0,p.protein -(S.shake?S.shake.protein :0)),
