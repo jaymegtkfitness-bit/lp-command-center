@@ -5475,8 +5475,18 @@ function renderWiz(){
   if(!isResult && s.hint) b+='<p class="wiz-hint" style="margin:-2px 0 14px">'+s.hint+'</p>';
   b+= s.render();
   g("wizBody").innerHTML=b;
-  g("wizBackBtn").style.visibility = WIZ_I===0?"hidden":"visible";
-  g("wizNextBtn").style.display = isResult?"none":"block";
+  /* Button layout: full-width primary (Next/Begin) with a compact, subtle Back link below it —
+     centered, not the old 96px-Back + stretched-Next row that pushed everything off to the side. */
+  var firstStep=(WIZ_I===0), nb=g("wizNextBtn"), bb=g("wizBackBtn"), btnRow=nb.parentElement;
+  btnRow.style.flexDirection="column"; btnRow.style.alignItems="center"; btnRow.style.gap="8px";
+  nb.style.flex="none"; nb.style.width="100%"; nb.style.minWidth=""; nb.style.order="1";
+  nb.style.display = isResult?"none":"block";
+  bb.style.order="2"; bb.style.visibility="visible";
+  bb.style.display = firstStep?"none":"inline-flex";
+  bb.style.flex="none"; bb.style.width="auto"; bb.style.minWidth="0";
+  bb.style.background="none"; bb.style.border="none"; bb.style.boxShadow="none";
+  bb.style.color="var(--ink-soft)"; bb.style.fontWeight="600";
+  bb.style.height="auto"; bb.style.minHeight="0"; bb.style.padding="4px 12px"; bb.style.fontSize=".92rem";
   g("wizNextBtn").textContent = (id==="intro") ? "Begin →" : ((order[WIZ_I+1]==="result")?"See my Read →":"Next");
   g("wizStatus").textContent="";
 }
