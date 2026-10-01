@@ -131,7 +131,7 @@ cards.forEach((card, n) => {
 
 /* ---- the onboarding guide ---- */
 const split = ctx.mealSplit({ calories: inp.cal, protein: inp.pro, carbs: macros.carbs, fat: macros.fat }, sel.frequency, sel.shakeGrams, null, sel.mealNames);
-const labels = (typeof ctx.diaryLabels === 'function') ? ctx.diaryLabels(split) : [];
+const labels = (typeof ctx.diaryLabels === 'function') ? ctx.diaryLabels(split, deck) : [];
 const CALL = 'https://legacyperformance.co/onboarding-call';
 const DASHBOARD = 'https://dashboard.legacyperformance.co/client.html';
 const guide = `

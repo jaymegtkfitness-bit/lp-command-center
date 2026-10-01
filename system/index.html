@@ -313,7 +313,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=58"></script>
+<script src="../nutrition-engine.js?v=59"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -587,7 +587,7 @@ function build(){
 
   /* 6b. your own food: protein first, subtract, fill the rest (OWN_FOOD in the engine) */
   if (typeof OWN_FOOD !== 'undefined') {
-    var sp = mealSplit(it.pfs, sel.frequency, sel.shakeGrams), mealN = sp.names[Math.min(1, sp.names.length-1)];
+    var sp = mealSplit(it.pfs, sel.frequency, sel.shakeGrams, null, sel.mealNames), mealN = sp.names[Math.min(1, sp.names.length-1)];
     var ex = {cal:230, protein:14}, fit = ownFoodFit(perMeal, ex), lean = ownFoodFit(perMeal, {cal:170, protein:20});
     var exHTML = fit && fit.half ?
       '<div class="tile pr"><b>Example: breaded chicken tenders at ' + esc(mealN.toLowerCase()) + '</b><p>Your ' + esc(mealN.toLowerCase()) + ' is ' + perMeal.calories + ' cal and ' + perMeal.protein + 'g protein. Say the label reads 3 pieces: 230 calories and 14g protein. That is about 6g of protein per 100 calories, under the 10 line.</p>' +
@@ -599,7 +599,7 @@ function build(){
       '<p class="note"><b>' + esc(OWN_FOOD.proteinCheck.split(': ')[0]) + ':</b> ' + esc(OWN_FOOD.proteinCheck.split(': ').slice(1).join(': ')) + '</p>' +
       exHTML + leanHTML +
       '<h3 style="margin-top:14px">Set up Cronometer once</h3>' +
-      '<div class="tile pr"><b>Your diary group labels</b>' + diaryLabels(sp).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('') + '</div>' +
+      '<div class="tile pr"><b>Your diary group labels</b>' + diaryLabels(sp, deck).map(function(x){ return '<p>' + esc(x) + '</p>'; }).join('') + '</div>' +
       '<ol style="padding-left:18px;margin:8px 0">' + OWN_FOOD.cronometer.map(function(x){ return '<li style="margin:3px 0">' + esc(x) + '</li>'; }).join('') + '</ol>' +
       '<p class="note">' + esc(OWN_FOOD.gold) + '</p>' + foot() + '</section>');
   }

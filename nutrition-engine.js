@@ -2269,8 +2269,19 @@ function ownFoodFit(meal, food){
   }
   return r;
 }
-function diaryLabels(split){
-  var s=split||{}, pm=s.perMeal||{}, out=(s.names||[]).map(function(n){ return n+' · '+pm.calories+' cal · '+pm.protein+' g protein'; });
+function diaryLabels(split, deck){
+  /* When the deck is handed in, label each meal with ITS OWN numbers: a two-meal day is split
+     unevenly, so one average for both would not match what is on her plate. */
+  var s=split||{}, pm=s.perMeal||{}, out=[];
+  var slots=(deck&&deck.slots||[]).filter(function(sl){ return !/shake/i.test(sl.name); });
+  if(slots.length){
+    slots.forEach(function(sl){
+      var t=sl.target||{}, cal=Math.round((t.protein||0)*4+(t.carbs||0)*4+(t.fat||0)*9);
+      out.push(sl.name+' · '+cal+' cal · '+Math.round(t.protein||0)+' g protein');
+    });
+  } else {
+    out=(s.names||[]).map(function(n){ return n+' · '+pm.calories+' cal · '+pm.protein+' g protein'; });
+  }
   if(s.shake) out.push('Protein Shake · '+s.shake.calories+' cal · '+s.shake.protein+' g protein');
   return out;
 }
