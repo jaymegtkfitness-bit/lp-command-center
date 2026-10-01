@@ -61,7 +61,12 @@ async function door(qs) {
       roster: !!rosterBy[email], complete: (rosterBy[email] || {}).Complete || '',
       foods: hasFoods, numbers: hasNumbers, kit,
       booked: upcoming.length ? (upcoming[0].title || '').slice(0, 28) + ' ' + String(upcoming[0].startTime).slice(0, 16) : '',
-      pastCall: appts.length && !upcoming.length
+      pastCall: appts.length && !upcoming.length,
+      /* A bundle buyer is owed a genetic kit. Genetics on the roster: blank or 'pending' means the
+         kit has not been confirmed as sent, so it belongs on Jayme's task list. */
+      /* A bundle is the $997 price point or a roster tier that says so. Coaching at $2,000 is not one. */
+      bundle: (+o.amount || 0) === 997 || /blueprint|bundle/i.test((rosterBy[email] || {}).Tier || ''),
+      genetics: ((rosterBy[email] || {}).Genetics || '').toString().toLowerCase()
     });
   }
 
@@ -77,6 +82,7 @@ async function door(qs) {
     else if (!r.complete) next = 'switch on her dashboard (rosterset Complete=Yes)';
     else if (!r.booked) next = r.pastCall ? 'call already happened, confirm she is running' : 'send the delivery email, she has not booked the install call';
     else next = 'booked: ' + r.booked;
+    if (r.bundle && ['', 'pending'].includes(r.genetics)) next = 'GENETIC KIT: order or confirm stock. Then ' + next;
     console.log(pad(r.date, 11) + pad(r.name, 20) + pad(r.amount + ' ' + (r.status === 'completed' ? '' : r.status), 8)
       + pad(r.foods ? 'yes' : 'NO', 9) + pad(r.numbers ? 'yes' : 'NO', 9) + pad(r.kit ? r.kit + ' pdf' : 'NO', 6)
       + pad(r.complete ? 'on' : 'off', 6) + next);
