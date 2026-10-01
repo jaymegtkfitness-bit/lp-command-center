@@ -1298,11 +1298,19 @@ function dislikeRx(list){
   var terms=(Array.isArray(list)?list:String(list||'').split(/[,|;]/))
     .map(function(x){ return String(x).toLowerCase()
       .replace(/\b(any colou?r|all kinds|of any kind|no |dislikes?|hates?|allergic to)\b/g,'')
+      .replace(/\s+(foods?|stuff|dishes|things|anything)$/,'')
       .replace(/[^a-z0-9 ()-]/g,' ').replace(/\s+/g,' ').trim(); })
-    .filter(function(x){ return x.length>2; })
-    .map(function(x){ return x.replace(/(es|s)$/,''); });
+    .filter(function(x){ return x.length>2; });
   if(!terms.length) return null;
-  return new RegExp('\\b('+terms.map(function(t){ return t.replace(/[.*+?^${}()|[\]\\]/g,'\\$&'); }).join('|')+')', 'i');
+  /* Match her words against the database's spelling: "brussel sprouts" has to find "brussels
+     sprouts", and "tomatoes" has to find "tomato". Each word is stemmed and allowed an optional
+     plural ending. */
+  var pat=terms.map(function(t){
+    return t.split(/\s+/).filter(Boolean).map(function(w){
+      return w.replace(/(es|s)$/,'').replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'(e?s)?';
+    }).join('\\s+');
+  }).join('|');
+  return new RegExp('\\b('+pat+')', 'i');
 }
 function dislikesOk(rx, name){ return !rx || !rx.test(String(name||'')); }
 function glp1On(sel){ var v=String((sel||{}).glp1||'').toLowerCase(); return v==='on' || v==='yes' || v==='true' || v==='1'; }
@@ -1439,7 +1447,10 @@ function generateMealOptions(it, sel, name){
     }); }); }
     if(!hasNoCook()){
       /* The no-cook seat draws on every ready-to-eat food her style and allergies allow, her own picks first. */
-      var Pa=safeFoods('protein', sel.style, sel.allergies), CaAll=safeFoods('carb', sel.style, sel.allergies), Fa=safeFoods('fat', sel.style, sel.allergies);
+      var dok=function(f){ return dislikesOk(DIS, f.n); };
+      var Pa=safeFoods('protein', sel.style, sel.allergies).filter(dok),
+          CaAll=safeFoods('carb', sel.style, sel.allergies).filter(dok),
+          Fa=safeFoods('fat', sel.style, sel.allergies).filter(dok);
       /* GLP-1: try the easier carbs first; if no no-cook meal comes out of them, use the full list. */
       [glpPool(CaAll), CaAll].forEach(function(Ca, pass){ if(pass && (!GLP || hasNoCook())) return;
       var rawV=(V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }).length ? V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }) : RAW_VEG);

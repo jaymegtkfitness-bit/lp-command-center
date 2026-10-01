@@ -690,6 +690,49 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .cs-btn:hover{border-color:var(--gold)}
 .cs-btn.on-sched{background:var(--watch-bg);color:var(--watch-tx);border-color:var(--watch)}
 .cs-btn.on-done{background:var(--good-bg);color:var(--good-tx);border-color:var(--good)}
+/* ===== DASHBOARD + CALENDAR (Sep 30) ===== */
+.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 20px}
+.dash-stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;font-family:inherit;color:inherit}
+.dash-stat:hover{border-color:var(--gold)}
+.dash-stat b{display:block;font-family:'Cinzel',serif;font-size:28px;color:var(--gold);line-height:1}
+.dash-stat span{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-top:7px;font-weight:600}
+.dash-grid{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:18px;align-items:start}
+.dash-card{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px 18px;margin-bottom:18px}
+.dash-card h3{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 12px;font-weight:700;display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.dash-card h3 a{color:var(--gold);text-decoration:none;letter-spacing:.04em;text-transform:none;font-size:12px;cursor:pointer}
+.next-call{border-color:var(--gold)}
+.nc-title{font-size:18px;font-weight:700;color:var(--headline);line-height:1.3}
+.nc-when{color:var(--gold);font-size:13.5px;margin:4px 0 12px;font-weight:600}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap}
+.btn-gold{padding:9px 16px;border:0;border-radius:9px;background:var(--gold);color:#1C1C1C;font-weight:700;font-size:13.5px;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block}
+.btn-line{padding:8px 14px;border:1px solid var(--line);border-radius:9px;background:transparent;color:var(--ink);font-weight:600;font-size:13px;cursor:pointer;font-family:inherit;text-decoration:none;display:inline-block}
+.btn-line:hover{border-color:var(--gold);color:var(--gold)}
+.ev{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-top:1px solid var(--line)}
+.ev:first-of-type{border-top:0}
+.ev.past{opacity:.5}
+.ev-time{min-width:74px;font-size:12.5px;color:var(--muted);font-weight:600;padding-top:2px}
+.ev-body{flex:1;min-width:0}
+.ev-title{font-size:14px;color:var(--ink);font-weight:600;overflow-wrap:anywhere}
+.ev-cal{font-size:11.5px;color:var(--muted);margin-top:2px}
+.ev .btn-row{margin-top:8px}
+.ev .btn-gold,.ev .btn-line{padding:6px 11px;font-size:12.5px}
+.dash-empty{color:var(--muted);font-size:13.5px;line-height:1.5}
+.attn{display:flex;justify-content:space-between;gap:10px;padding:8px 0;border-top:1px solid var(--line);font-size:13.5px;cursor:pointer}
+.attn:first-of-type{border-top:0}
+.attn:hover .nm{color:var(--gold)}
+.attn .why{color:var(--muted);font-size:12.5px;white-space:nowrap}
+.post-hook{font-size:15px;color:var(--headline);font-weight:700;line-height:1.4}
+.post-body{font-size:13.5px;color:var(--ink);white-space:pre-wrap;margin-top:8px;line-height:1.55;max-height:9.5em;overflow:hidden}
+.post-body.open{max-height:none}
+.cal-nav{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin:14px 0 18px}
+.cal-nav .range{font-weight:700;color:var(--headline);margin:0 6px}
+.cal-day{margin-bottom:16px}
+.cal-day-h{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:6px}
+.cal-day-h.today{color:var(--gold)}
+.cal-add{display:flex;gap:8px;flex-wrap:wrap}
+.cal-add input{padding:9px 11px;border-radius:9px;background:var(--surface-2);color:var(--ink);border:1px solid var(--line);font-size:14px;font-family:inherit}
+@media(max-width:900px){.dash-grid{grid-template-columns:minmax(0,1fr)}}
+@media(max-width:560px){.dash-stats{grid-template-columns:1fr 1fr}.dash-stat b{font-size:24px}.ev-time{min-width:60px}}
 </style>
 </head>
 <body>
@@ -776,7 +819,9 @@ select.ci-input{appearance:none;-webkit-appearance:none}
   <footer>Legacy Performance · built for mission-driven leaders · reads live from Google Sheets</footer>
 </div></section>
 
-<section class="view active" id="view-tasks"><div class="wrap tasks-wrap" id="tasksView"></div></section>
+<section class="view active" id="view-dash"><div class="wrap" id="dashView"></div></section>
+<section class="view" id="view-calendar"><div class="wrap" id="calendarView"></div></section>
+<section class="view" id="view-tasks"><div class="wrap tasks-wrap" id="tasksView"></div></section>
 <section class="view" id="view-ea"><div class="wrap" id="eaView"></div></section>
 <section class="view" id="view-launch"><div class="wrap" id="launchView"></div></section>
 <section class="view" id="view-goals"><div class="wrap" id="goalsView"></div></section>
@@ -1655,7 +1700,7 @@ function taskRow(t,dateStr,extraCls){
     : t.recur==='until' ? 'Until done'
     : t.recur==='weekly' ? ('Every '+DAYS[t.day])
     : t.recur==='monthly' ? (ORD[t.nth]+' '+DAYS[t.day]+' · monthly')
-    : (t.date&&t.date<dateStr?('Was due '+t.date):'Today');
+    : (t.date&&t.date<dateStr?('Was due '+t.date):(t.date&&t.date>dateStr?('Due '+new Date(t.date+'T00:00:00').toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'})):'Today'));
   if(extraCls==='overcap') meta+=' · past 4-hr cap';
   const couch = t.imp==='couch' ? '🛋️ ' : '';
   const kind = (t.kind||'bizdev');
@@ -1694,8 +1739,9 @@ function addTask(){
   msg.className='task-msg ok'; msg.textContent='Added.';
   renderTasks();
 }
-function toggleTask(id){ const t=TASKS.find(x=>x.id===id); if(!t) return; setDone(t,dstr(),!isDone(t,dstr())); pushTasks(); renderTasks(); }
-function delTask(id){ TASKS=TASKS.filter(x=>x.id!==id); pushTasks(); renderTasks(); }
+function toggleTask(id){ const t=TASKS.find(x=>x.id===id); if(!t) return; setDone(t,dstr(),!isDone(t,dstr())); pushTasks(); renderTasks(); if(viewOn('dash')) renderDash(); }
+function delTask(id){ TASKS=TASKS.filter(x=>x.id!==id); pushTasks(); renderTasks(); if(viewOn('dash')) renderDash(); }
+function viewOn(id){ const e=document.getElementById('view-'+id); return !!(e&&e.classList.contains('active')); }
 /* Cross-device pull via JSONP (works once the Apps Script doGet below is deployed). */
 function syncTasks(){
   if(!CONFIG.writeUrl) return;
@@ -1718,6 +1764,7 @@ function syncTasks(){
       const act=id=>{ const e=document.getElementById('view-'+id); return e&&e.classList.contains('active'); };
       if(act('goals')) renderGoals();
       if(act('tasks')) renderTasks();
+      if(act('dash')) renderDash();
       if(act('workshops')) renderWorkshops();
       if(act('grow')) renderGrow();
       if(act('calls')) renderCalls();
@@ -2171,10 +2218,10 @@ function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCa
    the weekly report to Mike), so the biz-dev groups below are hidden from the nav to kill the
    redundancy. Their views + render code are untouched — uncomment a group to bring it back. */
 const NAV = [
-  {group:"Plan", items:[["tasks","This Week"],["ea","EA Inbox"]]},
-  {group:"Fulfillment", items:[["journey","Member Journey"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["calls","Fulfillment Calls"],["links","Client Links"]]},
-  {group:"Toolkit", items:[["toolkit","Toolkit"]]},
+  {group:"Today", items:[["dash","Dashboard"],["tasks","This Week"],["calendar","Calendar"],["ea","EA Inbox"]]},
+  {group:"Clients", items:[["command","Client Board"],["journey","Member Journey"],["calls","Fulfillment Calls"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["links","Client Links"]]},
   {group:"System", items:[["integrations","Integrations"]]}
+  // Toolkit removed Sep 30 — the skills launcher lives in the Ascend OS now (view code kept below).
   // Hidden — biz-dev, owned by the Ascend OS (uncomment to restore):
   // {group:"Personal", items:[["goals","Big Goals"]]},
   // {group:"Launch", items:[["launch","Fitbody Launch"]]},
@@ -2191,6 +2238,8 @@ function showTab(id){
   const v=document.getElementById("view-"+id); if(v) v.classList.add("active");
   renderSidebar(id);
   if(id==="tasks"){ syncTasks(); renderTasks(); }
+  else if(id==="dash"){ syncTasks(); renderDash(); }
+  else if(id==="calendar") renderCalendar();
   else if(id==="ea") renderEA();
   else if(id==="launch") renderLaunch();
   else if(id==="goals") renderGoals();
@@ -3408,15 +3457,231 @@ async function loadAll(){
   renderFollowups(clients);
   renderCommunity(clients, checkins);
   setStatus(live);
+  DASH_CAL.day=''; DASH_EA.at=0;   // Refresh re-pulls the calendar + inbox count too
+  if(viewOn('dash')) renderDash();
 
   document.getElementById("updatedAt").textContent = "Updated "+new Date().toLocaleString(undefined,{month:"short",day:"numeric",hour:"numeric",minute:"2-digit"});
   btn.disabled=false; btn.textContent="↻ Refresh";
 }
 
+/* ===================== DASHBOARD (Sep 30): one screen that says "here's today" =====================
+   Next call + Join, today's schedule (each call → that client's info), today's tasks, the EA Inbox
+   count, clients who need you, and today's post. Calendar comes from Google via the doorway
+   (?action=calendar, key-gated with the EA passphrase); GHL bookings sync into Google natively. */
+let DASH_CAL={day:'',state:'idle',events:[],at:0};
+let DASH_EA={n:null,at:0};
+let CONTENT_PLAN=null;
+let TOKENS=null;
+
+function dayBounds(off){ const d=new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate()+off); return d; }
+function fmtDay(d){ return d.toLocaleDateString(undefined,{weekday:'short',month:'short',day:'numeric'}); }
+function fetchCalendar(from,to,cb){
+  if(!CONFIG.writeUrl){ cb({state:'down'}); return; }
+  const k=eaKey(); if(!k){ cb({state:'nokey'}); return; }
+  var name='__lpC'+Date.now()+Math.floor(Math.random()*1000), s=document.createElement('script'), done=false;
+  window[name]=function(d){ done=true; try{delete window[name];}catch(e){} s.remove();
+    if(d&&d.ok&&Array.isArray(d.events)) cb({state:'ok',events:d.events});
+    else if(d&&d.error==='key') cb({state:'key'});
+    else cb({state:'old'});   // a doorway without the calendar handler answers with the App State blob
+  };
+  s.onerror=function(){ if(!done){done=true;s.remove();cb({state:'down'});} };
+  s.src=CONFIG.writeUrl+'?action=calendar&key='+encodeURIComponent(k)+'&from='+from+'&to='+to+'&callback='+name;
+  document.body.appendChild(s);
+  setTimeout(function(){ if(!done){done=true;s.remove();cb({state:'down'});} }, 15000);
+}
+function loadDashCal(force){
+  const today=dstr();
+  if(!force && DASH_CAL.day===today && DASH_CAL.state!=='idle' && Date.now()-DASH_CAL.at<300000) return;
+  DASH_CAL={day:today,state:'loading',events:[],at:Date.now()};
+  fetchCalendar(today, dstr(dayBounds(7)), function(r){   // today + a week ahead, so "next call" can look forward
+    DASH_CAL={day:today,state:r.state,events:r.events||[],at:Date.now()};
+    if(viewOn('dash')) renderDash();
+  });
+}
+function loadDashEA(){
+  if(DASH_EA.at && Date.now()-DASH_EA.at<120000) return;
+  DASH_EA.at=Date.now();
+  fetchInbox(function(rows){ DASH_EA.n = rows ? rows.filter(r=>String(rv(r,'Status')||'Open')!=='Done').length : null; if(viewOn('dash')) renderDash(); });
+}
+function loadContentPlan(){
+  if(CONTENT_PLAN!==null) return;
+  CONTENT_PLAN='loading';
+  fetch('content-plan.json?v='+Date.now()).then(r=>r.ok?r.json():null)
+    .then(d=>{ CONTENT_PLAN=(d&&Array.isArray(d.posts))?d.posts:[]; if(viewOn('dash')) renderDash(); })
+    .catch(()=>{ CONTENT_PLAN=[]; if(viewOn('dash')) renderDash(); });
+}
+function loadTokens(){
+  if(TOKENS!==null) return;
+  TOKENS={};
+  fetchRoster(function(rows){ (rows||[]).forEach(r=>{ const e=String(rv(r,'Email')).trim().toLowerCase(), t=String(rv(r,'Token')).trim(); if(e&&t) TOKENS[e]=t; }); });
+}
+
+/* Which client is this event with? Guest email first, then full name in the title, then a unique first name. */
+function evClient(ev){
+  const cl=(window.__clients||[]).filter(x=>x.name && !/^jayme\b/i.test(x.name));
+  if(!cl.length) return null;
+  const g=(ev.guests||[]).map(x=>String(x).toLowerCase());
+  let c=cl.find(x=>x.email && g.includes(String(x.email).toLowerCase())); if(c) return c;
+  const norm=s=>' '+String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim()+' ';
+  const t=norm(ev.title);
+  c=cl.find(x=>x.name.trim().includes(' ') && t.includes(norm(x.name))); if(c) return c;
+  const firsts=cl.filter(x=>{ const f=x.name.trim().split(/\s+/)[0]; return f.length>2 && t.includes(norm(f)); });
+  return firsts.length===1 ? firsts[0] : null;
+}
+function evTime(ev){ return ev.allDay ? 'All day' : new Date(ev.start).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'}); }
+function evRow(ev, showCal){
+  const c=evClient(ev), past=new Date(ev.end).getTime()<Date.now();
+  let b='';
+  if(ev.join && !past) b+=`<a class="btn-gold" href="${esc(ev.join)}" target="_blank" rel="noopener">Join</a>`;
+  if(c) b+=`<button class="btn-line" onclick="openClient('${esc(c.email)}')">Open ${esc(c.name.trim().split(/\s+/)[0])}'s info</button>`;
+  return `<div class="ev ${past?'past':''}"><div class="ev-time">${evTime(ev)}</div><div class="ev-body"><div class="ev-title">${esc(ev.title)}</div>`
+    +(showCal&&ev.cal?`<div class="ev-cal">${esc(ev.cal)}</div>`:'')+(b?`<div class="btn-row">${b}</div>`:'')+`</div></div>`;
+}
+function relTime(ms){
+  const m=Math.round(ms/60000);
+  if(m<=0) return 'happening now';
+  if(m<60) return 'in '+m+' min';
+  const h=Math.floor(m/60), r=m%60;
+  if(h<24) return 'in '+h+'h'+(r?' '+r+'m':'');
+  const d=Math.round(h/24); return 'in '+d+' day'+(d>1?'s':'');
+}
+function calStateMsg(state){
+  if(state==='loading'||state==='idle') return `<div class="dash-empty">Loading your calendar…</div>`;
+  if(state==='nokey'||state==='key') return `<div class="dash-empty">${state==='key'?'That passphrase didn’t work. ':''}Enter your EA passphrase once on this device to show your calendar.</div>
+    <div class="cal-add" style="margin-top:10px"><input type="password" id="calPass" placeholder="EA passphrase" style="flex:1;min-width:160px"><button class="btn-gold" onclick="calUnlock()">Unlock</button></div><div id="calPassMsg" class="dash-empty" style="margin-top:6px"></div>`;
+  if(state==='old') return `<div class="dash-empty">Your calendar connection needs one backend update (the Apps Script paste). Until then, calls show here as soon as it’s live.</div>`;
+  return `<div class="dash-empty">Couldn’t reach your calendar. Hit ↻ Refresh to try again.</div>`;
+}
+function calUnlock(){
+  const el=document.getElementById('calPass'), out=document.getElementById('calPassMsg');
+  const v=(el&&el.value||'').trim(); if(!v){ if(out) out.textContent='Enter the passphrase.'; return; }
+  if(out) out.textContent='Checking…';
+  eaCheckKeyRemote(v, function(d){
+    if(d&&d.ok){ try{ localStorage.setItem(EA_KEY_STORE, v); }catch(e){}
+      DASH_CAL.day=''; CAL_DATA.key='';
+      if(viewOn('dash')) renderDash(); if(viewOn('calendar')) renderCalendar(); }
+    else if(out) out.textContent = d ? 'That’s not it.' : 'Couldn’t reach the doorway.';
+  });
+}
+function todaysTasks(){
+  const now=new Date(), ds=dstr(now), wd=now.getDay(), prio={'3':0,'2':1,'1':2,'couch':3};
+  const list=TASKS.filter(t=> t.recur==='once' ? (!t.done && (t.date||ds)<=ds)
+    : (onDate(t,ds,wd) && !(t.recur==='until' && t.done && t.doneDate!==ds)));
+  const ful=t=>(t.kind||'bizdev')==='fulfillment'?0:1;   // fulfillment first — it's the constraint
+  return list.sort((a,b)=>(isDone(a,ds)-isDone(b,ds)) || (ful(a)-ful(b)) || (prio[a.imp]-prio[b.imp]));
+}
+function renderDash(){
+  const el=document.getElementById('dashView'); if(!el) return;
+  loadDashCal(); loadDashEA(); loadContentPlan(); loadTokens();
+  const now=new Date(), ds=dstr(now);
+  const todayEv=DASH_CAL.events.filter(e=>{ const s=new Date(e.start); return dstr(s)===ds || (e.allDay && s<=now && new Date(e.end)>now); });
+  const upcoming=DASH_CAL.events.filter(e=>!e.allDay && new Date(e.end).getTime()>Date.now());
+  const next=upcoming.find(e=>e.join) || upcoming.find(e=>evClient(e)) || null;
+  const tasks=todaysTasks(), left=tasks.filter(t=>!isDone(t,ds));
+  const active=(window.__clients||[]).filter(c=>c.status==='Active');
+  const attn=[].concat(
+    active.filter(c=>c.signal==='quiet'&&c.dSince!=null).map(c=>[c,c.dSince+'d quiet']),
+    active.filter(c=>c.signal==='stall').map(c=>[c,'stalling']),
+    active.filter(c=>c.signal!=='quiet'&&c.dSince!=null&&c.dSince>=CONFIG.reviewDueDays).map(c=>[c,'review due']));
+  const neverIn=active.filter(c=>c.dSince==null).length;   // shown as one line, not 16 rows of noise
+  const callsToday=todayEv.filter(e=>!e.allDay).length;
+
+  let h=`<div class="view-head"><h1>Dashboard</h1><p class="view-sub">${now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})} · here’s your day</p></div>`;
+  h+=`<div class="dash-stats">
+    <button class="dash-stat" onclick="showTab('tasks')"><b>${left.length}</b><span>Tasks left today</span></button>
+    <button class="dash-stat" onclick="showTab('calendar')"><b>${DASH_CAL.state==='ok'?callsToday:'–'}</b><span>On the calendar</span></button>
+    <button class="dash-stat" onclick="showTab('ea')"><b>${DASH_EA.n==null?'–':DASH_EA.n}</b><span>EA Inbox open</span></button>
+    <button class="dash-stat" onclick="showTab('command')"><b>${attn.length}</b><span>Clients need you</span></button>
+  </div>`;
+
+  let L='';
+  // Next call
+  if(next){
+    const c=evClient(next), st=new Date(next.start);
+    L+=`<div class="dash-card next-call"><h3>Next call</h3><div class="nc-title">${esc(next.title)}</div>
+      <div class="nc-when">${dstr(st)===ds?'Today':fmtDay(st)} · ${evTime(next)} · ${relTime(st.getTime()-Date.now())}</div>
+      <div class="btn-row">${next.join?`<a class="btn-gold" href="${esc(next.join)}" target="_blank" rel="noopener">Join Zoom</a>`:''}
+      ${c?`<button class="btn-line" onclick="openClient('${esc(c.email)}')">Open ${esc(c.name.trim().split(/\s+/)[0])}'s info</button>`:''}</div></div>`;
+  }
+  // Today's schedule
+  L+=`<div class="dash-card"><h3>Today’s schedule <a onclick="showTab('calendar')">Full calendar →</a></h3>`
+    +(DASH_CAL.state!=='ok' ? calStateMsg(DASH_CAL.state)
+      : (todayEv.length ? todayEv.map(e=>evRow(e)).join('') : `<div class="dash-empty">Nothing on the calendar today.</div>`))+`</div>`;
+  // Today's post
+  let post='';
+  if(Array.isArray(CONTENT_PLAN)){
+    const p=CONTENT_PLAN.find(x=>x.date===ds), n=p?null:CONTENT_PLAN.filter(x=>x.date>ds).sort((a,b)=>a.date.localeCompare(b.date))[0];
+    if(p) post=`<div class="post-hook">${esc(p.hook||p.title||'')}</div>${p.format?`<div class="ev-cal" style="margin-top:4px">${esc(p.format)}</div>`:''}${p.caption?`<div class="post-body" id="postBody">${esc(p.caption)}</div><div class="btn-row" style="margin-top:10px"><button class="btn-line" onclick="document.getElementById('postBody').classList.toggle('open')">Show all</button><button class="btn-line" onclick="navigator.clipboard&&navigator.clipboard.writeText(${esc(JSON.stringify(p.caption))});this.textContent='Copied'">Copy caption</button></div>`:''}`;
+    else if(n) post=`<div class="dash-empty">No post planned today. Next up ${fmtDay(new Date(n.date+'T00:00:00'))}: <b style="color:var(--ink)">${esc(n.hook||n.title||'')}</b></div>`;
+    else post=`<div class="dash-empty">No content plan loaded. Hand Claude your Ascend content calendar and today’s post shows here.</div>`;
+  }
+  L+=`<div class="dash-card"><h3>Today’s post</h3>${post||'<div class="dash-empty">Loading…</div>'}</div>`;
+
+  let R='';
+  // Today's tasks
+  const shown=tasks.slice(0,10);
+  R+=`<div class="dash-card"><h3>Today’s tasks <a onclick="showTab('tasks')">This Week →</a></h3>`
+    +(shown.length ? shown.map(t=>taskRow(t,ds)).join('') : `<div class="dash-empty">Nothing due today.</div>`)
+    +(tasks.length>shown.length?`<div class="dash-empty" style="margin-top:6px">${tasks.length-shown.length} more in This Week.</div>`:'')+`</div>`;
+  // Clients
+  const mrr=window.__mrr;
+  R+=`<div class="dash-card"><h3>Clients <a onclick="showTab('command')">Client Board →</a></h3>
+    <div class="btn-row" style="margin-bottom:10px"><span class="dash-empty"><b style="color:var(--gold)">${active.length}</b> active${mrr?` · <b style="color:var(--gold)">$${Math.round(mrr).toLocaleString()}</b>/mo`:''}</span></div>`
+    +(attn.length ? attn.slice(0,8).map(([c,why])=>`<div class="attn" onclick="openClient('${esc(c.email)}')"><span class="nm">${esc(c.name)}</span><span class="why">${esc(why)}</span></div>`).join('')
+      +(attn.length>8?`<div class="dash-empty" style="margin-top:6px">${attn.length-8} more on the Client Board.</div>`:'')
+      : `<div class="dash-empty">Everyone who checks in is on track.</div>`)
+    +(neverIn?`<div class="attn" onclick="showTab('command')"><span class="nm">${neverIn} active client${neverIn>1?'s have':' has'}n’t checked in yet</span><span class="why">Client Board →</span></div>`:'')+`</div>`;
+
+  h+=`<div class="dash-grid"><div>${L}</div><div>${R}</div></div>`;
+  el.innerHTML=h;
+}
+
+/* ===================== CALENDAR (Sep 30): Google is the hub ===================== */
+let CAL_OFF=0;
+let CAL_DATA={key:'',state:'idle',events:[]};
+function calMove(d){ CAL_OFF = d===0 ? 0 : CAL_OFF+d; renderCalendar(); }
+function calRefresh(){ CAL_DATA.key=''; DASH_CAL.day=''; renderCalendar(); }
+function renderCalendar(){
+  const el=document.getElementById('calendarView'); if(!el) return;
+  const start=dayBounds(CAL_OFF*7), end=dayBounds(CAL_OFF*7+6);
+  const from=dstr(start), to=dstr(end), key=from+'_'+to;
+  if(CAL_DATA.key!==key){
+    CAL_DATA={key:key,state:'loading',events:[]};
+    fetchCalendar(from,to,function(r){ if(CAL_DATA.key!==key) return; CAL_DATA={key:key,state:r.state,events:r.events||[]}; if(viewOn('calendar')) renderCalendar(); });
+  }
+  let h=`<div class="view-head"><h1>Calendar</h1><p class="view-sub">Your Google Calendar. GoHighLevel bookings sync into it, and anything you add here lands in Google, then GHL.</p></div>`;
+  h+=`<div class="cal-nav"><button class="btn-line" onclick="calMove(-1)">‹ Prev</button><button class="btn-line" onclick="calMove(0)">This week</button><button class="btn-line" onclick="calMove(1)">Next ›</button>
+    <span class="range">${fmtDay(start)} – ${fmtDay(end)}</span><button class="btn-line" onclick="calRefresh()" title="Refresh">↻</button></div>`;
+  if(eaKey()){
+    h+=`<div class="dash-card"><h3>Add to your calendar</h3><div class="cal-add">
+      <input id="calTitle" placeholder="Call with Mark (1 hr)" style="flex:2;min-width:180px" onkeydown="if(event.key==='Enter')calAdd()">
+      <input id="calWhen" type="datetime-local" style="flex:1;min-width:180px"><button class="btn-gold" onclick="calAdd()">Add</button></div>
+      <div id="calAddMsg" class="dash-empty" style="margin-top:6px">Adds a 1-hour event to Google within about 5 minutes.</div></div>`;
+  }
+  if(CAL_DATA.state!=='ok'){ h+=`<div class="dash-card">${calStateMsg(CAL_DATA.state)}</div>`; el.innerHTML=h; return; }
+  const today=dstr();
+  for(let i=0;i<7;i++){
+    const d=dayBounds(CAL_OFF*7+i), ds=dstr(d);
+    const evs=CAL_DATA.events.filter(e=>dstr(new Date(e.start))===ds);
+    h+=`<div class="cal-day"><div class="cal-day-h ${ds===today?'today':''}">${ds===today?'Today · ':''}${fmtDay(d)}</div><div class="dash-card" style="margin-bottom:0">`
+      +(evs.length ? evs.map(e=>evRow(e,true)).join('') : `<div class="dash-empty">${d.getDay()===0?'Sabbath.':'Open.'}</div>`)+`</div></div>`;
+  }
+  el.innerHTML=h;
+}
+function calAdd(){
+  const t=(document.getElementById('calTitle').value||'').trim(), w=document.getElementById('calWhen').value, out=document.getElementById('calAddMsg');
+  if(!t){ out.textContent='Give it a name.'; return; }
+  if(!w){ out.textContent='Pick a date and time.'; return; }
+  postToSheet({type:'inbox', from:'jayme', channel:'dashboard', kind:'calendar', message:t, when:new Date(w).toISOString(), key:eaKey()});
+  document.getElementById('calTitle').value=''; document.getElementById('calWhen').value='';
+  out.textContent='Sent. It shows up in Google (and here) within about 5 minutes.'; out.style.color='var(--gold)';
+  setTimeout(function(){ CAL_DATA.key=''; DASH_CAL.day=''; if(viewOn('calendar')) renderCalendar(); }, 330000);
+}
+
 // Don't let a scroll change a focused number field (rent, minutes, tax %, etc.) — blur it first.
 window.addEventListener('wheel', function(){ var a=document.activeElement; if(a && a.tagName==='INPUT' && a.type==='number') a.blur(); }, {passive:true});
 
-showTab("tasks");
+showTab("dash");
 loadAll();
 setInterval(loadAll, (CONFIG.refreshMinutes||30)*60000);
 setInterval(timerTick, 1000);   // Pomodoro tick — keeps the work/rest timer + worked-today total running
