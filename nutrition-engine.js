@@ -562,7 +562,8 @@ var RECIPE_ALLERGY_TAG={dairy:'D', egg:'E', fish:'F', shellfish:'S', nut:'N', pe
 var RECIPE_SEC={mf:'Meat and fish', pp:'Plant protein', ed:'Eggs and dairy', pw:'Protein powder', cg:'Carbs and grains',
                 fr:'Fruit', vg:'Vegetables', fx:'Fats, nuts and extras', ps:'Pantry and spices'};
 function recipeBlocked(sel){
-  var b=(RECIPE_STYLE_BLOCK[String(sel.style||'').toLowerCase()]||'').split(' ').filter(Boolean);
+  var b=[];
+  styleList(sel.style).forEach(function(st){ (RECIPE_STYLE_BLOCK[st]||'').split(' ').filter(Boolean).forEach(function(x){ if(b.indexOf(x)<0) b.push(x); }); });
   (sel.allergies||[]).forEach(function(a){ if(RECIPE_ALLERGY_TAG[a]) b.push(RECIPE_ALLERGY_TAG[a]); });
   return b;
 }
@@ -764,12 +765,16 @@ var STYLE_KINDS={
   vegetarian:   ["plant","dairy","egg"],
   pescatarian:  ["plant","dairy","egg","fish","shellfish"]
 };
+/* Style can be more than one rule: "no red meat, no pork" is a common pair. */
+function styleList(style){ return String(style||'').toLowerCase().split(/\s*[,|/]+\s*| and /).map(function(x){ return x.trim(); }).filter(Boolean); }
 function allowsFood(f, style, allergies){
-  var kinds=STYLE_KINDS[String(style||'').toLowerCase()];
-  if(kinds && kinds.indexOf(f.k||'plant')<0) return false;
-  var s=String(style||'').toLowerCase();
-  if(s==='no red meat' && f.sub==='redmeat') return false;
-  if(s==='no pork'     && f.sub==='pork')    return false;
+  var ss=styleList(style);
+  for(var k=0;k<ss.length;k++){
+    var kinds=STYLE_KINDS[ss[k]];
+    if(kinds && kinds.indexOf(f.k||'plant')<0) return false;
+    if(ss[k]==='no red meat' && f.sub==='redmeat') return false;
+    if(ss[k]==='no pork'     && f.sub==='pork')    return false;
+  }
   var al=allergies||[];
   for(var i=0;i<(f.a||[]).length;i++){ if(al.indexOf(f.a[i])>=0) return false; }
   return true;
@@ -1650,8 +1655,9 @@ var RM_STYLE_BLOCK={
 };
 RM_STYLE_BLOCK['vegan']=RM_STYLE_BLOCK['vegetarian'];
 function rmStyleOk(style){
-  var rx=RM_STYLE_BLOCK[String(style||'').toLowerCase()];
-  return rx ? function(i){ return !rx.test(i.name+' '+i.serving); } : null;
+  var rxs=styleList(style).map(function(st){ return RM_STYLE_BLOCK[st]; }).filter(Boolean);
+  if(!rxs.length) return null;
+  return function(i){ var s=i.name+' '+i.serving; return !rxs.some(function(rx){ return rx.test(s); }); };
 }
 function rmItems(chain){
   var d=(typeof RESTAURANT_DB!=='undefined')&&RESTAURANT_DB.chains[chain]; if(!d) return [];
