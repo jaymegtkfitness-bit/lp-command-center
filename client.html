@@ -104,7 +104,7 @@
 .wtile.locked{background:linear-gradient(150deg,#231d19,#1c1b16);border:1.5px dashed #4a4436}
 .wthumb{width:56px;height:56px;border-radius:14px;flex:none;display:grid;place-items:center;font-weight:800;font-size:13px;color:#12140e}
 .tw-gold{background:linear-gradient(150deg,var(--gold),#9c8a53)}
-.tw-olive{background:linear-gradient(150deg,var(--olive),#3f5233)}
+.tw-olive{background:linear-gradient(150deg,var(--olive),color-mix(in srgb,var(--olive) 70%, #000))}
 .tw-blue{background:linear-gradient(150deg,var(--blue),#345566)}
 .tw-rust{background:linear-gradient(150deg,var(--rust),#5e2c22)}
 .wlock{background:var(--surface-2)!important;color:#c26450}
@@ -438,7 +438,7 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .ra-poss{background:var(--accent-soft);border:1.5px solid var(--accent);border-radius:16px;padding:16px 16px;margin:14px 0}
 .ra-poss p{margin:0 0 10px;font-size:14.5px;line-height:1.55;color:var(--ink)}
 .ra-poss p:last-child{margin-bottom:0}
-.ra-next{background:linear-gradient(160deg,rgba(193,173,114,.18),rgba(74,92,62,.14));border:1.5px solid var(--accent);border-radius:16px;padding:18px 16px;margin:16px 0}
+.ra-next{background:linear-gradient(160deg,rgba(193,173,114,.18),color-mix(in srgb,var(--olive) 14%,transparent));border:1.5px solid var(--accent);border-radius:16px;padding:18px 16px;margin:16px 0}
 .ra-next-eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:6px}
 .ra-next-h{font-family:'Cinzel',serif;font-size:20px;font-weight:600;color:var(--headline);line-height:1.15;margin-bottom:8px}
 .ra-next-body{font-size:14px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
@@ -448,7 +448,7 @@ h1{font-family:'Cinzel',serif;font-size:25px;font-weight:600;color:var(--headlin
 .ra-underbtn{font-size:12.5px;color:var(--muted);text-align:center;margin:8px 0 12px;line-height:1.4}
 .btn-big{font-size:16px;padding:16px 18px;font-weight:700}
 /* Home booking banner (the new-member #1 CTA) + onboarding-mode stripping */
-.book-banner{background:linear-gradient(160deg,rgba(193,173,114,.16),rgba(74,92,62,.14));border:1.5px solid var(--accent)}
+.book-banner{background:linear-gradient(160deg,rgba(193,173,114,.16),color-mix(in srgb,var(--olive) 14%,transparent));border:1.5px solid var(--accent)}
 .book-banner .bb-eyebrow{font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:800;margin-bottom:6px}
 .book-banner .bb-h{font-family:'Cinzel',serif;font-size:21px;font-weight:600;color:var(--headline);line-height:1.15;margin-bottom:6px}
 .book-banner .bb-sub{font-size:13.5px;color:var(--ink-soft);line-height:1.5;margin:0 0 14px}
@@ -1018,10 +1018,10 @@ header .brand img{height:3.9rem!important}
 .lp-switch input{opacity:0;width:0;height:0;position:absolute}
 .lp-slider{position:absolute;inset:0;background:rgba(255,255,255,.12);border:1px solid var(--line);border-radius:999px;transition:.2s;cursor:pointer}
 .lp-slider:before{content:"";position:absolute;height:1.5rem;width:1.5rem;left:.15rem;top:.13rem;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.4)}
-.lp-switch input:checked + .lp-slider{background:linear-gradient(160deg,#7d9463,#4A5C3E);border-color:transparent}
+.lp-switch input:checked + .lp-slider{background:linear-gradient(160deg,var(--green-lit),var(--olive));border-color:transparent}
 .lp-switch input:checked + .lp-slider:before{transform:translateX(1.35rem)}
 /* Free-meals block — highlighted so it isn't missed */
-.fe-free-hl{background:linear-gradient(160deg,rgba(193,173,114,.14),rgba(74,92,62,.08))!important;border:1px solid rgba(193,173,114,.4)!important;border-radius:16px!important;padding:1rem 1rem 1.1rem!important;margin-top:.5rem!important}
+.fe-free-hl{background:linear-gradient(160deg,rgba(193,173,114,.14),color-mix(in srgb,var(--olive) 8%,transparent))!important;border:1px solid rgba(193,173,114,.4)!important;border-radius:16px!important;padding:1rem 1rem 1.1rem!important;margin-top:.5rem!important}
 .fe-free-badge{display:inline-block;font-weight:800;font-size:1rem;letter-spacing:.02em;color:var(--gold)!important;text-transform:uppercase}
 .fe-free-hl .chip.on{background:var(--gold)!important;color:#161309!important;border-color:var(--gold)!important}
 .sched-row{display:flex;align-items:center;gap:10px;margin-bottom:6px}
@@ -1125,7 +1125,13 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
   --brand-bg:   color-mix(in srgb, var(--brand) 22%, transparent);
   --olive: var(--brand); --olive-soft: var(--brand); --green-lit: var(--brand);
   --good: var(--brand); --good-tx: var(--brand); --good-bg: var(--brand-bg);
+  --touch: var(--brand); --touch-soft: var(--brand-soft);
 }
+:root[data-brand] #bootLoader{background:
+  radial-gradient(ellipse 120% 60% at 0% 100%, var(--brand-soft), transparent 76%),
+  radial-gradient(ellipse 92% 46% at 100% 100%, rgba(193,173,114,.15), transparent 72%),
+  linear-gradient(180deg,#141618 0%,#0f1114 55%,#08090a 100%)!important}
+:root[data-brand] .kcheckin{background:linear-gradient(160deg, var(--brand-bg), var(--brand-fade))!important}
 :root[data-brand] .appbg{background:
   radial-gradient(ellipse 92% 46% at 100% 100%, rgba(193,173,114,.13), transparent 72%),
   radial-gradient(ellipse 120% 64% at 0% 100%, var(--brand-soft), transparent 76%),
@@ -1959,9 +1965,9 @@ function metricTrendSVG(metric, months){
   var svg='<svg width="100%" viewBox="0 0 336 112" style="margin-top:8px">'
     +'<polygon points="'+area+'" fill="url(#ga)" opacity="0.5"/>'
     +guide
-    +'<polyline points="'+poly+'" fill="none" stroke="#7d9463" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none"/>'
+    +'<polyline points="'+poly+'" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="stroke:var(--green-lit);pointer-events:none"/>'
     +dots+labels
-    +'<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7d9463" stop-opacity=".5"/><stop offset="1" stop-color="#7d9463" stop-opacity="0"/></linearGradient></defs></svg>';
+    +'<defs><linearGradient id="ga" x1="0" y1="0" x2="0" y2="1"><stop offset="0" style="stop-color:var(--green-lit);stop-opacity:.5"/><stop offset="1" style="stop-color:var(--green-lit);stop-opacity:0"/></linearGradient></defs></svg>';
   return {svg:svg, cur:(sel!=null?rows[sel].w:pts[pts.length-1]), unit:unit, sel:(sel!=null?{date:md(rows[sel].ts), val:rows[sel].w}:null)};
 }
 function renderCoach(){
@@ -2519,8 +2525,8 @@ function drawDoseSyringe(units){
     +'<line x1="'+(X1+16)+'" y1="'+(Y+H/2)+'" x2="'+(X1+70)+'" y2="'+(Y+H/2)+'" stroke="#b9b09e" stroke-width="2"/>'
     +'<rect x="'+(X0-12)+'" y="'+(Y+H/2-6)+'" width="12" height="12" rx="2" fill="#cfc7b6"/>'
     +ticks
-    +'<line x1="'+fillX+'" y1="'+(Y-8)+'" x2="'+fillX+'" y2="'+(Y+H+9)+'" stroke="#4A5C3E" stroke-width="2.5"/>'
-    +'<circle cx="'+fillX+'" cy="'+(Y-8)+'" r="3.5" fill="#4A5C3E"/>';
+    +'<line x1="'+fillX+'" y1="'+(Y-8)+'" x2="'+fillX+'" y2="'+(Y+H+9)+'" stroke-width="2.5" style="stroke:var(--olive)"/>'
+    +'<circle cx="'+fillX+'" cy="'+(Y-8)+'" r="3.5" style="fill:var(--olive)"/>';
 }
 
 /* ---- Prescriber notes (client keeps their provider's instructions here) ---- */
