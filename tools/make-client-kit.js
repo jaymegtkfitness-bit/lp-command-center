@@ -25,7 +25,7 @@ const macros = ctx.macrosFrom(inp.cal, inp.pro, inp.sex);
 const sel = {
   frequency: inp.freq || '3', shakeGrams: inp.shake || 30,
   protein: inp.protein || [], carb: inp.carb || [], fruit: inp.fruit || [], fat: inp.fat || [], veg: inp.veg || [],
-  style: inp.style || '', allergies: inp.allergies || [], glp1: inp.glp1 || '', dislikes: inp.dislikes || '', mealNames: inp.mealNames || null
+  style: inp.style || '', allergies: inp.allergies || [], glp1: inp.glp1 || '', dislikes: inp.dislikes || '', mealNames: inp.mealNames || null, strict: !!inp.strict
 };
 const deck = ctx.generateMealOptions({ pfs: { calories: inp.cal, protein: inp.pro, carbs: macros.carbs, fat: macros.fat } }, sel, inp.name);
 
