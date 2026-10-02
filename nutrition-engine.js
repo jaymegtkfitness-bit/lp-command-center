@@ -727,7 +727,16 @@ var PROTEIN_FAMILY=[
 ];
 function proteinFamily(n){ n=String(n||'').toLowerCase(); for(var i=0;i<PROTEIN_FAMILY.length;i++){ if(PROTEIN_FAMILY[i][1].test(n)) return PROTEIN_FAMILY[i][0]; } return n; }
 /* Order the recipes for a slot: her starred and picked lead proteins first, then a rotation. */
-function recipeCandidates(slotKind, sel, k, used, slotName){
+/* Two clients with similar food lists were getting the same meals, because the rotation below was a
+   fixed function of the recipe's position in the library. seedOf() mixes in who she is (and an
+   optional sel.seed, so a rebuild gives her a different set), which spreads the deck across the
+   library instead of always landing on the same handful. (Jayme, 2026-10-02) */
+function seedOf(str){
+  var h=0, s=String(str||'');
+  for(var i=0;i<s.length;i++){ h=(h*31 + s.charCodeAt(i)) % 100000; }
+  return h;
+}
+function recipeCandidates(slotKind, sel, k, used, slotName, seed){
   if(typeof RECIPE_LIBRARY==='undefined') return [];
   var star=(sel.starred||{}).protein||[], picks=sel.protein||[];
   var fams=picks.map(proteinFamily);
@@ -752,7 +761,7 @@ function recipeCandidates(slotKind, sel, k, used, slotName){
       /* Dinner should read like dinner: a cooked meal beats a cold salad at the end of the day. */
       var heat=(slotName==='Dinner') ? (x.r.hot?0:40) : (slotName==='Lunch' && x.r.hot ? 8 : 0);
       var bulk=glp1On(sel) && (x.r.ing||[]).some(function(g){ return /oat|bean|lentil|chickpea|whole.wheat|barley|quinoa|bran/.test(g[2]); }) ? 60 : 0;
-      return {r:x.r, score:pref*100 + bulk + heat + (used[x.r.id]?50:0) + ((x.i*7 + k*11) % 37)};
+      return {r:x.r, score:pref*100 + bulk + heat + (used[x.r.id]?50:0) + ((x.i*7 + k*11 + (seed||0)) % 37)};
     }).sort(function(a,b){ return a.score-b.score; }).map(function(x){ return x.r; });
 }
 
@@ -1359,6 +1368,7 @@ function glp1Order(list, first, later){
 function generateMealOptions(it, sel, name){
   var p=it.pfs; sel=withFruit(sel||{});
   var GLP=glp1On(sel), DIS=dislikeRx(sel.dislikes);
+  var SEED=seedOf(String(name||'') + '|' + (sel.seed||''));   // who she is, so two clients do not get the same deck
   /* Plant-based eaters keep beans, lentils and chickpeas: for them those are protein, not bulk. */
   var LATER=/vegan|vegetarian/i.test(sel.style||'') ? GLP1.carbLater.filter(function(n){ return !/beans|lentils|chickpeas|green peas/.test(n); }) : GLP1.carbLater;
   if(GLP){
@@ -1422,7 +1432,7 @@ function generateMealOptions(it, sel, name){
     /* NAMED MEALS FIRST. Every template her pools can actually make, ranked by how many of her own
        (and starred) foods it uses, rotated per slot so lunch and dinner do not open on the same meal. */
     /* RECIPES FIRST: the licensed library, portioned to this slot's numbers. */
-    var rc=recipeCandidates(slot, sel, k, usedRecipes, nm);
+    var rc=recipeCandidates(slot, sel, k, usedRecipes, nm, SEED);
     /* RULE (Jayme 2026-09-19): every meal has at least one recipe AND at least one no-cook option.
        Recipes fill first but leave one seat for a no-cook meal unless a recipe is itself no-cook. */
     var hasNoCook=function(){ return options.some(function(o){ return o.nocook; }); };
@@ -1515,7 +1525,7 @@ function generateMealOptions(it, sel, name){
         if(!tp.length || !tc.length) return null;
         if(t.needs && !t.needs.every(function(nd){ return tc.some(function(f){ return f.n===nd; }); })) return null;
         var mine=tp.concat(tc, tf).filter(function(f){ return tplMine.indexOf(f.n)>=0; }).length;
-        return {t:(t.veg ? Object.assign({}, t, {vegs:rawV}) : t), tp:tp, tc:tc, tf:tf, score:-mine*10 + ((ti + k*3) % 5)};
+        return {t:(t.veg ? Object.assign({}, t, {vegs:rawV}) : t), tp:tp, tc:tc, tf:tf, score:-mine*10 + ((ti + k*3 + SEED) % 5)};
       }).filter(Boolean).sort(function(a,b){ return a.score-b.score; });
       runTemplates(ncands, [[0.95,0.12,1],[0.9,0.15,1],[0.85,0.15,1]], options.length+1);
       });
