@@ -522,6 +522,12 @@ var MEAL_TEMPLATES=[
    fat:['avocado','hummus','cheese'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' Wrap'; }, needsAny:['flour tortilla','corn tortilla']},
   {id:'nc_plate', slot:'pm', nocook:true, veg:true, protein:['low-fat cottage cheese','nonfat Greek yogurt','2% Greek yogurt','canned tuna','canned chicken','deli turkey'], carb:['chickpeas','rice cakes','whole-wheat bread'],
    fat:['hummus','avocado','olives'], vegs:RAW_VEG, name:function(r){ return mealNice(r.p)+' and '+mealNice(r.f||'hummus')+' Plate'; }},
+  /* A cold plate that needs no bread: yogurt or cottage cheese, fruit, nuts. Covers the no-cook seat
+     for anyone whose carbs are rice and potatoes (Melissa, 2026-10-02). */
+  {id:'nc_bowl', slot:'pm', nocook:true, veg:false, protein:['low-fat cottage cheese','nonfat Greek yogurt','2% Greek yogurt','whey protein powder'],
+   carb:['berries','apple','strawberries','blueberries','raspberries','banana','orange','peach','pear','cherries','granola','oats'],
+   fat:['almonds','walnuts','cashews','pecans','peanut butter','almond butter','chia seeds','pumpkin seeds','sunflower seeds','hemp seeds','dark chocolate'],
+   name:function(r){ return mealNice(r.p)+' and '+mealNice(r.c)+' Bowl'; }, carbs:2},
   {id:'nc_plant', slot:'pm', nocook:true, veg:true, protein:['edamame','extra-firm tofu','plant protein powder','2% Greek yogurt','low-fat cottage cheese'], carb:['chickpeas','black beans','whole-wheat bread','sourdough','rice cakes'],
    fat:['hummus','avocado'], vegs:RAW_VEG, lead:['edamame','extra-firm tofu'], boost:['plant protein powder'],
    name:function(r){ return mealNice(r.p)+' and '+mealNice(r.c||'chickpeas')+' Salad'; }},
@@ -730,6 +736,17 @@ function recipeCandidates(slotKind, sel, k, used, slotName){
     .filter(function(x){ return !picks.length || fams.indexOf(proteinFamily(x.r.lead))>=0; })   // only proteins she eats
     .filter(function(x){ var rx=dislikeRx(sel.dislikes);
       return !rx || !(x.r.ing||[]).some(function(g){ return g[4]!=='ps' && rx.test(String(g[2])); }); })
+    .filter(function(x){
+      /* strict: no recipe may bring a starch she did not pick */
+      if(!sel.strict || !(sel.carb||[]).length) return true;
+      var mine=(sel.carb||[]).concat(sel.fruit||[]).map(function(n){ return n.toLowerCase(); });
+      var STARCH=/bean|lentil|chickpea|quinoa|rice|pasta|bread|oat|tortilla|couscous|barley|bagel|muffin|cracker|potato|crouton/i;
+      return !(x.r.ing||[]).some(function(g){
+        if(g[4]!=='cg' && !(g[4]==='pp' && STARCH.test(String(g[2])))) return false;
+        var n=String(g[2]).toLowerCase();
+        return !mine.some(function(m){ return n.indexOf(m)>=0 || m.indexOf(n)>=0 || n.split(' ').some(function(w){ return m.indexOf(w)>=0 && w.length>3; }); });
+      });
+    })
     .map(function(x){
       var pref=star.some(function(n){ return proteinFamily(n)===proteinFamily(x.r.lead); }) ? 0 : 1;
       /* Dinner should read like dinner: a cooked meal beats a cold salad at the end of the day. */
@@ -1349,6 +1366,13 @@ function generateMealOptions(it, sel, name){
   var addedFoods={};                                           // slot -> [names we had to add]
   function poolFor(cat, picks, slot){
     var all=safeFoods(cat, sel.style, sel.allergies);
+    /* STRICT (Jayme 2026-10-02): "build it on white rice and potatoes" has to mean only those. Normally
+       a thin list gets topped up from the database so a slot always has options; strict turns that off
+       and only falls back if her own picks cannot fill the slot at all. */
+    if(sel.strict && picks && picks.length){
+      var mineOnly=all.filter(function(f){ return picks.indexOf(f.n)>=0; });
+      if(mineOnly.length) all=mineOnly;
+    }
     if(DIS){ var keep=all.filter(function(f){ return dislikesOk(DIS, f.n); }); if(keep.length>=3) all=keep; }
     var inSlot=function(f){ return f.slot==='any' || f.slot===slot; };
     var theirs=all.filter(function(f){ return !picks||!picks.length||picks.indexOf(f.n)>=0; });
@@ -1456,9 +1480,12 @@ function generateMealOptions(it, sel, name){
     if(!hasNoCook()){
       /* The no-cook seat draws on every ready-to-eat food her style and allergies allow, her own picks first. */
       var dok=function(f){ return dislikesOk(DIS, f.n); };
-      var Pa=safeFoods('protein', sel.style, sel.allergies).filter(dok),
-          CaAll=safeFoods('carb', sel.style, sel.allergies).filter(dok),
-          Fa=safeFoods('fat', sel.style, sel.allergies).filter(dok);
+      /* strict: the no-cook seat draws from her picks too, not the whole database */
+      var strictOnly=function(list, picks){ if(!sel.strict || !picks || !picks.length) return list;
+        var mine=list.filter(function(f){ return picks.indexOf(f.n)>=0; }); return mine.length ? mine : list; };
+      var Pa=strictOnly(safeFoods('protein', sel.style, sel.allergies).filter(dok), sel.protein),
+          CaAll=strictOnly(safeFoods('carb', sel.style, sel.allergies).filter(dok), (sel.carb||[]).concat(sel.fruit||[])),
+          Fa=strictOnly(safeFoods('fat', sel.style, sel.allergies).filter(dok), sel.fat);
       /* GLP-1: try the easier carbs first; if no no-cook meal comes out of them, use the full list. */
       [glpPool(CaAll), CaAll].forEach(function(Ca, pass){ if(pass && (!GLP || hasNoCook())) return;
       var rawV=(V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }).length ? V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }) : RAW_VEG);
