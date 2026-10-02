@@ -1245,11 +1245,24 @@ function generateCompanions(sel, count, name){
     var foods=b.parts.map(function(pt){ var f=foodByName(pt[0]); return {f:f, u:pt[1]*((f&&f.gpu)||1)}; });   // booster portions are written in the old serving units
     if(foods.some(function(x){ return !x.f || !allowsFood(x.f, sel.style, sel.allergies) || !dislikesOk(DIS, x.f.n); })) return null;
     if(!dislikesOk(DIS, b.name)) return null;   // also catch the snack's own name (e.g. a disliked word in the title)
+    /* strict: a snack cannot introduce a food she did not pick either */
+    if(sel.strict && mine.length && foods.some(function(x){ return mine.indexOf(x.f.n)<0; })) return null;
     var score=idx - 5*foods.filter(function(x){ return mine.indexOf(x.f.n)>=0; }).length;
     return {b:b, foods:foods, score:score};
   }).filter(Boolean).sort(function(a,b){ return a.score-b.score; }).slice(0, want);
   var recipeSnacks=(typeof RECIPE_LIBRARY==='undefined'?[]:RECIPE_LIBRARY).filter(function(r){ return r.slot==='snack'; }).map(function(r){
     if(DIS && (r.ing||[]).some(function(g){ return g[4]!=='ps' && !dislikesOk(DIS, String(g[2])); })) return null;   // no disliked ingredient in a snack recipe
+    /* strict: a snack recipe cannot bring a starch she did not pick (white beans in the tuna dip) */
+    if(sel.strict && (sel.carb||[]).length){
+      var mineC=(sel.carb||[]).concat(sel.fruit||[]).map(function(n){ return n.toLowerCase(); });
+      var STARCHY=/bean|lentil|chickpea|quinoa|rice|pasta|bread|oat|tortilla|couscous|barley|bagel|cracker|potato/i;
+      var bad=(r.ing||[]).some(function(g){
+        var n=String(g[2]).toLowerCase();
+        if(g[4]!=='cg' && !STARCHY.test(n)) return false;
+        return !mineC.some(function(m){ return n.indexOf(m)>=0 || m.indexOf(n)>=0; });
+      });
+      if(bad) return null;
+    }
     var ing=recipeIngredients(r, sel); if(!ing) return null;
     return {name:r.name, items:ing.filter(function(g){ return g[1]!=='taste'; }).map(function(g){ return recipeLine(recipeQty(g[0], g[1], g[2]), g[1], g[2], g[4]); }),
             parts:ing.map(function(g){ return {n:g[2], units:recipeQty(g[0], g[1], g[2]), u:g[1], gpe:g[4]||0, whole:!g[1]||g[1]==='ea', sec:RECIPE_SEC[g[3]]||'Fats, nuts and extras', recipe:r.id}; }),
@@ -1939,7 +1952,12 @@ function swapChart(perMeal, opts){
   opts=opts||{};
   function col(cat, grams){
     var key=SWAP_ANCHOR[cat];
-    return safeFoods(cat, opts.style, opts.allergies).map(function(f){
+    var pool=safeFoods(cat, opts.style, opts.allergies);
+    if(opts.picks && opts.picks.length){
+      var mineOnly=pool.filter(function(f){ return opts.picks.indexOf(f.n)>=0; });
+      if(mineOnly.length>=2) pool=mineOnly;
+    }
+    return pool.map(function(f){
       if(!(f[key]>0)) return null;
       var raw=grams/f[key]; if(raw>(f.max||99)*1.25) return null;
       var m=macrosOf(f, raw); if(m[key]<grams*0.8) return null;

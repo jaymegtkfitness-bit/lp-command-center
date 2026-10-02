@@ -313,7 +313,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=63"></script>
+<script src="../nutrition-engine.js?v=64"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -557,7 +557,7 @@ function build(){
   });
 
   /* 6. swap guide */
-  var ch = swapChart(perMeal, {style:sel.style, allergies:sel.allergies});
+  var ch = swapChart(perMeal, {style:sel.style, allergies:sel.allergies, picks:(IN.strict ? [].concat(IN.protein||[], IN.carb||[], IN.fruit||[], IN.fat||[]) : null)});
   function col(title, c, what){ return '<div class="tile swapcol"><h3>' + title + '</h3><span class="sub">any one = ' + what + '</span><ul>' +
     c.items.slice(0,14).map(function(x){ return '<li>' + esc(x.qty) + '<span>' + x.kcal + ' cal</span></li>'; }).join('') + '</ul></div>'; }
   doc.push('<section class="sheet"><span class="label">Swap guide</span><h2>Tired of a food? <span class="gold">Trade it.</span></h2>' +
@@ -572,9 +572,11 @@ function build(){
     var listCol = function(title, cat) {
       var fruitN = (FOOD_DB.fruit || []).map(function(f){ return f.n; });
       var dis = (typeof dislikeRx === 'function') ? dislikeRx(sel.dislikes) : null;
+      var mine = [].concat(IN.protein||[], IN.carb||[], IN.fruit||[], IN.fat||[]);
       var foods = safeFoods(cat, sel.style, sel.allergies)
         .filter(function(f){ return cat === 'carb' ? fruitN.indexOf(f.n) < 0 : true; })
-        .filter(function(f){ return dislikesOk(dis, f.n); }), byTier = {};
+        .filter(function(f){ return dislikesOk(dis, f.n); })
+        .filter(function(f){ return !IN.strict || !mine.length || mine.indexOf(f.n) >= 0; }), byTier = {};
       foods.forEach(function(f){ (byTier[f.t || 1] = byTier[f.t || 1] || []).push(f); });
       return '<div class="tile fcol"><h3>' + title + '</h3>' + [1,2,3].filter(function(t){ return byTier[t]; }).map(function(t){
         return '<span class="sub">' + esc(TIER_NOTE[t]) + '</span><ul>' + byTier[t].map(function(f){
