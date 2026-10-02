@@ -1483,11 +1483,18 @@ function generateMealOptions(it, sel, name){
       /* strict: the no-cook seat draws from her picks too, not the whole database */
       var strictOnly=function(list, picks){ if(!sel.strict || !picks || !picks.length) return list;
         var mine=list.filter(function(f){ return picks.indexOf(f.n)>=0; }); return mine.length ? mine : list; };
-      var Pa=strictOnly(safeFoods('protein', sel.style, sel.allergies).filter(dok), sel.protein),
-          CaAll=strictOnly(safeFoods('carb', sel.style, sel.allergies).filter(dok), (sel.carb||[]).concat(sel.fruit||[])),
-          Fa=strictOnly(safeFoods('fat', sel.style, sel.allergies).filter(dok), sel.fat);
-      /* GLP-1: try the easier carbs first; if no no-cook meal comes out of them, use the full list. */
-      [glpPool(CaAll), CaAll].forEach(function(Ca, pass){ if(pass && (!GLP || hasNoCook())) return;
+      var Pfull=safeFoods('protein', sel.style, sel.allergies).filter(dok),
+          Cfull=safeFoods('carb', sel.style, sel.allergies).filter(dok),
+          Ffull=safeFoods('fat', sel.style, sel.allergies).filter(dok);
+      /* Three passes, each only if the one before produced nothing: her picks, then the easier carbs
+         for a GLP-1, then the whole safe list. The no-cook seat is a promise in the document, so it
+         outranks strict; strict still wins whenever her own foods can make a cold meal. */
+      var Pa=strictOnly(Pfull, sel.protein),
+          CaAll=strictOnly(Cfull, (sel.carb||[]).concat(sel.fruit||[])),
+          Fa=strictOnly(Ffull, sel.fat);
+      [{P:Pa,C:glpPool(CaAll),F:Fa},{P:Pa,C:CaAll,F:Fa},{P:Pfull,C:Cfull,F:Ffull}].forEach(function(pool, pass){
+      if(pass && hasNoCook()) return;
+      var Ca=pool.C; Pa=pool.P; Fa=pool.F;
       var rawV=(V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }).length ? V.filter(function(v){ return RAW_VEG.indexOf(v)>=0; }) : RAW_VEG);
       var ncands=MEAL_TEMPLATES.filter(function(t){ return t.slot===kind && t.nocook; }).map(function(t, ti){
         var tp=tplPool(Pa, t.protein, sel.protein, star.protein), tc=tplPool(Ca, t.carb, sel.carb, star.carb), tf=tplPool(Fa, t.fat||[], sel.fat, star.fat);
