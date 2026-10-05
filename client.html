@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en" data-theme="charcoal">
+<html lang="en" data-theme="charcoal" style="background:#0d0d0b">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -4680,10 +4680,10 @@ function renderHomeHero(){
   var goalKey=(typeof egPhaseToGoal==='function')?egPhaseToGoal(track):'';
   var goalLabel=((typeof EG_GOALS!=='undefined'?EG_GOALS:[]).filter(function(x){return x.key===goalKey;})[0]||{}).label||esc(track);
   var h='<style>'
-    +'.dt-intro{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin:-2px 0 13px;max-width:94%}'
+    +'.dt-intro{font-size:14px;color:var(--ink-soft);line-height:1.55;margin:-2px 0 14px;max-width:94%}'
     +'.dt-goalrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;flex-wrap:wrap}'
     +'.dt-line{display:flex;gap:8px}.dt-line .mtile{flex:1;min-width:0;margin:0;padding:13px 10px;overflow:hidden}.dt-line .mtile.step{flex:1.3}'
-    +'.dt-line .mtile .k{font-size:19px!important;line-height:1.05!important;white-space:nowrap}.dt-line .mtile .l{font-size:9px!important;letter-spacing:.04em!important;line-height:1.2!important;margin-top:4px}'
+    +'.dt-line .mtile .k{font-size:1.55rem!important;line-height:1.05!important;white-space:nowrap}.dt-line .mtile .l{font-size:9.5px!important;letter-spacing:.04em!important;line-height:1.2!important;margin-top:5px}'
     +'</style>'
     +'<div class="k-slabel">Daily Target</div>'
     +'<div class="dt-intro">Hit these daily targets each day alongside your training program to get the best results.</div>'
