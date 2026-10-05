@@ -774,12 +774,23 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 
 <section class="view" id="view-command"><div class="wrap">
 
-  <!-- BUSINESS SNAPSHOT -->
+  <!-- COMMUNITY INTELLIGENCE (top of the board — check-in rate + avg biofeedback at a glance) -->
   <div class="section">
     <div class="section-head" style="margin-top:26px">
-      <h2>Business Snapshot</h2><div class="rule"></div>
+      <h2>Community Intelligence</h2><div class="rule"></div>
+      <span class="count" id="commMeta"></span>
     </div>
-    <div class="tiles" id="tiles"></div>
+    <div class="comm-grid">
+      <div class="card card-pad">
+        <h3>This week at a glance</h3>
+        <div class="big-stat" id="commBig"></div>
+        <div style="margin-top:20px"><h3>Consistency spread</h3><div class="dist" id="commDist"></div></div>
+      </div>
+      <div class="card card-pad">
+        <h3>Average biofeedback markers (1–5)</h3>
+        <div id="commMarkers"></div>
+      </div>
+    </div>
   </div>
 
   <!-- CLIENTS + FOLLOW-UPS -->
@@ -797,25 +808,16 @@ select.ci-input{appearance:none;-webkit-appearance:none}
     </div>
   </div>
 
-  <!-- COMMUNITY INTELLIGENCE -->
-  <div class="section">
-    <div class="section-head">
-      <h2>Community Intelligence</h2><div class="rule"></div>
-      <span class="count" id="commMeta"></span>
-    </div>
-    <div class="comm-grid">
-      <div class="card card-pad">
-        <h3>This week at a glance</h3>
-        <div class="big-stat" id="commBig"></div>
-        <div style="margin-top:20px"><h3>Consistency spread</h3><div class="dist" id="commDist"></div></div>
-      </div>
-      <div class="card card-pad">
-        <h3>Average biofeedback markers (1–5)</h3>
-        <div id="commMarkers"></div>
-      </div>
-    </div>
-  </div>
+  <footer>Legacy Performance · built for mission-driven leaders · reads live from Google Sheets</footer>
+</div></section>
 
+<!-- BUSINESS SNAPSHOT — its own tab (split out of the Client Board, Jayme 2026-10-04) -->
+<section class="view" id="view-snapshot"><div class="wrap">
+  <div class="view-head" style="margin-top:4px"><h1>Business Snapshot</h1>
+    <p class="view-sub">MRR, active clients and founding progress — the business at a glance.</p></div>
+  <div class="section">
+    <div class="tiles" id="tiles"></div>
+  </div>
   <footer>Legacy Performance · built for mission-driven leaders · reads live from Google Sheets</footer>
 </div></section>
 
@@ -2219,6 +2221,7 @@ function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCa
    redundancy. Their views + render code are untouched — uncomment a group to bring it back. */
 const NAV = [
   {group:"Today", items:[["dash","Dashboard"],["tasks","This Week"],["calendar","Calendar"],["ea","EA Inbox"]]},
+  {group:"Business", items:[["snapshot","Business Snapshot"]]},
   {group:"Clients", items:[["command","Client Board"],["journey","Member Journey"],["calls","Fulfillment Calls"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["links","Client Links"]]},
   {group:"System", items:[["integrations","Integrations"]]}
   // Toolkit removed Sep 30 — the skills launcher lives in the Ascend OS now (view code kept below).

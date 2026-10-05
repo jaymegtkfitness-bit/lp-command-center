@@ -1186,17 +1186,9 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
   <iframe id="pageOverlayFrame" title="Legacy Performance" src="about:blank"></iframe>
 </div>
 
-<!-- In-app target editor (Edit target) -->
+<!-- In-app Edit Goal flow (recomputes targets from goal + stats) -->
 <div id="targetEditor" onclick="if(event.target===this)closeTargetEditor()">
-  <div class="te-card">
-    <div class="te-h">Edit your targets</div>
-    <div class="te-sub">Fine-tune your daily calories and protein — this drives your ring and weekly read.</div>
-    <div class="te-row">
-      <div class="te-field"><label>Calories / day</label><input id="teCal" type="number" inputmode="numeric" min="800" max="6000"></div>
-      <div class="te-field"><label>Protein / day (g)</label><input id="tePro" type="number" inputmode="numeric" min="40" max="400"></div>
-    </div>
-    <div class="te-actions"><button class="te-save" onclick="saveTarget()">Save targets</button><button class="te-reset" onclick="resetTarget()">Reset to calculated</button></div>
-  </div>
+  <div class="te-card" id="egCard"><div id="egBody"></div></div>
 </div>
 
 <div class="wrap">
@@ -1661,6 +1653,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
 <script src="nutrition-engine.js?v=65"></script>
+<script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
    writeUrl = the SAME Apps Script doorway the Command Center uses. The
@@ -1816,10 +1809,23 @@ function assignedProgram(){
     // content-free mine/ loader (program rides in the private link, cached to the device).
     var isLocal=/^(localhost$|127\.|192\.168\.|10\.|\[?::1)/.test(location.hostname);
     var src=isLocal ? "workout/private/?embed=1" : "workout/mine/?embed=1";
-    return { name:"The Min-Max Program", src:src, pct:15, weeks:6,
-      days:[{t:"Upper 1",mins:55,ex:8},{t:"Lower 1",mins:40,ex:6},{t:"Upper 2",mins:50,ex:7},{t:"Lower 2",mins:35,ex:5},{t:"Arms/Delts",mins:65,ex:9}] };
+    return { name:"Full Body Split", src:src, pct:0, weeks:1,
+      days:[{t:"Full Body 1",mins:65,ex:9},{t:"Full Body 2",mins:55,ex:8},{t:"Full Body 3",mins:65,ex:9},{t:"Full Body 4",mins:55,ex:8},{t:"Arms / Delts",mins:65,ex:9}] };
   }
-  return null;   // no assigned program wired for generic members yet
+  return memberProgram();
+}
+/* Any member with a row in the Programs tab: the doorway serves it, buildModel caches it to
+   lp_prog_data, and the content-free mine/ loader renders it. Summarize it for Home + Workouts. */
+function memberProgram(){
+  var p; try{ p=JSON.parse(localStorage.getItem('lp_prog_data')||'null'); }catch(e){ p=null; }
+  if(!p || !p.blocks || !p.blocks.length) return null;
+  var weeks=[]; p.blocks.forEach(function(b){ (b.weeks||[]).forEach(function(w){ weeks.push(w); }); });
+  if(!weeks.length) return null;
+  var days=(weeks[0].days||[]).map(function(d){
+    var n=(d.exercises||[]).length;   // same count + minutes formula as the mine/ day overview, so Home and the workout agree
+    return { t:d.day, ex:n, mins:Math.max(30, Math.round(n*7/5)*5) };
+  });
+  return { name:(p.title||'My Training'), src:"workout/mine/?embed=1", pct:0, weeks:weeks.length, days:days };
 }
 /* Open a single day as its own workout overview (where you start the session). */
 var HOME_WK=0;   // 0-based selected week on Home
@@ -1855,13 +1861,88 @@ function applyTargetOverride(){
     }
   }catch(e){}
 }
+/* ===== EDIT GOAL — Kino-style: change goal or stats, targets recompute from the coefficient scale.
+   Outcome labels map to LP phases; estimateGoalWeight() gives the recommended weight. ===== */
+var EG=null;
+var EG_GOALS=[
+  {key:'lose',    label:'Lose Fat',     sub:'Drop fat on a sustainable deficit'},
+  {key:'build',   label:'Build Muscle', sub:'Add lean muscle, keep fat low'},
+  {key:'maintain',label:'Maintain',     sub:'Hold your weight, recomp slowly'}
+];
+function egPhaseToGoal(t){ return ({Lean:'lose',Strong:'build',Sustain:'maintain','Long':'maintain','Reverse Diet':'lose'})[t]||'lose'; }
+function egGoalToTrack(k){ return ({lose:'Lean',build:'Strong',maintain:'Sustain'})[k]||'Lean'; }
+function egRecWeight(){ try{ return estimateGoalWeight({height:+EG.height,sex:EG.sex,weight:+EG.weight}); }catch(e){ return null; } }
 function openTargetEditor(){
-  if(coachManaged()){ alert('Your coach is managing your plan right now — message your coach to adjust your targets.'); return; }
-  var it=M&&M.intake; if(!it||!it.pfs){ showClientTab('nutrition'); return; }
-  var cal=g('teCal'), pro=g('tePro');
-  if(cal) cal.value=Math.round(it.pfs.calories||0);
-  if(pro) pro.value=Math.round(it.pfs.protein||(typeof proteinFloor==='function'?proteinFloor():0)||0);
+  if(coachManaged()){ alert('Your coach is managing your plan right now — message your coach to change your goal.'); return; }
+  var it=(M&&M.intake)||{};
+  EG={ _step:'choice', goal:egPhaseToGoal(it.track), sex:it.sex||'', age:it.age||'', height:+it.height||'', weight:+it.weight||'', waist:it.waist||'', goalweight:+it.goalweight||'' };
+  egRender('choice');
   var m=g('targetEditor'); if(m){ m.classList.add('open'); document.body.style.overflow='hidden'; }
+}
+function egRender(step){
+  EG._step=step; var box=g('egBody'); if(!box) return;
+  var h='<style>'
+    +'.eg-h{font-size:20px;font-weight:800;color:var(--headline);margin:2px 0 4px}'
+    +'.eg-sub{font-size:12.5px;color:var(--ink-soft);margin-bottom:16px;line-height:1.5}'
+    +'.eg-choice{display:flex;flex-direction:column;gap:10px}'
+    +'.eg-cbtn{text-align:left;background:var(--field,rgba(255,255,255,.05));border:1px solid var(--field-line,rgba(242,237,228,.14));border-radius:12px;padding:15px 16px;cursor:pointer;color:var(--ink)}'
+    +'.eg-cbtn b{display:block;color:var(--headline);font-size:15px;font-weight:700;margin-bottom:2px}.eg-cbtn span{font-size:12px;color:var(--ink-soft);line-height:1.4}'
+    +'.eg-goal{display:flex;flex-direction:column;gap:9px;margin-bottom:12px}'
+    +'.eg-g{background:var(--field,rgba(255,255,255,.05));border:1.5px solid var(--field-line,rgba(242,237,228,.14));border-radius:12px;padding:13px 15px;cursor:pointer}'
+    +'.eg-g.on{border-color:var(--accent,#C1AD72);background:var(--accent-soft,rgba(193,173,114,.12))}'
+    +'.eg-g b{display:block;color:var(--accent,#C1AD72);font-size:14.5px;font-weight:700}.eg-g span{font-size:11.5px;color:var(--ink-soft)}'
+    +'.eg-rec{background:var(--accent-soft,rgba(193,173,114,.14));border:1px solid var(--field-line);border-radius:11px;padding:12px 14px;margin:2px 0 12px;font-size:12.5px;color:var(--ink-soft);line-height:1.5}.eg-rec b{color:var(--headline)}'
+    +'.eg-field{margin-bottom:11px}.eg-field label{display:block;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:5px;font-weight:700}'
+    +'.eg-field input,.eg-ht input{width:100%;background:var(--field);border:1px solid var(--field-line);color:var(--ink);border-radius:9px;padding:11px 12px;font:inherit;font-size:15px;box-sizing:border-box}'
+    +'.eg-ht{display:flex;gap:8px}.eg-ht input{text-align:center}'
+    +'.eg-sx{display:flex;gap:8px}.eg-sx button{flex:1;background:var(--field);border:1.5px solid var(--field-line);color:var(--ink);border-radius:9px;padding:11px;font:inherit;cursor:pointer}.eg-sx button.on{border-color:var(--accent,#C1AD72);color:var(--accent,#C1AD72);font-weight:700}'
+    +'.eg-act{display:flex;gap:10px;margin-top:16px}.eg-act button{border:0;border-radius:11px;padding:14px;font:inherit;font-weight:800;cursor:pointer}'
+    +'.eg-save{flex:1;background:var(--accent,#C1AD72);color:#1C1C1C}.eg-back{flex:0 0 88px;background:none;border:1px solid var(--field-line)!important;color:var(--ink)}'
+    +'</style>';
+  if(step==='choice'){
+    h+='<div class="eg-h">Edit Goal</div><div class="eg-sub">What do you want to update?</div><div class="eg-choice">'
+      +'<button class="eg-cbtn" onclick="egRender(\'goal\')"><b>Update physique goal</b><span>Change what you&rsquo;re training for &mdash; we&rsquo;ll recalculate your numbers.</span></button>'
+      +'<button class="eg-cbtn" onclick="egRender(\'data\')"><b>Update personal data</b><span>Weight, height, waist, age &mdash; keep your numbers accurate.</span></button></div>';
+  } else if(step==='goal'){
+    h+='<div class="eg-h">Your goal</div><div class="eg-sub">This sets your daily calories and protein.</div>'
+      +egGoalChips()+egRecBlock()+egActions();
+  } else {
+    h+='<div class="eg-h">Your details</div><div class="eg-sub">Keep these current so your targets stay right.</div>'
+      +egGoalChips()
+      +'<div class="eg-field"><label>Current weight (lb)</label><input type="number" inputmode="decimal" value="'+(EG.weight||'')+'" onchange="EG.weight=this.value;egUpdateRec()"></div>'
+      +'<div class="eg-field"><label>Height</label><div class="eg-ht"><input type="number" inputmode="numeric" placeholder="ft" value="'+(EG.height?Math.floor(EG.height/12):'')+'" onchange="egSetHt(this.value,null)"><input type="number" inputmode="numeric" placeholder="in" value="'+(EG.height?(EG.height%12):'')+'" onchange="egSetHt(null,this.value)"></div></div>'
+      +'<div class="eg-field"><label>Waist (in)</label><input type="number" inputmode="decimal" value="'+(EG.waist||'')+'" onchange="EG.waist=this.value"></div>'
+      +'<div class="eg-field"><label>Age</label><input type="number" inputmode="numeric" value="'+(EG.age||'')+'" onchange="EG.age=this.value"></div>'
+      +'<div class="eg-field"><label>Sex</label><div class="eg-sx"><button class="'+(/^m/i.test(EG.sex)?'on':'')+'" onclick="EG.sex=\'Male\';egRender(\'data\')">Male</button><button class="'+(/^f/i.test(EG.sex)?'on':'')+'" onclick="EG.sex=\'Female\';egRender(\'data\')">Female</button></div></div>'
+      +egRecBlock()+egActions();
+  }
+  box.innerHTML=h;
+}
+function egGoalChips(){ return '<div class="eg-goal">'+EG_GOALS.map(function(x){
+  return '<div class="eg-g'+(EG.goal===x.key?' on':'')+'" onclick="EG.goal=\''+x.key+'\';egRender(EG._step)"><b>'+x.label+'</b><span>'+x.sub+'</span></div>'; }).join('')+'</div>'; }
+function egRecBlock(){
+  var rec=egRecWeight();
+  if((EG.goalweight===''||EG.goalweight==null||+EG.goalweight<=0) && rec) EG.goalweight=rec;
+  return (rec?'<div class="eg-rec" id="egRecLine">Recommended goal weight: <b>'+rec+' lb</b><br>Based on your height and goal. Adjust it if you have a different target.</div>':'')
+    +'<div class="eg-field"><label>Goal weight (lb)</label><input id="egGW" type="number" inputmode="decimal" value="'+(EG.goalweight||'')+'" onchange="EG.goalweight=this.value"></div>';
+}
+function egUpdateRec(){ var rec=egRecWeight(), el=g('egRecLine'); if(el&&rec) el.innerHTML='Recommended goal weight: <b>'+rec+' lb</b><br>Based on your height and goal. Adjust it if you have a different target.';
+  var gw=g('egGW'); if(gw && (!gw.value||+gw.value<=0) && rec){ gw.value=rec; EG.goalweight=rec; } }
+function egSetHt(ft,inch){ var cur=EG.height||0, f=(ft!=null)?(+ft||0):Math.floor(cur/12), i=(inch!=null)?(+inch||0):(cur%12); EG.height=f*12+i; egUpdateRec(); }
+function egActions(){ return '<div class="eg-act"><button class="eg-back" onclick="egRender(\'choice\')">Back</button><button class="eg-save" onclick="egApply()">Save</button></div>'; }
+function egApply(){
+  var it=M&&M.intake; if(!it){ closeTargetEditor(); return; }
+  it.track=egGoalToTrack(EG.goal);
+  if(EG.sex) it.sex=EG.sex;
+  if(EG.age!=='' && EG.age!=null) it.age=EG.age;
+  if(+EG.height>0) it.height=+EG.height;
+  if(+EG.weight>0) it.weight=+EG.weight;
+  if(EG.waist!=='' && EG.waist!=null) it.waist=EG.waist;
+  if(+EG.goalweight>0) it.goalweight=+EG.goalweight; else { var r=egRecWeight(); if(r) it.goalweight=r; }
+  try{ localStorage.removeItem('lp_target_override'); }catch(e){}
+  if(typeof computePFS==='function'){ try{ it.pfs=computePFS(it, it.track); it.pfsBase=it.pfs; }catch(e){} }
+  try{ if(typeof saveLS==='function' && typeof LS_INTAKE!=='undefined') saveLS(LS_INTAKE, it); }catch(e){}
+  closeTargetEditor(); reRenderTargets();
 }
 function closeTargetEditor(){ var m=g('targetEditor'); if(m)m.classList.remove('open'); document.body.style.overflow=''; }
 function reRenderTargets(){ if(typeof renderHomeHero==='function') renderHomeHero(); window._nutRendered=false; if(typeof renderNutritionHero==='function') renderNutritionHero(); }
@@ -1879,8 +1960,111 @@ function resetTarget(){
 }
 /* Workouts tab = the PROGRAM LIBRARY (Kino "Programs"). Your active program lives on Home;
    here you browse every program and switch. */
+/* ===== FIT BODY bootcamp week (brand=fitbody) — the Workouts tab IS the gym's calendar workout.
+   Data in fb-workouts.js (gitignored). Strength=log weight; MetCon/Classic=log intensity. ===== */
+var FB_DAYS=['Mon','Tue','Wed','Thu','Fri','Sat'];
+function fbKey(wk,dt){ return 'fb_wk'+wk+'_'+dt; }
+function fbLoad(wk,dt){ try{ return JSON.parse(localStorage.getItem(fbKey(wk,dt))||'{}'); }catch(e){ return {}; } }
+function fbSave(wk,dt,field,val){ var o=fbLoad(wk,dt); o[field]=val; o.ts=Date.now(); try{ localStorage.setItem(fbKey(wk,dt),JSON.stringify(o)); }catch(e){} }
+function fbStyleColor(s){ return s==='Strength'?'var(--brand,#0a73ce)':(s==='MetCon'?'#C1AD72':'#8a6fb0'); }
+var FB_OPEN=null;
+function fbToggle(dow){ FB_OPEN=(FB_OPEN===dow)?null:dow; renderWorkouts(); }
+function renderFBWeek(){
+  var wk=window.FB_currentWeek(); if(!wk) return '<div class="empty">No workout loaded.</div>';
+  var today=new Date().toISOString().slice(0,10), nextMarked=false;
+  var h='<style>'
+    +'.fbw-h{margin:2px 0 14px}.fbw-h .eyebrow{color:var(--brand,#0a73ce)}'
+    +'.fbw-theme{font-size:12px;color:var(--ink-soft);margin-top:4px}'
+    +'.fbday{background:var(--surface,#1f1d18);border:1px solid var(--line);border-radius:14px;margin-bottom:10px;overflow:hidden}'
+    +'.fbday.next{border-color:var(--brand,#0a73ce);box-shadow:0 0 0 1px var(--brand,#0a73ce) inset}'
+    +'.fbday-h{display:flex;align-items:center;gap:12px;padding:14px 15px;cursor:pointer}'
+    +'.fbday-d{flex:none;text-align:center;min-width:42px}.fbday-d b{display:block;font-size:15px;color:var(--headline);font-weight:800}.fbday-d span{font-size:10.5px;color:var(--ink-soft)}'
+    +'.fbday-m{flex:1;min-width:0}.fbday-m .st{font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:800;padding:2px 8px;border-radius:6px;color:#0e0d0b;display:inline-block}'
+    +'.fbday-m .fo{font-size:12.5px;color:var(--ink-soft);margin-top:4px}'
+    +'.fbday-sum{font-size:11.5px;color:var(--brand,#0a73ce);font-weight:700;flex:none}'
+    +'.fbday-body{padding:0 15px 15px;border-top:1px solid var(--line)}'
+    +'.fblift{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}'
+    +'.fblift .ln{flex:1;min-width:0}.fblift .ln b{font-size:13.5px;color:var(--headline);font-weight:700;display:block}.fblift .ln span{font-size:11px;color:var(--ink-soft)}'
+    +'.fblift input,.fbrow input,.fbrow select{background:var(--field,rgba(255,255,255,.05));border:1px solid var(--field-line,rgba(242,237,228,.14));color:var(--ink);border-radius:8px;padding:8px 9px;font:inherit;font-size:13px}'
+    +'.fblift .wt{width:66px;text-align:center}'
+    +'.fbrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.05)}.fbrow label{font-size:12px;color:var(--ink-soft);min-width:96px}'
+    +'.fbrow .rpe{width:60px;text-align:center}.fbrow .note{flex:1;min-width:120px}'
+    +'.fbband{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}'
+    +'.fbin{display:flex;gap:7px;flex:none}'
+    +'.fbguide{font-size:11.5px;line-height:1.5;color:var(--ink-soft);background:var(--brand-fade,rgba(10,115,206,.12));border:1px solid var(--field-line,rgba(242,237,228,.14));border-radius:9px;padding:9px 11px;margin:12px 0 2px}.fbguide b{color:var(--ink,#EAE4D8);font-weight:700}'
+    +'.fbhint{font-size:10.5px;color:var(--ink-faint,#6f6a60);margin:2px 0 8px}'
+    +'</style>';
+  var wtype=wk.type||(window.FB_weekType?window.FB_weekType(wk.start):'');
+  h+='<div class="fbw-h"><p class="eyebrow">Fit Body · This Week</p>'
+    +'<h1 style="text-transform:uppercase;font-size:30px">'+esc(wtype||'This Week')+'</h1>'
+    +'<div class="fbw-theme">'+fmtRange(wk.start,wk.end)+'</div></div>';
+  FB_DAYS.forEach(function(dow){
+    var d=wk.days[dow]; if(!d) return;
+    var isToday=d.date===today, upNext=(!nextMarked && d.date>=today && !isToday);
+    var markNext=isToday||upNext; if(markNext) nextMarked=true;
+    var open=(FB_OPEN===dow)||(FB_OPEN===null&&markNext);
+    var dd=new Date(d.date+'T12:00:00'), dnum=dd.getDate();
+    var sum = d.style==='Strength' ? (d.lifts?d.lifts.length:0)+' to log'
+            : (d.style==='MetCon' ? (d.laps>1?d.laps+' laps · RPE':'RPE') : 'Intensity');
+    h+='<div class="fbday'+(markNext?' next':'')+'">'
+      +'<div class="fbday-h" onclick="fbToggle(\''+dow+'\')">'
+        +'<div class="fbday-d"><b>'+dow+'</b><span>'+dnum+'</span></div>'
+        +'<div class="fbday-m"><span class="st" style="background:'+fbStyleColor(d.style)+'">'+d.style+'</span>'
+          +(isToday?' <span class="st" style="background:var(--brand,#0a73ce)">Today</span>':(upNext?' <span class="st" style="background:var(--brand,#0a73ce)">Up next</span>':''))
+          +'<div class="fo">'+esc(d.focus||'')+'</div></div>'
+        +'<div class="fbday-sum">'+sum+' '+(open?'▾':'▸')+'</div>'
+      +'</div>';
+    if(open) h+='<div class="fbday-body">'+fbDayBody(wk.n,d)+'</div>';
+    h+='</div>';
+  });
+  h+='<div class="fbhint" style="margin-top:12px">Log the weight you used on strength days, and how hard the aerobic workouts felt (RPE 1–10). Bodyweight moves aren’t tracked.</div>';
+  return h;
+}
+function fbDayBody(wk,d){
+  var saved=fbLoad(wk,d.date), b='';
+  if(d.style==='Strength' && d.lifts){
+    b+='<div class="fbguide">Log your heaviest set of each: the <b>weight</b> you moved and the <b>reps</b> you completed with it.</div>';
+    d.lifts.forEach(function(lf,i){
+      b+='<div class="fblift"><div class="ln"><b>'+esc(lf.m)+'</b><span>target '+esc(lf.reps||'')+(lf.note?' · '+esc(lf.note):'')+'</span>';
+      if(lf.band){ b+=fbBandInput(wk,d.date,'band'+i,saved); }
+      b+='</div><div class="fbin">';
+      if(!lf.band){ b+='<input class="wt" type="number" inputmode="decimal" placeholder="lb" value="'+(saved['w'+i]!=null?saved['w'+i]:'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'w'+i+'\',this.value)">'; }
+      b+='<input class="wt" type="number" inputmode="numeric" placeholder="reps" value="'+(saved['r'+i]!=null?saved['r'+i]:'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'r'+i+'\',this.value)">';
+      b+='</div></div>';
+    });
+  } else if(d.style==='MetCon'){
+    b+='<div class="fbguide"><b>RPE</b> = rate of perceived exertion. On a 1–10 scale (1 = easy walk you could hold for an hour, 10 = all-out you could hold ~2 min), rate how hard each lap felt'+(d.finisher?' — and the finisher':'')+'.</div>';
+    var laps=d.laps||1;
+    for(var L=1;L<=laps;L++){ b+='<div class="fbrow"><label>Lap '+L+' RPE</label>'
+      +'<input class="rpe" type="number" min="1" max="10" placeholder="1–10" value="'+(saved['lap'+L]!=null?saved['lap'+L]:'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'lap'+L+'\',this.value)">'
+      +'<input class="note" placeholder="pacing notes" value="'+esc(saved['pace'+L]||'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'pace'+L+'\',this.value)"></div>'; }
+  } else { /* Classic */
+    b+='<div class="fbguide"><b>RPE</b> = rate of perceived exertion. On a 1–10 scale (1 = easy walk you could hold for an hour, 10 = all-out you could hold ~2 min), rate how hard the workout felt'+(d.finisher?' — and the finisher':'')+'.</div>';
+    b+='<div class="fbrow"><label>Workout RPE</label>'
+      +'<input class="rpe" type="number" min="1" max="10" placeholder="1–10" value="'+(saved.rpe!=null?saved.rpe:'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'rpe\',this.value)">'
+      +'<input class="note" placeholder="pacing notes" value="'+esc(saved.pace||'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'pace\',this.value)"></div>';
+    if(d.laps==='AMLAP'){ b+='<div class="fbrow"><label>Laps completed</label>'
+      +'<input class="rpe" type="number" min="0" placeholder="#" value="'+(saved.laps!=null?saved.laps:'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'laps\',this.value)"></div>'; }
+  }
+  if(d.finisher){ b+='<div class="fbrow"><label>Finisher RPE</label>'
+    +'<input class="rpe" type="number" min="1" max="10" placeholder="1–10" value="'+(saved.finRpe!=null?saved.finRpe:'')+'" onchange="fbSave('+wk+',\''+d.date+'\',\'finRpe\',this.value)"></div>'; }
+  return b;
+}
+function fbBandInput(wk,dt,key,saved){
+  var v=saved[key]||{}; function u(f){ return 'onchange="(function(e){var o='+JSON.stringify(v).replace(/"/g,'&quot;')+';o[\''+f+'\']=e.value;fbSave('+wk+',\''+dt+'\',\''+key+'\',o);})(this)"'; }
+  return '<div class="fbband">'
+    +'<input placeholder="color" style="width:80px" value="'+esc(v.color||'')+'" '+u('color')+'>'
+    +'<select '+u('count')+'><option value="">bands</option>'+[1,2,3].map(function(n){return '<option value="'+n+'"'+(v.count==n?' selected':'')+'>'+n+'</option>';}).join('')+'</select>'
+    +'<select '+u('type')+'><option value="">type</option>'+['handle','monster'].map(function(t){return '<option'+(v.type==t?' selected':'')+'>'+t+'</option>';}).join('')+'</select>'
+    +'</div>';
+}
+function fmtRange(a,b){ function m(x){ var d=new Date(x+'T12:00:00'); return d.toLocaleDateString(undefined,{month:'short',day:'numeric'}); } return m(a)+' – '+m(b); }
 function renderWorkouts(){
   var box=g("workoutsBox"); if(!box) return;
+  // Fit Body workouts show for anyone on the Fit Body OS, OR anyone flagged for FB workouts
+  // (e.g. Lori — Legacy brand, trains at the gym). The flag rides in on clientData → M.fbWorkouts.
+  var fbWO = (typeof BRAND!=='undefined' && BRAND==='fitbody') || (M && M.fbWorkouts);
+  if(fbWO && window.FB_WEEKS){ box.innerHTML=renderFBWeek(); return; }
   var ap=assignedProgram();
   var h='<div class="hrow"><p class="eyebrow" id="wkEyebrow">The Library</p><h1 style="text-transform:uppercase;font-size:30px">Programs</h1></div>';
   h+='<div class="k-slabel">Your Program</div>';
@@ -2097,7 +2281,7 @@ function verifyJSONP(fn, ln, dob, email, cb){
   setTimeout(function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } }, 8000);
 }
 function editIdentity(){
-  try{ localStorage.removeItem(LS_TOKEN); localStorage.removeItem('lp_preview_acct'); localStorage.removeItem(LS_ID); }catch(e){}
+  try{ localStorage.removeItem(LS_TOKEN); localStorage.removeItem('lp_preview_acct'); localStorage.removeItem(LS_ID); localStorage.removeItem('lp_prog_data'); }catch(e){}   // program is private to this member: never leave it for the next login on this device
   TOKEN=null; ID=null;
   ["ob_email"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
   var st=g("obStatus"); if(st) st.textContent="";
@@ -2309,7 +2493,10 @@ function buildModel(server){
   // ---- private workout program (served ONLY to this authenticated member via the doorway; cached
   //      to the device so the workout module loads it like any assigned program). ----
   var sprog=(server&&server.program&&server.program.length)?server.program[server.program.length-1]:null;
-  if(sprog && sprog['Program']){ (async function(){ try{ var raw=await ungzB64(sprog['Program']); if(raw && raw.charAt(0)==='{'){ localStorage.setItem('lp_prog_data', raw); } }catch(e){} })(); }
+  if(sprog && sprog['Program']){ (async function(){ try{ var raw=await ungzB64(sprog['Program']); if(raw && raw.charAt(0)==='{'){
+    var changed=(localStorage.getItem('lp_prog_data')!==raw); localStorage.setItem('lp_prog_data', raw);
+    if(changed){ if(typeof renderHomeHero==='function') renderHomeHero(); if(typeof renderWorkouts==='function') renderWorkouts(); }   // first load: show the program as soon as it arrives
+  } }catch(e){} })(); }
   // ---- CNS + genetics intake status (drives the setup cards) ----
   M.cnsintake      = (server && server.cnsintake)      ? server.cnsintake      : (M.cnsintake||[]);
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
@@ -4487,21 +4674,26 @@ function renderHomeHero(){
   } else {
     statusHTML='<div class="tgeyebrow">Daily target</div><div class="tgstat">Start checking in<br>to set your read</div>';
   }
-  // step goal — target shown; live count wires in when Apple/Google Health is connected
+  // Kino-style Daily Target: header + one line of calories · protein · steps. (Avg-cal/weekly
+  // average moved to the Nutrition tab.) Outcome label from the phase; Edit Goal recomputes.
   var stepGoal=10000;
-  var stepTile='<div class="mtile step"><div><div class="k">'+stepGoal.toLocaleString()+' <span style="color:var(--ink-faint);font-size:13px">steps</span></div>'
-    +'<div class="l">Daily step goal · connect Health</div></div><div style="color:var(--gold);font-weight:800;font-size:11px">Connect ↗</div></div><div class="kbar"><i style="width:0%"></i></div>';
-
-  var h='<div class="k-slabel">Daily Target <span class="sub">'+esc(track)+' phase</span></div>'
-    +'<div class="dt"><div class="dt-grid">'
-    +'<div class="dt-col">'+kRingSVG(avg,target,150)
-    +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories / day</div></div></div>'
-    +'<div class="dt-col"><div class="dt-goalwrap">'
-    +'<span class="goalpill">🎯 '+esc(track)+(gw?(' · goal '+gw+' lb'):'')+'</span>'
-    +'<div style="margin-top:10px">'+statusHTML+'</div>'
-    +(coachManaged()?'<div class="editgoal" style="color:var(--ink-faint);cursor:default">🔒 Coach-managed</div>':'<div class="editgoal" onclick="openTargetEditor()">✎ Edit target</div>')+'</div>'
-    +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein / day</div></div></div>'
-    +'</div>'+stepTile+'</div>';
+  var goalKey=(typeof egPhaseToGoal==='function')?egPhaseToGoal(track):'';
+  var goalLabel=((typeof EG_GOALS!=='undefined'?EG_GOALS:[]).filter(function(x){return x.key===goalKey;})[0]||{}).label||esc(track);
+  var h='<style>'
+    +'.dt-intro{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin:-2px 0 13px;max-width:94%}'
+    +'.dt-goalrow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:13px;flex-wrap:wrap}'
+    +'.dt-line{display:flex;gap:8px}.dt-line .mtile{flex:1;min-width:0;margin:0;padding:13px 10px;overflow:hidden}.dt-line .mtile.step{flex:1.3}'
+    +'.dt-line .mtile .k{font-size:19px!important;line-height:1.05!important;white-space:nowrap}.dt-line .mtile .l{font-size:9px!important;letter-spacing:.04em!important;line-height:1.2!important;margin-top:4px}'
+    +'</style>'
+    +'<div class="k-slabel">Daily Target</div>'
+    +'<div class="dt-intro">Hit these daily targets each day alongside your training program to get the best results.</div>'
+    +'<div class="dt-goalrow"><span class="goalpill">🎯 '+goalLabel+(gw?(' · '+gw+' lb'):'')+'</span>'
+    +(coachManaged()?'<span class="editgoal" style="color:var(--ink-faint);cursor:default">🔒 Coach-managed</span>':'<span class="editgoal" onclick="openTargetEditor()">✎ Edit Goal</span>')+'</div>'
+    +'<div class="dt-line">'
+      +'<div class="mtile"><div class="k">'+target.toLocaleString()+'</div><div class="l">Calories / day</div></div>'
+      +'<div class="mtile"><div class="k">'+protein+'g</div><div class="l">Protein / day</div></div>'
+      +'<div class="mtile"><div class="k">'+stepGoal.toLocaleString()+'</div><div class="l">Daily step goal</div></div>'
+    +'</div>';
 
   // Your Program — overview: hero (%) → weeks → day list. Tapping a day opens its workout overview.
   var ap=(typeof assignedProgram==='function')?assignedProgram():null;
