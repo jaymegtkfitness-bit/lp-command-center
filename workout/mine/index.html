@@ -129,13 +129,14 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .ovnm{font-weight:700;font-size:.98rem;color:#fff}
 .ovsr{font-size:.8rem;color:var(--soft);margin-top:3px}
 /* big center workout timer */
-.timer.big{flex-direction:column;gap:10px;align-items:center;text-align:center;background:linear-gradient(160deg,rgba(84,106,70,.18),rgba(20,19,16,.85));padding:16px 14px}
-.timer.big .tk-big{font-family:Montserrat,sans-serif;font-weight:900;font-size:2.7rem;color:#fff;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
-.timer.big .tk-rest{display:flex;align-items:center;gap:10px;font-size:.85rem}
-.timer.big .tk-rest .tval{font-size:1rem}
-.timer.big .tk-rest .tbtn{padding:6px 12px;font-size:.7rem}
-.timer.big .tk-main{display:flex;flex-direction:column;align-items:center;gap:7px}
-.timer.big #startBtn{padding:8px 26px;font-size:.82rem}
+.timer.big{flex-direction:column;gap:7px;align-items:center;text-align:center;background:linear-gradient(160deg,rgba(84,106,70,.18),rgba(20,19,16,.85));padding:9px 12px}
+.timer.big .tk-big{font-family:Montserrat,sans-serif;font-weight:900;font-size:1.85rem;color:#fff;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.timer.big .tlab{font-size:.52rem}
+.timer.big .tk-rest{display:flex;align-items:center;gap:9px;font-size:.8rem}
+.timer.big .tk-rest .tval{font-size:.95rem}
+.timer.big .tk-rest .tbtn{padding:5px 11px;font-size:.68rem}
+.timer.big .tk-main{display:flex;flex-direction:row;align-items:center;gap:12px}
+.timer.big #startBtn{padding:6px 20px;font-size:.76rem}
 /* superset grouping — a labelled connector between two linked exercise cards */
 .kx.ss{border-color:var(--gold-dim)}
 .kx-sslink{position:relative;display:flex;align-items:center;justify-content:center;height:24px;margin:2px 0}
@@ -146,10 +147,19 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .kx{margin-top:12px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:18px;padding:14px}
 .kx.done{border-color:var(--olive-dim);background:rgba(84,106,70,.08)}
 .kx-top{display:flex;align-items:flex-start;gap:12px}
-.kx-thumb{width:58px;height:58px;border-radius:13px;flex:none;display:flex;align-items:center;justify-content:center;font-size:1.05rem;color:var(--gold);background:linear-gradient(140deg,#2b3327,#14140f)}
-.kx-nm{flex:1;min-width:0;font-family:Montserrat,sans-serif;font-weight:800;font-size:1.02rem;color:#fff;line-height:1.2;padding-top:2px}
+.kx-thumb{width:46px;height:46px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:var(--gold);background:linear-gradient(140deg,#2b3327,#14140f)}
+.kx-nm{flex:1;min-width:0;font-family:Montserrat,sans-serif;font-weight:800;font-size:1.02rem;color:#fff;line-height:1.2;align-self:center}
 .kx-tools{display:flex;flex-direction:column;gap:6px;flex:none}
-.kx-tool{display:flex;align-items:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid var(--field-line);color:var(--gold);border-radius:9px;font-family:inherit;font-weight:700;font-size:.72rem;padding:6px 10px;cursor:pointer;white-space:nowrap}
+.kx-tool{display:flex;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid var(--field-line);color:var(--gold);border-radius:9px;font-family:inherit;font-weight:700;font-size:.74rem;padding:8px 10px;cursor:pointer;white-space:nowrap}
+.kx-actions{display:flex;gap:8px;margin-top:11px}
+.kx-actions .kx-tool{flex:1}
+.kx-delrow{margin-top:12px;padding-top:11px;border-top:1px solid var(--field-line);display:flex;justify-content:center}
+.kx-del{background:transparent;border:none;color:var(--soft);font-family:inherit;font-weight:700;font-size:.78rem;display:flex;align-items:center;gap:6px;cursor:pointer;padding:4px 10px}
+.kx-del:active{color:#e8928a}
+.kx-add{margin-top:14px;display:flex;gap:8px}
+.kx-add input{flex:1;min-width:0;background:rgba(255,255,255,.04);border:1px solid var(--field-line);border-radius:12px;color:var(--parch);font-family:inherit;font-size:.86rem;padding:12px}
+.kx-add input:focus{outline:none;border-color:var(--gold)}
+.kx-add button{background:rgba(193,173,114,.14);color:var(--gold);border:1px solid var(--gold-dim);border-radius:12px;font-family:inherit;font-weight:800;font-size:.84rem;padding:0 18px;cursor:pointer;white-space:nowrap}
 .kx-info{font-size:.82rem;color:var(--soft);line-height:1.45;margin-top:12px}
 .kx-info .ii{color:var(--gold);font-weight:800}
 .kx-info.clip{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -170,7 +180,8 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .kx-sbtn:active{background:var(--gold);color:var(--ink)}
 .kx-bubbles{display:flex;flex-wrap:wrap;gap:9px;margin-top:13px}
 .kx-bub{flex:1;min-width:82px;text-align:center;padding:12px 6px;border-radius:13px;border:1px solid var(--gold-dim);background:rgba(193,173,114,.06);color:var(--gold-soft,#d8c789);font-weight:800;font-size:.9rem;cursor:pointer}
-.kx-bub.done{background:linear-gradient(160deg,var(--olive),#3f5233);border-color:transparent;color:#fff}
+.kx-bub.done{background:linear-gradient(160deg,var(--olive),#3f5233);border-color:transparent;color:#fff;position:relative}
+.kx-bub.done .xrm{position:absolute;top:3px;right:6px;font-size:.58rem;color:rgba(255,255,255,.55);font-weight:700}
 .kx-bub.done .bw{display:block;font-size:.68rem;font-weight:700;color:rgba(255,255,255,.8);margin-top:2px}
 .kx-bub .pr{color:var(--gold)}
 .kx-prev{font-size:.78rem;color:var(--soft);margin-top:12px}
@@ -259,9 +270,24 @@ function coachRec(ei,ex){ var sets=LOG[exKey(ei)]||[]; var r=rng(ex.repRange); v
 }
 var HIDDEN={}, PANEL={}, NOTES={}, BW={};      // removed-for-today · open panel · personal notes · bodyweight-mode
 try{ NOTES=JSON.parse(localStorage.getItem('lp_myprog_notes')||'{}'); }catch(e){}
+var ADDED={}; try{ ADDED=JSON.parse(localStorage.getItem('lp_myprog_added')||'{}'); }catch(e){ ADDED={}; }   // exercises YOU add to a day
+/* The day's exercises = the program's list + anything you added to this week|day. */
+function dayExs(){ var d=currentDay(); return ((d&&d.exercises)||[]).concat(ADDED[key()]||[]); }
+function addExercise(){
+  var el=document.getElementById('addName'); var nm=(el&&el.value||'').trim(); if(!nm) return;
+  var k=key(); ADDED[k]=ADDED[k]||[]; ADDED[k].push({exercise:nm, workingSets:'3', repRange:'8-12', added:true});
+  try{ localStorage.setItem('lp_myprog_added', JSON.stringify(ADDED)); }catch(e){}
+  renderList();
+  try{ var cards=document.querySelectorAll('#list .kx'); if(cards.length) cards[cards.length-1].scrollIntoView({behavior:'smooth',block:'center'}); }catch(e){}
+}
+/* Tap a logged set to remove it (mis-log fix). */
+function delSet(ei,si){ var k=exKey(ei); var a=LOG[k]||[]; if(si<0||si>=a.length) return; var s=a[si];
+  if(!confirm('Remove this set?  '+(s.bw?'BW':s.w+' lb')+' × '+s.r+' reps')) return;
+  a.splice(si,1); if(a.length) LOG[k]=a; else delete LOG[k];
+  try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} renderList(); }
 function renderList(){
   var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
-  var exs=d.exercises||[];
+  var exs=dayExs();
   var html='<div class="kx-hint">ⓘ Set your weight and reps, then tap Log set. No weight? Tap Use bodyweight.</div>';
   html+=exs.map(function(ex,ei){
     if(HIDDEN[exKey(ei)]) return '';
@@ -272,17 +298,16 @@ function renderList(){
     var note=ex.note||'';
     var bw=!!BW[exKey(ei)];                                  // bodyweight mode for this exercise (this session)
     var startR=sets.length?sets[sets.length-1].r:r[0];       // reps input seeds from your last set, else bottom of range
-    var logged=sets.map(function(s){ var tag=s.bw?'BW':(s.w+' lb'); return '<div class="kx-bub done">'+s.r+' reps<span class="bw">'+tag+(s.pr?' <span class="pr">★</span>':'')+'</span></div>'; }).join('');
+    var logged=sets.map(function(s,si){ var tag=s.bw?'BW':(s.w+' lb'); return '<div class="kx-bub done" onclick="delSet('+ei+','+si+')" title="Tap to remove this set">'+s.r+' reps<span class="bw">'+tag+(s.pr?' <span class="pr">★</span>':'')+'</span><span class="xrm">✕</span></div>'; }).join('');
     var lp=sets.length?sets[sets.length-1]:null;
     var prev=lp?((lp.bw?'Bodyweight':(lp.w+' lb'))+' × '+lp.r+' reps'):'—';
     var ssNext=!!(SS[exKey(ei)]||ex.superset);                 // supersetted with the next exercise
     var ssPrev=ei>0 && !!(SS[exKey(ei-1)]||(exs[ei-1]&&exs[ei-1].superset));
     var infoId='info'+ei;
     return '<div class="kx'+(done?' done':'')+((ssNext||ssPrev)?' ss':'')+'">'
-      +'<div class="kx-top"><div class="kx-thumb">▶</div><div class="kx-nm">'+esc(name)+'</div>'
-      +'<div class="kx-tools"><button class="kx-tool" onclick="toggleKxPanel('+ei+',\'swap\')">⇄ Switch</button>'
-      +(ei<exs.length-1?'<button class="kx-tool'+(ssNext?' on':'')+'" onclick="toggleSS('+ei+')">⛓ Superset</button>':'')
-      +'<button class="kx-tool" onclick="delEx('+ei+')">🗑 Delete</button></div></div>'
+      +'<div class="kx-top"><div class="kx-thumb">▶</div><div class="kx-nm">'+esc(name)+'</div></div>'
+      +'<div class="kx-actions"><button class="kx-tool" onclick="toggleKxPanel('+ei+',\'swap\')">⇄ Switch</button>'
+      +(ei<exs.length-1?'<button class="kx-tool'+(ssNext?' on':'')+'" onclick="toggleSS('+ei+')">⛓ Superset</button>':'')+'</div>'
       +(note?'<div class="kx-info clip" id="'+infoId+'"><span class="ii">ⓘ</span> '+esc(note)+'</div><span class="kx-more" id="more'+ei+'" onclick="toggleInfo('+ei+')">Show more ▾</span>':'')
       +'<div class="kx-btns"><button class="kx-btn" onclick="toggleKxPanel('+ei+',\'edit\')">✎ Edit</button>'
       +'<button class="kx-btn" onclick="toggleKxPanel('+ei+',\'history\')">↻ History</button>'
@@ -297,9 +322,11 @@ function renderList(){
       +'<button class="kx-bwtoggle'+(bw?' on':'')+'" onclick="toggleBW('+ei+')">'+(bw?'✓ Logging at bodyweight':'Use bodyweight (no weight)')+'</button>'
       +'<button class="kx-logbtn" onclick="logSet('+ei+')">Log set</button>'
       +'<div class="kx-prev">Previous lift: '+esc(prev)+'</div>'
+      +'<div class="kx-delrow"><button class="kx-del" onclick="delEx('+ei+')">🗑 Delete exercise</button></div>'
       +'</div>'
       +((ssNext && ei<exs.length-1)?'<div class="kx-sslink"><span>⛓ Superset</span></div>':'');
   }).join('');
+  html+='<div class="kx-add"><input id="addName" type="text" placeholder="Add an exercise…" onkeydown="if(event.key===\'Enter\')addExercise()"><button onclick="addExercise()">+ Add exercise</button></div>';
   document.getElementById('list').innerHTML=html;
   var doneN=exs.filter(function(_,ei){var need=+((exs[ei].workingSets||'').match(/\d+/)||[3])[0]||3;return (LOG[exKey(ei)]||[]).length>=need;}).length;
   var totalSets=exs.reduce(function(a,_,ei){return a+((LOG[exKey(ei)]||[]).length);},0);
@@ -364,7 +391,7 @@ function saveNote(ei){ var el=document.getElementById('nt'+ei); if(!el)return; N
 /* Day OVERVIEW — shown first when a day opens: title, description, exercise list, Start Workout. */
 function renderOverview(){
   var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
-  var exs=d.exercises||[];
+  var exs=dayExs();
   var mins=Math.max(30, Math.round(exs.length*7/5)*5);
   var desc='Your '+(d.day||'training')+' session. Warm up, hit your working sets inside the rep range, and log every set — the app remembers your numbers for next time.';
   var rows=exs.map(function(ex,ei){
@@ -427,7 +454,7 @@ function startClock(){ ensureCLK(); }       // legacy no-op shim (opening an exe
 function nounFor(s){ return s.count+' '+(s.count===1?s.name:s.plural); }
 /* Tonnage for THIS workout only (the current day's exercises), not the whole program. */
 function tonnageThisWorkout(){
-  var d=currentDay(), exs=(d&&d.exercises)||[], t=0;
+  var exs=dayExs(), t=0;
   for(var ei=0;ei<exs.length;ei++){ var sets=LOG[exKey(ei)]||[]; for(var i=0;i<sets.length;i++){ t+=(+sets[i].w||0)*(+sets[i].r||0); } }
   return Math.round(t);
 }
@@ -443,7 +470,7 @@ function finish(){
   document.getElementById('celNum').textContent = lb.toLocaleString()+' lb';
   document.getElementById('celCmp').innerHTML = say ? ('That’s <b>'+nounFor(say)+'</b>') : '';
 
-  var d=currentDay(), exs=(d&&d.exercises)||[], prs=[], level=[];
+  var exs=dayExs(), prs=[], level=[];
   exs.forEach(function(ex,ei){
     var name=SWAPS[exKey(ei)]||ex.exercise||ex.name||('Exercise '+(ei+1));
     var sets=LOG[exKey(ei)]||[]; if(!sets.length) return;
