@@ -192,7 +192,10 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .kx-step{display:flex;align-items:center;justify-content:center;gap:4px}
 .kx-logbtn{display:block;width:100%;margin-top:10px;background:var(--gold);color:var(--ink);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.92rem;padding:13px;cursor:pointer}
 .kx-bwtoggle{display:block;width:100%;margin-top:10px;background:rgba(255,255,255,.04);border:1px solid var(--field-line);color:var(--body);border-radius:11px;font-family:inherit;font-weight:700;font-size:.82rem;padding:11px;cursor:pointer}
-.kx-bwtoggle.on{background:linear-gradient(160deg,var(--olive),#3f5233);border-color:transparent;color:#fff}</style>
+.kx-bwtoggle.on{background:linear-gradient(160deg,var(--olive),#3f5233);border-color:transparent;color:#fff}
+.kx-opts{display:flex;gap:8px;margin-top:10px}
+.kx-opt{flex:1;background:rgba(255,255,255,.04);border:1px solid var(--field-line);color:var(--body);border-radius:11px;font-family:inherit;font-weight:700;font-size:.82rem;padding:11px;cursor:pointer}
+.kx-opt.on{background:linear-gradient(160deg,var(--olive),#3f5233);border-color:transparent;color:#fff}</style>
 <main class="wrap">
   <div class="eyebrow">Private · Personal use</div>
   <h1 id="title">My Training</h1>
@@ -288,7 +291,7 @@ function delSet(ei,si){ var k=exKey(ei); var a=LOG[k]||[]; if(si<0||si>=a.length
 function renderList(){
   var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
   var exs=dayExs();
-  var html='<div class="kx-hint">ⓘ Set your weight and reps, then tap Log set. No weight? Tap Use bodyweight.</div>';
+  var html='<div class="kx-hint">ⓘ Set weight + reps, then Log set. No weight? Tap Bodyweight. One arm/leg at a time? Tap Single-sided.</div>';
   html+=exs.map(function(ex,ei){
     if(HIDDEN[exKey(ei)]) return '';
     var name=SWAPS[exKey(ei)]||ex.exercise;
@@ -297,10 +300,11 @@ function renderList(){
     var startW=sets.length?sets[sets.length-1].w:0;
     var note=ex.note||'';
     var bw=!!BW[exKey(ei)];                                  // bodyweight mode for this exercise (this session)
+    var sided=sidedOn(ei);                                   // single-sided (reps are per side)
     var startR=sets.length?sets[sets.length-1].r:r[0];       // reps input seeds from your last set, else bottom of range
-    var logged=sets.map(function(s,si){ var tag=s.bw?'BW':(s.w+' lb'); return '<div class="kx-bub done" onclick="delSet('+ei+','+si+')" title="Tap to remove this set">'+s.r+' reps<span class="bw">'+tag+(s.pr?' <span class="pr">★</span>':'')+'</span><span class="xrm">✕</span></div>'; }).join('');
+    var logged=sets.map(function(s,si){ var tag=s.bw?'BW':(s.w+' lb'); return '<div class="kx-bub done" onclick="delSet('+ei+','+si+')" title="Tap to remove this set">'+s.r+' reps'+(s.sided?'/side':'')+'<span class="bw">'+tag+(s.pr?' <span class="pr">★</span>':'')+'</span><span class="xrm">✕</span></div>'; }).join('');
     var lp=sets.length?sets[sets.length-1]:null;
-    var prev=lp?((lp.bw?'Bodyweight':(lp.w+' lb'))+' × '+lp.r+' reps'):'—';
+    var prev=lp?((lp.bw?'Bodyweight':(lp.w+' lb'))+' × '+lp.r+' reps'+(lp.sided?' / side':'')):'—';
     var ssNext=!!(SS[exKey(ei)]||ex.superset);                 // supersetted with the next exercise
     var ssPrev=ei>0 && !!(SS[exKey(ei-1)]||(exs[ei-1]&&exs[ei-1].superset));
     var infoId='info'+ei;
@@ -317,9 +321,12 @@ function renderList(){
       +(logged?'<div class="kx-bubbles">'+logged+'</div>':'')
       +'<div class="kx-logger">'
       +(bw?'':'<div class="kx-field"><div class="k">Weight (lb)</div><div class="kx-step"><button class="kx-sbtn" onclick="wbump('+ei+',-5)">−</button><input class="kx-wv" id="kw'+ei+'" type="number" inputmode="decimal" step="2.5" value="'+startW+'"><button class="kx-sbtn" onclick="wbump('+ei+',5)">+</button></div></div>')
-      +'<div class="kx-field"><div class="k">Reps</div><div class="kx-step"><button class="kx-sbtn" onclick="rbump('+ei+',-1)">−</button><input class="kx-wv" id="kr'+ei+'" type="number" inputmode="numeric" step="1" value="'+startR+'"><button class="kx-sbtn" onclick="rbump('+ei+',1)">+</button></div></div>'
+      +'<div class="kx-field"><div class="k">'+(sided?'Reps / side':'Reps')+'</div><div class="kx-step"><button class="kx-sbtn" onclick="rbump('+ei+',-1)">−</button><input class="kx-wv" id="kr'+ei+'" type="number" inputmode="numeric" step="1" value="'+startR+'"><button class="kx-sbtn" onclick="rbump('+ei+',1)">+</button></div></div>'
       +'</div>'
-      +'<button class="kx-bwtoggle'+(bw?' on':'')+'" onclick="toggleBW('+ei+')">'+(bw?'✓ Logging at bodyweight':'Use bodyweight (no weight)')+'</button>'
+      +'<div class="kx-opts">'
+      +'<button class="kx-opt'+(bw?' on':'')+'" onclick="toggleBW('+ei+')">'+(bw?'✓ Bodyweight':'Bodyweight')+'</button>'
+      +'<button class="kx-opt'+(sided?' on':'')+'" onclick="toggleSided('+ei+')">'+(sided?'✓ Per side':'Single-sided')+'</button>'
+      +'</div>'
       +'<button class="kx-logbtn" onclick="logSet('+ei+')">Log set</button>'
       +'<div class="kx-prev">Previous lift: '+esc(prev)+'</div>'
       +'<div class="kx-delrow"><button class="kx-del" onclick="delEx('+ei+')">🗑 Delete exercise</button></div>'
@@ -373,6 +380,20 @@ function toggleBW(ei){
   var r=document.getElementById('kr'+ei); if(r && kr!=null && kr!=='') r.value=kr;
   var w=document.getElementById('kw'+ei); if(w && kw!=null && kw!=='') w.value=kw;
 }
+/* Single-sided (unilateral) moves: reps are entered PER SIDE, so tonnage counts both sides.
+   Defaults on for program moves flagged ex.sided or names like Single-Arm / Single-Leg / SA. */
+var SIDED={}; try{ SIDED=JSON.parse(localStorage.getItem('lp_myprog_sided')||'{}'); }catch(e){ SIDED={}; }
+function autoSided(nm){ return /single[\s-]?(arm|leg|side)|1[\s-]?(arm|leg)|unilateral|per (arm|leg|side)|\bSA\b/i.test(String(nm||'')); }
+function sidedOn(ei){ var k=exKey(ei); if(SIDED.hasOwnProperty(k)) return !!SIDED[k];
+  var ex=(dayExs()[ei])||{}; return !!ex.sided || autoSided(SWAPS[k]||ex.exercise||''); }
+function toggleSided(ei){
+  var kr=(document.getElementById('kr'+ei)||{}).value, kw=(document.getElementById('kw'+ei)||{}).value;
+  SIDED[exKey(ei)] = !sidedOn(ei);
+  try{ localStorage.setItem('lp_myprog_sided', JSON.stringify(SIDED)); }catch(e){}
+  renderList();
+  var r=document.getElementById('kr'+ei); if(r && kr!=null && kr!=='') r.value=kr;
+  var w=document.getElementById('kw'+ei); if(w && kw!=null && kw!=='') w.value=kw;
+}
 /* Most recent bodyweight: published by the app (client.html) to a shared same-origin key; falls
    back to the last bodyweight set logged on this device. Used to score bodyweight moves into tonnage. */
 function latestBodyweight(){
@@ -388,10 +409,10 @@ function logSet(ei){
   var bw=!!BW[exKey(ei)];
   var r=parseInt((document.getElementById('kr'+ei)||{}).value,10)||0; if(!r) return;
   var w=bw?latestBodyweight():(parseFloat((document.getElementById('kw'+ei)||{}).value)||0);
-  pushSet(ei,w,r,bw);
+  pushSet(ei,w,r,bw,sidedOn(ei));
 }
 function logManual(ei){ var w=parseFloat((document.getElementById('ew'+ei)||{}).value)||0, r=parseInt((document.getElementById('er'+ei)||{}).value,10)||0; if(r){ PANEL[exKey(ei)]=null; pushSet(ei,w,r); } }
-function pushSet(ei,w,r,bw){ if(!r) return; var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr,bw:!!bw}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); syncLog(); renderList(); }
+function pushSet(ei,w,r,bw,sided){ if(!r) return; var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr,bw:!!bw,sided:!!sided}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); syncLog(); renderList(); }
 function delEx(ei){ if(!confirm('Remove this exercise for today?')) return; HIDDEN[exKey(ei)]=1; renderList(); }
 function saveNote(ei){ var el=document.getElementById('nt'+ei); if(!el)return; NOTES[exKey(ei)]=el.value; try{ localStorage.setItem('lp_myprog_notes', JSON.stringify(NOTES)); }catch(e){} PANEL[exKey(ei)]=null; renderList(); }
 /* Day OVERVIEW — shown first when a day opens: title, description, exercise list, Start Workout. */
@@ -482,7 +503,7 @@ function nounFor(s){ return s.count+' '+(s.count===1?s.name:s.plural); }
 /* Tonnage for THIS workout only (the current day's exercises), not the whole program. */
 function tonnageThisWorkout(){
   var exs=dayExs(), t=0;
-  for(var ei=0;ei<exs.length;ei++){ var sets=LOG[exKey(ei)]||[]; for(var i=0;i<sets.length;i++){ t+=(+sets[i].w||0)*(+sets[i].r||0); } }
+  for(var ei=0;ei<exs.length;ei++){ var sets=LOG[exKey(ei)]||[]; for(var i=0;i<sets.length;i++){ t+=(+sets[i].w||0)*(+sets[i].r||0)*(sets[i].sided?2:1); } }   // single-sided counts both sides
   return Math.round(t);
 }
 /* Which theme drives the comparison — default 'animals'; a Conquer Challenge can set
