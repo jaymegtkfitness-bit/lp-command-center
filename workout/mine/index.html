@@ -571,7 +571,7 @@ function fetchProgramFromServer(done){
   s.onerror=function(){ end(false); };
   s.src=DOORWAY+"?action=clientData&"+q+"&callback="+cb;
   document.body.appendChild(s);
-  setTimeout(function(){ end(false); }, 15000);
+  setTimeout(function(){ end(false); }, 20000);   // generous: a cold Apps Script can take 10-20s to wake
 }
 /* ===== LOG SYNC — back the logged sets up to the server so a new/wiped device restores them. ===== */
 function lpIdentityQ(){
@@ -621,7 +621,10 @@ function syncDownLog(){   // on a device with no local log, restore it from the 
     var cached=localStorage.getItem('lp_prog_data'); if(cached){ bootProg(JSON.parse(cached)); syncDownLog(); return; }
     fetchProgramFromServer(function(ok){
       if(ok){ syncDownLog(); return; }
-      document.getElementById('list').innerHTML='<div class="load"><b style="color:#fff;font-size:1rem">Load your training once</b><br><br>Open the app from your login link once on this device — it loads your program and remembers it here, then your workouts open straight from the app.</div>';
+      fetchProgramFromServer(function(ok2){        // one retry — a cold Apps Script is often just slow to wake
+        if(ok2){ syncDownLog(); return; }
+        document.getElementById('list').innerHTML='<div class="load"><b style="color:#fff;font-size:1rem">Load your training once</b><br><br>Open the app from your login link once on this device — it loads your program and remembers it here, then your workouts open straight from the app.</div>';
+      });
     });
   }catch(e){
     document.getElementById('list').innerHTML='<div class="load">Could not load your program on this browser.<br><span style="font-size:.8rem">Try Safari or Chrome (a recent version).</span></div>';
