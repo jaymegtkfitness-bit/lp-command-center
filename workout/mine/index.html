@@ -284,7 +284,7 @@ function addExercise(){
 function delSet(ei,si){ var k=exKey(ei); var a=LOG[k]||[]; if(si<0||si>=a.length) return; var s=a[si];
   if(!confirm('Remove this set?  '+(s.bw?'BW':s.w+' lb')+' × '+s.r+' reps')) return;
   a.splice(si,1); if(a.length) LOG[k]=a; else delete LOG[k];
-  try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} renderList(); }
+  try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} syncLog(); renderList(); }
 function renderList(){
   var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
   var exs=dayExs();
@@ -385,7 +385,7 @@ function logSet(ei){
   pushSet(ei,w,r,bw);
 }
 function logManual(ei){ var w=parseFloat((document.getElementById('ew'+ei)||{}).value)||0, r=parseInt((document.getElementById('er'+ei)||{}).value,10)||0; if(r){ PANEL[exKey(ei)]=null; pushSet(ei,w,r); } }
-function pushSet(ei,w,r,bw){ if(!r) return; var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr,bw:!!bw}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); renderList(); }
+function pushSet(ei,w,r,bw){ if(!r) return; var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr,bw:!!bw}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); syncLog(); renderList(); }
 function delEx(ei){ if(!confirm('Remove this exercise for today?')) return; HIDDEN[exKey(ei)]=1; renderList(); }
 function saveNote(ei){ var el=document.getElementById('nt'+ei); if(!el)return; NOTES[exKey(ei)]=el.value; try{ localStorage.setItem('lp_myprog_notes', JSON.stringify(NOTES)); }catch(e){} PANEL[exKey(ei)]=null; renderList(); }
 /* Day OVERVIEW — shown first when a day opens: title, description, exercise list, Start Workout. */
@@ -573,13 +573,54 @@ function fetchProgramFromServer(done){
   document.body.appendChild(s);
   setTimeout(function(){ end(false); }, 15000);
 }
+/* ===== LOG SYNC — back the logged sets up to the server so a new/wiped device restores them. ===== */
+function lpIdentityQ(){
+  var tok=null, em=null;
+  try{ tok=localStorage.getItem('lp_client_token'); }catch(e){}
+  try{ var id=JSON.parse(localStorage.getItem('lp_client_id')||'null'); em=id&&id.email; }catch(e){}
+  return { tok:tok, em:em };
+}
+async function gz(text){   // gzip+base64 (mirror of ungz) for sending the log compactly
+  var s=new Blob([text]).stream().pipeThrough(new CompressionStream('gzip'));
+  var by=new Uint8Array(await new Response(s).arrayBuffer()), bin='';
+  for(var i=0;i<by.length;i++) bin+=String.fromCharCode(by[i]);
+  return btoa(bin);
+}
+var _logSyncT=null;
+function syncLog(){   // debounced: push the whole log to the doorway after a change
+  var who=lpIdentityQ(); if(!who.em) return;                 // need an email to key the row
+  if(_logSyncT) clearTimeout(_logSyncT);
+  _logSyncT=setTimeout(function(){
+    gz(JSON.stringify(LOG)).then(function(b64){
+      try{ fetch(DOORWAY, {method:'POST', mode:'no-cors', headers:{'Content-Type':'text/plain;charset=utf-8'},
+        body:JSON.stringify({type:'workoutlog', email:who.em, token:who.tok||'', log:b64})}).catch(function(){}); }catch(e){}
+    }).catch(function(){});
+  }, 1200);
+}
+function syncDownLog(){   // on a device with no local log, restore it from the server
+  try{ if(Object.keys(LOG||{}).length) return; }catch(e){ return; }
+  var who=lpIdentityQ(); var q = who.tok?("token="+encodeURIComponent(who.tok)):(who.em?("email="+encodeURIComponent(who.em)):null);
+  if(!q) return;
+  var cb="__lplog"+Date.now(), s=document.createElement('script'), fin=false;
+  function end(){ if(fin)return; fin=true; try{delete window[cb];}catch(e){} try{s.remove();}catch(e){} }
+  window[cb]=function(data){
+    try{ var rows=data&&data.workoutlog, last=(rows&&rows.length)?rows[rows.length-1]:null, b64=last&&last['Log'];
+      if(!b64){ end(); return; }
+      ungz(b64).then(function(txt){ try{ var obj=JSON.parse(txt);
+        if(obj && Object.keys(obj).length && !Object.keys(LOG).length){ LOG=obj; try{localStorage.setItem('lp_myprog',txt);}catch(e){} renderList(); }
+      }catch(e){} end(); }).catch(end);
+    }catch(e){ end(); }
+  };
+  s.onerror=end; s.src=DOORWAY+"?action=clientData&"+q+"&callback="+cb; document.body.appendChild(s);
+  setTimeout(end, 15000);
+}
 (async function(){
   var h=decodeURIComponent((location.hash||'').replace(/^#/,''));
   try{
-    if(h){ var txt=await ungz(h); try{ localStorage.setItem('lp_prog_data', txt); }catch(e){} bootProg(JSON.parse(txt)); return; }
-    var cached=localStorage.getItem('lp_prog_data'); if(cached){ bootProg(JSON.parse(cached)); return; }
+    if(h){ var txt=await ungz(h); try{ localStorage.setItem('lp_prog_data', txt); }catch(e){} bootProg(JSON.parse(txt)); syncDownLog(); return; }
+    var cached=localStorage.getItem('lp_prog_data'); if(cached){ bootProg(JSON.parse(cached)); syncDownLog(); return; }
     fetchProgramFromServer(function(ok){
-      if(ok) return;
+      if(ok){ syncDownLog(); return; }
       document.getElementById('list').innerHTML='<div class="load"><b style="color:#fff;font-size:1rem">Load your training once</b><br><br>Open the app from your login link once on this device — it loads your program and remembers it here, then your workouts open straight from the app.</div>';
     });
   }catch(e){
