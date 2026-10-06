@@ -545,16 +545,43 @@ function bootProg(j){
   updateStartBtn();
 }
 async function ungz(b64){
-  var bin=atob(b64), by=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) by[i]=bin.charCodeAt(i);
+  var bin=atob(String(b64).replace(/\s+/g,'')), by=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) by[i]=bin.charCodeAt(i);
   var s=new Blob([by]).stream().pipeThrough(new DecompressionStream('gzip'));
   return await new Response(s).text();
+}
+/* Self-recovery: if there's no program cached on this device (fresh install, cleared data),
+   pull it straight from the doorway using the identity the app saved (same-origin localStorage),
+   so the program is always available — no "load once" link needed. */
+var DOORWAY="https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec";
+function fetchProgramFromServer(done){
+  var tok=null, em=null;
+  try{ tok=localStorage.getItem('lp_client_token'); }catch(e){}
+  try{ var id=JSON.parse(localStorage.getItem('lp_client_id')||'null'); em=id&&id.email; }catch(e){}
+  var q = tok?("token="+encodeURIComponent(tok)) : (em?("email="+encodeURIComponent(em)) : null);
+  if(!q){ done(false); return; }
+  document.getElementById('list').innerHTML='<div class="load">Loading your training…</div>';
+  var cb="__lpprog"+Date.now(), s=document.createElement('script'), fin=false;
+  function end(ok){ if(fin) return; fin=true; try{delete window[cb];}catch(e){} try{s.remove();}catch(e){} done(ok); }
+  window[cb]=function(data){
+    try{ var rows=data&&data.program, last=(rows&&rows.length)?rows[rows.length-1]:null, b64=last&&last['Program'];
+      if(!b64){ end(false); return; }
+      ungz(b64).then(function(txt){ if(txt&&txt.charAt(0)==='{'){ try{localStorage.setItem('lp_prog_data',txt);}catch(e){} bootProg(JSON.parse(txt)); end(true); } else end(false); }).catch(function(){ end(false); });
+    }catch(e){ end(false); }
+  };
+  s.onerror=function(){ end(false); };
+  s.src=DOORWAY+"?action=clientData&"+q+"&callback="+cb;
+  document.body.appendChild(s);
+  setTimeout(function(){ end(false); }, 15000);
 }
 (async function(){
   var h=decodeURIComponent((location.hash||'').replace(/^#/,''));
   try{
     if(h){ var txt=await ungz(h); try{ localStorage.setItem('lp_prog_data', txt); }catch(e){} bootProg(JSON.parse(txt)); return; }
     var cached=localStorage.getItem('lp_prog_data'); if(cached){ bootProg(JSON.parse(cached)); return; }
-    document.getElementById('list').innerHTML='<div class="load"><b style="color:#fff;font-size:1rem">Load your training once</b><br><br>Open your private program link (from your coach) one time on this device. It loads your program and remembers it here — after that, your workouts open straight from the app.</div>';
+    fetchProgramFromServer(function(ok){
+      if(ok) return;
+      document.getElementById('list').innerHTML='<div class="load"><b style="color:#fff;font-size:1rem">Load your training once</b><br><br>Open the app from your login link once on this device — it loads your program and remembers it here, then your workouts open straight from the app.</div>';
+    });
   }catch(e){
     document.getElementById('list').innerHTML='<div class="load">Could not load your program on this browser.<br><span style="font-size:.8rem">Try Safari or Chrome (a recent version).</span></div>';
   }
