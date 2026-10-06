@@ -753,6 +753,9 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 .kwchip.on{background:linear-gradient(160deg,rgba(193,173,114,.22),rgba(193,173,114,.08));border-color:rgba(193,173,114,.45);color:var(--gold-soft)}
 .kday{display:flex;align-items:center;gap:13px;background:var(--k-card);border:1px solid var(--line);border-radius:16px;padding:11px;margin-top:10px;cursor:pointer}
 .kday.today{border-color:rgba(193,173,114,.5);background:linear-gradient(160deg,rgba(193,173,114,.10),var(--k-card))}
+.kday.done{border-color:rgba(122,160,90,.5)}
+.kday.done .thumb:after{background:radial-gradient(70% 90% at 70% 20%,rgba(122,160,90,.6),transparent 60%)}
+.doneb{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#8fc272;background:rgba(122,160,90,.14);border:1px solid rgba(122,160,90,.42);border-radius:999px;padding:3px 9px}
 .kday .thumb{width:60px;height:60px;border-radius:12px;flex:none;position:relative;overflow:hidden;background:linear-gradient(140deg,#2b3327,#14140f)}
 .kday .thumb:after{content:"";position:absolute;inset:0;background:radial-gradient(70% 90% at 70% 20%,rgba(125,148,99,.45),transparent 60%)}
 .kday .thumb .em{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:24px;opacity:.85}
@@ -1827,11 +1830,33 @@ function memberProgram(){
   });
   return { name:(p.title||'My Training'), src:"workout/mine/?embed=1", pct:0, weeks:weeks.length, days:days };
 }
+/* A day counts as DONE when the logger (same-origin, shares localStorage) recorded a finish
+   for this week|day, or at least one logged set exists for it. Returns the finish date or true. */
+function homeDayDone(wk,i){
+  try{
+    var done=JSON.parse(localStorage.getItem('lp_workout_done')||'{}');
+    if(done[wk+'|'+i]) return done[wk+'|'+i];
+    var log=JSON.parse(localStorage.getItem('lp_myprog')||'{}'), pre=wk+'|'+i+'|';
+    for(var k in log){ if(k.indexOf(pre)===0 && (log[k]||[]).length) return true; }
+  }catch(e){}
+  return false;
+}
+/* Publish the member's most recent bodyweight for the logger to score bodyweight exercises
+   (tibialis raises, etc.) into tonnage without ever showing the number. */
+function publishBodyweight(){
+  try{
+    var best=null, ci=(M&&M.checkins)||[];
+    ci.forEach(function(c){ if(c.weight!=null && (!best || (c.ts||0)>(best.ts||0))) best=c; });
+    var w=best?+best.weight:((M&&M.intake&&M.intake.weight!=null)?+M.intake.weight:null);
+    if(w!=null && isFinite(w) && w>0) localStorage.setItem('lp_bodyweight', String(w));
+  }catch(e){}
+}
 /* Open a single day as its own workout overview (where you start the session). */
 var HOME_WK=0;   // 0-based selected week on Home
 function selectWeek(w){ HOME_WK=w; if(typeof renderHomeHero==='function') renderHomeHero(); }
 function openWorkoutDay(i){
   var ap=assignedProgram(); if(!ap) return;
+  publishBodyweight();
   var ov=g("workoutOverlay"), fr=g("workoutOverlayFrame"), ti=g("workoutOverlayTitle");
   if(!ov||!fr) return;
   var d=(ap.days&&ap.days[i]), day=(d&&d.t)?d.t:((typeof d==='string')?d:("Day "+(i+1)));
@@ -1840,7 +1865,7 @@ function openWorkoutDay(i){
   fr.src=base+"&day="+i+"&week="+HOME_WK+"&v=3";
   ov.classList.add("open"); document.body.style.overflow="hidden";
 }
-function closeWorkoutDay(){ var ov=g("workoutOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("workoutOverlayFrame"); if(fr) fr.src="about:blank"; }
+function closeWorkoutDay(){ var ov=g("workoutOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("workoutOverlayFrame"); if(fr) fr.src="about:blank"; if(typeof renderHomeHero==='function') renderHomeHero(); }
 /* Open a local sub-page inside the app (framed, with a Back button) instead of navigating away. */
 function openInAppPage(url, title){
   var ov=g("pageOverlay"), fr=g("pageOverlayFrame"), ti=g("pageOverlayTitle");
@@ -2511,6 +2536,13 @@ function buildModel(server){
   M.onProtocol = (server && server.onProtocol!=null) ? String(server.onProtocol) : (M.onProtocol||'');
   M.genetics = (server && server.genetics!=null) ? String(server.genetics) : (M.genetics||'');
   M.managed = (server && server.managed!=null) ? String(server.managed) : (M.managed||'');   // coach-managed 1-on-1 → self-adjust locked
+  // Roster-driven brand + FB workouts: the member's account decides their OS, no special link needed.
+  M.fbWorkouts = (server && /^\s*(y|yes|true|1)/i.test(String(server.fbWorkouts||''))) || !!M.fbWorkouts;
+  M.brand = (server && server.brand) || M.brand || '';
+  if(server && /fit\s*body/i.test(String(server.brand||'')) && !BRAND){          // account says Fit Body, no explicit ?brand → flip to the Fit Body OS
+    BRAND='fitbody'; try{ localStorage.setItem('lp_brand','fitbody'); }catch(e){}
+    if(typeof applyBrand==='function') applyBrand();
+  }
   M.dob = (server && server.dob) ? String(server.dob) : (M.dob||'');
   M.complete = (server && (server.complete!=null ? server.complete : server.cns)) != null
     ? String(server.complete!=null ? server.complete : server.cns) : (M.complete||'');
@@ -4655,6 +4687,7 @@ function kRingSVG(avg, target, size, cls){
    wordy (the read, journey, awareness loop, foundations) lives on other tabs now. */
 function renderHomeHero(){
   var box=g("homeHeroBox"); if(!box) return;
+  if(typeof publishBodyweight==='function') publishBodyweight();
   if(typeof applyTargetOverride==='function') applyTargetOverride();
   var it=M.intake;
   if(!it || !it.pfs || !isFinite(it.pfs.calories)){ box.innerHTML=''; return; }
@@ -4704,19 +4737,23 @@ function renderHomeHero(){
       +'<span class="pswitch" onclick="event.stopPropagation();showClientTab(\'workouts\')">⇆ Switch</span>'
       +'<div class="ppct"><svg width="52" height="52" viewBox="0 0 52 52" style="transform:rotate(-90deg)"><circle cx="26" cy="26" r="21" stroke="rgba(255,255,255,.15)" stroke-width="5" fill="none"/><circle cx="26" cy="26" r="21" stroke="#C1AD72" stroke-width="5" fill="none" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="'+off+'"/></svg><div class="rt">'+pct+'%</div></div>'
       +'<div class="phero-body"><div class="pname">'+esc(ap.name)+'</div><div class="ptag">'+((ap.days&&ap.days.length)||0)+' days · '+(ap.weeks||4)+' weeks</div></div></div>';
-    // week chips (clickable — selects the week the day list tracks against)
-    var nwk=ap.weeks||4, wk='';
-    for(var w=1; w<=nwk; w++){ wk+='<div class="kwchip'+((w-1)===HOME_WK?' on':'')+'" onclick="selectWeek('+(w-1)+')">Week '+w+'</div>'; }
-    h+='<div class="kweeks" style="overflow-x:auto">'+wk+'</div>';
-    // day overview
+    // week chips — only when the program actually has more than one week (clickable, selects the tracked week)
+    var nwk=ap.weeks||1;
+    if(nwk>1){ var wk='';
+      for(var w=1; w<=nwk; w++){ wk+='<div class="kwchip'+((w-1)===HOME_WK?' on':'')+'" onclick="selectWeek('+(w-1)+')">Week '+w+'</div>'; }
+      h+='<div class="kweeks" style="overflow-x:auto">'+wk+'</div>';
+    }
+    // day overview — no current-day highlight; a GREEN check marks days you've actually logged/finished
     (ap.days||[]).forEach(function(d,i){
       var title=(typeof d==='string')?d:d.t, mins=(d&&d.mins)||null, ex=(d&&d.ex)||null;
+      var dn=homeDayDone(HOME_WK,i);
       var pills='';
+      if(dn) pills+='<span class="doneb">✓ Done</span>';
       if(mins) pills+='<span class="pill">'+mins+' min</span>';
       if(ex) pills+='<span class="pill">'+ex+' exercises</span>';
-      h+='<div class="kday'+(i===0?' today':'')+'" onclick="openWorkoutDay('+i+')">'
-        +'<div class="thumb"><div class="em">🏋️</div></div>'
-        +'<div class="rb"><div class="dn">Day '+(i+1)+(i===0?' · Today':'')+'</div><div class="dt2">'+esc(title)+'</div>'
+      h+='<div class="kday'+(dn?' done':'')+'" onclick="openWorkoutDay('+i+')">'
+        +'<div class="thumb"><div class="em">'+(dn?'✓':'🏋️')+'</div></div>'
+        +'<div class="rb"><div class="dn">Day '+(i+1)+'</div><div class="dt2">'+esc(title)+'</div>'
         +'<div class="dpills">'+pills+'</div></div><div class="go">›</div></div>';
     });
   } else {

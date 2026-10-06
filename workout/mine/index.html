@@ -166,7 +166,14 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .kx-bub.done .bw{display:block;font-size:.68rem;font-weight:700;color:rgba(255,255,255,.8);margin-top:2px}
 .kx-bub .pr{color:var(--gold)}
 .kx-prev{font-size:.78rem;color:var(--soft);margin-top:12px}
-.kx-hint{font-size:.8rem;color:var(--soft);margin:2px 2px 0;display:flex;align-items:center;gap:7px}</style>
+.kx-hint{font-size:.8rem;color:var(--soft);margin:2px 2px 0;display:flex;align-items:center;gap:7px}
+.kx-logger{display:flex;gap:10px;margin-top:13px}
+.kx-field{flex:1;background:rgba(255,255,255,.03);border:1px solid var(--field-line);border-radius:12px;padding:10px 8px;text-align:center}
+.kx-field .k{font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;color:var(--soft);font-weight:700;margin-bottom:7px}
+.kx-step{display:flex;align-items:center;justify-content:center;gap:4px}
+.kx-logbtn{display:block;width:100%;margin-top:10px;background:var(--gold);color:var(--ink);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.92rem;padding:13px;cursor:pointer}
+.kx-bwtoggle{display:block;width:100%;margin-top:10px;background:rgba(255,255,255,.04);border:1px solid var(--field-line);color:var(--body);border-radius:11px;font-family:inherit;font-weight:700;font-size:.82rem;padding:11px;cursor:pointer}
+.kx-bwtoggle.on{background:linear-gradient(160deg,var(--olive),#3f5233);border-color:transparent;color:#fff}</style>
 <main class="wrap">
   <div class="eyebrow">Private · Personal use</div>
   <h1 id="title">My Training</h1>
@@ -237,12 +244,12 @@ function coachRec(ei,ex){ var sets=LOG[exKey(ei)]||[]; var r=rng(ex.repRange); v
   if(work.some(function(s){return s.r<r[0];})) return 'That was heavy. Hold this weight and build back to '+r[0]+' clean reps.';
   return 'Stay here and add reps until you hit '+r[1]+' on every set, then go heavier.';
 }
-var HIDDEN={}, PANEL={}, NOTES={};      // removed-for-today · open panel · personal notes
+var HIDDEN={}, PANEL={}, NOTES={}, BW={};      // removed-for-today · open panel · personal notes · bodyweight-mode
 try{ NOTES=JSON.parse(localStorage.getItem('lp_myprog_notes')||'{}'); }catch(e){}
 function renderList(){
   var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
   var exs=d.exercises||[];
-  var html='<div class="kx-hint">ⓘ Set your weight, then tap the reps you hit to log a set.</div>';
+  var html='<div class="kx-hint">ⓘ Set your weight and reps, then tap Log set. No weight? Tap Use bodyweight.</div>';
   html+=exs.map(function(ex,ei){
     if(HIDDEN[exKey(ei)]) return '';
     var name=SWAPS[exKey(ei)]||ex.exercise;
@@ -250,12 +257,11 @@ function renderList(){
     var sets=LOG[exKey(ei)]||[]; var done=sets.length>=need;
     var startW=sets.length?sets[sets.length-1].w:0;
     var note=ex.note||'';
-    // rep option bubbles across the range (tap to log a set at the current weight)
-    var repOpts=[]; for(var rr=r[0]; rr<=r[1] && repOpts.length<7; rr++) repOpts.push(rr);
-    if(!repOpts.length) repOpts=[r[0]];
-    var bubbles=repOpts.map(function(rr){ return '<div class="kx-bub" onclick="logRep('+ei+','+rr+')">'+rr+' reps</div>'; }).join('');
-    var logged=sets.map(function(s){ return '<div class="kx-bub done">'+s.r+' reps<span class="bw">'+s.w+' lb'+(s.pr?' <span class="pr">★</span>':'')+'</span></div>'; }).join('');
-    var prev=sets.length?(sets[sets.length-1].w+' lb × '+sets[sets.length-1].r+' reps'):'—';
+    var bw=!!BW[exKey(ei)];                                  // bodyweight mode for this exercise (this session)
+    var startR=sets.length?sets[sets.length-1].r:r[0];       // reps input seeds from your last set, else bottom of range
+    var logged=sets.map(function(s){ var tag=s.bw?'BW':(s.w+' lb'); return '<div class="kx-bub done">'+s.r+' reps<span class="bw">'+tag+(s.pr?' <span class="pr">★</span>':'')+'</span></div>'; }).join('');
+    var lp=sets.length?sets[sets.length-1]:null;
+    var prev=lp?((lp.bw?'Bodyweight':(lp.w+' lb'))+' × '+lp.r+' reps'):'—';
     var infoId='info'+ei;
     return '<div class="kx'+(done?' done':'')+'">'
       +'<div class="kx-top"><div class="kx-thumb">▶</div><div class="kx-nm">'+esc(name)+'</div>'
@@ -268,10 +274,12 @@ function renderList(){
       +'<div id="panel'+ei+'">'+panelHTML(ei,ex)+'</div>'
       +'<div class="kx-sets"><div class="sl">Sets</div><div class="sr">'+need+' × '+esc(ex.repRange||'')+' reps · '+sets.length+'/'+need+' done</div></div>'
       +(logged?'<div class="kx-bubbles">'+logged+'</div>':'')
-      +'<div class="kx-weight"><button class="kx-sbtn" onclick="wbump('+ei+',-5)">−</button>'
-      +'<div style="text-align:center"><div class="k">Weight (lb)</div><input class="kx-wv" id="kw'+ei+'" type="number" inputmode="decimal" step="2.5" value="'+startW+'"></div>'
-      +'<button class="kx-sbtn" onclick="wbump('+ei+',5)">+</button></div>'
-      +'<div class="kx-bubbles">'+bubbles+'</div>'
+      +'<div class="kx-logger">'
+      +(bw?'':'<div class="kx-field"><div class="k">Weight (lb)</div><div class="kx-step"><button class="kx-sbtn" onclick="wbump('+ei+',-5)">−</button><input class="kx-wv" id="kw'+ei+'" type="number" inputmode="decimal" step="2.5" value="'+startW+'"><button class="kx-sbtn" onclick="wbump('+ei+',5)">+</button></div></div>')
+      +'<div class="kx-field"><div class="k">Reps</div><div class="kx-step"><button class="kx-sbtn" onclick="rbump('+ei+',-1)">−</button><input class="kx-wv" id="kr'+ei+'" type="number" inputmode="numeric" step="1" value="'+startR+'"><button class="kx-sbtn" onclick="rbump('+ei+',1)">+</button></div></div>'
+      +'</div>'
+      +'<button class="kx-bwtoggle'+(bw?' on':'')+'" onclick="toggleBW('+ei+')">'+(bw?'✓ Logging at bodyweight':'Use bodyweight (no weight)')+'</button>'
+      +'<button class="kx-logbtn" onclick="logSet('+ei+')">Log set</button>'
       +'<div class="kx-prev">Previous lift: '+esc(prev)+'</div>'
       +'</div>';
   }).join('');
@@ -313,9 +321,27 @@ function panelHTML(ei,ex){
 function toggleKxPanel(ei,kind){ var k=exKey(ei); PANEL[k]=(PANEL[k]===kind?null:kind); renderList(); }
 function toggleInfo(ei){ var el=document.getElementById('info'+ei), m=document.getElementById('more'+ei); if(!el)return; var clip=el.classList.toggle('clip'); if(m) m.textContent=clip?'Show more ▾':'Show less ▴'; }
 function wbump(ei,d){ var el=document.getElementById('kw'+ei); if(!el)return; var v=(parseFloat(el.value)||0)+d; el.value=Math.max(0,Math.round(v*2)/2); }
+function rbump(ei,d){ var el=document.getElementById('kr'+ei); if(!el)return; el.value=Math.max(1,(parseInt(el.value,10)||0)+d); }
+function toggleBW(ei){ BW[exKey(ei)]=!BW[exKey(ei)]; renderList(); }
+/* Most recent bodyweight: published by the app (client.html) to a shared same-origin key; falls
+   back to the last bodyweight set logged on this device. Used to score bodyweight moves into tonnage. */
+function latestBodyweight(){
+  var w=0; try{ w=parseFloat(localStorage.getItem('lp_bodyweight'))||0; }catch(e){}
+  if(w>0) return w;
+  try{ for(var k in LOG){ var a=LOG[k]||[]; for(var i=a.length-1;i>=0;i--){ if(a[i].bw && a[i].w>0) return a[i].w; } } }catch(e){}
+  return 0;
+}
 function logRep(ei,reps){ var w=parseFloat((document.getElementById('kw'+ei)||{}).value)||0; pushSet(ei,w,reps); }
+/* Log a set from the typed Weight + Reps fields; in bodyweight mode the score uses the member's
+   most recent bodyweight (never shown) so the end-of-workout tonnage still counts the move. */
+function logSet(ei){
+  var bw=!!BW[exKey(ei)];
+  var r=parseInt((document.getElementById('kr'+ei)||{}).value,10)||0; if(!r) return;
+  var w=bw?latestBodyweight():(parseFloat((document.getElementById('kw'+ei)||{}).value)||0);
+  pushSet(ei,w,r,bw);
+}
 function logManual(ei){ var w=parseFloat((document.getElementById('ew'+ei)||{}).value)||0, r=parseInt((document.getElementById('er'+ei)||{}).value,10)||0; if(r){ PANEL[exKey(ei)]=null; pushSet(ei,w,r); } }
-function pushSet(ei,w,r){ if(!r) return; var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); renderList(); }
+function pushSet(ei,w,r,bw){ if(!r) return; var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr,bw:!!bw}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); renderList(); }
 function delEx(ei){ if(!confirm('Remove this exercise for today?')) return; HIDDEN[exKey(ei)]=1; renderList(); }
 function saveNote(ei){ var el=document.getElementById('nt'+ei); if(!el)return; NOTES[exKey(ei)]=el.value; try{ localStorage.setItem('lp_myprog_notes', JSON.stringify(NOTES)); }catch(e){} PANEL[exKey(ei)]=null; renderList(); }
 /* Day OVERVIEW — shown first when a day opens: title, description, exercise list, Start Workout. */
@@ -385,6 +411,8 @@ function tonnageThisWorkout(){
 function tonnageWhich(){ return (typeof window!=='undefined' && window.TONNAGE_THEME) ? 'characters' : 'animals'; }
 function finish(){
   var lb = tonnageThisWorkout();
+  /* Mark this week|day done so the app Home shows a green ✓ (shared same-origin key). */
+  try{ var _dn=JSON.parse(localStorage.getItem('lp_workout_done')||'{}'); _dn[wi+'|'+di]=new Date().toISOString().slice(0,10); localStorage.setItem('lp_workout_done', JSON.stringify(_dn)); }catch(e){}
   var say = (typeof tonnageSay==='function') ? tonnageSay(lb, tonnageWhich()) : null;
   document.getElementById('celEmoji').textContent = (say&&say.emoji)||'🏋️';
   document.getElementById('celNum').textContent = lb.toLocaleString()+' lb';
@@ -395,13 +423,13 @@ function finish(){
     var name=SWAPS[exKey(ei)]||ex.exercise||ex.name||('Exercise '+(ei+1));
     var sets=LOG[exKey(ei)]||[]; if(!sets.length) return;
     var prSet=null; sets.forEach(function(s){ if(s.pr && (!prSet || s.w*s.r>prSet.w*prSet.r)) prSet=s; });
-    if(prSet) prs.push({name:name,w:prSet.w,r:prSet.r});
+    if(prSet) prs.push({name:name,w:prSet.w,r:prSet.r,bw:!!prSet.bw});
     var r=rng(ex.repRange), need=+((ex.workingSets||'').match(/\d+/)||[3])[0]||3;
     if(sets.length>=need){ var work=sets.slice(-need);
-      if(work.every(function(s){return s.r>=r[1];})){ var w=work[work.length-1].w; level.push({name:name,from:w,to:w+5}); } }
+      if(!work[work.length-1].bw && work.every(function(s){return s.r>=r[1];})){ var w=work[work.length-1].w; level.push({name:name,from:w,to:w+5}); } }
   });
   var prBox=document.getElementById('celPRs');
-  if(prs.length){ prBox.style.display=''; document.getElementById('celPRList').innerHTML=prs.map(function(p){ return '<div class="cel-row"><span>'+esc(p.name)+'</span><b>'+p.w+' lb × '+p.r+'</b></div>'; }).join(''); }
+  if(prs.length){ prBox.style.display=''; document.getElementById('celPRList').innerHTML=prs.map(function(p){ return '<div class="cel-row"><span>'+esc(p.name)+'</span><b>'+(p.bw?'BW':(p.w+' lb'))+' × '+p.r+'</b></div>'; }).join(''); }
   else prBox.style.display='none';
   var lvBox=document.getElementById('celLevel');
   if(level.length){ lvBox.style.display=''; document.getElementById('celLevelList').innerHTML=level.map(function(l){ return '<div class="cel-row"><span>'+esc(l.name)+'</span><b>'+l.from+' → '+l.to+' lb</b></div>'; }).join(''); }
