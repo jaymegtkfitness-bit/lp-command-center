@@ -366,7 +366,13 @@ function toggleKxPanel(ei,kind){ var k=exKey(ei); PANEL[k]=(PANEL[k]===kind?null
 function toggleInfo(ei){ var el=document.getElementById('info'+ei), m=document.getElementById('more'+ei); if(!el)return; var clip=el.classList.toggle('clip'); if(m) m.textContent=clip?'Show more ▾':'Show less ▴'; }
 function wbump(ei,d){ var el=document.getElementById('kw'+ei); if(!el)return; var v=(parseFloat(el.value)||0)+d; el.value=Math.max(0,Math.round(v*2)/2); }
 function rbump(ei,d){ var el=document.getElementById('kr'+ei); if(!el)return; el.value=Math.max(1,(parseInt(el.value,10)||0)+d); }
-function toggleBW(ei){ BW[exKey(ei)]=!BW[exKey(ei)]; renderList(); }
+function toggleBW(ei){
+  var kr=(document.getElementById('kr'+ei)||{}).value;   // keep what you typed across the re-render
+  var kw=(document.getElementById('kw'+ei)||{}).value;
+  BW[exKey(ei)]=!BW[exKey(ei)]; renderList();
+  var r=document.getElementById('kr'+ei); if(r && kr!=null && kr!=='') r.value=kr;
+  var w=document.getElementById('kw'+ei); if(w && kw!=null && kw!=='') w.value=kw;
+}
 /* Most recent bodyweight: published by the app (client.html) to a shared same-origin key; falls
    back to the last bodyweight set logged on this device. Used to score bodyweight moves into tonnage. */
 function latestBodyweight(){
