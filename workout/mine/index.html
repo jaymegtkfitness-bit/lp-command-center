@@ -19,7 +19,7 @@ html{background:var(--ink)}
 html,body,*{scrollbar-width:none;-ms-overflow-style:none}html::-webkit-scrollbar,body::-webkit-scrollbar,*::-webkit-scrollbar{width:0;height:0;display:none}
 body{min-height:100vh;font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--parch);-webkit-font-smoothing:antialiased;line-height:1.5;overflow-x:hidden;
   background:radial-gradient(ellipse 70% 34% at 50% 2%, rgba(193,173,114,.09), transparent 60%),radial-gradient(ellipse 105% 50% at 0% 100%, rgba(74,92,62,.5), transparent 74%),linear-gradient(180deg,#1a1813 0%,#141510 55%,#0f1310 100%);background-attachment:fixed}
-.wrap{position:relative;z-index:1;max-width:480px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 16px calc(96px + env(safe-area-inset-bottom))}
+.wrap{position:relative;z-index:1;max-width:540px;margin:0 auto;padding:calc(20px + env(safe-area-inset-top)) 10px calc(96px + env(safe-area-inset-bottom))}
 .eyebrow{font-size:.66rem;letter-spacing:.26em;text-transform:uppercase;color:var(--gold);font-weight:700}
 h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:uppercase;line-height:1.05;margin-top:6px}
 .pnotes{margin-top:10px}
@@ -90,8 +90,8 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .sinp::-webkit-outer-spin-button,.sinp::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
 .sinp:focus{outline:none;color:var(--gold)}
 .save{grid-column:1/-1;background:var(--gold);color:var(--ink);border:none;border-radius:12px;font-family:inherit;font-weight:800;font-size:.92rem;padding:13px;cursor:pointer;margin-top:2px}
-.finish{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:12px 16px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(15,19,16,0),#0f1310 30%)}
-.finish .fin-in{max-width:480px;margin:0 auto}
+.finish{position:fixed;left:0;right:0;bottom:0;z-index:6;padding:12px 14px calc(12px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(15,19,16,0),#0f1310 30%)}
+.finish .fin-in{max-width:540px;margin:0 auto}
 .fbtn{display:block;width:100%;background:var(--olive);color:#fff;border:none;border-radius:13px;font-family:inherit;font-weight:800;font-size:.96rem;padding:15px;cursor:pointer}
 .prog{font-size:.7rem;color:var(--soft);text-align:center;margin-bottom:8px;font-weight:600}
 .load{padding:40px 10px;text-align:center;color:var(--soft)}
@@ -439,7 +439,8 @@ function fmt(s){ var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; ret
 function ensureCLK(){ if(!CLK)CLK=setInterval(tick,1000); tick(); }
 function tick(){ var now=Date.now();
   var a=document.getElementById('wkTime'); if(a){ var el=sessionElapsed+((running&&sessionStart)?Math.floor((now-sessionStart)/1000):0); a.textContent=fmt(el); }
-  var b=document.getElementById('restTime'); if(b) b.textContent=(restRunning&&lastSet)?fmt(Math.floor((now-lastSet)/1000)):'0:00'; }
+  var b=document.getElementById('restTime'); if(b) b.textContent=(restRunning&&lastSet)?fmt(Math.floor((now-lastSet)/1000)):'0:00';
+  persistTimer(); }
 function updateStartBtn(){ var btn=document.getElementById('startBtn'); if(btn) btn.textContent=running?'Pause':(sessionElapsed>0?'Resume':'Start'); }
 function toggleWorkoutClock(){
   if(running){ sessionElapsed+=Math.floor((Date.now()-sessionStart)/1000); running=false; sessionStart=null; }
@@ -449,6 +450,26 @@ function toggleWorkoutClock(){
 function startRest(){ lastSet=Date.now(); restRunning=true; var rb=document.getElementById('restBtn'); if(rb) rb.textContent='Reset rest'; ensureCLK(); tick(); }
 function markSet(){ ensureCLK(); }          // logging keeps the display ticking; it does NOT start the clock or the rest timer
 function startClock(){ ensureCLK(); }       // legacy no-op shim (opening an exercise no longer auto-starts the workout)
+/* Persist the live timer every tick so closing the app or leaving it idle resumes where it left off. */
+function persistTimer(){
+  try{
+    var wEl=sessionElapsed+((running&&sessionStart)?Math.floor((Date.now()-sessionStart)/1000):0);
+    var rEl=(restRunning&&lastSet)?Math.floor((Date.now()-lastSet)/1000):0;
+    if(!wEl && !running && !restRunning){ localStorage.removeItem('lp_myprog_timer'); return; }
+    localStorage.setItem('lp_myprog_timer', JSON.stringify({w:wEl,wr:running,r:rEl,rr:restRunning,ts:Date.now()}));
+  }catch(e){}
+}
+var TIMER_RESUMED=false;
+function restoreTimer(){
+  try{
+    var s=JSON.parse(localStorage.getItem('lp_myprog_timer')||'null'); if(!s) return;
+    if(Date.now()-(s.ts||0) > 6*3600*1000){ localStorage.removeItem('lp_myprog_timer'); return; }   // >6h old = a new session, don't resume
+    sessionElapsed=+s.w||0; running=!!s.wr; sessionStart=running?Date.now():null;    // resume the VALUE; time spent closed isn't added
+    restRunning=!!s.rr; lastSet=restRunning?(Date.now()-(+s.r||0)*1000):null;
+    TIMER_RESUMED=(sessionElapsed>0||running||restRunning);
+    if(running||restRunning) ensureCLK();
+  }catch(e){}
+}
 /* Finish -> the celebration SCREEN: tonnage (with an image), new PRs, and where to add
    weight next time (exercises where every working set hit the top of the rep range). */
 function nounFor(s){ return s.count+' '+(s.count===1?s.name:s.plural); }
@@ -465,6 +486,9 @@ function finish(){
   var lb = tonnageThisWorkout();
   /* Mark this week|day done so the app Home shows a green ✓ (shared same-origin key). */
   try{ var _dn=JSON.parse(localStorage.getItem('lp_workout_done')||'{}'); _dn[wi+'|'+di]=new Date().toISOString().slice(0,10); localStorage.setItem('lp_workout_done', JSON.stringify(_dn)); }catch(e){}
+  /* Workout over — reset the timer so the next session starts clean. */
+  try{ localStorage.removeItem('lp_myprog_timer'); }catch(e){}
+  sessionElapsed=0; running=false; sessionStart=null; restRunning=false; lastSet=null; updateStartBtn();
   var say = (typeof tonnageSay==='function') ? tonnageSay(lb, tonnageWhich()) : null;
   document.getElementById('celEmoji').textContent = (say&&say.emoji)||'🏋️';
   document.getElementById('celNum').textContent = lb.toLocaleString()+' lb';
@@ -515,7 +539,10 @@ function bootProg(j){
     var _wp=_q.get('week'); if(_wp!=null){ var _wi=parseInt(_wp,10); if(isFinite(_wi)&&_wi>=0) wi=_wi; }
     var _dp=_q.get('day'); if(_dp!=null){ var _di=parseInt(_dp,10); if(isFinite(_di)&&_di>=0) di=_di; }
   }catch(e){}
+  restoreTimer();                 // resume a workout in progress (timer + rest) if there is one
+  if(TIMER_RESUMED) MODE='active'; // land straight back in the session, not the overview
   render();
+  updateStartBtn();
 }
 async function ungz(b64){
   var bin=atob(b64), by=new Uint8Array(bin.length); for(var i=0;i<bin.length;i++) by[i]=bin.charCodeAt(i);
