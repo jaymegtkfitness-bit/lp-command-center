@@ -134,6 +134,14 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .timer.big .tk-rest{display:flex;align-items:center;gap:10px;font-size:.85rem}
 .timer.big .tk-rest .tval{font-size:1rem}
 .timer.big .tk-rest .tbtn{padding:6px 12px;font-size:.7rem}
+.timer.big .tk-main{display:flex;flex-direction:column;align-items:center;gap:7px}
+.timer.big #startBtn{padding:8px 26px;font-size:.82rem}
+/* superset grouping — a labelled connector between two linked exercise cards */
+.kx.ss{border-color:var(--gold-dim)}
+.kx-sslink{position:relative;display:flex;align-items:center;justify-content:center;height:24px;margin:2px 0}
+.kx-sslink:before{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:var(--gold-dim);transform:translateX(-50%)}
+.kx-sslink span{position:relative;z-index:1;font-size:.56rem;letter-spacing:.2em;text-transform:uppercase;color:var(--gold);font-weight:800;background:rgba(193,173,114,.14);border:1px solid var(--gold-dim);border-radius:999px;padding:3px 11px}
+.kx-tool.on{background:linear-gradient(160deg,rgba(193,173,114,.3),rgba(193,173,114,.1));border-color:var(--gold-dim);color:#fff}
 /* Kino-style exercise card */
 .kx{margin-top:12px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:18px;padding:14px}
 .kx.done{border-color:var(--olive-dim);background:rgba(84,106,70,.08)}
@@ -183,8 +191,9 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
   <div class="navlabel" id="dayLabel" style="display:none">Day</div>
   <div class="nav" id="days"></div>
   <div class="timer big" id="timerBar" style="display:none">
-    <div class="tk-main"><div class="tlab">Workout</div><div class="tk-big" id="wkTime">0:00</div></div>
-    <div class="tk-rest"><span class="tlab">Rest</span><span class="tval gold" id="restTime">0:00</span><button class="tbtn ghost" onclick="resetRest()">Reset rest</button></div>
+    <div class="tk-main"><div class="tlab">Workout</div><div class="tk-big" id="wkTime">0:00</div>
+      <button class="tbtn" id="startBtn" onclick="toggleWorkoutClock()">Start</button></div>
+    <div class="tk-rest"><span class="tlab">Rest</span><span class="tval gold" id="restTime">0:00</span><button class="tbtn" id="restBtn" onclick="startRest()">Start rest</button></div>
   </div>
   <div id="list"><div class="load">Loading your program…</div></div>
 </main>
@@ -210,6 +219,10 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 var PROG=null, wi=0, di=0, openIdx=0, LOG={}, SWAPS={}, MODE='overview';
 try{ LOG=JSON.parse(localStorage.getItem('lp_myprog')||'{}'); }catch(e){ LOG={}; }
 try{ SWAPS=JSON.parse(localStorage.getItem('lp_myprog_swaps')||'{}'); }catch(e){ SWAPS={}; }
+var SS={}; try{ SS=JSON.parse(localStorage.getItem('lp_myprog_ss')||'{}'); }catch(e){ SS={}; }
+/* Mark this exercise as supersetted with the NEXT one (or clear it). The program can also
+   pre-set ex.superset:true to ship a superset; this toggle lets the member add their own. */
+function toggleSS(ei){ var k=exKey(ei); SS[k]=!SS[k]; try{ localStorage.setItem('lp_myprog_ss', JSON.stringify(SS)); }catch(e){} renderList(); }
 function swapTo(ei, nm){ SWAPS[exKey(ei)]=nm; try{ localStorage.setItem('lp_myprog_swaps', JSON.stringify(SWAPS)); }catch(e){} renderList(); }
 function swapCustom(ei){ var el=document.getElementById('cust'+ei); var v=(el&&el.value||'').trim(); if(v) swapTo(ei, v); }
 function esc(s){ return String(s==null?'':s).replace(/[&<>]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;'}[c];}); }
@@ -262,10 +275,13 @@ function renderList(){
     var logged=sets.map(function(s){ var tag=s.bw?'BW':(s.w+' lb'); return '<div class="kx-bub done">'+s.r+' reps<span class="bw">'+tag+(s.pr?' <span class="pr">★</span>':'')+'</span></div>'; }).join('');
     var lp=sets.length?sets[sets.length-1]:null;
     var prev=lp?((lp.bw?'Bodyweight':(lp.w+' lb'))+' × '+lp.r+' reps'):'—';
+    var ssNext=!!(SS[exKey(ei)]||ex.superset);                 // supersetted with the next exercise
+    var ssPrev=ei>0 && !!(SS[exKey(ei-1)]||(exs[ei-1]&&exs[ei-1].superset));
     var infoId='info'+ei;
-    return '<div class="kx'+(done?' done':'')+'">'
+    return '<div class="kx'+(done?' done':'')+((ssNext||ssPrev)?' ss':'')+'">'
       +'<div class="kx-top"><div class="kx-thumb">▶</div><div class="kx-nm">'+esc(name)+'</div>'
       +'<div class="kx-tools"><button class="kx-tool" onclick="toggleKxPanel('+ei+',\'swap\')">⇄ Switch</button>'
+      +(ei<exs.length-1?'<button class="kx-tool'+(ssNext?' on':'')+'" onclick="toggleSS('+ei+')">⛓ Superset</button>':'')
       +'<button class="kx-tool" onclick="delEx('+ei+')">🗑 Delete</button></div></div>'
       +(note?'<div class="kx-info clip" id="'+infoId+'"><span class="ii">ⓘ</span> '+esc(note)+'</div><span class="kx-more" id="more'+ei+'" onclick="toggleInfo('+ei+')">Show more ▾</span>':'')
       +'<div class="kx-btns"><button class="kx-btn" onclick="toggleKxPanel('+ei+',\'edit\')">✎ Edit</button>'
@@ -281,7 +297,8 @@ function renderList(){
       +'<button class="kx-bwtoggle'+(bw?' on':'')+'" onclick="toggleBW('+ei+')">'+(bw?'✓ Logging at bodyweight':'Use bodyweight (no weight)')+'</button>'
       +'<button class="kx-logbtn" onclick="logSet('+ei+')">Log set</button>'
       +'<div class="kx-prev">Previous lift: '+esc(prev)+'</div>'
-      +'</div>';
+      +'</div>'
+      +((ssNext && ei<exs.length-1)?'<div class="kx-sslink"><span>⛓ Superset</span></div>':'');
   }).join('');
   document.getElementById('list').innerHTML=html;
   var doneN=exs.filter(function(_,ei){var need=+((exs[ei].workingSets||'').match(/\d+/)||[3])[0]||3;return (LOG[exKey(ei)]||[]).length>=need;}).length;
@@ -387,16 +404,24 @@ function pickDay(i){ di=i; openIdx=0; render(); window.scrollTo(0,0); }
 function toggle(i){ openIdx=(openIdx===i?-1:i); startClock(); renderList(); }
 function bump(ei,f,d){ var el=document.getElementById(f+ei); var v=(parseFloat(el.value)||0)+d; if(f==='w')v=Math.max(0,Math.round(v*2)/2); if(f==='r')v=Math.max(1,Math.round(v)); el.value=v; }
 function saveSet(ei){ var w=parseFloat(document.getElementById('w'+ei).value)||0, r=parseInt(document.getElementById('r'+ei).value,10)||0; if(!r){ return; } var prev=bestFor(exKey(ei)); var pr=(w*r)>prev&&prev>0; LOG[exKey(ei)]=LOG[exKey(ei)]||[]; LOG[exKey(ei)].push({w:w,r:r,pr:pr}); try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} markSet(); renderList(); }
-/* Two running clocks: Workout (total elapsed, starts on first move, never resets until Finish)
-   and Rest (time since your last set, resets every time you save a set or tap Reset rest). */
-var sessionStart=null, lastSet=null, CLK=null;
+/* Two clocks, both MANUAL: Workout (Start/Pause button; accumulates elapsed, never auto-starts)
+   and Rest (the "Start rest" button begins/restarts a rest count-up; logging a set no longer
+   touches it, so you control rest yourself). */
+var sessionStart=null, sessionElapsed=0, running=false, lastSet=null, restRunning=false, CLK=null;
 function fmt(s){ var h=Math.floor(s/3600),m=Math.floor((s%3600)/60),ss=s%60; return (h?h+':'+('0'+m).slice(-2):''+m)+':'+('0'+ss).slice(-2); }
+function ensureCLK(){ if(!CLK)CLK=setInterval(tick,1000); tick(); }
 function tick(){ var now=Date.now();
-  var a=document.getElementById('wkTime'); if(a) a.textContent=sessionStart?fmt(Math.floor((now-sessionStart)/1000)):'0:00';
-  var b=document.getElementById('restTime'); if(b) b.textContent=lastSet?fmt(Math.floor((now-lastSet)/1000)):'0:00'; }
-function startClock(){ if(!sessionStart)sessionStart=Date.now(); if(!CLK)CLK=setInterval(tick,1000); tick(); }
-function markSet(){ lastSet=Date.now(); startClock(); }
-function resetRest(){ lastSet=Date.now(); startClock(); }
+  var a=document.getElementById('wkTime'); if(a){ var el=sessionElapsed+((running&&sessionStart)?Math.floor((now-sessionStart)/1000):0); a.textContent=fmt(el); }
+  var b=document.getElementById('restTime'); if(b) b.textContent=(restRunning&&lastSet)?fmt(Math.floor((now-lastSet)/1000)):'0:00'; }
+function updateStartBtn(){ var btn=document.getElementById('startBtn'); if(btn) btn.textContent=running?'Pause':(sessionElapsed>0?'Resume':'Start'); }
+function toggleWorkoutClock(){
+  if(running){ sessionElapsed+=Math.floor((Date.now()-sessionStart)/1000); running=false; sessionStart=null; }
+  else { sessionStart=Date.now(); running=true; ensureCLK(); }
+  updateStartBtn(); tick();
+}
+function startRest(){ lastSet=Date.now(); restRunning=true; var rb=document.getElementById('restBtn'); if(rb) rb.textContent='Reset rest'; ensureCLK(); tick(); }
+function markSet(){ ensureCLK(); }          // logging keeps the display ticking; it does NOT start the clock or the rest timer
+function startClock(){ ensureCLK(); }       // legacy no-op shim (opening an exercise no longer auto-starts the workout)
 /* Finish -> the celebration SCREEN: tonnage (with an image), new PRs, and where to add
    weight next time (exercises where every working set hit the top of the rep range). */
 function nounFor(s){ return s.count+' '+(s.count===1?s.name:s.plural); }
