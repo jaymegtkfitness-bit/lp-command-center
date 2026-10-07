@@ -313,7 +313,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=66"></script>
+<script src="../nutrition-engine.js?v=67"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -496,9 +496,15 @@ function build(){
   /* 2b. how the numbers change: the whole adjustment method, so the PDF stands alone */
   var LAD = (typeof PHASE_MULT !== 'undefined') ? (PHASE_MULT[IN.phase || 'Lean'] || PHASE_MULT.Lean) : [13,12,11];
   var GW = +IN.goalweight || 0;
+  /* The ladder must start where the client ACTUALLY starts. When the numbers are set by hand the
+     scale-derived rung 1 disagreed with the daily numbers on page one, so the document contradicted
+     itself (Tim Downey, 2026-10-07). One rung is still one goal-weight step, and protein never moves. */
+  var LADPRO = Math.round(+IN.pro || GW * ((typeof PROTEIN_PER_LB !== 'undefined' ? PROTEIN_PER_LB[IN.phase || 'Lean'] : 1) || 1));
+  var LADCAL = Math.round(+IN.cal || GW * LAD[0]);
+  var LADSCALED = GW ? Math.abs(LADCAL - Math.round(GW * LAD[0])) > 1 : false;
   var rungs = GW ? LAD.map(function(m, i){
-    var cal = Math.round(GW * m), pro = Math.round(GW * ((typeof PROTEIN_PER_LB !== 'undefined' ? PROTEIN_PER_LB[IN.phase || 'Lean'] : 1) || 1));
-    return {n:i+1, m:m, cal:cal, pro:pro};
+    var cal = LADSCALED ? LADCAL - Math.round(GW * (LAD[0] - m)) : Math.round(GW * m);
+    return {n:i+1, m:m, cal:cal, pro:LADPRO};
   }) : [];
   doc.push('<section class="sheet"><span class="label">Your weekly read</span><h2>How your numbers <span class="gold">change.</span></h2>' +
     '<p class="intro">Nothing in this system changes on a feeling. It changes on data, and there are only two moves: more steps, or one step down the ladder. This page is the whole method, so you never have to guess.</p>' +
@@ -510,7 +516,7 @@ function build(){
     '</div>' +
     (rungs.length ? '<h3 style="margin:14px 0 4px;font-size:.95rem">Your ladder</h3><div class="steptbl"><div class="srow head"><span>Rung</span><span>Calories</span><span>Protein</span><span>When</span></div>' +
       rungs.map(function(r, i){ return '<div class="srow' + (i === 0 ? ' mine' : '') + '"><span>Rung ' + r.n + (i === 0 ? ' · where you start' : '') + '</span><span>' + r.cal.toLocaleString() + ' cal</span><span>' + r.pro + 'g protein</span><span>' + (i === 0 ? 'Start here' : 'Only after a stall') + '</span></div>'; }).join('') +
-      '</div><p class="note">Your goal weight times ' + LAD.join(', then ') + '. Protein never moves. You never go below the last rung: past that the answer is more movement or a break at maintenance, not less food.</p>' : '') +
+      '</div><p class="note">' + (LADSCALED ? 'Each rung down is one step of about ' + GW.toLocaleString() + ' calories, the same size step the system uses for everyone.' : 'Your goal weight times ' + LAD.join(', then ') + '.') + ' Protein never moves. You never go below the last rung: past that the answer is more movement or a break at maintenance, not less food.</p>' : '') +
     '<div class="tile pr" style="margin-top:10px"><b>Rebuild instead of white-knuckling it</b><p>When your weight has dropped about 10 lb, when you drop a rung, or when you are bored of the food, build a new system from your dashboard and download a fresh copy of this document. Portions are sized to the numbers you had the day it was built, so a new number means a new build.</p></div>' +
     '<p class="note">The one thing that lives only in your dashboard is the weekly check-in. Everything else you need is in this document.</p>' + foot() + '</section>');
 

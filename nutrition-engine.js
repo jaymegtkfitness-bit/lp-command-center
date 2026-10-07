@@ -1744,7 +1744,7 @@ RM_STYLE_BLOCK['vegan']=RM_STYLE_BLOCK['vegetarian'];
    FOOD_DB's `a:[...]` tags, but the eating-out section only ever saw `style`, so a gluten-free client
    was being handed a pita. Restaurant rows are free text, so this matches the dish wording instead. */
 var RM_ALLERGEN_BLOCK={
-  gluten:    /\b(bread|bun|brioche|roll|wrap|tortilla|pita|naan|bagel|biscuit|croissant|toast|pasta|noodle|spaghetti|penne|macaroni|couscous|barley|orzo|breaded|battered|panko|crispy|cracker|crouton|pretzel|flatbread|pizza|calzone|\bsub\b|hoagie|quesadilla|burrito(?!\s*bowl)|cake|cookie|brownie|muffin|pancake|waffle|churro|teriyaki|soy sauce|beer)\b/i,
+  gluten:    /\b(breads?|buns?|brioche|rolls?|wraps?|flour tortillas?|tortillas?|pitas?|naan|bagels?|biscuits?|croissants?|toast|pastas?|noodles?|spaghetti|penne|macaroni|couscous|barley|orzo|breaded|battered|panko|crispy|crackers?|croutons?|pretzels?|flatbreads?|pizza|calzone|subs?|hoagies?|quesadillas?|burritos?(?!\s*bowl)|cakes?|cookies?|brownies?|muffins?|pancakes?|waffles?|churros?|teriyaki|soy sauce|beer)\b/i,
   dairy:     /\b(cheese|cheddar|mozzarella|parmesan|provolone|feta|queso|\bmilk\b|cream|creamy|butter(?!\s*lettuce)|yogurt|ranch|alfredo|latte|frappuccino|ice cream|custard|tzatziki)\b/i,
   nut:       /\b(peanut|almond|cashew|walnut|pecan|pistachio|hazelnut|macadamia|nuts?\b|pesto|satay)\b/i,
   egg:       /\b(eggs?\b|omelet|mayo|mayonnaise|aioli|hollandaise|meringue|custard)\b/i,
