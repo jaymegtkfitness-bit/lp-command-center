@@ -1327,12 +1327,41 @@ var GLP1={vegFactor:0.8,
   carbLater:['oats','whole-wheat bread','whole-wheat pasta','barley','lentils','black beans','pinto beans','kidney beans','chickpeas','green peas','quinoa','brown rice','granola','popcorn','corn'],
   changes:[['Protein stays where it is','It is the most important number in your plan, so every meal starts with it.'],
     ['Vegetables 20% smaller','The easier ones come first: zucchini, spinach, green beans, carrots, cucumber and peppers ahead of broccoli, cauliflower, cabbage and brussels sprouts.'],
-    ['Easier carbs','White rice, potatoes, cream of rice and sourdough ahead of oats, whole wheat and beans. Same calories, less bulk.'],
+    ['Easier carbs','White rice, potatoes, cream of rice and sourdough ahead of oats, whole wheat and beans. Same calories, less bulk.'],  /* generic; glp1Changes() rewrites this for the client's own foods */
     ['Protein first on the plate','Eat the protein first, then the rest. If you cannot finish a meal, the protein is the part that matters.'],
     ['Smaller meals are fine','If a meal is too much, split it in two and eat the second half an hour or two later.'],
     ['Your shake counts','On a low-appetite day, drinking protein is easier than chewing it.'],
     ['Water through the day','Sip it between meals, not only at them.']],
   provider:'Anything about your medication, including your dose, goes to your prescribing provider. This plan is the food side.'};
+/* The two food lines above name example foods, and a client who cannot eat them should not be told to.
+   glp1Changes() rewrites those two tiles from the carbs and vegetables SHE actually picked, so a
+   gluten-free client stops being pointed at sourdough. Everything else is unchanged.
+   (Tim Downey build, 2026-10-07.) */
+function glp1Changes(sel){
+  sel=sel||{};
+  var mine=function(list, pool){
+    var have=(pool||[]).map(function(x){ return String(x).toLowerCase(); });
+    return list.filter(function(f){ return have.indexOf(f)>=0; });
+  };
+  var cF=mine(GLP1.carbFirst, sel.carb), cL=mine(GLP1.carbLater, sel.carb);
+  var vF=mine(GLP1.vegFirst, sel.veg),   vL=mine(GLP1.vegLater, sel.veg);
+  var list=function(a,n){ a=a.slice(0,n||4); return a.length<2 ? (a[0]||'') : a.slice(0,-1).join(', ')+' and '+a[a.length-1]; };
+  return GLP1.changes.map(function(row){
+    if(row[0]==='Easier carbs' && cF.length){
+      return [row[0], cF.length&&cL.length
+        ? 'Your '+list(cF)+' come ahead of '+list(cL)+'. Same calories, less bulk.'
+        : 'Your easier carbs come first: '+list(cF)+'. Same calories, less bulk.'];
+    }
+    if(row[0]==='Vegetables 20% smaller' && vF.length){
+      return [row[0], cLvegLine(vF, vL, list)];
+    }
+    return row;
+  });
+}
+function cLvegLine(vF, vL, list){
+  return vL.length ? 'The easier ones come first: '+list(vF,6)+' ahead of '+list(vL,4)+'.'
+                   : 'The easier ones come first: '+list(vF,6)+'.';
+}
 /* Read the GLP-1 answer from an intake row, whatever the column is called ('on', 'On one now', 'Yes'). */
 function glp1FromIntake(row){ row=row||{}; var v=row.glp1||row['GLP-1']||row['GLP1']||row['Glp1']||row['GLP-1 status']||'';
   if(!v){ var m=String(row.Notes||row.notes||'').match(/GLP-1:\s*(\w+)/i); if(m) v=m[1]; }
@@ -1711,8 +1740,32 @@ var RM_STYLE_BLOCK={
   'vegetarian':  /\b(beef|steak|burger|lamb|bison|pork|bacon|ham|sausage|chicken|turkey|fish|salmon|tuna|shrimp|cod|tilapia|nugget|wing|patty|meat|anchov)\b/i
 };
 RM_STYLE_BLOCK['vegan']=RM_STYLE_BLOCK['vegetarian'];
-function rmStyleOk(style){
+/* ALLERGENS AT RESTAURANTS (Tim Downey build, 2026-10-07). The meal engine filters allergens through
+   FOOD_DB's `a:[...]` tags, but the eating-out section only ever saw `style`, so a gluten-free client
+   was being handed a pita. Restaurant rows are free text, so this matches the dish wording instead. */
+var RM_ALLERGEN_BLOCK={
+  gluten:    /\b(bread|bun|brioche|roll|wrap|tortilla|pita|naan|bagel|biscuit|croissant|toast|pasta|noodle|spaghetti|penne|macaroni|couscous|barley|orzo|breaded|battered|panko|crispy|cracker|crouton|pretzel|flatbread|pizza|calzone|\bsub\b|hoagie|quesadilla|burrito(?!\s*bowl)|cake|cookie|brownie|muffin|pancake|waffle|churro|teriyaki|soy sauce|beer)\b/i,
+  dairy:     /\b(cheese|cheddar|mozzarella|parmesan|provolone|feta|queso|\bmilk\b|cream|creamy|butter(?!\s*lettuce)|yogurt|ranch|alfredo|latte|frappuccino|ice cream|custard|tzatziki)\b/i,
+  nut:       /\b(peanut|almond|cashew|walnut|pecan|pistachio|hazelnut|macadamia|nuts?\b|pesto|satay)\b/i,
+  egg:       /\b(eggs?\b|omelet|mayo|mayonnaise|aioli|hollandaise|meringue|custard)\b/i,
+  soy:       /\b(soy|tofu|edamame|teriyaki|miso|tempeh)\b/i,
+  shellfish: /\b(shrimp|prawn|crab|lobster|scallop|clam|mussel|oyster|crawfish|calamari)\b/i,
+  fish:      /\b(fish|salmon|tuna|cod|tilapia|anchov|halibut|haddock|pollock|filet[\s-]*o)\b/i
+};
+RM_ALLERGEN_BLOCK['wheat']=RM_ALLERGEN_BLOCK.gluten;
+RM_ALLERGEN_BLOCK['tree nut']=RM_ALLERGEN_BLOCK.nut;
+RM_ALLERGEN_BLOCK['peanut']=RM_ALLERGEN_BLOCK.nut;
+/* A style can also be stated as an allergen ("gluten free" in the style box), so both are read. */
+function rmStyleOk(style, allergies){
   var rxs=styleList(style).map(function(st){ return RM_STYLE_BLOCK[st]; }).filter(Boolean);
+  styleList(style).forEach(function(st){
+    var key=st.replace(/\s*(free|intolerant|allergy)\s*$/,'').trim();
+    if(RM_ALLERGEN_BLOCK[key]) rxs.push(RM_ALLERGEN_BLOCK[key]);
+  });
+  (Array.isArray(allergies)?allergies:String(allergies||'').split(/[,|;]/)).forEach(function(a){
+    var key=String(a||'').toLowerCase().replace(/\s*(free|intolerant|allergy)\s*$/,'').trim();
+    if(RM_ALLERGEN_BLOCK[key]) rxs.push(RM_ALLERGEN_BLOCK[key]);
+  });
   if(!rxs.length) return null;
   return function(i){ var s=i.name+' '+i.serving; return !rxs.some(function(rx){ return rx.test(s); }); };
 }
@@ -1835,7 +1888,7 @@ function restaurantMeals(chain, target, opts){
   opts=opts||{};
   var calT=Math.max(200,+target.calories||0), proT=Math.max(10,+target.protein||0);
   var items=rmItems(chain), slot=opts.slot||'meal', want=opts.count||3;
-  var styleOk=rmStyleOk(opts.style), disRx=dislikeRx(opts.dislikes);
+  var styleOk=rmStyleOk(opts.style, opts.allergies), disRx=dislikeRx(opts.dislikes);
   var ok=function(i){ return (!styleOk || styleOk(i)) && dislikesOk(disRx, i.name+' '+i.serving); };
   var kept=items.filter(ok); if(kept.length) items=kept;
   var combos=rmCombos(items, slot);

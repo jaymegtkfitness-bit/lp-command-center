@@ -313,7 +313,7 @@ td b{color:#fff}
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=65"></script>
+<script src="../nutrition-engine.js?v=66"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -466,8 +466,8 @@ function build(){
     '<p class="note">' + esc(NUTRIENT_NOTE.huel) + ' ' + esc(NUTRIENT_NOTE.provider) + '</p>' + foot() + '</section>');
   if (deck.glp1 && typeof GLP1 !== 'undefined') doc.push('<section class="sheet"><span class="label">Built around your GLP-1</span><h2>Same numbers. <span class="gold">Easier to finish.</span></h2>' +
     '<p class="intro">You told us you are on a GLP-1. Your appetite is smaller, so volume becomes the limit, and this system is built for that. Your calories and protein have not changed. What changed is how the food is put together, so you can actually eat it.</p>' +
-    '<div class="steps4">' + GLP1.changes.map(function(x){ return '<div class="tile pr"><b>' + esc(x[0]) + '</b><p>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>' +
-    '<div class="tile pr"><b>What this changes in your system</b><p>Every vegetable portion in your meals is already 20% smaller. Oats, whole wheat and beans have been moved to the back or swapped for rice, potatoes and sourdough' + (/vegan|vegetarian/i.test(sel.style||'') ? ' (you keep your beans, lentils and chickpeas, because for you they carry protein)' : '') + '. Your shopping list, prep guide and swap guide are built from the same adjusted meals.</p></div>' +
+    '<div class="steps4">' + (typeof glp1Changes==='function' ? glp1Changes(sel) : GLP1.changes).map(function(x){ return '<div class="tile pr"><b>' + esc(x[0]) + '</b><p>' + esc(x[1]) + '</p></div>'; }).join('') + '</div>' +
+    '<div class="tile pr"><b>What this changes in your system</b><p>Every vegetable portion in your meals is already 20% smaller. The bulkier carbs have been moved to the back or swapped for the easier ones' + (/vegan|vegetarian/i.test(sel.style||'') ? ' (you keep your beans, lentils and chickpeas, because for you they carry protein)' : '') + '. Your shopping list, prep guide and swap guide are built from the same adjusted meals.</p></div>' +
     '<p class="note">' + esc(GLP1.provider) + '</p>' + foot() + '</section>');
   if (FREE) doc.push('<section class="sheet"><span class="label">The Macro Freedom Framework</span>' +
     '<h2>Structure you can keep. <span class="gold">Freedom you can use.</span></h2>' +
@@ -610,7 +610,7 @@ function build(){
   /* 7. restaurants: her places in full, then a wider list so she is covered anywhere */
   var mine = (IN.restaurants||[]);
   var rests = mine.map(function(name){
-    var r = restaurantMeals(name, {calories:lunchCal, protein:lunch.target.protein}, {count:3, style:sel.style, dislikes:sel.dislikes});
+    var r = restaurantMeals(name, {calories:lunchCal, protein:lunch.target.protein}, {count:3, style:sel.style, dislikes:sel.dislikes, allergies:sel.allergies});
     if (r.empty) return '';
     return '<div class="tile rest"><h3>' + esc(name) + '</h3>' + r.options.map(function(o){
       return '<p class="order">' + esc(o.title) + '</p><p class="fit">' + o.totals.kcal + ' cal · ' + o.totals.p + 'g protein</p>'; }).join('') +
@@ -625,7 +625,7 @@ function build(){
   ];
   var more = GROUPS.map(function(g){
     var rows = g.list.filter(function(n){ return mine.indexOf(n) < 0 && restaurantChains().indexOf(n) >= 0; }).map(function(n){
-      var r = restaurantMeals(n, {calories:lunchCal, protein:lunch.target.protein}, {count:6, style:sel.style, dislikes:sel.dislikes});
+      var r = restaurantMeals(n, {calories:lunchCal, protein:lunch.target.protein}, {count:6, style:sel.style, dislikes:sel.dislikes, allergies:sel.allergies});
       if (r.empty || !r.options.length) return '';
       var grown = r.options.filter(function(x){ return !/kid|cub meal|junior|\bjr\b|mini\b/i.test(x.title); });
       if (!grown.length) return '';                                  // a kids' meal is not an order I am giving her
