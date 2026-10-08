@@ -1160,6 +1160,20 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 </head>
 <body>
 <div class="appbg"></div>
+<!-- Portrait lock: keep the app vertical. Manifest orientation + a screen-lock attempt handle
+     installed PWAs/Android; this overlay covers iOS Safari, where orientation can't be locked. -->
+<style>
+#rotateLock{display:none}
+@media screen and (orientation:landscape) and (max-height:520px){
+  #rotateLock{display:flex;position:fixed;inset:0;z-index:10000;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0e0d0b;color:#F2EDE4;text-align:center;padding:24px}
+  #rotateLock .rl-ico{font-size:2.8rem;animation:rlspin 1.6s ease-in-out infinite}
+  #rotateLock .rl-h{font-family:Montserrat,sans-serif;font-weight:900;text-transform:uppercase;font-size:1.1rem;letter-spacing:.04em}
+  #rotateLock .rl-s{font-size:.9rem;color:#a49d90;line-height:1.5;max-width:300px}
+}
+@keyframes rlspin{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
+</style>
+<div id="rotateLock"><div class="rl-ico">📱</div><div class="rl-h">Rotate to portrait</div><div class="rl-s">Legacy works upright — turn your phone vertical to keep going.</div></div>
+<script>try{ if(screen.orientation && screen.orientation.lock){ screen.orientation.lock('portrait').catch(function(){}); } }catch(e){}</script>
 <div id="bootLoader"><img class="bl-logo" src="logo-splash.png" alt="Legacy Performance"><div class="bl-spin"></div></div>
 <div class="safe"></div>
 <header>
