@@ -981,7 +981,7 @@ header .brand img{height:3.9rem!important}
 #homeEyebrow,.eyebrow{font-size:1rem!important}
 #greeting{font-size:3.15rem!important}
 .ptitle{font-size:2.35rem!important}
-.k-slabel{font-size:1.06rem!important;margin:1.5rem .12rem .8rem!important}
+.k-slabel{font-size:1.18rem!important;margin:1.5rem .12rem .8rem!important}
 .k-slabel .sub{font-size:.84rem!important}
 .va{font-size:.82rem!important}
 /* Rings scale with rem (override the JS px so they grow on bigger screens) */
@@ -1060,8 +1060,8 @@ header .brand img{height:3.9rem!important}
 /* generic rows (nutrition/wellness tiles) */
 .krow{padding:1rem!important;gap:.94rem!important}
 .krow .ic{width:3.375rem!important;height:3.375rem!important;font-size:1.625rem!important}
-.krow .rt2{font-size:1.125rem!important}
-.krow .rs{font-size:.84rem!important}
+.krow .rt2{font-size:1.22rem!important}
+.krow .rs{font-size:.92rem!important}
 .krow .go{font-size:1.625rem!important}
 /* Weekly check-in */
 .kcheckin{padding:1.1rem!important}
@@ -1086,7 +1086,7 @@ header .brand img{height:3.9rem!important}
 .lift .ln{font-size:.94rem!important}.lift .lv{font-size:1.06rem!important}
 .ci-row .cd{font-size:.9rem!important}.ci-row .cw{font-size:1.06rem!important}
 .mopt .mn{font-size:.875rem!important}.mopt .mi{font-size:.78rem!important}
-.opt{font-size:.75rem!important}.chip{font-size:.8rem!important}
+.opt{font-size:.85rem!important}.chip{font-size:.8rem!important}
 .stack{padding:1rem!important}.pepwrap{padding:.5rem .9rem .9rem!important}
 /* ---- Bottom nav: fit-to-screen with small side margin, tighter tabs ---- */
 nav.ctabs{bottom:calc(env(safe-area-inset-bottom) + .6rem)!important;padding:0 .6rem!important}
@@ -4861,7 +4861,7 @@ function nutMealRow(m,mi){
   if(feat.protein) mac+='<span class="pill">'+feat.protein+'g protein</span>';
   if(feat.cal) mac+='<span class="pill">'+feat.cal+' cal</span>';
   var head='<div class="krow" onclick="toggleMealOpts('+mi+')"><div class="ic">'+ic+'</div>'
-    +'<div class="rb"><div class="opt">'+esc(slot)+(opts.length?(' · '+opts.length+' options'):'')+'</div>'
+    +'<div class="rb"><div class="opt">'+esc(slot)+(opts.length?(' · '+opts.length+' option'+(opts.length===1?'':'s')):'')+'</div>'
     +'<div class="rt2">'+esc(title)+'</div><div class="macros">'+mac+'</div></div><div class="go" id="mchev'+mi+'">›</div></div>';
   var body='<div class="mealopts" id="mopts'+mi+'" style="display:none">';
   (opts.length?opts:[feat]).forEach(function(o,oi){
@@ -4917,9 +4917,9 @@ function renderNutritionHero(){
   h+='<div class="k-slabel">Your Nutrition System'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
   if(meals.length){
     meals.forEach(function(m,mi){ h+=nutMealRow(m,mi); });
-    h+=coachManaged()?COACH_LOCK_NOTE:'<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else openInAppPage(\'build/\',\'Build Your Nutrition System\')"><div class="ic">🔄</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">Regenerate with the CNS</div></div><div class="go">›</div></div>';
+    h+=coachManaged()?COACH_LOCK_NOTE:'<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else openInAppPage(\'build/\',\'Nutrition System Generator\')"><div class="ic">🔄</div><div class="rb"><div class="rt2">Nutrition System Generator</div><div class="rs">Update your custom nutrition system</div></div><div class="go">›</div></div>';
   } else if(!coachManaged()){
-    h+='<div class="krow" onclick="openInAppPage(\'build/\',\'Build Your Nutrition System\')"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Build a new nutrition system</div><div class="rs">The Complete Nutrition System · CNS</div></div><div class="go">›</div></div>';
+    h+='<div class="krow" onclick="openInAppPage(\'build/\',\'Nutrition System Generator\')"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Nutrition System Generator</div><div class="rs">Build your custom nutrition system</div></div><div class="go">›</div></div>';
   } else {
     h+=COACH_LOCK_NOTE;
   }
