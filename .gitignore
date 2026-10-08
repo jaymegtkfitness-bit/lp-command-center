@@ -22,3 +22,4 @@ workout/private/
 
 # Claude Code local config / session settings — never publish to this PUBLIC repo
 .claude/
+.icon-backup/
