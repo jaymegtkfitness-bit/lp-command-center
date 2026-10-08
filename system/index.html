@@ -252,11 +252,60 @@ td b{color:#fff}
   .rules li{font-size:9.5px;margin-bottom:2px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* ===== LARGE-PRINT / WHITE mode (older-eye-friendly) — toggle on screen or add ?light=1 ===== */
+html.lp{background:#fff;
+  --parch:#1d1d1d;--body:#2b2b2b;--soft:#565656;--ink:#161616;
+  --olive:#3c4a31;--olive-lt:#46603a;--olive-dim:rgba(60,74,49,.35);
+  --gold:#7e6416;--gold-dim:rgba(126,100,22,.45);--line:rgba(0,0,0,.16)}
+html.lp body{color:#1d1d1d;background:#fff}
+html.lp .bg{display:none!important}
+html.lp h1,html.lp h2,html.lp h3,html.lp .mch,html.lp .srow b,html.lp .pr b,html.lp td b,html.lp .opt .mname,html.lp .shopitem b{color:#141414}
+html.lp a{color:#7e6416}
+html.lp .sheet{background:#fff;border-color:rgba(60,74,49,.3)}
+html.lp .tile,html.lp .panel,html.lp .lever,html.lp .num,html.lp .opt,html.lp .step,html.lp .shopsec,html.lp .rest,html.lp .swapcol,html.lp .fcol,html.lp .mgroup,html.lp .steptbl,html.lp .storage{background:#fff;border-color:rgba(60,74,49,.28)}
+html.lp .tile{background:linear-gradient(90deg,rgba(60,74,49,.07),rgba(0,0,0,.015))}
+html.lp .srow.mine{background:rgba(60,74,49,.12);color:#141414}
+html.lp .sheet-foot{color:#6a6a6a}
+html.lp .mfit,html.lp .num b,html.lp .opt .on,html.lp .lever b,html.lp .storage b,html.lp .rest .fit,html.lp .opt .cron,html.lp .slot-h h3{color:#7e6416}
+html.lp .macros b{color:#46603a}
+html.lp .cover .mark{display:none}
+@media print{
+  html.lp,html.lp body{background:#fff!important}
+  html.lp body{font-size:13.5px}
+  html.lp .sheet h2{font-size:26px}
+  html.lp h3{font-size:13px!important}
+  html.lp .opt .mname{font-size:13px}
+  html.lp .opt ul{font-size:12px}
+  html.lp .opt .cron{font-size:9.5px}
+  html.lp .macros{font-size:9px}html.lp .macros b{font-size:9.5px}
+  html.lp .step li{font-size:11.5px}html.lp .step h3{font-size:12px}
+  html.lp .storage{font-size:12px}
+  html.lp .shopitem{font-size:11.5px}html.lp .shopitem span{font-size:10.5px}
+  html.lp .srow{font-size:10.5px}html.lp .srow.head{font-size:9px}
+  html.lp .mrow{font-size:9.5px}
+  html.lp .swapcol li{font-size:9.5px}
+  html.lp .fcol li{font-size:8.6px}
+  html.lp .rest .order{font-size:11.5px}html.lp .rest h3{font-size:12px}
+  html.lp .rules li{font-size:11.5px}
+  html.lp .startnote{font-size:12px}
+  html.lp .nextlink p{font-size:11.5px}
+  html.lp .num b{font-size:1.85rem}
+  html.lp .weektbl td,html.lp .weektbl th{font-size:10px}
+}
 </style>
 </head>
 <body>
 <div class="bg"></div>
 <div class="topbar no-print"></div>
+<button class="no-print" id="lpToggle" onclick="lpFlip()" style="position:fixed;top:12px;right:12px;z-index:60;background:#7e6416;color:#fff;border:0;border-radius:9px;padding:9px 14px;font:800 .78rem/1 Montserrat,sans-serif;letter-spacing:.04em;cursor:pointer;box-shadow:0 4px 14px rgba(0,0,0,.3)">🔆 Large print</button>
+<script>
+/* Large-print / white mode: toggle on screen, or open with ?light=1 (used by the kit print pipeline). */
+function lpSyncLogo(on){ try{ document.querySelectorAll('.cover img.logo').forEach(function(im){ var want=on?'../logo.png':'../logo-white-gold.png'; if((im.getAttribute('src')||'')!==want) im.src=want; }); }catch(e){} }
+function lpSet(on){ document.documentElement.classList.toggle('lp',on); var b=document.getElementById('lpToggle'); if(b) b.textContent=on?'◼ Standard view':'🔆 Large print'; lpSyncLogo(on); }
+function lpFlip(){ lpSet(!document.documentElement.classList.contains('lp')); }
+try{ if(/[?&]light=1\b/.test(location.search)) lpSet(true); }catch(e){}
+try{ new MutationObserver(function(){ lpSyncLogo(document.documentElement.classList.contains('lp')); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
+</script>
 
 <div class="wrap">
   <section class="tools no-print">
