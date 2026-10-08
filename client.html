@@ -6120,6 +6120,7 @@ function demoBoot(){
     days:[ {day:1,label:"Everyday",meals:dd.slots.map(function(sl){ var o=sl.options[0];
       return {name:sl.name, slot:sl.name, items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0),
         options:(sl.options||[]).map(function(op){ return {name:op.name||'', items:op.items||[], cal:Math.round(op.cal||0), protein:Math.round(op.protein||0), carbs:Math.round(op.carbs||0), fat:Math.round(op.fat||0)}; }) }; })} ] };
+  try{ var _lmp=JSON.parse(localStorage.getItem('lp_client_mealplan')||'null'); if(_lmp&&_lmp.days&&_lmp.days.length) M.mealplan=_lmp; }catch(e){}   // prefer a self-generated plan over the demo seed
   ID={ name:"Rachel", email:"rachel@demo.legacy", gender:"woman" };
   serverOk=true; applyTheme("charcoal", false); showHome();
 }
@@ -6164,6 +6165,7 @@ function jaymeBoot(){
     days:[ {day:1,label:"Everyday",meals:dd.slots.map(function(sl){ var o=sl.options[0];
       return {name:sl.name, slot:sl.name, items:o.items, cal:Math.round(o.cal), protein:Math.round(o.protein), carbs:Math.round(o.carbs||0), fat:Math.round(o.fat||0),
         options:(sl.options||[]).map(function(op){ return {name:op.name||'', items:op.items||[], cal:Math.round(op.cal||0), protein:Math.round(op.protein||0), carbs:Math.round(op.carbs||0), fat:Math.round(op.fat||0)}; }) }; })} ] };
+  try{ var _lmp=JSON.parse(localStorage.getItem('lp_client_mealplan')||'null'); if(_lmp&&_lmp.days&&_lmp.days.length) M.mealplan=_lmp; }catch(e){}   // if you've generated your own plan, show THAT, not the demo seed
   ID={ name:"Jayme", email:JAYME_EMAIL, gender:"man" };
   try{ saveLS(LS_ID, ID); }catch(e){}
   serverOk=true; applyTheme("charcoal", false); showHome();
