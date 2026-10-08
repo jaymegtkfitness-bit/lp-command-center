@@ -129,14 +129,14 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .ovnm{font-weight:700;font-size:.98rem;color:#fff}
 .ovsr{font-size:.8rem;color:var(--soft);margin-top:3px}
 /* big center workout timer */
-.timer.big{flex-direction:column;gap:9px;align-items:center;text-align:center;background:linear-gradient(160deg,rgba(84,106,70,.18),rgba(20,19,16,.85));padding:14px 14px}
-.timer.big .tk-main{display:flex;flex-direction:column;align-items:center;gap:1px}
-.timer.big .tlab{font-size:.56rem}
-.timer.big .tk-big{font-family:Montserrat,sans-serif;font-weight:900;font-size:2.7rem;color:#fff;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
-.timer.big .tk-restline{display:flex;align-items:center;gap:9px;font-size:.85rem}
-.timer.big .tk-restline .tval{font-size:1.05rem}
-.timer.big .tk-btns{display:flex;gap:10px;width:100%;margin-top:2px}
-.timer.big .tk-btns .tbtn{flex:1;padding:13px;font-size:.92rem}
+.timer.big{flex-direction:column;gap:5px;align-items:center;text-align:center;background:linear-gradient(160deg,rgba(84,106,70,.18),rgba(20,19,16,.85));padding:10px 12px}
+.timer.big .tk-row{display:flex;align-items:center;justify-content:center;gap:12px;width:100%}
+.timer.big .tk-main{display:flex;flex-direction:column;align-items:center;gap:0}
+.timer.big .tlab{font-size:.52rem}
+.timer.big .tk-big{font-family:Montserrat,sans-serif;font-weight:900;font-size:2.3rem;color:#fff;line-height:1;font-variant-numeric:tabular-nums;letter-spacing:.01em}
+.timer.big .tk-row .tbtn{padding:9px 14px;font-size:.76rem;white-space:nowrap}
+.timer.big .tk-restline{display:flex;align-items:center;gap:8px;font-size:.78rem}
+.timer.big .tk-restline .tval{font-size:.95rem}
 /* superset grouping — a labelled connector between two linked exercise cards */
 .kx.ss{border-color:var(--gold-dim)}
 /* Supersetted exercises merge into one continuous tile (shared border, flat inner corners). */
@@ -208,9 +208,10 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
   <div class="navlabel" id="dayLabel" style="display:none">Day</div>
   <div class="nav" id="days"></div>
   <div class="timer big" id="timerBar" style="display:none">
-    <div class="tk-main"><div class="tlab">Workout</div><div class="tk-big" id="wkTime">0:00</div></div>
+    <div class="tk-row"><button class="tbtn" id="startBtn" onclick="toggleWorkoutClock()">Start</button>
+      <div class="tk-main"><div class="tlab">Workout</div><div class="tk-big" id="wkTime">0:00</div></div>
+      <button class="tbtn" id="restBtn" onclick="startRest()">Start rest</button></div>
     <div class="tk-restline"><span class="tlab">Rest</span><span class="tval gold" id="restTime">0:00</span></div>
-    <div class="tk-btns"><button class="tbtn" id="startBtn" onclick="toggleWorkoutClock()">Start</button><button class="tbtn" id="restBtn" onclick="startRest()">Start rest</button></div>
   </div>
   <div id="list"><div class="load">Loading your program…</div></div>
 </main>
