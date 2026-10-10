@@ -285,8 +285,8 @@ header{background:transparent;padding:14px 18px 8px;display:flex;align-items:cen
 #bootLoader .bl-logo{width:56vw;max-width:340px;height:auto;filter:drop-shadow(0 8px 26px rgba(0,0,0,.5))}
 #bootLoader .bl-spin{position:absolute;left:calc(50% - 13px);bottom:14%;width:26px;height:26px;border-radius:50%;border:3px solid rgba(193,173,114,.2);border-top-color:var(--gold);opacity:0;animation:blspin .8s linear infinite, blfade .5s ease .7s forwards}
 #bootLoader .bl-txt{display:none}
-#bootLoader .bl-wb{position:absolute;left:0;right:0;top:66.5%;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;opacity:0;transform:translateY(20px);animation:blslide .55s cubic-bezier(.2,.7,.2,1) .35s forwards}
-#bootLoader .bl-hi{font-family:'Cinzel',Georgia,serif;font-size:.92rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-soft,#d8c07a);font-weight:600}
+#bootLoader .bl-wb{position:absolute;left:0;right:0;top:69.5%;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;opacity:0;transform:translateY(20px);animation:blslide .55s cubic-bezier(.2,.7,.2,1) .35s forwards}
+#bootLoader .bl-hi{font-family:'Cinzel',Georgia,serif;font-size:.92rem;letter-spacing:.24em;text-transform:uppercase;color:rgba(255,255,255,.86);font-weight:600}
 #bootLoader .bl-name{font-family:Montserrat,sans-serif;font-weight:900;font-size:2.2rem;text-transform:uppercase;color:#fff;letter-spacing:.005em;line-height:1}
 @keyframes blrise{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
 @keyframes blslide{to{opacity:1;transform:translateY(0)}}
@@ -1164,20 +1164,10 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 </head>
 <body>
 <div class="appbg"></div>
-<!-- Portrait lock: keep the app vertical. Manifest orientation + a screen-lock attempt handle
-     installed PWAs/Android; this overlay covers iOS Safari, where orientation can't be locked. -->
-<style>
-#rotateLock{display:none}
-@media screen and (orientation:landscape) and (max-height:520px){
-  #rotateLock{display:flex;position:fixed;inset:0;z-index:10000;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#0e0d0b;color:#F2EDE4;text-align:center;padding:24px}
-  #rotateLock .rl-ico{font-size:2.8rem;animation:rlspin 1.6s ease-in-out infinite}
-  #rotateLock .rl-h{font-family:Montserrat,sans-serif;font-weight:900;text-transform:uppercase;font-size:1.1rem;letter-spacing:.04em}
-  #rotateLock .rl-s{font-size:.9rem;color:#a49d90;line-height:1.5;max-width:300px}
-}
-@keyframes rlspin{0%,100%{transform:rotate(0)}50%{transform:rotate(-90deg)}}
-</style>
-<div id="rotateLock"><div class="rl-ico">📱</div><div class="rl-h">Rotate to portrait</div><div class="rl-s">Legacy works upright — turn your phone vertical to keep going.</div></div>
-<script>try{ if(screen.orientation && screen.orientation.lock){ screen.orientation.lock('portrait').catch(function(){}); } }catch(e){}</script>
+<!-- Portrait lock: the installed home-screen app is locked to portrait via the web manifest
+     (orientation:portrait) plus a screen-orientation lock. It simply does not rotate — no prompt. -->
+<script>(function(){ function lock(){ try{ if(screen.orientation && screen.orientation.lock) screen.orientation.lock('portrait').catch(function(){}); }catch(e){} }
+  lock(); try{ window.addEventListener('orientationchange', lock); if(screen.orientation && screen.orientation.addEventListener) screen.orientation.addEventListener('change', lock); }catch(e){} })();</script>
 <div id="bootLoader"><img class="bl-logo" src="logo-splash.png" alt="Legacy Performance"><div class="bl-wb" id="blWelcome" style="display:none"><span class="bl-hi">Welcome back,</span><span class="bl-name" id="blName"></span></div><div class="bl-spin"></div></div>
 <div class="safe"></div>
 <header>
