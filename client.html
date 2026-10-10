@@ -277,18 +277,19 @@ header{background:transparent;padding:14px 18px 8px;display:flex;align-items:cen
 /* first-load skeleton — branded loading state instead of a blank screen while the first
    data fetch runs. Hidden as soon as any real screen renders (see show()). */
 /* App launch / splash screen — big logo on the branded background, like a native app */
-#bootLoader{position:fixed;inset:0;z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:34px;
-  background:
-    radial-gradient(ellipse 120% 60% at 0% 100%, rgba(74,92,62,.44), transparent 76%),
-    radial-gradient(ellipse 92% 46% at 100% 100%, rgba(193,173,114,.15), transparent 72%),
-    linear-gradient(180deg,#141311 0%,#0e0d0b 55%,#08090a 100%)}
-#bootLoader .bl-logo{width:min(58vw,232px);height:auto;opacity:0;filter:drop-shadow(0 8px 26px rgba(0,0,0,.5));animation:blrise .7s cubic-bezier(.2,.7,.2,1) forwards}
-#bootLoader .bl-spin{width:26px;height:26px;border-radius:50%;border:3px solid rgba(193,173,114,.2);border-top-color:var(--gold);animation:blspin .8s linear infinite;opacity:0;animation:blspin .8s linear infinite, blfade .5s ease .5s forwards}
+/* The in-app splash is a seamless continuation of the iOS launch image: SAME logo, centered,
+   same dark gradient, NO re-animation — so there's no visible second screen. The "Welcome back,"
+   line then slides up underneath the logo, and the whole thing fades to the app. */
+#bootLoader{position:fixed;inset:0;z-index:200;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg,#141311 0%,#08090a 100%)}
+#bootLoader .bl-logo{width:56vw;max-width:340px;height:auto;filter:drop-shadow(0 8px 26px rgba(0,0,0,.5))}
+#bootLoader .bl-spin{position:absolute;left:calc(50% - 13px);bottom:14%;width:26px;height:26px;border-radius:50%;border:3px solid rgba(193,173,114,.2);border-top-color:var(--gold);opacity:0;animation:blspin .8s linear infinite, blfade .5s ease .7s forwards}
 #bootLoader .bl-txt{display:none}
-#bootLoader .bl-wb{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;opacity:0;animation:blrise .7s cubic-bezier(.2,.7,.2,1) .18s forwards}
+#bootLoader .bl-wb{position:absolute;left:0;right:0;top:66.5%;display:flex;flex-direction:column;align-items:center;gap:6px;text-align:center;opacity:0;transform:translateY(20px);animation:blslide .55s cubic-bezier(.2,.7,.2,1) .35s forwards}
 #bootLoader .bl-hi{font-family:'Cinzel',Georgia,serif;font-size:.92rem;letter-spacing:.24em;text-transform:uppercase;color:var(--gold-soft,#d8c07a);font-weight:600}
 #bootLoader .bl-name{font-family:Montserrat,sans-serif;font-weight:900;font-size:2.2rem;text-transform:uppercase;color:#fff;letter-spacing:.005em;line-height:1}
 @keyframes blrise{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
+@keyframes blslide{to{opacity:1;transform:translateY(0)}}
 @keyframes blfade{to{opacity:.9}}
 @keyframes blspin{to{transform:rotate(360deg)}}
 /* Embedded workout — the assigned program lives inside the Workouts tab (member experience). */
@@ -1125,7 +1126,7 @@ nav.ctabs .ctab-coach .navshield img{width:2.5rem!important;height:2.5rem!import
   :root{font-size:17px!important}
   .wrap{max-width:30rem!important;margin-left:auto!important;margin-right:auto!important}
   header{max-width:30rem!important;margin-left:auto!important;margin-right:auto!important}
-  #bootLoader .bl-logo{width:200px!important}
+  #bootLoader .bl-logo{width:56vw!important;max-width:340px!important}
 }
 /* ===== ARC TIMELINE FIX: the goal-arc segments use class names .dt/.br which collide with the
    Kino card classes (.dt{border-radius:22px;padding...}). Reset them so the bar renders as a thin bar. ===== */
