@@ -2580,7 +2580,7 @@ function buildModel(server){
       priorities:String(sin['Priorities']||'').split('>').map(function(s){return s.trim();}).filter(Boolean),
       extragoals:String(sin['Extra goals']||'').split(',').map(function(s){return s.trim();}).filter(Boolean),
       interests:String(sin['Interests']||'').split(',').map(function(s){return s.trim();}).filter(Boolean) }
-    : ((lin&&lin.done)?lin:null);
+    : ((lin&&lin.done && !serverOk)?lin:null);   // server is authoritative: if it's reachable and shows no intake, the account is fresh → onboard (don't resurrect a stale device copy)
   // controllable targets: coach/client-set calorie + protein override (server wins, else local). Falls back to the formula.
   var ovCal=sin?num(sin['Target calories']):null, ovPro=sin?num(sin['Target protein']):null, ovBy=(sin&&sin['Targets by'])||'';
   var lov=loadLS(LS_TARGETS,"null");
@@ -6333,7 +6333,7 @@ function boot(){
     if(server){
       if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
       buildModel(server);
-      if(!M.intake && !M.checkins.length){ obStart(); } else { showHome(); checkSetupParam(); }
+      if(window.FORCE_ONBOARD || (!M.intake && !M.checkins.length)){ obStart(); } else { showHome(); checkSetupParam(); }
     } else { showHome(); }   // nothing came back and nothing cached: still show what is on the device
   });
 }
@@ -6545,6 +6545,9 @@ function setupDemoBoot(){
   if(getParam('jayme') || (function(){ try{ return localStorage.getItem('lp_preview_acct')==='jayme'; }catch(e){ return false; } })()){ jaymeBoot(); return; }
   // ?fresh=1 → wipe this device's saved data and start a brand-new experience (for testing/demos).
   if(getParam('fresh')){ try{ ['lp_client_id','lp_client_token','lp_client_log','lp_client_pr','lp_client_note','lp_client_monthly','lp_client_quarterly','lp_client_intake','lp_client_deep'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} }
+  // ?restart=1 → stay signed in, but clear this device's client data and walk the FULL onboarding again
+  // from the top (welcome → … → gates → roadmap → tour). Opt-in only; nobody hits it by accident.
+  if(getParam('restart')){ try{ ['lp_client_log','lp_client_pr','lp_client_note','lp_client_monthly','lp_client_quarterly','lp_client_intake','lp_client_deep','lp_client_onboard','lp_ob_gates','lp_ob_eatmap','lp_client_booked','lp_client_cache','lp_client_stddone','lp_client_mealplan','lp_client_foods','lp_client_targets'].forEach(function(k){ localStorage.removeItem(k); }); }catch(e){} window.FORCE_ONBOARD=true; }
   // ?preview=1 → the constraint-engine test bench. Never renders without the flag, so a real client
   // can't reach it. Each persona drives the REAL engine on the REAL page — not a mock.
   if(getParam('preview')){ startPreview(); return; }
@@ -6561,7 +6564,7 @@ function setupDemoBoot(){
         saveLS(LS_ID, ID);
         if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
         buildModel(server);
-        if(!M.intake && !M.checkins.length){ obStart(); } else { showHome(); checkSetupParam(); }
+        if(window.FORCE_ONBOARD || (!M.intake && !M.checkins.length)){ obStart(); } else { showHome(); checkSetupParam(); }
       } else if(ID && ID.email){ boot(); }
       else if(server){ buildModel(server); showHome(); }   // cached copy without an email row
       else { show("onboard"); }
