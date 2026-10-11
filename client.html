@@ -1283,6 +1283,86 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
     </div>
   </section>
 
+  <!-- ============ LOCKED ONBOARDING — the one path everyone walks post-checkout ============ -->
+  <style>
+    .ob-lead{font-size:18px;font-weight:700;color:var(--ink);line-height:1.35;margin:0 0 12px}
+    .ob-how{margin:16px 0;border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    .ob-how .ob-row{display:flex;gap:12px;padding:13px 14px;border-bottom:1px solid var(--line)}
+    .ob-how .ob-row:last-child{border-bottom:0}
+    .ob-how .ob-rk{flex:0 0 76px;font-weight:800;color:var(--gold);font-size:12px;letter-spacing:.04em;text-transform:uppercase}
+    .ob-how .ob-rv{flex:1;font-size:14px;line-height:1.4}
+    .ob-how .ob-rv b{color:var(--ink)}
+    .ob-note{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--olive);border-radius:10px;padding:12px 14px;margin:14px 0;font-size:14px;line-height:1.45}
+    .ob-weeks{margin:4px 0 6px;counter-reset:w}
+    .ob-week{position:relative;padding:14px 14px 14px 56px;border:1px solid var(--line);border-radius:14px;margin-bottom:10px}
+    .ob-week:before{counter-increment:w;content:"WK " counter(w);position:absolute;left:10px;top:14px;width:36px;font-weight:800;color:var(--gold);font-size:12px;line-height:1.1}
+    .ob-week h4{margin:0 0 3px;font-size:15px;color:var(--ink)}
+    .ob-week p{margin:0;font-size:13.5px;line-height:1.4;color:var(--muted)}
+    .ob-day{border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:12px}
+    .ob-day .ob-dh{font-weight:800;font-size:14px;color:var(--ink);margin-bottom:2px}
+    .ob-day .ob-dhint{font-size:12px;color:var(--muted);margin-bottom:10px}
+    .ob-day label{display:block;font-size:11.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:var(--gold);margin:8px 0 4px}
+    .ob-day textarea{width:100%;box-sizing:border-box}
+    .ob-gate{display:flex;align-items:flex-start;gap:11px;padding:13px 4px;border-bottom:1px solid var(--line)}
+    .ob-gate:last-of-type{border-bottom:0}
+    .ob-gate .ob-gck{flex:0 0 24px;height:24px;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:14px;color:#fff;margin-top:1px;transition:.15s}
+    .ob-gate.done .ob-gck{background:var(--olive);border-color:var(--olive)}
+    .ob-gate .ob-gmain{flex:1;min-width:0}
+    .ob-gate .ob-glabel{font-size:14px;font-weight:600;line-height:1.3;color:var(--ink)}
+    .ob-gate.done .ob-glabel{color:var(--muted)}
+    .ob-gate .ob-gsub{font-size:12px;color:var(--muted);margin-top:2px}
+    .ob-gate .ob-glink{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--gold);text-decoration:none;border:1px solid var(--gold);border-radius:7px;padding:3px 9px}
+    .ob-gate .ob-gfile{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:var(--gold);border:1px solid var(--gold);border-radius:7px;padding:3px 9px;cursor:pointer}
+    .ob-gate .ob-gfile input{display:none}
+    .ob-ghead{font-size:12px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:var(--gold);margin:20px 0 2px;padding-top:12px;border-top:1px solid var(--line)}
+    .ob-ghead:first-of-type{border-top:0;padding-top:4px;margin-top:4px}
+    .ob-gwhy{font-size:13px;line-height:1.45;color:var(--muted);margin:2px 0 6px;max-width:60ch}
+    .ob-tour{border:1px solid var(--line);border-radius:14px;overflow:hidden;margin:4px 0 2px}
+    .ob-tour .ob-trow{display:flex;gap:13px;align-items:flex-start;padding:14px 14px;border-bottom:1px solid var(--line)}
+    .ob-tour .ob-trow:last-child{border-bottom:0}
+    .ob-tour .ob-tico{flex:0 0 38px;height:38px;border-radius:10px;background:var(--surface-2);display:flex;align-items:center;justify-content:center}
+    .ob-tour .ob-tico svg{width:21px;height:21px;fill:none;stroke:var(--gold)}
+    .ob-tour .ob-tico img{width:22px;height:22px;object-fit:contain}
+    .ob-tour .ob-tv{flex:1;min-width:0}
+    .ob-tour .ob-tn{font-size:15px;font-weight:800;color:var(--ink);margin-bottom:1px}
+    .ob-tour .ob-td{font-size:13px;line-height:1.4;color:var(--muted)}
+    .ob-prog2{display:flex;align-items:center;gap:10px;margin:6px 0 2px}
+    .ob-prog2 .ob-bar{flex:1;height:7px;background:var(--line);border-radius:5px;overflow:hidden}
+    .ob-prog2 .ob-fill{height:100%;background:var(--gold);border-radius:5px;transition:.3s}
+    .ob-prog2 span{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+  </style>
+
+  <section id="obwelcome" class="hidden">
+    <div class="eyebrow" id="obwEyebrow">Welcome to Built 4 More</div>
+    <h1 id="obwTitle">You're in.</h1>
+    <div class="card"><div id="obwBody"></div></div>
+  </section>
+
+  <section id="obmap" class="hidden">
+    <div class="eyebrow">The map</div>
+    <h1>Your first four weeks</h1>
+    <div class="card"><div id="obmapBody"></div></div>
+  </section>
+
+  <section id="obeating" class="hidden">
+    <div class="eyebrow">Your eating map</div>
+    <h1>How you actually eat</h1>
+    <div class="wiz-bar"><div class="wiz-fill" id="obeatFill"></div></div>
+    <div class="card"><div id="obeatBody"></div></div>
+  </section>
+
+  <section id="obgates" class="hidden">
+    <div class="eyebrow">Earn your roadmap call</div>
+    <h1>Before we build</h1>
+    <div class="card"><div id="obgateBody"></div></div>
+  </section>
+
+  <section id="obtour" class="hidden">
+    <div class="eyebrow">Your app</div>
+    <h1>Here's where everything lives</h1>
+    <div class="card"><div id="obtourBody"></div></div>
+  </section>
+
   <!-- ============ HOME ============ -->
   <section id="home" class="hidden">
     <div class="eyebrow" id="homeEyebrow">This week</div>
@@ -2341,7 +2421,7 @@ function hideBootLoader(){ if(_blHidden) return; var bl=g("bootLoader"); if(!bl)
 function show(idOn){ CUR_SECTION=idOn;
   if(typeof ID!=='undefined' && ID && ID.name) setBootName(ID.name);
   hideBootLoader();
-  ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
+  ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder","obwelcome","obmap","obeating","obgates","obtour"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
 /* ---- Top "‹ Back" on every drill-in screen (Home uses the bottom nav, so it's excluded). One shared
    button, moved to the top of whatever screen is showing. On the multi-step flows it steps back a step;
    everywhere else it exits to Home. Subtle by design — present, not in the way. */
@@ -3993,9 +4073,10 @@ var DEEP={}, DEEP_I=0;
 
 var DEEP_BLOCKS=[
  {key:"goals", title:"Your goals", intro:"Five minutes of honesty here is worth more than five hours of tracking later.", qs:[
-  {k:"goalwords", t:"textarea", q:"In your own words, what are you actually after?"},
+  {k:"goalwords", t:"textarea", q:"In your own words, what are you actually after?", hint:"Go past the scale. If you got this, what does it actually give you?"},
+  {k:"deepwhy",   t:"multi", q:"Beyond the body — what's this really about?", hint:"Pick everything that's true. This is the part that keeps you going when motivation runs out.", opts:["Energy that lasts the whole day","Keeping up with my kids or grandkids","Being around and healthy for my family for the long haul","Confidence in my own skin again","Showing up stronger as a leader","Getting off the diet rollercoaster for good","Mental clarity and focus","Mood, stress, and resilience","Setting an example for the people I love","Stewarding the body I've been given","Performance — sport, training, physical demands","Better health markers / bloodwork"]},
   {k:"whynow",    t:"textarea", q:"Why now?", hint:"What made this the moment? Be honest — something usually happened."},
-  {k:"picture",   t:"textarea", q:"Twelve weeks from now — what's different?", hint:"Not the number on the scale. What's different in your day."},
+  {k:"picture",   t:"textarea", q:"Twelve weeks from now — what's different?", hint:"Not the number on the scale. Your mindset, your energy, your confidence, your family, how you lead and show up — paint the picture."},
   {k:"keydate",   t:"date",     q:"Is there a date that matters?", hint:"Optional — a trip, a wedding, a physical, a birthday."},
   {k:"readiness", t:"scale", min:1, max:10, q:"How ready are you to change how you eat, starting this week?", lo:"Not really", hi:"All in"},
   {k:"tried",     t:"multi", q:"What have you already tried?", opts:["Calorie counting","Keto / low carb","Intermittent fasting","Weight Watchers or points","Tracking macros","A coach or trainer","Meal delivery","A GLP-1 medication","Cleanses or detoxes","Nothing formal — just eating better"]},
@@ -4154,6 +4235,7 @@ function renderDeep(){
     + deepQs(b).map(deepQHTML).join("")
     + '<div class="dp-skip">Skip anything you\'d rather not answer — only what\'s marked <b>needed</b> is required.</div>';
   g("deepBackBtn").style.visibility = DEEP_I===0?"hidden":"visible";
+  g("deepNextBtn").onclick = deepNext;   // reset: deepFinish() mutates this shared button; always restore Next on a real block
   g("deepNextBtn").textContent = DEEP_I===L.length-1 ? "Finish & build my system →" : "Next";
   g("deepStatus").textContent="";
 }
@@ -4197,10 +4279,11 @@ function deepFinish(){
   g("deepFill").style.width="100%";
   g("deepIntro").style.display="none";
   g("deepBody").innerHTML = readHTML(M.intake,{})
-    + '<div class="dp-fin" style="margin-top:16px">That\'s your system. Everything in your dashboard is now built off these answers — your numbers, your plan, your check-ins, and what your coach sees.</div>';
+    + '<div class="dp-fin" style="margin-top:16px">That\'s your read. Everything in your dashboard is now built off these answers — your numbers, your plan, your check-ins, and what your coach sees.'
+    + (OB_MODE?' One more piece and we’re through: your real eating map.':'')+'</div>';
   g("deepBackBtn").style.visibility="hidden";
-  g("deepNextBtn").textContent="Go to my dashboard →";
-  g("deepNextBtn").onclick=function(){ g("deepNextBtn").onclick=null; showHome(); };
+  g("deepNextBtn").textContent = OB_MODE ? "Next: your eating map →" : "Go to my dashboard →";
+  g("deepNextBtn").onclick=function(){ g("deepNextBtn").onclick=null; if(OB_MODE){ showObEating(); } else { showHome(); } };
   window.scrollTo(0,0);
 }
 /* One JSON column on the client's Intake row (same pattern as type:mealplan's Plan blob) +
@@ -4211,6 +4294,197 @@ async function postDeep(done){
     deep:JSON.stringify(DEEP), deepdone:done?"Yes":"", constraint:c.name||"", constraintkey:c.key||"",
     whynow:DEEP.whynow||"", inway:DEEP.inway||"", coachstyle:DEEP.coachstyle||"", readiness:DEEP.readiness||"" });
 }
+
+/* ============================ LOCKED ONBOARDING FLOW ============================
+   One path everyone walks after checkout (BFM, membership, workshop). Order:
+   1 Welcome packet · 2 Your first 4 weeks · 3 Readiness Assessment (wizard →
+   The Read) · 4 Health intake (deep) · 5 Your eating map · 6 The gates → book the
+   roadmap call. OB_MODE re-threads the end of the wizard + deep into this sequence
+   instead of dropping to Home, and turns the booking screen into the roadmap call. */
+var OB_MODE=false;
+var LS_OBEAT="lp_ob_eatmap", LS_OBGATE="lp_ob_gates";
+function obFirst(){ var n=(ID&&ID.name)||""; n=n.replace(/^Preview\s*[—-]\s*/,"").trim(); return n?n.split(" ")[0]:"friend"; }
+function obStart(){ OB_MODE=true; showObWelcome(); }
+function obSkoolLink(){ return CONFIG.upgradeUrl || (typeof skoolAppLink==="function"?skoolAppLink():CONFIG.skoolAppUrl) || "#"; }
+
+/* ---- 1. Welcome packet ---- */
+function showObWelcome(){
+  var fn=esc(obFirst()), coach=esc(CONFIG.coachName||"Jayme");
+  var h='<p class="ob-lead">Welcome, '+fn+'. You just did the hard part — you took action.</p>'
+    +'<p>Built 4 More isn\'t another plan you\'ll start Monday and quit by Thursday.</p>'
+    +'<p>Together we\'re going to build you a <b>personal health operating system</b> you\'re going to use for the rest of your life, built around your real world: your faith, your family, your leadership, and the body you\'ve been given to steward.</p>'
+    +'<p>You run it in two places, and they do different jobs:</p>'
+    +'<div class="ob-how">'
+      +'<div class="ob-row"><div class="ob-rk">This app</div><div class="ob-rv"><b>Your tool. This is where you take action.</b> Read your numbers, follow your plan, complete your weekly check-in, log your proof, and open the resources for your next move. If it’s something to <i>do</i>, it lives here.</div></div>'
+      +'<div class="ob-row"><div class="ob-rk">Skool</div><div class="ob-rv"><b>Your community &amp; education hub.</b> The teaching behind every move, the group walking it with you, and the live calls. When you want the <i>why</i>, or want to go deeper, that’s where you go.</div></div>'
+      +'<div class="ob-row"><div class="ob-rk">Your coach</div><div class="ob-rv"><b>The heartbeat.</b> You check in each Saturday. '+coach+' reads it and comes back with your next move by Thursday. Chat’s open all week.</div></div>'
+    +'</div>'
+    +'<div class="ob-note"><b>One rule for this first stretch:</b> follow the steps in order and don’t skip ahead. Don’t try to learn everything before you start. We follow the steps, we ask questions, we take action.</div>'
+    +'<div class="ob-note"><b>Here\'s the promise:</b> we build the house before we cut. You\'ll eat <b>more</b>, train hard, and teach your body to trust food again — and the jeans get loose before the scale ever moves. Deficits are earned. This is where you earn yours.</div>'
+    +'<p class="wiz-hint">Next: the exact map of your first four weeks, so nothing\'s a surprise.</p>'
+    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showObMap()">Show me the 4 weeks →</button></div>';
+  g("obwBody").innerHTML=h; show("obwelcome");
+}
+
+/* ---- 2. Your first four weeks ---- */
+function showObMap(){
+  var coach=esc(CONFIG.coachName||"Jayme");
+  var h='<p>No numbers on day one. We <b>earn</b> them. Four weeks to build a true picture of how your body actually runs — then the fat-loss phase is the easy part.</p>'
+    +'<div class="ob-weeks">'
+      +'<div class="ob-week"><h4>Honest baseline — blind</h4><p>You log food and weigh daily with every number hidden. No targets, no judgment. Just eat honestly so we get a true read of what\'s really going in.</p></div>'
+      +'<div class="ob-week"><h4>Eat the average</h4><p>Calories + protein turn on; fat and carbs stay hidden. Your only job: hit the average from week 1 and your protein number.</p></div>'
+      +'<div class="ob-week"><h4>Close the gaps</h4><p>We tighten protein and produce — the two that do the heavy lifting. Still building, not cutting.</p></div>'
+      +'<div class="ob-week"><h4>Close gaps + prep the deficit</h4><p>Lock the habits, finish the picture, and set up the fat-loss phase from a position of strength.</p></div>'
+    +'</div>'
+    +'<div class="ob-note"><b>Maintenance first — we build the house.</b> You can\'t cut from an unknown or from an already-underfed baseline. So we build the one you\'ll live in forever first: fuel your training, build muscle, trust food again. Then the deficit is short, strong, and it sticks.</div>'
+    +'<div class="ob-note" style="border-left-color:var(--gold)"><b>The weekly rhythm, from here on:</b> you check in Saturday or Sunday → '+coach+' reviews it → your adjustment, the reason, and the plan come back <b>by Thursday</b>. Chat\'s open all week.</div>'
+    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showWizard()">Start my Readiness Assessment →</button>'
+      +'<button class="btn btn-ghost" onclick="showObWelcome()">← Back</button></div>';
+  g("obmapBody").innerHTML=h; show("obmap");
+}
+
+/* ---- 5. Your eating map (its own screen) ---- */
+var OB_DAYS=[
+  {k:"wd_best",  label:"Weekday — your best day",   hint:"Dialed in, home, on plan."},
+  {k:"wd_avg",   label:"Weekday — an average day",  hint:"The real normal — most days look like this."},
+  {k:"wd_worst", label:"Weekday — your worst day",  hint:"Busy, stressed, off the rails."},
+  {k:"we_best",  label:"Weekend — your best day",   hint:"A good Saturday."},
+  {k:"we_worst", label:"Weekend — your worst day",  hint:"The one that undoes the week."}
+];
+var OBEAT={};
+function showObEating(){
+  OBEAT=loadLS(LS_OBEAT,"{}")||{};
+  var h='<p>Not the perfect-world version — the <b>real</b> one. Give me a few real days and I\'ll build your system around what you already do, then make small changes. Rough notes are fine.</p>';
+  OB_DAYS.forEach(function(d){
+    var v=OBEAT[d.k]||{};
+    h+='<div class="ob-day">'
+      +'<div class="ob-dh">'+esc(d.label)+'</div><div class="ob-dhint">'+esc(d.hint)+'</div>'
+      +'<label>Breakfast</label><textarea class="input" rows="2" id="oe_'+d.k+'_b" placeholder="What + when, roughly">'+esc(v.b||"")+'</textarea>'
+      +'<label>Lunch</label><textarea class="input" rows="2" id="oe_'+d.k+'_l" placeholder="What + when, roughly">'+esc(v.l||"")+'</textarea>'
+      +'<label>Dinner</label><textarea class="input" rows="2" id="oe_'+d.k+'_d" placeholder="What + when, roughly">'+esc(v.d||"")+'</textarea>'
+      +'<label>Snacks, drinks, timing — the rest</label><textarea class="input" rows="2" id="oe_'+d.k+'_x" placeholder="Coffee, alcohol, grazing, late-night, meals out…">'+esc(v.x||"")+'</textarea>'
+    +'</div>';
+  });
+  h+='<div class="actions" style="margin-top:6px"><button class="btn btn-primary btn-big" onclick="obEatNext()">Lock in my eating map →</button>'
+    +'<button class="btn btn-ghost" onclick="obEatSave();showHome()">Save &amp; finish later</button></div>';
+  g("obeatBody").innerHTML=h;
+  g("obeatFill").style.width="0%"; show("obeating"); obEatProgress();
+}
+function obEatCollect(){
+  OB_DAYS.forEach(function(d){
+    var o=OBEAT[d.k]||{};
+    ["b","l","d","x"].forEach(function(s){ var el=g("oe_"+d.k+"_"+s); if(el) o[s]=el.value.trim(); });
+    OBEAT[d.k]=o;
+  });
+}
+function obEatProgress(){
+  obEatCollect(); var done=0;
+  OB_DAYS.forEach(function(d){ var o=OBEAT[d.k]||{}; if((o.b||o.l||o.d||o.x)) done++; });
+  var el=g("obeatFill"); if(el) el.style.width=(done/OB_DAYS.length*100).toFixed(0)+"%";
+}
+function obEatSave(){ obEatCollect(); saveLS(LS_OBEAT,OBEAT); M.eatmap=OBEAT;
+  postToSheet({type:"eatmap", email:(ID&&ID.email)||"", ts:new Date().toISOString(), eatmap:JSON.stringify(OBEAT)}); }
+function obEatNext(){ obEatSave(); showObGates(); }
+
+/* ---- 6. The gates — earn the roadmap call. Operating-Order style: sequenced gates,
+   each with a plain WHY, finite. Gate 1 links to the existing onboarding pages
+   (Standards + agreement); email carries the direction, this is where it gets done. ---- */
+var OB_GATES=[
+  {g:"Gate 1 · Set the standard", why:"Who we are, how we work, and what we expect of each other. This is the agreement you make with yourself — everything we build sits on top of it.",
+   k:"standards", label:"Read the Legacy Standards", sub:"About five minutes. Read it, don’t skim — then acknowledge at the bottom.", link:"onboarding/standards.html", lt:"Read →"},
+  {g:"Gate 1 · Set the standard",
+   k:"agreement", label:"Sign your agreement", sub:"The commitment, in writing, both ways.", link:"onboarding/agreement.html", lt:"Sign →"},
+
+  {g:"Gate 2 · Get in the room", why:"The community keeps you moving, and your intro is where your real start happens. Don’t overthink it — just show up.",
+   k:"skool", label:"Download Skool & turn on notifications", linkFn:"skoolAppLink", lt:"Get it →"},
+  {g:"Gate 2 · Get in the room",
+   k:"intro", label:"Post your intro in the community", sub:"Who you are, what you’re after, and that you’ve read the Standards.", linkFn:"obSkoolLink", lt:"Open →"},
+
+  {g:"Gate 3 · Set your numbers", why:"Five dials you’ll run for the rest of your life. Read each one, then set your number — most are already set for you here in the app.",
+   k:"p_protein", label:"Protein — read it, set your floor", sub:"Your floor is mostly set for you in the app.", linkFn:"obSkoolLink", lt:"Read →"},
+  {g:"Gate 3 · Set your numbers", k:"p_cal",     label:"Calories — read it, know your target", sub:"Your starting number lives on your Home screen.", linkFn:"obSkoolLink", lt:"Read →"},
+  {g:"Gate 3 · Set your numbers", k:"p_produce", label:"Produce — read it, set your number", sub:"The one most people have to work up to.", linkFn:"obSkoolLink", lt:"Read →"},
+  {g:"Gate 3 · Set your numbers", k:"p_water",   label:"Water — read it, set your number", linkFn:"obSkoolLink", lt:"Read →"},
+  {g:"Gate 3 · Set your numbers", k:"p_steps",   label:"Steps & sleep — read it", sub:"The two that quietly run everything.", linkFn:"obSkoolLink", lt:"Read →"},
+
+  {g:"Gate 4 · Show your work", why:"Your roadmap call hands you information you’re not ready for until we have a true baseline. Proof is how we both know you’re ready.",
+   k:"proof_sleep", label:"Upload your 7-day sleep average", sub:"A screenshot from your watch or phone.", proof:true},
+  {g:"Gate 4 · Show your work", k:"proof_steps", label:"Upload your 7-day steps average", sub:"A screenshot from your watch or phone.", proof:true}
+];
+var OBG={};
+function showObGates(){
+  OBG=loadLS(LS_OBGATE,"{}")||{};
+  var coach=esc(CONFIG.coachName||"Jayme");
+  var h='<p>Four gates, in order — and the order is the point. Each one earns the next, and the whole thing is finite. The roadmap call hands you information you’re not ready for until the groundwork is done, so we do the groundwork first. Clear these and the call unlocks — usually about four days in.</p>'
+    +'<div class="ob-prog2"><div class="ob-bar"><div class="ob-fill" id="obgFill"></div></div><span id="obgCount"></span></div>';
+  var lastG="";
+  OB_GATES.forEach(function(it){
+    if(it.g!==lastG){ h+='<div class="ob-ghead">'+esc(it.g)+'</div>'; if(it.why) h+='<div class="ob-gwhy">'+esc(it.why)+'</div>'; lastG=it.g; }
+    var done=!!OBG[it.k];
+    var link="";
+    if(it.linkFn && typeof window[it.linkFn]==="function"){ var u=window[it.linkFn](); if(u&&u!=="#") link='<a class="ob-glink" href="'+esc(u)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+esc(it.lt||"Open →")+'</a>'; }
+    else if(it.link){ link='<a class="ob-glink" href="'+esc(it.link)+'" target="_blank" rel="noopener" onclick="event.stopPropagation()">'+esc(it.lt||"Open →")+'</a>'; }
+    var proof = it.proof ? '<label class="ob-gfile" onclick="event.stopPropagation()">'+(done?"Replace":"Upload")+' photo<input type="file" accept="image/*" capture="environment" onchange="obGateProof(\''+it.k+'\',this)"></label>' : '';
+    h+='<div class="ob-gate'+(done?" done":"")+'" onclick="obGateToggle(\''+it.k+'\')">'
+      +'<div class="ob-gck">'+(done?"✓":"")+'</div>'
+      +'<div class="ob-gmain"><div class="ob-glabel">'+esc(it.label)+'</div>'
+      +(it.sub?'<div class="ob-gsub">'+esc(it.sub)+'</div>':'')
+      +link+proof+'</div></div>';
+  });
+  h+='<div class="actions" style="margin-top:18px"><button class="btn btn-primary btn-big" id="obgBookBtn" onclick="obGateBook()">Book my roadmap call →</button>'
+    +'<p class="ra-underbtn" id="obgBookNote">A few boxes left — clear them and this unlocks.</p>'
+    +'<button class="btn btn-ghost" onclick="obEatSave?obEatSave():0;showHome()">I\'ll finish these from my dashboard</button></div>';
+  g("obgateBody").innerHTML=h; show("obgates"); obGateRefresh();
+}
+function obGateCount(){ return OB_GATES.filter(function(it){ return !!OBG[it.k]; }).length; }
+function obGateRefresh(){
+  var done=obGateCount(), total=OB_GATES.length;
+  var f=g("obgFill"); if(f) f.style.width=(done/total*100).toFixed(0)+"%";
+  var c=g("obgCount"); if(c) c.textContent=done+" of "+total;
+  var btn=g("obgBookBtn"), note=g("obgBookNote");
+  var open=done>=total;
+  if(btn){ btn.disabled=!open; btn.style.opacity=open?"1":".45"; btn.style.pointerEvents=open?"":"none"; }
+  if(note) note.textContent = open ? "You’re ready. Grab your time." : ((total-done)+" left — clear them and this unlocks.");
+}
+function obGateToggle(k){
+  OBG[k]=!OBG[k]; saveLS(LS_OBGATE,OBG);
+  var row=event&&event.currentTarget; if(row){ row.classList.toggle("done",!!OBG[k]); var ck=row.querySelector(".ob-gck"); if(ck) ck.textContent=OBG[k]?"✓":""; }
+  obGatePost(); obGateRefresh();
+}
+function obGateProof(k,input){
+  var f=input&&input.files&&input.files[0]; if(!f) return;
+  OBG[k]=true; saveLS(LS_OBGATE,OBG);
+  postToSheet({type:"proof", email:(ID&&ID.email)||"", ts:new Date().toISOString(), proof:k, filename:f.name||""});
+  showObGates();   // re-render so the row flips to done + button updates
+}
+function obGatePost(){ postToSheet({type:"onboarding", email:(ID&&ID.email)||"", completed:Object.keys(OBG).filter(function(k){return OBG[k];}) }); }
+function obGateBook(){ if(obGateCount()<OB_GATES.length) return; showBooking(); }
+
+/* ---- 8. The tab tour — runs once, right after they book, before they land in the app.
+   One screen, Bolt-style: what each tab is for, so nothing's a folder to get lost in. ---- */
+var OB_TOUR=[
+  {n:"Home", svg:'<path d="M3 10.5L12 3l9 7.5M5 9.5V20h14V9.5" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>',
+   d:"Your targets for today — calories, protein, steps — and your plan at a glance. Start here every day."},
+  {n:"Nutrition", svg:'<path d="M5 3v7a2.5 2.5 0 0 0 5 0V3M7.5 10v11M18 3c-1.7 0-2.5 2-2.5 5s.8 5 2.5 5m0 0v8" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>',
+   d:"Your plan, built around the food you already eat. Meals, your Power Food List, and your numbers."},
+  {n:"LP Coach", img:"shield-white-gold.png",
+   d:"Your line to "+esc(CONFIG.coachName||"Jayme")+". Your weekly check-in, your reads, and your next move live here."},
+  {n:"Workouts", svg:'<path d="M6.5 6.5v11M4 8.5v7M17.5 6.5v11M20 8.5v7M6.5 12h11" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>',
+   d:"Your training, with a built-in logger. Open the day, log your sets, done."},
+  {n:"Wellness", svg:'<path d="M12 3s6.5 6.8 6.5 11a6.5 6.5 0 0 1-13 0C5.5 9.8 12 3 12 3z" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>',
+   d:"The deeper layer — labs, genetics, supplements, and how you actually feel over time."}
+];
+function showObTour(){
+  var h='<p>You’re booked. While that’s on the calendar, here’s the quick lay of the land — five tabs along the bottom, each with one job.</p>'
+    +'<div class="ob-tour">'+OB_TOUR.map(function(t){
+      var ico = t.img ? '<img src="'+esc(t.img)+'" alt="">' : '<svg viewBox="0 0 24 24">'+t.svg+'</svg>';
+      return '<div class="ob-trow"><div class="ob-tico">'+ico+'</div><div class="ob-tv"><div class="ob-tn">'+esc(t.n)+'</div><div class="ob-td">'+t.d+'</div></div></div>';
+    }).join("")+'</div>'
+    +'<div class="ob-note"><b>Your first move:</b> open Home and hit today’s targets. That’s the whole assignment for day one.</div>'
+    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="obTourDone()">Enter my dashboard →</button></div>';
+  g("obtourBody").innerHTML=h; show("obtour");
+}
+function obTourDone(){ OB_MODE=false; try{ saveLS("lp_ob_tour_seen","1"); }catch(e){} showHome(); }
 
 /* ============================ SETUP WIZARD ============================ */
 var WIZ = {}, WIZ_I = 0;
@@ -5621,8 +5895,11 @@ function wizPick(b){
     if(key==='sex') renderWiz(); }
 }
 function wizOptions(key, opts){
+  // o = [title, subtitle] — or [title, subtitle, internalValue] to show plain-language
+  // copy while storing an internal code (e.g. the track name Lean/Strong/Sustain).
   return '<div class="wiz-opts" data-key="'+key+'">'+opts.map(function(o){
-    return '<button type="button" class="wiz-opt'+(WIZ[key]===o[0]?' on':'')+'" data-v="'+esc(o[0])+'" onclick="wizPickOne(this)"><b>'+esc(o[0])+'</b><span>'+esc(o[1])+'</span></button>';
+    var val = (o[2]!=null ? o[2] : o[0]);
+    return '<button type="button" class="wiz-opt'+(WIZ[key]===val?' on':'')+'" data-v="'+esc(val)+'" onclick="wizPickOne(this)"><b>'+esc(o[0])+'</b><span>'+esc(o[1])+'</span></button>';
   }).join("")+'</div>';
 }
 function wizPickOne(b){ var p=b.parentNode; Array.from(p.children).forEach(function(x){x.classList.remove('on');}); b.classList.add('on'); WIZ[p.dataset.key]=b.dataset.v; }
@@ -5641,13 +5918,14 @@ function ageFromDob(s){
    Questions are verbatim from Readiness-Assessment-Copy-Draft.md. It gathers the data for
    the numbers (weight/height/goal/sex/intake/training) AND the reads that drive the POP
    possibility routes + status flags. Reuses the one-question-per-screen render engine. */
-var RA_GOAL     = [["Lean","Lose fat and lean out"],["Strong","Build strength and muscle"],["Sustain","Feel good and hold it for life"]];
+/* Plain-language goals anyone understands; Lean/Strong/Sustain stay the INTERNAL track value. */
+var RA_GOAL     = [["Lose fat","Drop body fat and lean out","Lean"],["Build muscle","Get stronger and add muscle","Strong"],["Feel better & maintain","Hold a healthy weight and feel your best","Sustain"]];
 var RA_DUR      = ["Under a year","1–3 years","3+ years","Most of my life"];
 var RA_ADAPTED  = ["Yes","No","Not sure"];
 var RA_TRAINDAYS= [["0","Not lifting right now"],["1–2","A couple days a week"],["3–4","Most weeks, a solid rhythm"],["5+","Nearly every day"]];
 var RA_RESTART  = ["Once or twice","A handful of times","More than I can count","I've lost count"];
 var RA_NEXTDAY  = ["I get right back on the next day","It turns into a bad week","It spirals for a while before I reset"];
-var RA_SCALE    = ["I weigh daily and it runs my mood","I avoid it completely","Somewhere in the middle"];
+var RA_SCALE    = ["I weigh daily and it doesn't bother me","I weigh daily and it runs my mood","I weigh now and then","I avoid it completely","I don't own a scale"];
 var RA_TRIED    = ["Keto","Fasting","Low-carb","Macros","Weight Watchers","A coach","A challenge","Nothing with real structure"];
 var RA_TRACKED  = ["Yes, and I'm good at it","Yes, but I can't live like that","No, never"];
 var RA_STATUS   = ["Menopause or perimenopause","Thyroid","Medication or supplementation","Injuries","None of these"];
@@ -5913,6 +6191,36 @@ function readinessRead(){
     (WIZ.tracked==="No, never" ? "Tracking is the gap" :
      (WIZ.tracked==="Yes, but I can't live like that" ? "You have the skill, not the freedom" : phaseName+" phase"));
   var coach=esc(CONFIG.coachName||"Jayme");
+  if(OB_MODE){
+    // Onboarding: numbers are EARNED over the first four weeks, not handed over today.
+    // Reflect their goal + their own answers back so they feel seen. No calorie/macro numbers.
+    var goalBlurb={
+      Lean:"You came here to <b>lose fat and lean out</b>. But read your own answers back and it’s bigger than a number on a scale — it’s energy that lasts the whole day, clothes that fit the way you want, and a body that keeps up with the life you’re leading.",
+      Strong:"You came here to <b>build muscle and get stronger</b>. Not just to look it — to feel capable, to carry what life hands you, and to build a body that holds up for the long haul.",
+      Sustain:"You came here to <b>feel better and hold a healthy weight</b> — to step off the diet rollercoaster for good, with real energy and a way of eating you can actually live with."
+    }[WIZ.goal] || "You came here to change something real about your health — and you were honest enough to say so.";
+    var manyRestarts = (WIZ.restarts==="More than I can count" || WIZ.restarts==="I've lost count");
+    var seen = WIZ.reverse ?
+        "Here’s what stands out: your body has been running on too little for too long. That’s why it feels stuck no matter how hard you push — it’s not willpower, it’s biology, and it’s fixable."
+      : WIZ.tracked==="Yes, but I can't live like that" ?
+        "Here’s what stands out: you’ve already proven you can do the strict thing. You also know you can’t live there. We’re not going back to that — we’re building something that finally fits your life."
+      : manyRestarts ?
+        "Here’s what stands out: you’ve started over more times than you can count. Hear me on this — that’s not a character flaw. It’s proof the old way was built to fail you, not the other way around."
+      : WIZ.nextday==="It spirals for a while before I reset" ?
+        "Here’s what stands out: one off day tends to spiral before you reset. We’re going to build this so a bad day is just a bad day — never a lost month."
+      : WIZ.tracked==="No, never" ?
+        "Here’s what stands out: you’ve never really tracked, and that is completely okay. It was never a thing you were supposed to figure out on your own."
+      : "Here’s what stands out: you already know enough to start. What’s been missing isn’t information — it’s a system that actually fits your world. That’s what we build.";
+    var oh='<div class="ra-read">';
+    oh+='<p class="ra-h1">This is your Read.</p><p class="ra-h2" style="margin-top:4px">Here’s what I see.</p>';
+    oh+='<p class="ra-micro" style="margin-top:16px;font-size:16px;line-height:1.5;color:var(--ink)">'+goalBlurb+'</p>';
+    oh+='<div class="ob-note" style="border-left-color:var(--gold)">'+seen+'</div>';
+    oh+='<p class="ra-micro" style="margin-top:16px">Notice there are no calorie or macro numbers on this screen. That’s on purpose. We don’t hand you a guess on day one — we build your real numbers <b>together</b>, over your first four weeks, starting from what your body actually does. Earned, not assigned.</p>';
+    oh+='<p class="ra-micro ra-scaleframe">The scale is a tool, not a verdict. You’ll learn to read it, not fear it.</p>';
+    oh+='<p class="ra-micro" style="margin-top:14px">Next I need the rest of your story — your health, your history, and how you actually eat — so what we build is yours, not a template.</p>';
+    oh+='<div class="actions" style="margin-top:16px"><button class="btn btn-primary btn-big" onclick="showDeep()">Next: your health history →</button></div>';
+    oh+='</div>'; return oh;
+  }
   var h='<div class="ra-read">';
   h+='<p class="ra-h1">This is your Read.</p><p class="ra-h2">These are your numbers.</p>';
   h+='<div class="ra-nums">'
@@ -5966,6 +6274,20 @@ function raSaveIntake(){
 var RA_BOOK={};
 function showBooking(){
   var url=CONFIG.onboardCallUrl||CONFIG.bookCallUrl||"#";
+  var sec=g("booking");
+  if(OB_MODE && sec){
+    // Roadmap call — they've done the groundwork; no sell, just book.
+    var eb=sec.querySelector(".eyebrow"), hd=sec.querySelector("h1"), sb=sec.querySelector(".sub");
+    if(eb) eb.textContent="Book your roadmap call";
+    if(hd) hd.textContent="You earned it. Grab your time.";
+    if(sb) sb.textContent="You’ve done the groundwork — now we sit down, go over your numbers, and I show you your system built on exactly what you already eat.";
+    var hr='<p class="ra-h2" style="margin-top:0">One thing before you grab your time.</p>'
+      +'<div class="field"><label>What would make this call a win for you? <span class="hint">(optional)</span></label>'
+        +'<textarea class="input" id="bk_win" rows="3"></textarea></div>'
+      +'<div class="actions" style="margin-top:8px"><a class="btn btn-primary btn-big" href="'+esc(url)+'" target="_blank" rel="noopener" onclick="raBookRoadmap()">Grab your time &#8594;</a>'
+        +'<p class="ra-underbtn">This is where your first move gets set — right.</p></div>';
+    g("bookingBody").innerHTML=hr; show("booking"); return;
+  }
   var h='<p class="ra-h2" style="margin-top:0">Last thing before you grab your time.</p>'
     +'<div class="field"><label>How do you want to tackle this from here?</label>'
       +'<div class="chips vchips" id="bk_q1" data-val="">'
@@ -5986,6 +6308,14 @@ function raBook(){
   M.booked=true; try{ saveLS("lp_client_booked","1"); }catch(e){}
   setTimeout(showHome, 400);
 }
+function raBookRoadmap(){
+  var win=(g("bk_win")&&g("bk_win").value)||"";
+  postToSheet({type:"roadmapcall", email:(ID&&ID.email)||"", ts:new Date().toISOString(), win:win});
+  M.booked=true; try{ saveLS("lp_client_booked","1"); }catch(e){}
+  // In onboarding, the booking hands off to the quick tab tour before they land in the app.
+  if(OB_MODE && typeof showObTour==="function"){ setTimeout(showObTour, 400); }
+  else { setTimeout(showHome, 400); }
+}
 
 /* ============================ WRITE DOORWAY ============================ */
 async function postToSheet(payload){
@@ -6003,7 +6333,7 @@ function boot(){
     if(server){
       if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
       buildModel(server);
-      if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
+      if(!M.intake && !M.checkins.length){ obStart(); } else { showHome(); checkSetupParam(); }
     } else { showHome(); }   // nothing came back and nothing cached: still show what is on the device
   });
 }
@@ -6202,7 +6532,8 @@ function setupDemoBoot(){
     + '<button onclick="location.href=location.pathname+\'?setupdemo=1\'" style="background:none;border:1px solid #6b6455;color:#EAE4D8;border-radius:7px;padding:6px 10px;font:inherit;cursor:pointer">↻ Restart</button>'
     + '<button onclick="window.DEMO_NOSAVE=true;demoBoot()" style="background:#C1AD72;border:0;color:#1C1C1C;border-radius:7px;padding:6px 12px;font:inherit;font-weight:700;cursor:pointer">See the full app →</button>';
   document.body.appendChild(bar);
-  showWizard();
+  ID.name="Jayme";          // demo personalization for the walkthrough
+  obStart();                // the LOCKED onboarding — welcome → 4-week map → RA → health → eating map → gates
 }
 (function(){
   applyBrand();   // co-brand the shell (logo lockup + accent) before any boot path renders
@@ -6230,7 +6561,7 @@ function setupDemoBoot(){
         saveLS(LS_ID, ID);
         if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
         buildModel(server);
-        if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); checkSetupParam(); }
+        if(!M.intake && !M.checkins.length){ obStart(); } else { showHome(); checkSetupParam(); }
       } else if(ID && ID.email){ boot(); }
       else if(server){ buildModel(server); showHome(); }   // cached copy without an email row
       else { show("onboard"); }
