@@ -1401,6 +1401,38 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
     .ob-prog2 .ob-bar{flex:1;height:7px;background:var(--line);border-radius:5px;overflow:hidden}
     .ob-prog2 .ob-fill{height:100%;background:var(--gold);border-radius:5px;transition:.3s}
     .ob-prog2 span{font-size:12px;font-weight:700;color:var(--muted);white-space:nowrap}
+    /* ===== TOUR STEPPER (Bolt-style) ===== */
+    body.ob-tourview header, body.ob-tourview #navBack{ display:none !important; }
+    .obt-wrap{ min-height:100svh; display:flex; flex-direction:column; padding:calc(env(safe-area-inset-top,0px)+16px) 20px calc(env(safe-area-inset-bottom,0px)+18px); }
+    .obt-top{ display:flex; justify-content:space-between; align-items:center; }
+    .obt-step{ font-size:13px; letter-spacing:.03em; color:var(--muted); font-weight:700; }
+    .obt-skip{ background:none; border:1px solid var(--line); color:var(--ink-soft); border-radius:10px; padding:7px 15px; font:inherit; font-size:13px; font-weight:700; cursor:pointer; }
+    .obt-body{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; }
+    .obt-hero{ margin-bottom:6px; }
+    .obt-shield{ width:80px; filter:drop-shadow(0 0 28px rgba(193,173,114,.5)); }
+    .obt-iconbig{ width:94px; height:94px; border-radius:24px; background:var(--surface-2); border:1px solid var(--line); display:flex; align-items:center; justify-content:center; margin-bottom:16px; box-shadow:0 0 40px rgba(193,173,114,.2); }
+    .obt-iconbig svg{ width:46px; height:46px; fill:none; stroke:var(--gold); }
+    .obt-iconbig img{ width:48px; height:48px; object-fit:contain; }
+    .obt-title{ font-family:'Montserrat',system-ui,sans-serif; font-weight:900; text-transform:uppercase; font-size:clamp(1.9rem,8vw,2.5rem); letter-spacing:-.01em; color:var(--parchment); margin:2px 0 2px; }
+    .obt-lead{ font-size:15px; font-weight:700; color:var(--gold); margin:4px 0 12px; }
+    .obt-desc{ max-width:34ch; color:var(--ink-soft); font-size:16px; line-height:1.5; margin:4px auto 0; }
+    .obt-pts{ display:flex; flex-direction:column; gap:13px; text-align:left; max-width:34ch; margin:4px auto 0; }
+    .obt-pt{ display:flex; gap:12px; align-items:flex-start; color:var(--ink-soft); font-size:15.5px; line-height:1.45; }
+    .obt-ptn{ flex:0 0 26px; height:26px; border-radius:50%; background:var(--gold); color:#1c1c1c; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
+    .obt-bottom{ margin-top:18px; }
+    .obt-tabbar{ display:flex; justify-content:space-around; align-items:center; background:rgba(11,11,9,.55); border:1px solid var(--line); border-radius:16px; padding:10px 4px; }
+    .obt-tab{ display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--muted); flex:1; min-width:0; }
+    .obt-tab .obt-tico svg{ width:21px; height:21px; fill:none; stroke:currentColor; }
+    .obt-tab .obt-tico img{ width:21px; height:21px; object-fit:contain; opacity:.55; }
+    .obt-tlbl{ font-size:9.5px; font-weight:700; letter-spacing:.01em; white-space:nowrap; }
+    .obt-tab.on{ color:var(--gold); }
+    .obt-tab.on .obt-tico img{ opacity:1; }
+    .obt-dots{ display:flex; justify-content:center; gap:7px; margin:16px 0 14px; }
+    .obt-dot{ width:7px; height:7px; border-radius:50%; background:var(--line); transition:.2s; }
+    .obt-dot.on{ width:20px; border-radius:5px; background:var(--gold); }
+    .obt-nav{ display:flex; gap:10px; }
+    .obt-nav .obt-back{ flex:0 0 108px; }
+    .obt-nav .obt-next{ flex:1; }
   </style>
 
   <section id="obwelcome" class="hidden">
@@ -1429,9 +1461,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
   </section>
 
   <section id="obtour" class="hidden">
-    <div class="eyebrow">Your app</div>
-    <h1>Here's where everything lives</h1>
-    <div class="card"><div id="obtourBody"></div></div>
+    <div id="obtourBody" class="obt-wrap"></div>
   </section>
 
   <!-- ============ HOME ============ -->
@@ -2496,6 +2526,7 @@ function show(idOn){ CUR_SECTION=idOn;
   hideBootLoader();
   ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder","obwelcome","obmap","obeating","obgates","obtour"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); });
   try{ document.body.classList.toggle("lg-login", idOn==="onboard"); }catch(e){}   // full-bleed hero on the login screen only
+  try{ document.body.classList.toggle("ob-tourview", idOn==="obtour"); }catch(e){}  // full-screen stepper on the tour
   updateBackBtn(idOn); window.scrollTo(0,0); }
 /* Login: "Sign in" swaps the landing for the dedicated sign-in screen (state 2). */
 function showSignInForm(){ var l=g("lgLanding"), s=g("lgSignin"); if(l) l.style.display="none"; if(s) s.style.display="flex";
@@ -4384,7 +4415,7 @@ async function postDeep(done){
 var OB_MODE=false;
 var LS_OBEAT="lp_ob_eatmap", LS_OBGATE="lp_ob_gates";
 function obFirst(){ var n=(ID&&ID.name)||""; n=n.replace(/^Preview\s*[—-]\s*/,"").trim(); return n?n.split(" ")[0]:"friend"; }
-function obStart(){ OB_MODE=true; showObWelcome(); }
+function obStart(){ OB_MODE=true; showObTour(); }   // Phase 1: tour → basics (RA) → the Read → Home
 function obSkoolLink(){ return CONFIG.upgradeUrl || (typeof skoolAppLink==="function"?skoolAppLink():CONFIG.skoolAppUrl) || "#"; }
 
 /* ---- 1. Welcome packet ---- */
@@ -4555,17 +4586,51 @@ var OB_TOUR=[
   {n:"Wellness", svg:'<path d="M12 3s6.5 6.8 6.5 11a6.5 6.5 0 0 1-13 0C5.5 9.8 12 3 12 3z" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"/>',
    d:"The deeper layer — labs, genetics, supplements, and how you actually feel over time."}
 ];
-function showObTour(){
-  var h='<p>Before we build anything, here’s the app you’ll run it all in — five tabs along the bottom, each with one job.</p>'
-    +'<div class="ob-tour">'+OB_TOUR.map(function(t){
-      var ico = t.img ? '<img src="'+esc(t.img)+'" alt="">' : '<svg viewBox="0 0 24 24">'+t.svg+'</svg>';
-      return '<div class="ob-trow"><div class="ob-tico">'+ico+'</div><div class="ob-tv"><div class="ob-tn">'+esc(t.n)+'</div><div class="ob-td">'+t.d+'</div></div></div>';
-    }).join("")+'</div>'
-    +'<div class="ob-note"><b>You’ll use all five.</b> We set them up for you over the next few steps — nothing to figure out on your own.</div>'
-    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showObMap()">Next: your first 4 weeks →</button>'
-      +'<button class="btn btn-ghost" onclick="showObWelcome()">← Back</button></div>';
-  g("obtourBody").innerHTML=h; show("obtour");
+/* enrich OB_TOUR with tag + the "each section has its own setup" note */
+OB_TOUR[0].tag="Your daily cockpit."; OB_TOUR[0].pts=["Your targets for today — calories, protein, steps.","Your plan and this week at a glance. Start here every day."];
+OB_TOUR[1].tag="What to eat."; OB_TOUR[1].pts=["Your plan, built around the food you already eat.","Meals, your Power Food List, and your numbers."];
+OB_TOUR[2].tag="Your line to "+esc(CONFIG.coachName||"Jayme")+"."; OB_TOUR[2].pts=["Your weekly check-in and your reads.","Your onboarding tasks + your next move live here."];
+OB_TOUR[3].tag="Your training."; OB_TOUR[3].pts=["Your program, with a built-in logger.","Open the day, log your sets, done."];
+OB_TOUR[4].tag="The deeper layer."; OB_TOUR[4].pts=["Labs, genetics, and supplements.","Your health history → your Legacy Score."];
+var OB_TOUR_I=0;
+function obtIcon(t){ return t.img ? '<img src="'+esc(t.img)+'" alt="">' : '<svg viewBox="0 0 24 24">'+t.svg+'</svg>'; }
+function showObTour(){ OB_TOUR_I=0; renderObTour(); show("obtour"); }
+function renderObTour(){
+  var tabs=OB_TOUR, total=tabs.length+1, i=OB_TOUR_I, coach=esc(CONFIG.coachName||"Jayme");
+  var h='<div class="obt-top"><span class="obt-step">Step '+(i+1)+' of '+total+'</span>'
+      +'<button class="obt-skip" onclick="obTourSkip()">Skip tour</button></div>';
+  if(i===0){
+    h+='<div class="obt-body">'
+      +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
+      +'<h2 class="obt-title">Welcome to Legacy</h2>'
+      +'<p class="obt-lead">You’re on '+coach+'’s team.</p>'
+      +'<p class="obt-desc">Five tabs along the bottom, each with one job. Each section has its own setup steps, based on your level and membership — here’s the quick tour, then we set up your basics.</p>'
+      +'</div>';
+  } else {
+    var t=tabs[i-1];
+    h+='<div class="obt-body">'
+      +'<div class="obt-iconbig">'+obtIcon(t)+'</div>'
+      +'<h2 class="obt-title">'+esc(t.n)+'</h2>'
+      +(t.tag?'<p class="obt-lead">'+esc(t.tag)+'</p>':'')
+      +'<div class="obt-pts">'+(t.pts||[]).map(function(p,idx){ return '<div class="obt-pt"><span class="obt-ptn">'+(idx+1)+'</span><span>'+p+'</span></div>'; }).join('')+'</div>'
+      +'</div>';
+  }
+  h+='<div class="obt-bottom">'
+    +'<div class="obt-tabbar">'+tabs.map(function(tb,idx){ var on=(i-1===idx);
+        return '<div class="obt-tab'+(on?' on':'')+'"><span class="obt-tico">'+obtIcon(tb)+'</span><span class="obt-tlbl">'+esc(tb.n)+'</span></div>';
+      }).join('')+'</div>'
+    +'<div class="obt-dots">';
+  for(var d=0;d<total;d++) h+='<span class="obt-dot'+(d===i?' on':'')+'"></span>';
+  h+='</div>'
+    +'<div class="obt-nav">'
+    +(i>0?'<button class="btn btn-ghost obt-back" onclick="obTourBack()">Back</button>':'')
+    +'<button class="btn btn-primary obt-next" onclick="obTourNext()">'+(i>=total-1?'Set up my basics →':'Next')+'</button>'
+    +'</div></div>';
+  g("obtourBody").innerHTML=h; try{ window.scrollTo(0,0); }catch(e){}
 }
+function obTourNext(){ var total=OB_TOUR.length+1; if(OB_TOUR_I>=total-1){ showWizard(); return; } OB_TOUR_I++; renderObTour(); }
+function obTourBack(){ if(OB_TOUR_I<=0) return; OB_TOUR_I--; renderObTour(); }
+function obTourSkip(){ showWizard(); }
 function obTourDone(){ OB_MODE=false; try{ saveLS("lp_ob_tour_seen","1"); }catch(e){} showHome(); }
 
 /* ============================ SETUP WIZARD ============================ */
@@ -6031,6 +6096,9 @@ var STEP = {
   sex:{ q:"First, your engine. What's your biological sex?", hint:"Used for your calorie math, nothing else.", mlabel:"M1 · Metabolism",
     render:function(){ return wizChips("sex",["Male","Female"]); },
     collect:function(){ return WIZ.sex?null:"Pick one to continue."; } },
+  dob:{ q:"When's your birthday?", hint:"For your numbers — and so we can wish you a happy one.", mlabel:"M1 · Metabolism",
+    render:function(){ return '<input class="input" type="date" id="w_dob" value="'+(WIZ.dob||"")+'" style="font-size:16px">'; },
+    collect:function(){ var el=g("w_dob"); WIZ.dob=el?el.value:""; if(!WIZ.dob) return "Add your birthday."; WIZ.age=ageFromDob(WIZ.dob); return null; } },
   weight:{ q:"What do you weigh today?", hint:"",
     render:function(){ return raNum("w_cur",WIZ.weight,"lb"); },
     collect:function(){ WIZ.weight=parseFloat(g("w_cur").value); return isNaN(WIZ.weight)?"Add your weight.":null; } },
@@ -6097,9 +6165,8 @@ var STEP = {
   result:{ q:"Your Read", render:function(){ return readinessRead(); } }
 };
 function gOrder(){
-  return ["intro","goal","sex","weight","height","goalweight","intakecal","intakedur","adapted","traindays",
-    "restarts","nextday","scalerel","whynow","readiness","tried","tracked","normalday","inway",
-    "bloodwork","genetictest","energy","status","result"];
+  // Phase 1 "get started" basics: just enough to compute numbers + a theoretical track.
+  return ["goal","sex","dob","weight","height","goalweight","traindays","intakedur","adapted","tracked","result"];
 }
 function renderWiz(){
   var order=gOrder(); if(WIZ_I>=order.length) WIZ_I=order.length-1;
@@ -6274,33 +6341,28 @@ function readinessRead(){
      (WIZ.tracked==="Yes, but I can't live like that" ? "You have the skill, not the freedom" : phaseName+" phase"));
   var coach=esc(CONFIG.coachName||"Jayme");
   if(OB_MODE){
-    // Onboarding: numbers are EARNED over the first four weeks, not handed over today.
-    // Reflect their goal + their own answers back so they feel seen. No calorie/macro numbers.
-    var goalBlurb={
-      Lean:"You came here to <b>lose fat and lean out</b>. But read your own answers back and it’s bigger than a number on a scale — it’s energy that lasts the whole day, clothes that fit the way you want, and a body that keeps up with the life you’re leading.",
-      Strong:"You came here to <b>build muscle and get stronger</b>. Not just to look it — to feel capable, to carry what life hands you, and to build a body that holds up for the long haul.",
-      Sustain:"You came here to <b>feel better and hold a healthy weight</b> — to step off the diet rollercoaster for good, with real energy and a way of eating you can actually live with."
-    }[WIZ.goal] || "You came here to change something real about your health — and you were honest enough to say so.";
-    var manyRestarts = (WIZ.restarts==="More than I can count" || WIZ.restarts==="I've lost count");
-    var seen = WIZ.reverse ?
-        "Here’s what stands out: your body has been running on too little for too long. That’s why it feels stuck no matter how hard you push — it’s not willpower, it’s biology, and it’s fixable."
-      : WIZ.tracked==="Yes, but I can't live like that" ?
-        "Here’s what stands out: you’ve already proven you can do the strict thing. You also know you can’t live there. We’re not going back to that — we’re building something that finally fits your life."
-      : manyRestarts ?
-        "Here’s what stands out: you’ve started over more times than you can count. Hear me on this — that’s not a character flaw. It’s proof the old way was built to fail you, not the other way around."
-      : WIZ.nextday==="It spirals for a while before I reset" ?
-        "Here’s what stands out: one off day tends to spiral before you reset. We’re going to build this so a bad day is just a bad day — never a lost month."
-      : WIZ.tracked==="No, never" ?
-        "Here’s what stands out: you’ve never really tracked, and that is completely okay. It was never a thing you were supposed to figure out on your own."
-      : "Here’s what stands out: you already know enough to start. What’s been missing isn’t information — it’s a system that actually fits your world. That’s what we build.";
+    // Phase 1: give them real starting numbers + a THEORETICAL track, then be honest that the
+    // deeper read (roadmap call) is what makes the plan truly fit.
+    var goalMap={Lean:"lose fat and lean out",Strong:"build muscle and get stronger",Sustain:"feel better and hold a healthy weight"};
+    var goalPlain=goalMap[WIZ.goal]||"get after your goal";
+    var trackPlain={Lean:"Lean",Strong:"Strong",Sustain:"Sustain","Reverse Diet":"Reverse"}[t]||phaseName;
     var oh='<div class="ra-read">';
-    oh+='<p class="ra-h1">This is your Read.</p><p class="ra-h2" style="margin-top:4px">Here’s what I see.</p>';
-    oh+='<p class="ra-micro" style="margin-top:16px;font-size:16px;line-height:1.5;color:var(--ink)">'+goalBlurb+'</p>';
-    oh+='<div class="ob-note" style="border-left-color:var(--gold)">'+seen+'</div>';
-    oh+='<p class="ra-micro" style="margin-top:16px">Notice there are no calorie or macro numbers on this screen. That’s on purpose. We don’t hand you a guess on day one — we build your real numbers <b>together</b>, over your first four weeks, starting from what your body actually does. Earned, not assigned.</p>';
+    oh+='<p class="ra-h1">This is your starting point.</p><p class="ra-h2" style="margin-top:4px">Real numbers you can run today.</p>';
+    oh+='<div class="ra-nums">'
+      +'<div class="ra-num"><div class="ra-nv">'+(p.calories||"—")+'</div><div class="ra-nl">Calories · day</div></div>'
+      +'<div class="ra-num"><div class="ra-nv">'+pfloor+'–'+ptarget+'g</div><div class="ra-nl">Protein · floor → target</div></div>'
+      +'<div class="ra-num"><div class="ra-nv">'+stepsT+'</div><div class="ra-nl">Daily steps</div></div>'
+      +'<div class="ra-num"><div class="ra-nv" style="font-size:22px">'+esc(trackPlain)+'</div><div class="ra-nl">Your track (for now)</div></div>'
+      +'</div>';
+    oh+='<p class="ra-micro" style="margin-top:14px">Based on your goal to <b>'+esc(goalPlain)+'</b> and your basic metrics, this is where you start — real, usable targets, not a 1,200-calorie handout.</p>';
+    oh+='<div class="ob-note" style="border-left-color:var(--gold)"><b>Here’s the honest part:</b> your dieting history, how adapted your metabolism is, and any conditions dictate how well these actually work. Without a deeper read, no one can say for sure what your body truly needs.'
+      +(WIZ.reverse?' Your answers already point to a body that’s been under-fuelled for a while — so treat these as a floor to <b>build up</b> from, not a deficit to cut from.':'')+'</div>';
     oh+='<p class="ra-micro ra-scaleframe">The scale is a tool, not a verdict. You’ll learn to read it, not fear it.</p>';
-    oh+='<p class="ra-micro" style="margin-top:14px">Next I need the rest of your story — your health, your history, and how you actually eat — so what we build is yours, not a template.</p>';
-    oh+='<div class="actions" style="margin-top:16px"><button class="btn btn-primary btn-big" onclick="showDeep()">Next: your health history →</button></div>';
+    oh+='<p class="ra-micro" style="margin-top:14px">The <b>roadmap call</b> is where we get the real read — go over your numbers, your history, and your body together, and lock in the plan that actually fits you.</p>';
+    var bookUrl=CONFIG.onboardCallUrl||CONFIG.bookCallUrl||"";
+    oh+='<div class="actions" style="margin-top:16px">'
+      +(bookUrl?'<a class="btn btn-primary btn-big" href="'+esc(bookUrl)+'" target="_blank" rel="noopener" onclick="raBookRoadmap()">Book my roadmap call →</a>':'')
+      +'<button class="btn btn-ghost" onclick="OB_MODE=false;showHome()">Enter my dashboard →</button></div>';
     oh+='</div>'; return oh;
   }
   var h='<div class="ra-read">';
