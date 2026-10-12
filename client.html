@@ -2017,8 +2017,8 @@ function assignedProgram(){
     // content-free mine/ loader (program rides in the private link, cached to the device).
     var isLocal=/^(localhost$|127\.|192\.168\.|10\.|\[?::1)/.test(location.hostname);
     var src=isLocal ? "workout/private/?embed=1" : "workout/mine/?embed=1";
-    return { name:"Full Body Split", src:src, pct:0, weeks:1,
-      days:[{t:"Full Body 1",mins:65,ex:9},{t:"Full Body 2",mins:55,ex:8},{t:"Full Body 3",mins:65,ex:9},{t:"Full Body 4",mins:55,ex:8},{t:"Arms / Delts",mins:65,ex:9}] };
+    return { name:"2× Full Body", src:src, pct:0, weeks:1,
+      days:[{t:"Full Body A",mins:55,ex:8},{t:"Full Body B",mins:50,ex:7}] };
   }
   return memberProgram();
 }
