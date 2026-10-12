@@ -1231,16 +1231,19 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
     #onboard{ background:#0c0b08; }
     body.lg-login{ background:#0c0b08; }                 /* kill the app chrome bg behind the hero */
     body.lg-login header, body.lg-login #navBack{ display:none !important; }   /* no top app bar on the landing */
+    /* The app .wrap carries a big top/bottom padding + max-width to clear the fixed nav; on the
+       login hero there is no nav, so strip it so the hero fills the real viewport and truly centers. */
+    body.lg-login .wrap{ padding:0 !important; max-width:none !important; margin:0 !important; }
     .lg-hero{ position:relative; min-height:100svh; display:flex; flex-direction:column; text-align:center;
       overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; }
     .lg-inner{ position:relative; z-index:1; margin:auto; width:100%; max-width:560px; display:flex; flex-direction:column;
-      align-items:center; padding:calc(env(safe-area-inset-top,0px) + 44px) 24px calc(env(safe-area-inset-bottom,0px) + 34px); }
+      align-items:center; padding:max(env(safe-area-inset-top,0px),24px) 24px max(env(safe-area-inset-bottom,0px),24px); }
     .lg-hero:before{ content:""; position:absolute; top:5%; left:50%; width:min(72vw,400px); height:min(72vw,400px);
       transform:translateX(-50%); background:radial-gradient(circle, rgba(193,173,114,.30), rgba(193,173,114,.07) 46%, transparent 70%);
       filter:blur(6px); z-index:0; pointer-events:none; }
     .lg-hero:after{ content:""; position:absolute; left:-12%; bottom:-8%; width:80%; height:46%;
       background:radial-gradient(ellipse at 0% 100%, rgba(74,92,62,.5), transparent 72%); z-index:0; pointer-events:none; }
-    .lg-shield{ width:78px; height:auto; margin-bottom:16px; filter:drop-shadow(0 0 26px rgba(193,173,114,.5)); }
+    .lg-shield{ width:clamp(110px,30vw,140px); height:auto; margin-bottom:20px; filter:drop-shadow(0 0 30px rgba(193,173,114,.55)); }
     .lg-eyebrow{ font-family:'Montserrat',system-ui,sans-serif; font-weight:800; letter-spacing:.4em; font-size:12px;
       text-transform:uppercase; color:var(--gold); margin:0 0 14px; padding-left:.4em; }
     .lg-h1{ font-family:'Montserrat',system-ui,sans-serif; font-weight:900; text-transform:uppercase;
@@ -1256,7 +1259,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
     .lg-form{ width:100%; max-width:360px; margin-top:26px; text-align:left; }
     .lg-form .foot{ text-align:center; color:var(--muted); font-size:12.5px; margin-top:14px; line-height:1.5; }
     /* ---- sign-in screen (state 2) ---- */
-    .lg-shield-sm{ width:62px; margin-bottom:14px; }
+    .lg-shield-sm{ width:clamp(84px,22vw,104px); margin-bottom:16px; }
     .lg-si-h{ font-family:'Montserrat',system-ui,sans-serif; font-weight:900; font-size:clamp(2.2rem,9.5vw,2.9rem);
       letter-spacing:-.01em; color:var(--parchment); margin:2px 0 0; }
     .lg-card{ width:100%; max-width:420px; margin:26px auto 0; text-align:left;

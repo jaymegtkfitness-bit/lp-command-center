@@ -8,7 +8,7 @@
    cached shell (e.g. a big client.html change). It also auto-refreshes in the background
    on every visit, so most changes reach people on their next open without a bump.
    Keep the ?v= values below in sync with the tags in client.html. */
-const CACHE_VERSION = 'lp-v4-2026-10-12';
+const CACHE_VERSION = 'lp-v5-2026-10-12';
 const SHELL  = 'lp-shell-'  + CACHE_VERSION;
 const RUNTIME = 'lp-runtime-' + CACHE_VERSION;
 
