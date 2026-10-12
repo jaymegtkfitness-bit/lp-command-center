@@ -1414,6 +1414,11 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
     .obt-iconbig svg{ width:46px; height:46px; fill:none; stroke:var(--gold); }
     .obt-iconbig img{ width:48px; height:48px; object-fit:contain; }
     .obt-title{ font-family:'Montserrat',system-ui,sans-serif; font-weight:900; text-transform:uppercase; font-size:clamp(1.9rem,8vw,2.5rem); letter-spacing:-.01em; color:var(--parchment); margin:2px 0 2px; }
+    /* Welcome step: stacked headline — small "Welcome to", big "Legacy", "Performance" sized to match its width */
+    .obt-wtitle{ display:flex; flex-direction:column; align-items:center; line-height:.92; gap:2px; }
+    .obt-wtitle .ow-1{ font-size:clamp(1.05rem,5vw,1.4rem); letter-spacing:.04em; color:var(--ink-soft); margin-bottom:2px; }
+    .obt-wtitle .ow-2{ font-size:clamp(3rem,16.5vw,4.6rem); letter-spacing:-.015em; }
+    .obt-wtitle .ow-3{ font-size:clamp(1.51rem,8.3vw,2.32rem); letter-spacing:-.005em; }
     .obt-lead{ font-size:15px; font-weight:700; color:var(--gold); margin:4px 0 12px; }
     .obt-desc{ max-width:34ch; color:var(--ink-soft); font-size:16px; line-height:1.5; margin:4px auto 0; }
     .obt-pts{ display:flex; flex-direction:column; gap:13px; text-align:left; max-width:34ch; margin:4px auto 0; }
@@ -4602,7 +4607,7 @@ function renderObTour(){
   if(i===0){
     h+='<div class="obt-body">'
       +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
-      +'<h2 class="obt-title">Welcome to Legacy Performance</h2>'
+      +'<h2 class="obt-title obt-wtitle"><span class="ow-1">Welcome to</span><span class="ow-2">Legacy</span><span class="ow-3">Performance</span></h2>'
       +'<p class="obt-lead">To get started, let’s take a tour of the app — so you know what to do and when.</p>'
       +'<p class="obt-desc">Five tabs along the bottom, each with one job. Each section has its own setup steps, based on your level and membership — here’s the quick tour, then we set up your basics.</p>'
       +'</div>';
