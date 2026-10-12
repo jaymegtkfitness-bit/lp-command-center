@@ -1226,19 +1226,90 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
   </section>
 
   <!-- ============ LOGIN ============ -->
+  <style>
+    /* ===== LOGIN HERO — the first screen everyone sees (Ascend-OS structure, Legacy brand) ===== */
+    #onboard{ background:#0c0b08; }
+    body.lg-login{ background:#0c0b08; }                 /* kill the app chrome bg behind the hero */
+    body.lg-login header, body.lg-login #navBack{ display:none !important; }   /* no top app bar on the landing */
+    .lg-hero{ position:relative; min-height:100svh; display:flex; flex-direction:column; text-align:center;
+      overflow-x:hidden; overflow-y:auto; -webkit-overflow-scrolling:touch; }
+    .lg-inner{ position:relative; z-index:1; margin:auto; width:100%; max-width:560px; display:flex; flex-direction:column;
+      align-items:center; padding:calc(env(safe-area-inset-top,0px) + 44px) 24px calc(env(safe-area-inset-bottom,0px) + 34px); }
+    .lg-hero:before{ content:""; position:absolute; top:5%; left:50%; width:min(72vw,400px); height:min(72vw,400px);
+      transform:translateX(-50%); background:radial-gradient(circle, rgba(193,173,114,.30), rgba(193,173,114,.07) 46%, transparent 70%);
+      filter:blur(6px); z-index:0; pointer-events:none; }
+    .lg-hero:after{ content:""; position:absolute; left:-12%; bottom:-8%; width:80%; height:46%;
+      background:radial-gradient(ellipse at 0% 100%, rgba(74,92,62,.5), transparent 72%); z-index:0; pointer-events:none; }
+    .lg-shield{ width:78px; height:auto; margin-bottom:16px; filter:drop-shadow(0 0 26px rgba(193,173,114,.5)); }
+    .lg-eyebrow{ font-family:'Montserrat',system-ui,sans-serif; font-weight:800; letter-spacing:.4em; font-size:12px;
+      text-transform:uppercase; color:var(--gold); margin:0 0 14px; padding-left:.4em; }
+    .lg-h1{ font-family:'Montserrat',system-ui,sans-serif; font-weight:900; text-transform:uppercase;
+      font-size:clamp(1.95rem,10vw,3.1rem); line-height:1.07; letter-spacing:-.012em; margin:0; text-wrap:balance; }
+    .lg-h1 span{ display:block; line-height:1.04; }
+    .lg-h1 .wh{ color:var(--parchment); }
+    .lg-h1 .gold{ color:var(--gold); }
+    .lg-h1 .lg-lg{ font-size:1.12em; }   /* SYSTEM — a touch larger */
+    .lg-h1 .lg-sm{ font-size:.86em; }     /* BEHIND YOUR — a touch smaller, for a more even/square block */
+    .lg-sub{ max-width:33ch; margin:18px auto 0; color:var(--ink-soft); font-size:15px; line-height:1.5; }
+    .lg-cta{ width:100%; max-width:360px; margin-top:28px; }
+    .lg-signin{ width:100%; box-shadow:0 10px 34px rgba(193,173,114,.34), 0 0 0 rgba(0,0,0,0); }
+    .lg-form{ width:100%; max-width:360px; margin-top:26px; text-align:left; }
+    .lg-form .foot{ text-align:center; color:var(--muted); font-size:12.5px; margin-top:14px; line-height:1.5; }
+    /* ---- sign-in screen (state 2) ---- */
+    .lg-shield-sm{ width:62px; margin-bottom:14px; }
+    .lg-si-h{ font-family:'Montserrat',system-ui,sans-serif; font-weight:900; font-size:clamp(2.2rem,9.5vw,2.9rem);
+      letter-spacing:-.01em; color:var(--parchment); margin:2px 0 0; }
+    .lg-card{ width:100%; max-width:420px; margin:26px auto 0; text-align:left;
+      background:rgba(255,255,255,.035); border:1px solid rgba(242,237,228,.1); border-radius:18px;
+      padding:22px 20px; box-shadow:0 18px 50px rgba(0,0,0,.4); }
+    .lg-card label{ display:block; font-size:11.5px; font-weight:700; letter-spacing:.18em; text-transform:uppercase;
+      color:var(--muted); margin:0 0 9px; }
+    .lg-card .input{ width:100%; box-sizing:border-box; background:#000; border:1.5px solid rgba(242,237,228,.14);
+      border-radius:12px; padding:16px 16px; font-size:16px; color:var(--ink); transition:border-color .15s, box-shadow .15s; }
+    .lg-card .input:focus{ outline:none; border-color:var(--gold); box-shadow:0 0 0 3px rgba(193,173,114,.18), 0 0 22px rgba(193,173,114,.25); }
+    .lg-fullbtn{ width:100%; margin-top:14px; padding:16px; font-size:16px; box-shadow:0 10px 30px rgba(193,173,114,.3); }
+    .lg-alt{ display:flex; gap:14px; justify-content:space-between; margin-top:16px; }
+    .lg-altlink{ flex:1; background:none; border:0; cursor:pointer; color:var(--muted); font-family:'Montserrat',system-ui,sans-serif;
+      font-size:11px; font-weight:700; letter-spacing:.11em; text-transform:uppercase; line-height:1.4; padding:4px 0; }
+    .lg-altlink:active{ color:var(--gold); }
+    .lg-foot2{ margin-top:26px; font-family:'Montserrat',system-ui,sans-serif; font-size:11px; font-weight:700;
+      letter-spacing:.24em; text-transform:uppercase; color:var(--muted); opacity:.75; }
+    .lg-back{ position:fixed; top:calc(env(safe-area-inset-top,0px) + 14px); left:16px; z-index:30; width:40px; height:40px;
+      border-radius:12px; background:rgba(255,255,255,.05); border:1px solid rgba(242,237,228,.12); color:var(--parchment);
+      font-size:26px; line-height:1; cursor:pointer; display:flex; align-items:center; justify-content:center; padding-bottom:3px; }
+  </style>
   <section id="onboard" class="hidden">
-    <div class="eyebrow" style="text-align:center;margin-top:20px">The operating system behind your health</div>
-    <h1 class="login-h">Welcome<br><span class="gold">back</span></h1>
-    <p class="sub" style="text-align:center">Enter your email and we'll send you a secure login link.</p>
-    <div class="card" style="margin-top:22px">
-      <div class="field"><label>Email</label>
-        <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
-      <div class="actions">
-        <button class="btn btn-primary" id="obBtn" onclick="magicLinkRequest()">Send my login link →</button>
-        <div class="status" id="obStatus"></div>
+    <div class="lg-hero">
+      <!-- STATE 1 — the landing -->
+      <div class="lg-inner" id="lgLanding">
+        <img class="lg-shield" src="shield-white-gold.png" alt="Legacy Performance" />
+        <div class="lg-eyebrow">Legacy OS</div>
+        <h1 class="lg-h1"><span class="wh lg-sm">The</span><span class="wh">operating</span><span class="wh lg-lg">system</span><span class="gold lg-sm">behind your</span><span class="gold">health.</span></h1>
+        <p class="lg-sub">For Legacy Performance members. Your numbers, your plan, your training, your nutrition system… all running in one place.</p>
+        <div class="lg-cta">
+          <button class="btn btn-primary btn-big lg-signin" id="lgSignIn" onclick="showSignInForm()">Sign in</button>
+        </div>
+      </div>
+      <!-- STATE 2 — the sign-in screen -->
+      <div class="lg-inner" id="lgSignin" style="display:none">
+        <button class="lg-back" onclick="showLanding()" aria-label="Back">‹</button>
+        <img class="lg-shield lg-shield-sm" src="shield-white-gold.png" alt="Legacy Performance" />
+        <div class="lg-eyebrow">Legacy OS</div>
+        <h2 class="lg-si-h">Sign in</h2>
+        <p class="lg-sub">Enter your email and we'll send you a secure login link.</p>
+        <div class="lg-card">
+          <div class="field"><label>Email</label>
+            <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
+          <button class="btn btn-primary lg-fullbtn" id="obBtn" onclick="magicLinkRequest()">Send magic link</button>
+          <div class="status" id="obStatus"></div>
+          <div class="lg-alt">
+            <button class="lg-altlink" onclick="pwSoon()">Use password instead</button>
+            <button class="lg-altlink" onclick="pwSoon()">Forgot / set password?</button>
+          </div>
+        </div>
+        <div class="lg-foot2">The Legacy Performance Project</div>
       </div>
     </div>
-    <p class="foot">No password to remember — your link signs you in and keeps your data yours. Password login is coming with the new Legacy app. Stuck? Reach out to your coach.</p>
   </section>
 
   <!-- ============ SETUP WIZARD ============ -->
@@ -2377,6 +2448,8 @@ function magicLinkRequest(){
   var em=g("ob_email"), st=g("obStatus"), btn=g("obBtn");
   var email=em?em.value.trim().toLowerCase():"";
   function fail(m){ if(st){st.textContent=m; st.style.color="var(--stall-tx)";} if(btn)btn.disabled=false; }
+  if(window.DEMO_NOSAVE){ if(st){ st.textContent="Signing you in…"; st.style.color="var(--muted)"; } if(btn)btn.disabled=true;
+    setTimeout(function(){ if(typeof obStart==='function') obStart(); }, 500); return; }   // setup walkthrough: skip the real email, go straight into onboarding
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Enter the email you signed up with.");
   if(email===JAYME_EMAIL){ jaymeBoot(); return; }   // Jayme's own preview account — straight in, no server
   if(!CONFIG.writeUrl) return fail("Login link needs the server — not available in demo.");
@@ -2421,7 +2494,14 @@ function hideBootLoader(){ if(_blHidden) return; var bl=g("bootLoader"); if(!bl)
 function show(idOn){ CUR_SECTION=idOn;
   if(typeof ID!=='undefined' && ID && ID.name) setBootName(ID.name);
   hideBootLoader();
-  ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder","obwelcome","obmap","obeating","obgates","obtour"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); }); updateBackBtn(idOn); window.scrollTo(0,0); }
+  ["onboard","home","checkin","buildscore","booking","monthly","quarterly","wizard","deep","locked","cnssetup","geneticssetup","mealbuilder","obwelcome","obmap","obeating","obgates","obtour"].forEach(function(s){ var el=g(s); if(el) el.classList.toggle("hidden", s!==idOn); });
+  try{ document.body.classList.toggle("lg-login", idOn==="onboard"); }catch(e){}   // full-bleed hero on the login screen only
+  updateBackBtn(idOn); window.scrollTo(0,0); }
+/* Login: "Sign in" swaps the landing for the dedicated sign-in screen (state 2). */
+function showSignInForm(){ var l=g("lgLanding"), s=g("lgSignin"); if(l) l.style.display="none"; if(s) s.style.display="flex";
+  try{ window.scrollTo(0,0); }catch(_){} var e=g("ob_email"); if(e){ setTimeout(function(){ try{ e.focus(); }catch(__){} }, 60); } }
+function showLanding(){ var l=g("lgLanding"), s=g("lgSignin"); if(s) s.style.display="none"; if(l) l.style.display="flex"; try{ window.scrollTo(0,0); }catch(_){} }
+function pwSoon(){ var st=g("obStatus"); if(st){ st.textContent="Password login is coming with the new Legacy app — use your email link for now."; st.style.color="var(--muted)"; } }
 /* ---- Top "‹ Back" on every drill-in screen (Home uses the bottom nav, so it's excluded). One shared
    button, moved to the top of whatever screen is showing. On the multi-step flows it steps back a step;
    everywhere else it exits to Home. Subtle by design — present, not in the way. */
@@ -6533,7 +6613,7 @@ function setupDemoBoot(){
     + '<button onclick="window.DEMO_NOSAVE=true;demoBoot()" style="background:#C1AD72;border:0;color:#1C1C1C;border-radius:7px;padding:6px 12px;font:inherit;font-weight:700;cursor:pointer">See the full app →</button>';
   document.body.appendChild(bar);
   ID.name="Jayme";          // demo personalization for the walkthrough
-  obStart();                // the LOCKED onboarding — welcome → 4-week map → RA → health → eating map → gates
+  show("onboard");          // start at the login HERO → Sign in → onboarding (full first-touch experience)
 }
 (function(){
   applyBrand();   // co-brand the shell (logo lockup + accent) before any boot path renders
