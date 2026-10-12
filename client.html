@@ -4401,8 +4401,8 @@ function showObWelcome(){
     +'</div>'
     +'<div class="ob-note"><b>One rule for this first stretch:</b> follow the steps in order and don’t skip ahead. Don’t try to learn everything before you start. We follow the steps, we ask questions, we take action.</div>'
     +'<div class="ob-note"><b>Here\'s the promise:</b> we build the house before we cut. You\'ll eat <b>more</b>, train hard, and teach your body to trust food again — and the jeans get loose before the scale ever moves. Deficits are earned. This is where you earn yours.</div>'
-    +'<p class="wiz-hint">Next: the exact map of your first four weeks, so nothing\'s a surprise.</p>'
-    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showObMap()">Show me the 4 weeks →</button></div>';
+    +'<p class="wiz-hint">First, a quick look at your app and the weeks ahead — so you can see exactly what you\'re stepping into. Then we build it together.</p>'
+    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showObTour()">Show me around →</button></div>';
   g("obwBody").innerHTML=h; show("obwelcome");
 }
 
@@ -4418,8 +4418,9 @@ function showObMap(){
     +'</div>'
     +'<div class="ob-note"><b>Maintenance first — we build the house.</b> You can\'t cut from an unknown or from an already-underfed baseline. So we build the one you\'ll live in forever first: fuel your training, build muscle, trust food again. Then the deficit is short, strong, and it sticks.</div>'
     +'<div class="ob-note" style="border-left-color:var(--gold)"><b>The weekly rhythm, from here on:</b> you check in Saturday or Sunday → '+coach+' reviews it → your adjustment, the reason, and the plan come back <b>by Thursday</b>. Chat\'s open all week.</div>'
-    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showWizard()">Start my Readiness Assessment →</button>'
-      +'<button class="btn btn-ghost" onclick="showObWelcome()">← Back</button></div>';
+    +'<p class="wiz-hint">That\'s the picture. Now we build it — step by step, starting with where you actually are today.</p>'
+    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showWizard()">Let\'s build it →</button>'
+      +'<button class="btn btn-ghost" onclick="showObTour()">← Back</button></div>';
   g("obmapBody").innerHTML=h; show("obmap");
 }
 
@@ -4555,13 +4556,14 @@ var OB_TOUR=[
    d:"The deeper layer — labs, genetics, supplements, and how you actually feel over time."}
 ];
 function showObTour(){
-  var h='<p>You’re booked. While that’s on the calendar, here’s the quick lay of the land — five tabs along the bottom, each with one job.</p>'
+  var h='<p>Before we build anything, here’s the app you’ll run it all in — five tabs along the bottom, each with one job.</p>'
     +'<div class="ob-tour">'+OB_TOUR.map(function(t){
       var ico = t.img ? '<img src="'+esc(t.img)+'" alt="">' : '<svg viewBox="0 0 24 24">'+t.svg+'</svg>';
       return '<div class="ob-trow"><div class="ob-tico">'+ico+'</div><div class="ob-tv"><div class="ob-tn">'+esc(t.n)+'</div><div class="ob-td">'+t.d+'</div></div></div>';
     }).join("")+'</div>'
-    +'<div class="ob-note"><b>Your first move:</b> open Home and hit today’s targets. That’s the whole assignment for day one.</div>'
-    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="obTourDone()">Enter my dashboard →</button></div>';
+    +'<div class="ob-note"><b>You’ll use all five.</b> We set them up for you over the next few steps — nothing to figure out on your own.</div>'
+    +'<div class="actions" style="margin-top:14px"><button class="btn btn-primary btn-big" onclick="showObMap()">Next: your first 4 weeks →</button>'
+      +'<button class="btn btn-ghost" onclick="showObWelcome()">← Back</button></div>';
   g("obtourBody").innerHTML=h; show("obtour");
 }
 function obTourDone(){ OB_MODE=false; try{ saveLS("lp_ob_tour_seen","1"); }catch(e){} showHome(); }
@@ -6392,9 +6394,9 @@ function raBookRoadmap(){
   var win=(g("bk_win")&&g("bk_win").value)||"";
   postToSheet({type:"roadmapcall", email:(ID&&ID.email)||"", ts:new Date().toISOString(), win:win});
   M.booked=true; try{ saveLS("lp_client_booked","1"); }catch(e){}
-  // In onboarding, the booking hands off to the quick tab tour before they land in the app.
-  if(OB_MODE && typeof showObTour==="function"){ setTimeout(showObTour, 400); }
-  else { setTimeout(showHome, 400); }
+  // Booking is the last step now (the app tour + journey ran up front, after login). Land them in the app.
+  OB_MODE=false;
+  setTimeout(showHome, 400);
 }
 
 /* ============================ WRITE DOORWAY ============================ */
