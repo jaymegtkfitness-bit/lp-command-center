@@ -1427,6 +1427,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
     .obt-pts{ display:flex; flex-direction:column; gap:13px; text-align:left; max-width:34ch; margin:4px auto 0; }
     .obt-pt{ display:flex; gap:12px; align-items:flex-start; color:var(--ink-soft); font-size:15.5px; line-height:1.45; }
     .obt-ptn{ flex:0 0 26px; height:26px; border-radius:50%; background:var(--gold); color:#1c1c1c; font-weight:800; font-size:13px; display:flex; align-items:center; justify-content:center; }
+    .obt-sub{ max-width:34ch; margin:14px auto 0; color:var(--muted); font-size:13.5px; line-height:1.45; font-style:italic; }
     .obt-bottom{ margin-top:18px; }
     .obt-tabbar{ display:flex; justify-content:space-around; align-items:center; background:rgba(11,11,9,.55); border:1px solid var(--line); border-radius:16px; padding:10px 4px; }
     .obt-tab{ display:flex; flex-direction:column; align-items:center; gap:4px; color:var(--muted); flex:1; min-width:0; }
@@ -4598,7 +4599,7 @@ var OB_TOUR=[
 OB_TOUR[0].tag="Your daily cockpit."; OB_TOUR[0].pts=["Your targets for today — calories, protein, steps.","Your plan and this week at a glance. Start here every day."];
 OB_TOUR[1].tag="What to eat."; OB_TOUR[1].pts=["Your plan, built around the food you already eat.","Your numbers, Power Food List, and tools to make it stick."];
 OB_TOUR[2].tag="Your line to your coach."; OB_TOUR[2].pts=["Your weekly check-in and your reads.","Your onboarding tasks + your next move live here."];
-OB_TOUR[3].tag="Your training."; OB_TOUR[3].pts=["Workouts for every goal and schedule.","Open the workout, log your sets, move on with your day."];
+OB_TOUR[3].tag="Your training."; OB_TOUR[3].pts=["Workouts for every goal and schedule.","Open the workout, log your sets, move on with your day."]; OB_TOUR[3].sub="Working out at a partner gym? Log your workouts here as well.";
 OB_TOUR[4].tag="The deeper layer."; OB_TOUR[4].pts=["Labs, genetics, and supplements.","Your health history → your Legacy Score."];
 var OB_TOUR_I=0;
 function obtIcon(t){ return t.img ? '<img src="'+esc(t.img)+'" alt="">' : '<svg viewBox="0 0 24 24">'+t.svg+'</svg>'; }
@@ -4621,6 +4622,7 @@ function renderObTour(){
       +'<h2 class="obt-title">'+esc(t.n)+'</h2>'
       +(t.tag?'<p class="obt-lead">'+esc(t.tag)+'</p>':'')
       +'<div class="obt-pts">'+(t.pts||[]).map(function(p,idx){ return '<div class="obt-pt"><span class="obt-ptn">'+(idx+1)+'</span><span>'+p+'</span></div>'; }).join('')+'</div>'
+      +(t.sub?'<p class="obt-sub">'+esc(t.sub)+'</p>':'')
       +'</div>';
   }
   h+='<div class="obt-bottom">'
