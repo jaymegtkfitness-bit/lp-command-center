@@ -6119,7 +6119,7 @@ var STEP = {
   goalweight:{ q:"What is the weight that would make you feel like you again?", hint:"A direction, not a deadline.",
     render:function(){ return raNum("w_goal",WIZ.goalweight,"lb"); },
     collect:function(){ WIZ.goalweight=parseFloat(g("w_goal").value); return isNaN(WIZ.goalweight)?"Add a number — best guess is fine.":null; } },
-  intakecal:{ q:"On a normal day, how much are you actually eating?", hint:"Your honest best guess. Most people have never really looked. (Leave blank if you truly have no idea.)",
+  intakecal:{ q:"How many calories do you think you’re eating per day?", hint:"Your honest best guess. Most people have never really looked. (Leave blank if you truly have no idea.)",
     render:function(){ return raNum("w_intake",WIZ.intakecal,"cal/day"); },
     collect:function(){ var v=parseFloat(g("w_intake").value); WIZ.intakecal=isNaN(v)?null:v; return null; } },
   intakedur:{ q:"How long have you been eating around that amount?", hint:"",
@@ -6176,7 +6176,7 @@ var STEP = {
 };
 function gOrder(){
   // Phase 1 "get started" basics: just enough to compute numbers + a theoretical track.
-  return ["goal","sex","dob","weight","height","goalweight","traindays","intakedur","adapted","tracked","result"];
+  return ["goal","sex","dob","weight","height","goalweight","traindays","intakecal","intakedur","adapted","tracked","result"];
 }
 function renderWiz(){
   var order=gOrder(); if(WIZ_I>=order.length) WIZ_I=order.length-1;
