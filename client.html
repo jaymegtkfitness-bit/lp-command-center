@@ -1864,7 +1864,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=67"></script>
+<script src="nutrition-engine.js?v=68"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -2640,6 +2640,37 @@ async function ungzB64(b64){
   var s=new Blob([by]).stream().pipeThrough(new DecompressionStream('gzip'));
   return await new Response(s).text();
 }
+/* ---- RECIPE LIBRARY (licensed Wellness Vault pool) ----
+   The public recipe-data.js ships only the small starter set. The full pool is served ONLY to
+   authenticated members via the doorway (action=recipes, token-gated) and merged in here, then
+   cached per device so repeat opens are instant. Never a public file. */
+var _vaultMerged=false, LS_RECIPES="lp_recipes_b";
+function mergeVault(b64){
+  if(_vaultMerged || !b64) return;
+  ungzB64(b64).then(function(txt){
+    if(_vaultMerged || !txt || txt.charAt(0)!=='[') return;
+    var arr; try{ arr=JSON.parse(txt); }catch(e){ return; }
+    if(Array.isArray(arr) && arr.length && typeof RECIPE_LIBRARY!=='undefined'){
+      _vaultMerged=true;
+      Array.prototype.push.apply(RECIPE_LIBRARY, arr);
+      if(window._nutRendered){                                   // already rendered on 36 → refresh with the full pool
+        window._nutRendered=false;
+        var np=g("ctab-nutrition");
+        if(np && !np.classList.contains("hidden")){ try{ renderNutritionHero(); renderMealPlan(); renderSwaps(); window._nutRendered=true; }catch(e){} }
+      }
+    }
+  }).catch(function(){});
+}
+function loadRecipeVault(){
+  var tok=null; try{ tok=localStorage.getItem(LS_TOKEN); }catch(e){}
+  if(!tok || !CONFIG.writeUrl) return;
+  try{ var c=localStorage.getItem(LS_RECIPES); if(c) mergeVault(c); }catch(e){}   // instant from the device cache
+  var nm='__lprec'+Math.floor(Math.random()*1e6), s=document.createElement('script');
+  window[nm]=function(d){ try{ if(d&&d.ok&&d.b){ try{localStorage.setItem(LS_RECIPES,d.b);}catch(e){} mergeVault(d.b); } }catch(e){} try{delete window[nm];}catch(e){} try{s.remove();}catch(e){} };
+  s.onerror=function(){ try{delete window[nm];}catch(e){} try{s.remove();}catch(e){} };
+  s.src=CONFIG.writeUrl+"?action=recipes&token="+encodeURIComponent(tok)+"&callback="+nm;
+  document.body.appendChild(s);
+}
 /* Build the merged model from server rows (authoritative) + local (instant). */
 function buildModel(server){
   serverOk = !!(server && server.ok);
@@ -2756,6 +2787,7 @@ function buildModel(server){
     var changed=(localStorage.getItem('lp_prog_data')!==raw); localStorage.setItem('lp_prog_data', raw);
     if(changed){ if(typeof renderHomeHero==='function') renderHomeHero(); if(typeof renderWorkouts==='function') renderWorkouts(); }   // first load: show the program as soon as it arrives
   } }catch(e){} })(); }
+  try{ loadRecipeVault(); }catch(e){}   // licensed recipe pool, served only to this authenticated member
   // ---- CNS + genetics intake status (drives the setup cards) ----
   M.cnsintake      = (server && server.cnsintake)      ? server.cnsintake      : (M.cnsintake||[]);
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);

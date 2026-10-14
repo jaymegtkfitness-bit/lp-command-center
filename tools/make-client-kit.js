@@ -7,10 +7,20 @@
 const fs = require('fs'), path = require('path'), vm = require('vm');
 
 const DASH = path.resolve(__dirname, '..');
-const ctx = {};
+const ctx = { window: {} };
 vm.createContext(ctx);
 for (const f of ['recipe-data.js', 'restaurant-data.js', 'nutrition-engine.js'])
   vm.runInContext(fs.readFileSync(path.join(DASH, f), 'utf8'), ctx);
+/* The full Wellness Vault recipe pool is licensed and kept OUT of the public repo (gitignored
+   recipe-vault.js). The kit builder merges it in locally so client PDFs use the whole library. */
+try {
+  const vp = path.join(DASH, 'recipe-vault.js');
+  if (fs.existsSync(vp)) {
+    vm.runInContext(fs.readFileSync(vp, 'utf8'), ctx);
+    if (Array.isArray(ctx.window.RECIPE_VAULT))
+      ctx.RECIPE_LIBRARY = ctx.RECIPE_LIBRARY.concat(ctx.window.RECIPE_VAULT);
+  }
+} catch (e) { console.error('vault load skipped:', e.message); }
 
 const inp = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const outDir = process.argv[3];

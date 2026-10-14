@@ -740,8 +740,21 @@ function recipeCandidates(slotKind, sel, k, used, slotName, seed){
   if(typeof RECIPE_LIBRARY==='undefined') return [];
   var star=(sel.starred||{}).protein||[], picks=sel.protein||[];
   var fams=picks.map(proteinFamily);
+  var AL=sel.allergies||[], STY=styleList(sel.style);
+  var wantVegan=STY.indexOf('vegan')>=0, wantVeg=wantVegan||STY.indexOf('vegetarian')>=0;
   return RECIPE_LIBRARY.map(function(r, i){ return {r:r, i:i}; })
     .filter(function(x){ return x.r.slot===slotKind; })
+    /* HARD SAFETY GATE for the Wellness Vault pool (recipes carry authoritative `ax` allergens +
+       `v` diet flag from the vault's own tags): never offer a recipe that contains a flagged
+       allergen, and respect vegetarian/vegan. The original hand-tuned recipes have no `ax` and keep
+       their ingredient-level swap-to-save path below. */
+    .filter(function(x){
+      if(x.r.ax===undefined) return true;                                   // original recipe -> old path
+      if(AL.length){ var ax=x.r.ax||''; for(var a=0;a<AL.length;a++){ if(ax.indexOf(AL[a])>=0) return false; } }
+      if(wantVegan && (x.r.v||0)<2) return false;
+      if(wantVeg   && (x.r.v||0)<1) return false;
+      return true;
+    })
     .filter(function(x){ return !picks.length || fams.indexOf(proteinFamily(x.r.lead))>=0; })   // only proteins she eats
     .filter(function(x){ var rx=dislikeRx(sel.dislikes);
       return !rx || !(x.r.ing||[]).some(function(g){ return g[4]!=='ps' && rx.test(String(g[2])); }); })
