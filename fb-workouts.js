@@ -57,6 +57,28 @@ window.FB_WEEKS = {
         {m:'YB SA Front-Rack Uneven Squat', reps:'14'} ]},
       Sat:{date:'2026-10-17', style:'MetCon', focus:'Total Body', laps:1, finisher:true}
     }
+  },
+  186: {
+    n:186, start:'2026-10-19', end:'2026-10-24', type:'Classic',
+    theme:'Low Back Health + Cognitive Stimulus',
+    days:{
+      Mon:{date:'2026-10-19', style:'Strength', focus:'Upper Push / Lower Pull', finisher:true, lifts:[
+        {m:'Sandbag Clean', reps:'10'},
+        {m:'2 DB 1-1-2 Chest Press', reps:'12'},
+        {m:'YB/DB 1.5 RDL', reps:'12'},
+        {m:'Slamball HK Rainbow Press', reps:'12'},
+        {m:'KB Sumo Deadlift', reps:'12'} ]},
+      Tue:{date:'2026-10-20', style:'Classic', focus:'Upper Pull / Lower Push', finisher:false, laps:2},
+      Wed:{date:'2026-10-21', style:'MetCon', focus:'Total Body', finisher:false, laps:1},
+      Thu:{date:'2026-10-22', style:'Strength', focus:'Upper Pull / Lower Push', finisher:false, lifts:[
+        {m:'2DB Supinated Grip Bicep Curl', reps:'12'},
+        {m:'Slamball Atlas Slider Lateral Squat', reps:'12'},
+        {m:'DB SS SA Neutral Grip Bent Row on Box', reps:'12'},
+        {m:'2 KB Heels Elevated Suitcase Squat', reps:'12'},
+        {m:'Banded Squat to Neutral Grip Row', reps:'12', band:true} ]},
+      Fri:{date:'2026-10-23', style:'Classic', focus:'Upper Push / Lower Pull', finisher:false, laps:1},
+      Sat:{date:'2026-10-24', style:'MetCon', focus:'Total Body', finisher:true, laps:2}
+    }
   }
 };
 /* Pick the week whose date range contains `d` (Date); else the nearest upcoming/most-recent. */
