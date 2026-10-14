@@ -35,6 +35,11 @@ function weekType(startISO){
   const wks=Math.round((d-anchor)/(7*864e5)); return cycle[((wks%4)+4)%4];
 }
 
+/* Non-loaded bodyweight / core-stability / band-activation A-moves that aren't tracked
+   strength lifts (match Jayme's hand-trim). Conservative — only unmistakable ones, and
+   anchored so loaded carries ("Farmer Walk") and loaded raises ("Glute Bridge RAISE") survive. */
+const DROP = /\bplank\b|mountain climber|fire hydrant|(?:lateral|band(?:ed)?)\s+walk|skater step|stir the pot|scissor switch|bird\s*dog|seal jack|line hop|glute bridge march|dead\s*bug|pull[\s-]?aparts?|wall sit/i;
+
 /* One station's "A -" text -> {m, reps, band?}. null if it isn't a trackable move. */
 function parseLift(raw){
   let s = String(raw).trim();
@@ -88,7 +93,7 @@ function parseDoc(title, text){
         const a = ln.match(/^\s*A\s*-\s*(.+?)\s*$/);   // each station's tracked A move
         if(!a) continue;
         const lift = parseLift(a[1]);
-        if(lift) lifts.push(lift);
+        if(lift && !DROP.test(lift.m)) lifts.push(lift);   // skip bodyweight/activation moves
       }
       day.lifts = lifts;
     } else {

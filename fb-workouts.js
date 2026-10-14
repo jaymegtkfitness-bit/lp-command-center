@@ -79,6 +79,26 @@ window.FB_WEEKS = {
       Fri:{date:'2026-10-23', style:'Classic', focus:'Upper Push / Lower Pull', finisher:false, laps:1},
       Sat:{date:'2026-10-24', style:'MetCon', focus:'Total Body', finisher:true, laps:2}
     }
+  },
+  187: {
+    n:187, start:'2026-10-26', end:'2026-10-31', type:'MetCon',
+    theme:'Low Back Health + Cognitive Stimulus',
+    days:{
+      Mon:{date:'2026-10-26', style:'MetCon', focus:'Total Body', finisher:false, laps:1},
+      Tue:{date:'2026-10-27', style:'Strength', focus:'Upper Pull / Lower Pull', finisher:true, lifts:[
+        {m:'2 DB Quadruped Row', reps:'10'},
+        {m:'2KB Sumo Deadlift', reps:'10'},
+        {m:'YB/KB Pullovers with Glute Bridge Hold', reps:'10'},
+        {m:'Sandbag Hip Thrust', reps:'10'} ]},
+      Wed:{date:'2026-10-28', style:'MetCon', focus:'Total Body', finisher:false, laps:1},
+      Thu:{date:'2026-10-29', style:'Classic', focus:'Upper Pull / Lower Push', finisher:true, laps:1},
+      Fri:{date:'2026-10-30', style:'Strength', focus:'Upper Push / Lower Pull', finisher:false, lifts:[
+        {m:'2DB Chest on Bosu', reps:'10'},
+        {m:'2YB/KB Suitcase RDL', reps:'10'},
+        {m:'DB HK OH Tricep Extension', reps:''},
+        {m:'Slam Ball SL Glute Bridge Raise on Box', reps:'10'} ]},
+      Sat:{date:'2026-10-31', style:'MetCon', focus:'Total Body', finisher:false, laps:'AMLAP'}
+    }
   }
 };
 /* Pick the week whose date range contains `d` (Date); else the nearest upcoming/most-recent. */
