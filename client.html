@@ -1949,7 +1949,16 @@ function applyBrand(){
     el.innerHTML='<span class="cb-fbword">'+b.word+'</span>'
       +'<span class="cb-power"><span class="cb-pb">powered by</span><img class="cb-lp" src="'+src+'" alt="'+alt+'"></span>';
   }); }catch(e){}
+  /* Brand the LOGIN HERO + sign-in (same onboarding for the partner OS, partner-labelled). */
+  try{
+    var shortName = b.appTitle.replace(/\s*OS$/i,'');                       // "Fit Body"
+    document.querySelectorAll('#onboard .lg-eyebrow').forEach(function(e){ e.textContent=b.appTitle; });
+    var sub=document.querySelector('#lgLanding .lg-sub');
+    if(sub) sub.textContent='For '+shortName+' members. Your numbers, your workouts, your nutrition system… all running in one place.';
+  }catch(e){}
 }
+/* The brand word shown in the onboarding tour's welcome step (partner-aware). */
+function brandName(){ try{ var b=BRANDS[BRAND]; if(b) return b.appTitle.replace(/\s*OS$/i,''); }catch(e){} return 'Legacy Performance'; }
 try{ if(BRANDS[BRAND]){ document.documentElement.setAttribute('data-brand', BRAND); if(BRANDS[BRAND].accent) document.documentElement.style.setProperty('--brand', BRANDS[BRAND].accent); } }catch(e){}  // set ASAP so the accent is right behind the splash
 
 /* ============================ HELPERS ============================ */
@@ -4609,9 +4618,13 @@ function renderObTour(){
   var h='<div class="obt-top"><span class="obt-step">Step '+(i+1)+' of '+total+'</span>'
       +'<button class="obt-skip" onclick="obTourSkip()">Skip tour</button></div>';
   if(i===0){
+    var _bn=brandName(), _bp=_bn.split(' ');                                  // long 2-word brand -> stacked (Legacy / Performance); short -> one line (FIT BODY)
+    var _stack = (_bp.length>1 && _bn.replace(/\s/g,'').length>10)
+                   ? '<span class="ow-2">'+esc(_bp[0])+'</span><span class="ow-3">'+esc(_bp.slice(1).join(' '))+'</span>'
+                   : '<span class="ow-2" style="font-size:clamp(2.3rem,12vw,3.4rem)">'+esc(_bn)+'</span>';
     h+='<div class="obt-body">'
       +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
-      +'<h2 class="obt-title obt-wtitle"><span class="ow-1">Welcome to</span><span class="ow-2">Legacy</span><span class="ow-3">Performance</span></h2>'
+      +'<h2 class="obt-title obt-wtitle"><span class="ow-1">Welcome to</span>'+_stack+'</h2>'
       +'<p class="obt-lead">To get started, let’s take a tour of the app — so you know what to do and when.</p>'
       +'<p class="obt-desc">Five tabs along the bottom, each with one job. Each section has its own setup steps, based on your level and membership — here’s the quick tour, then we set up your basics.</p>'
       +'</div>';
