@@ -21,6 +21,16 @@ try {
       ctx.RECIPE_LIBRARY = ctx.RECIPE_LIBRARY.concat(ctx.window.RECIPE_VAULT);
   }
 } catch (e) { console.error('vault load skipped:', e.message); }
+/* GUARDRAIL: validate the recipe library on every kit build so a drifted/broken recipe surfaces
+   loudly instead of silently shipping. Warn-only (never blocks a client's kit). */
+try {
+  const { execFileSync } = require('child_process');
+  const out = execFileSync('node', [path.join(__dirname, 'check-recipes.js'), '--quiet'], { encoding: 'utf8' }).trim();
+  process.stderr.write('[recipe guardrail] ' + (out.split('\n').pop() || out) + '\n');
+} catch (e) {
+  const o = (e.stdout || '').toString().trim();
+  process.stderr.write('[recipe guardrail] ' + (o ? o.split('\n').pop() : e.message) + '\n');
+}
 
 const inp = JSON.parse(fs.readFileSync(process.argv[2], 'utf8'));
 const outDir = process.argv[3];
