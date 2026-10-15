@@ -362,7 +362,7 @@ try{ new MutationObserver(function(){ lpSyncLogo(document.documentElement.classL
 
 <script src="../restaurant-data.js?v=1"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=67"></script>
+<script src="../nutrition-engine.js?v=69"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -664,11 +664,19 @@ function build(){
 
   /* 7. restaurants: her places in full, then a wider list so she is covered anywhere */
   var mine = (IN.restaurants||[]);
+  var subLbl = function(t){ return '<p style="margin:10px 0 4px;font-size:.72rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted,#948d7e)">' + t + '</p>'; };
   var rests = mine.map(function(name){
     var r = restaurantMeals(name, {calories:lunchCal, protein:lunch.target.protein}, {count:3, style:sel.style, dislikes:sel.dislikes, allergies:sel.allergies});
-    if (r.empty) return '';
-    return '<div class="tile rest"><h3>' + esc(name) + '</h3>' + r.options.map(function(o){
-      return '<p class="order">' + esc(o.title) + '</p><p class="fit">' + o.totals.kcal + ' cal · ' + o.totals.p + 'g protein</p>'; }).join('') +
+    /* high-protein picks (our builds generator) — custom orders, not fitted to one meal */
+    var hp = (typeof restaurantBuilds==='function') ? restaurantBuilds(name, {style:sel.style, dislikes:sel.dislikes, allergies:sel.allergies}) : {builds:[]};
+    if (r.empty && (!hp.builds || !hp.builds.length)) return '';
+    var sized = r.empty ? '' : r.options.map(function(o){
+      return '<p class="order">' + esc(o.title) + '</p><p class="fit">' + o.totals.kcal + ' cal · ' + o.totals.p + 'g protein</p>'; }).join('');
+    var picks = (hp.builds||[]).slice(0,3).map(function(b){
+      return '<p class="order"><strong>' + esc(b.name) + '</strong> — ' + esc(b.order) + '</p><p class="fit">' + b.totals.kcal + ' cal · ' + b.totals.p + 'g protein · ' + b.density + 'g/100</p>'; }).join('');
+    return '<div class="tile rest"><h3>' + esc(name) + '</h3>' +
+      (sized ? subLbl('Sized to your meal') + sized : '') +
+      (picks ? subLbl('High-protein picks') + picks : '') +
       (r.official ? '' : '<p class="note">From the nutrition board posted in store.</p>') + '</div>';
   }).join('');
   /* Everywhere else, one solid order each, grouped so she can find the kind of place she is at. */
@@ -692,7 +700,7 @@ function build(){
     return rows ? '<div class="mgroup"><h4>' + esc(g.name) + '</h4>' + rows + '</div>' : '';
   }).join('');
   doc.push('<section class="sheet"><span class="label">Eating out</span><h2>No more guessing at <span class="gold">restaurants.</span></h2>' +
-    '<p class="intro">Real orders, sized to one of your meals (about ' + Math.round(lunchCal) + ' calories and ' + lunch.target.protein + 'g protein), from each restaurant\'s own published nutrition.</p>' +
+    '<p class="intro">Real orders, sized to one of your meals (about ' + Math.round(lunchCal) + ' calories and ' + lunch.target.protein + 'g protein), plus high-protein picks you can build at each spot. Every number is from the restaurant\'s own published nutrition.</p>' +
     (rests ? '<h3 style="margin:14px 0 8px;font-size:.95rem">The places you told me you go</h3>' + rests : '<p class="note">No restaurants picked yet. Add the places you go and rebuild.</p>') +
     foot() + '</section>');
   doc.push('<section class="sheet"><span class="label">Eating out · everywhere else</span><h2>Covered <span class="gold">anywhere you end up.</span></h2>' +
