@@ -1788,7 +1788,7 @@ function rmItems(chain){
 }
 function rmKids(i){ return /\bkid|cub meal|junior|jr\.?\b|mini\b/i.test(i.name+' '+i.serving); }
 function rmLabel(i, role){
-  var n=i.name.replace(/\s*\([^)]*\b(add-?on|add extra|protein component|pasta topping|protein option)\b[^)]*\)/ig,' ').replace(/\s+/g,' ').trim();
+  var n=i.name.replace(/\s*\([^)]*\b(add-?on|add extra|protein component|component|pasta topping|protein option)\b[^)]*\)/ig,' ').replace(/\s+/g,' ').trim();
   n=n.replace(/,\s*(ingredient|cup and|medium|small|large|regular|bowl portion)\b.*$/i,'').replace(/\s*\(supplier [a-z]\)/ig,'');
   if(role==='add-on' && i.cat==='component_protein') n='Extra '+n.toLowerCase();
   return n;
@@ -1968,6 +1968,120 @@ function restaurantMeals(chain, target, opts){
           retrieved:d?d.retrieved:'', official:d?d.official!==0:false, empty:!options.length};
 }
 function restaurantChains(){ return (typeof RESTAURANT_DB!=='undefined')? Object.keys(RESTAURANT_DB.chains).sort() : []; }
+
+/* ===== HIGH-PROTEIN BUILDS (our own algorithm; MenuFit-style, done from our own data) =====
+   restaurantMeals() fits a client's per-meal TARGET. restaurantBuilds() instead surfaces an
+   ASSORTMENT of realistic, high-protein single-dish builds per chain, ranked by protein within
+   calorie bands — the "browse any restaurant" mode. Same verified data (RESTAURANT_DB) and the
+   same combo engine (rmCombos); the selection, banding, density scoring and naming are ours, so
+   the output is our design even where the combination lands on the same food as someone else.
+   Returns { chain, builds:[{name, band, bandLabel, order, items:[...], totals:{kcal,p,c,f},
+   density}], official, retrieved, empty }. density = g protein per 100 kcal. */
+var RB_BANDS=[
+  {key:'light',    label:'Lighter',  min:0,   max:450},
+  {key:'standard', label:'Standard', min:450, max:600},
+  {key:'big',      label:'Big',      min:600, max:820}
+];
+function rbProtKey(nm){ nm=String(nm||'').toLowerCase();
+  if(/shrimp|prawn/.test(nm)) return 'shrimp';
+  if(/salmon/.test(nm)) return 'salmon';
+  if(/\bfish\b|cod|tilapia|tuna|haddock|pollock|filet[\s-]*o/.test(nm)) return 'fish';
+  if(/chicken|nugget|tender(?!loin)|\bwing/.test(nm)) return 'chicken';
+  if(/turkey/.test(nm)) return 'turkey';
+  if(/steak|sirloin|ribeye|brisket|burger|cheeseburger|patty|angus|roast beef|prime rib|\bbeef\b|meatball|philly|\bfilet\b|flat iron|\bstrip\b|porterhouse|dallas filet|t-bone/.test(nm)) return 'beef';
+  if(/carnitas|barbacoa|pulled pork|\bpork\b|bacon|\bham\b|sausage|chorizo|al pastor/.test(nm)) return 'pork';
+  if(/\begg\b/.test(nm)) return 'egg';
+  if(/tofu|veggie|black bean|\bbean\b|lentil|falafel|impossible|beyond/.test(nm)) return 'veg';
+  return nm.split(/[\s,]/)[0]; }
+/* which parts carry the protein (to cap a build at a realistic 1-2 protein sources) */
+function rbProteins(c){
+  if(c.kind!=='main') return (c.parts||[]).filter(function(p){ return p.cat==='component_protein'; });
+  return [c.anchor].concat(c.protein||[]).filter(Boolean);
+}
+var RB_SEAFOOD={shrimp:1,salmon:1,fish:1};
+/* Build an ORIGINAL, descriptive name from the real components. Descriptor encodes the build's
+   character (lean / power / double / surf-and-turf); the protein + format are factual. */
+function rbName(c){
+  /* name proteins = the FOOD proteins (a protein drink adds grams but shouldn't name the dish) */
+  var prots=rbProteins(c).filter(function(p){ return p.cat!=='drink' && !/latte|matcha|shake|smoothie|coffee|protein drink|milk\b/i.test(p.name); });
+  if(!prots.length) prots=rbProteins(c);
+  var keys=prots.map(function(p){ return rbProtKey(p.name); });
+  var uniq=[]; keys.forEach(function(k){ if(uniq.indexOf(k)<0) uniq.push(k); });
+  var NICE={chicken:'Chicken',turkey:'Turkey',beef:'Steak',pork:'Pork',shrimp:'Shrimp',salmon:'Salmon',fish:'Fish',egg:'Egg',veg:'Veggie'};
+  var proWord;
+  var surf = uniq.length===2 && (RB_SEAFOOD[uniq[0]]||RB_SEAFOOD[uniq[1]]) && (uniq.indexOf('beef')>=0 || uniq.indexOf('chicken')>=0 || uniq.indexOf('pork')>=0);
+  if(uniq.length>=2) proWord=(NICE[uniq[0]]||cap(uniq[0]))+' & '+(NICE[uniq[1]]||cap(uniq[1]));
+  else proWord=NICE[uniq[0]]||cap(uniq[0]||'Protein');
+  var dens=c.t.p/c.t.kcal*100, p=c.t.p;
+  var doubled = prots.length>=2 && uniq.length===1;
+  var fmt = c.kind==='bowl' ? 'Bowl' : (c.bunless ? 'Stack' : (/nugget|tender|wing|bites|strip|finger/i.test((prots[0]||{}).name||'') ? 'Box' : 'Plate'));
+  var desc;
+  if(surf) desc='Surf & Turf';
+  else if(doubled) desc='Double';
+  else if(p>=45 && dens>=12) desc='Power';          // genuinely high protein AND lean
+  else if(c.t.kcal<=430) desc='Lean';
+  else desc='Loaded';
+  return (desc+' '+proWord+' '+fmt).replace(/\bKid'?s\s+/i,'').replace(/\s+/g,' ').trim();
+}
+function cap(s){ s=String(s||''); return s.charAt(0).toUpperCase()+s.slice(1); }
+/* A human "how to order" line from the parts: anchor, then adds, then the side. */
+function rbOrder(c){
+  var counts={}, order=[];
+  c.parts.forEach(function(p){ var nm=rmLabel(p, p===c.anchor?'main':(p.cat==='side'?'side':'add-on'));
+    if(counts[nm]) counts[nm].q++; else { counts[nm]={q:1,p:p}; order.push(nm); } });
+  var mains=[], adds=[], sides=[];
+  order.forEach(function(nm){ var r=counts[nm], lbl=(r.q>1?r.q+'x ':'')+nm;
+    if(c.kind==='main'){ if(r.p===c.anchor) mains.push(lbl); else if(r.p.cat==='side') sides.push(lbl); else adds.push(lbl); }
+    else { if(r.p.cat==='component_protein') adds.push(lbl); else if(/base|green|rice|grain/.test(r.p.cat)||/bowl|salad/i.test(r.p.name)) mains.push(lbl); else sides.push(lbl); } });
+  var s='';
+  if(c.kind==='bowl'){ s='Build a bowl: '+mains.concat(adds).join(', '); if(c.protein&&c.protein.length>1) s+=c.protein[0].half?'. Ask for half and half.':(c.protein[0]===c.protein[1]?'. Ask for double meat.':'. Full portion of each protein.'); }
+  else if(c.bunless){ s='Order '+adds.concat(mains).join(' + ')+' as a lettuce wrap or bowl'; }
+  else { s='Order the '+mains.join(' + '); if(adds.length) s+=', add '+adds.join(' + '); }
+  if(sides.length && c.kind!=='bowl') s+=' with '+sides.join(', ')+' on the side';
+  return s.replace(/\s+/g,' ').trim();
+}
+function restaurantBuilds(chain, opts){
+  opts=opts||{};
+  var items=rmItems(chain), slot=opts.slot||'meal';
+  var styleOk=rmStyleOk(opts.style, opts.allergies), disRx=(typeof dislikeRx==='function')?dislikeRx(opts.dislikes):null;
+  var ok=function(i){ return (!styleOk||styleOk(i)) && (typeof dislikesOk!=='function'||dislikesOk(disRx, i.name+' '+i.serving)); };
+  var kept=items.filter(ok); if(kept.length) items=kept;
+  var combos=rmCombos(items, slot);
+  combos.forEach(function(c){ c.t=rmTotals(c.parts); c.pros=rbProteins(c); c.dens=c.t.kcal>0?c.t.p/c.t.kcal*100:0; });
+  function realistic(min,maxP,maxParts,densMin){
+    return combos.filter(function(c){
+      return c.t.kcal>=200 && c.t.kcal<=820 && c.pros.length>=1 && c.pros.length<=maxP
+        && c.parts.length<=maxParts && c.t.p>=min && c.t.p<=110 && c.dens>=densMin;
+    });
+  }
+  var pool=realistic(28,2,5,9);
+  if(pool.length<6) pool=realistic(20,2,6,7);
+  if(pool.length<4) pool=realistic(12,3,7,5);
+  pool.sort(function(a,b){ return b.t.p-a.t.p; });
+  /* pick a spread across calorie bands; dedupe by protein identity + rounded size for variety */
+  var builds=[], seen={}, perBand={light:0,standard:0,big:0};
+  var PER_BAND=opts.perBand||3, MAX=opts.max||9;
+  function bandOf(k){ for(var i=0;i<RB_BANDS.length;i++){ if(k<=RB_BANDS[i].max) return RB_BANDS[i]; } return RB_BANDS[RB_BANDS.length-1]; }
+  function entreeKey(c){ return c.pros.map(function(p){ return rbProtKey(p.name); }).sort().join('+'); }
+  for(var pass=0; pass<2 && builds.length<MAX; pass++){
+    for(var i=0;i<pool.length && builds.length<MAX;i++){
+      var c=pool[i], b=bandOf(c.t.kcal);
+      var ek=entreeKey(c), dedup=ek+'|'+Math.round(c.t.p/8)+'|'+b.key;
+      if(seen[dedup]) continue;
+      if(pass===0 && perBand[b.key]>=PER_BAND) continue;      // first pass: spread across bands
+      if(pass===0 && builds.some(function(x){ return x._ek===ek; }) && builds.filter(function(x){return x._ek===ek;}).length>=1) continue; // limit repeats of same protein on pass 1
+      seen[dedup]=1; perBand[b.key]++;
+      builds.push({ _ek:ek, _c:c, name:rbName(c), band:b.key, bandLabel:b.label, order:rbOrder(c),
+        items:c.parts.map(function(p){ return {name:rmLabel(p, p===c.anchor?'main':(p.cat==='side'?'side':'add-on')), serving:p.serving, kcal:Math.round(p.kcal), p:Math.round(p.p), src:p.src}; }),
+        totals:{kcal:c.t.kcal, p:c.t.p, c:c.t.c, f:c.t.f}, density:+(c.dens.toFixed(1)) });
+    }
+  }
+  builds.sort(function(a,b){ return a.totals.kcal-b.totals.kcal; });
+  builds.forEach(function(x){ delete x._ek; delete x._c; });
+  var d=(typeof RESTAURANT_DB!=='undefined')&&RESTAURANT_DB.chains[chain];
+  return { chain:chain, builds:builds, rules:RESTAURANT_RULES,
+    retrieved:d?d.retrieved:'', official:d?d.official!==0:false, empty:!builds.length };
+}
 
 /* ===== SWAP SYSTEM =====
    Trade any food for another and land on the same numbers. A swap matches the food's ANCHOR macro:

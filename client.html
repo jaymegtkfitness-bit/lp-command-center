@@ -1864,7 +1864,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=68"></script>
+<script src="nutrition-engine.js?v=69"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -5862,6 +5862,20 @@ function openEatingOut(){
   var box=g("fastFoodBox"); if(box) box.innerHTML='<p class="empty">Loading restaurants…</p>';
   ensureRestaurantData(renderFastFood);
 }
+var FF_MODE="target", FF_BAND="all";
+function ffMode(m){ FF_MODE=m; var r=g("ffResult"); if(r) r.innerHTML=""; renderFastFood(); }
+function ffBand(b){ FF_BAND=b; ffBrowse(); }
+/* Pull the client's eating style / allergies / dislikes so browse builds respect them. */
+function ffClientRestrictions(){
+  var c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
+  var list=function(v){ return Array.isArray(v)?v:String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
+  return { style:c['Eating style']||'', allergies:list(c['Allergen keys']), dislikes:(c['Allergies/dislikes']||c['Dislikes']||'') };
+}
+function ffModeChips(){
+  return '<div class="chips" style="margin:0 0 14px">'
+    +'<button type="button" class="chip'+(FF_MODE==='target'?' on':'')+'" onclick="ffMode(\'target\')">Fits my plan</button>'
+    +'<button type="button" class="chip'+(FF_MODE==='browse'?' on':'')+'" onclick="ffMode(\'browse\')">High-protein picks</button></div>';
+}
 function renderFastFood(){
   var card=g("fastFoodCard"), box=g("fastFoodBox"), it=M.intake; if(!card) return;
   if(typeof RESTAURANT_DB==='undefined'){ ensureRestaurantData(renderFastFood); return; }  // fetch data, then re-render
@@ -5869,16 +5883,62 @@ function renderFastFood(){
   if(!it||!it.pfs||!chains.length){ card.style.display="none"; return; }
   card.style.display="";
   if(chains.indexOf(FF_REST)<0) FF_REST=chains[0];
+  if(FF_MODE==='browse'){ renderFastFoodBrowse(); return; }
   var restOpts=chains.map(function(c){return '<option'+(c===FF_REST?' selected':'')+'>'+esc(c)+'</option>';}).join('');
   var mealOpts=[[2,true,'2 + shake'],[3,false,'3'],[3,true,'3 + shake'],[4,false,'4']];
   var mealChips=mealOpts.map(function(o){ var on=(FF_MEALS===o[0]&&FF_SHAKE===o[1]); return '<button type="button" class="chip'+(on?' on':'')+'" onclick="ffMeals('+o[0]+','+o[1]+')">'+o[2]+'</button>';}).join('');
   var slotChips=[['breakfast','Breakfast'],['meal','Lunch or dinner']].map(function(o){ return '<button type="button" class="chip'+(FF_SLOT===o[0]?' on':'')+'" onclick="ffSlot(\''+o[0]+'\')">'+o[1]+'</button>';}).join('');
-  box.innerHTML='<p class="wiz-hint" style="margin:0 0 8px">Pick a spot and I\'ll build a real order that fits this meal. Every number comes from the restaurant\'s own published nutrition.</p>'
+  box.innerHTML=ffModeChips()
+    +'<p class="wiz-hint" style="margin:0 0 8px">Pick a spot and I\'ll build a real order that <b>fits this meal in your plan</b>. Every number comes from the restaurant\'s own published nutrition.</p>'
     +'<div class="field"><label>Restaurant</label><select class="input" onchange="ffPick(this.value)">'+restOpts+'</select></div>'
     +'<div class="field"><label>Which meal</label><div class="chips">'+slotChips+'</div></div>'
     +'<div class="field"><label>Meals a day</label><div class="chips">'+mealChips+'</div></div>'
     +'<div class="actions"><button class="btn btn-primary" onclick="ffBuild()">Build my order →</button></div>'
     +'<div id="ffResult" style="margin-top:12px"></div>';
+}
+/* MODE B — browse high-protein builds at any chain (MenuFit-style, our own generator). Not fitted
+   to the client's meal target; ranked by protein within calorie bands. */
+function renderFastFoodBrowse(){
+  var box=g("fastFoodBox"), chains=restaurantChains();
+  if(chains.indexOf(FF_REST)<0) FF_REST=chains[0];
+  var restOpts=chains.map(function(c){return '<option'+(c===FF_REST?' selected':'')+'>'+esc(c)+'</option>';}).join('');
+  var bands=[['all','All'],['w46','400–600'],['w68','600–800']];
+  var bandChips=bands.map(function(o){ return '<button type="button" class="chip'+(FF_BAND===o[0]?' on':'')+'" onclick="ffBand(\''+o[0]+'\')">'+o[1]+'</button>';}).join('');
+  box.innerHTML=ffModeChips()
+    +'<p class="wiz-hint" style="margin:0 0 8px">Search any spot for <b>high-protein orders you can actually build</b> — real combinations from the chain\'s own published nutrition, ranked by protein. Not on the menu board.</p>'
+    +'<div class="field"><label>Search a restaurant</label><select class="input" onchange="ffPickBrowse(this.value)">'+restOpts+'</select></div>'
+    +'<div class="field"><label>Calorie range</label><div class="chips">'+bandChips+'</div>'
+      +'<p class="wiz-hint" style="margin:6px 0 0">Deficit-friendly windows — 400–600 runs leaner, 600–800 is a bigger plate.</p></div>'
+    +'<div id="ffResult" style="margin-top:12px"></div>';
+  ffBrowse();
+}
+function ffPickBrowse(c){ FF_REST=c; FF_BAND="all"; renderFastFoodBrowse(); }
+function ffBrowse(){
+  var out=g("ffResult"); if(!out) return;
+  if(typeof restaurantBuilds!=='function'){ out.innerHTML='<p class="wiz-hint">Restaurant data still loading…</p>'; return; }
+  var r=restaurantBuilds(FF_REST, ffClientRestrictions());
+  var WIN={w46:[400,600], w68:[600,800]};
+  var win=WIN[FF_BAND];
+  var builds=(r.builds||[]).filter(function(b){ return !win || (b.totals.kcal>=win[0] && b.totals.kcal<=win[1]); });
+  var winLabel=FF_BAND==='w46'?'400–600 cal':(FF_BAND==='w68'?'600–800 cal':'');
+  var head='<div class="lp-sub">'+esc(FF_REST)+' · '+builds.length+' high-protein '+(builds.length===1?'build':'builds')+(winLabel?' · '+winLabel:'')+'</div>';
+  if(!builds.length){ out.innerHTML=head+'<p class="wiz-hint">No builds in this range. Try "All".</p>'; return; }
+  var cards=builds.map(function(b){
+    var items=b.items.map(function(l){ return '<li>'+(l.p?'<b>'+l.p+'g</b> · ':'')+esc(l.name)+' <span style="color:var(--muted)">'+l.kcal+' cal</span></li>'; }).join('');
+    return '<div style="border:1px solid var(--line);border-radius:12px;padding:13px 15px;margin:0 0 11px;background:var(--surface-2);color:var(--ink)">'
+      +'<div style="display:flex;justify-content:space-between;align-items:baseline;gap:8px">'
+        +'<b style="font-size:1.04rem;color:var(--headline)">'+esc(b.name)+'</b>'
+        +'<span style="font-size:.64rem;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)">'+esc(b.bandLabel)+'</span></div>'
+      +'<div style="margin:7px 0 2px;font-size:1.02rem"><b style="color:var(--gold)">'+b.totals.p+'g protein</b> '
+        +'<span style="color:var(--muted)">· '+b.totals.kcal+' cal · '+b.density+'g protein / 100 cal</span></div>'
+      +'<p class="wiz-hint" style="margin:8px 0 0"><b>How to order:</b> '+esc(b.order)+'</p>'
+      +'<details style="margin-top:8px"><summary style="cursor:pointer;color:var(--muted);font-size:.86rem">What\'s in it</summary>'
+        +'<ul class="mp-items" style="margin:8px 0 2px">'+items+'</ul>'
+        +'<p class="wiz-hint" style="margin:2px 0 0">'+b.totals.p+'g protein · '+b.totals.c+'g carbs · '+b.totals.f+'g fat · '+b.totals.kcal+' cal</p></details>'
+      +'</div>';
+  }).join('');
+  if(!r.official) head+='<p class="wiz-hint" style="margin:4px 0 8px">'+esc(FF_REST)+' doesn\'t publish nutrition online, so these come from the in-store board.</p>';
+  out.innerHTML=head+cards+'<p class="wiz-hint" style="margin-top:4px">These are high-protein picks, not fitted to your plan. Switch to <b>Fits my plan</b> for orders sized to your meal.</p>';
 }
 function ffBuild(){
   var p=M.intake.pfs;
