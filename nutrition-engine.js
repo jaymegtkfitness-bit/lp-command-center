@@ -277,6 +277,97 @@ function reverseRead(thisCal, lastCal, weightDelta, hitProtein){
   return {move:false, note:"Hold this week — we step up only when the scale holds steady."};
 }
 
+/* ===== MAINTENANCE FIRST — the first 30 days (Jayme 2026-10-17; legacy-coach/references/maintenance-first.md)
+   Everyone starts at GOAL-WEIGHT MAINTENANCE for month one: the job is skills (tracking, protein,
+   steps, sleep, the check-in), not a number. The target is goal weight x 13/14/15 by how far they are
+   from goal; the climb is anchored on the MEASURED tracking-week average (never the recall) and steps
+   ~1 multiplier/week up to that target. SUPERSEDES reverseStart/reverseRead for the first-30-days path.
+   No separate deficit before the Assign call. ===== */
+function monthOneMult(currentWeight, goalWeight){
+  var lose=(+currentWeight||0)-(+goalWeight||0);
+  if(lose>=50) return 15;
+  if(lose>=25) return 14;
+  if(lose>=5)  return 13;
+  return 15;                                      // <5 lb to lose / at goal / gain goal
+}
+function monthOneTarget(currentWeight, goalWeight){
+  return Math.round((+goalWeight||0)*monthOneMult(currentWeight, goalWeight));
+}
+/* Start of the month-one climb, anchored on the MEASURED week (null before it's logged → deliver
+   goal-weight maintenance). Below gw x12 (incl. the low-intake group) → start x12; measured between
+   x12 and target → start where she is; at/above target → hold at goal-weight maintenance. */
+function monthOneStart(measuredAvg, currentWeight, goalWeight){
+  var gw=+goalWeight||0, target=monthOneTarget(currentWeight, goalWeight), floor=Math.round(gw*12);
+  var m=(measuredAvg!=null && +measuredAvg>0)?Math.round(+measuredAvg):null;
+  if(m==null) return target;
+  if(m<floor)  return floor;
+  if(m<target) return m;
+  return target;
+}
+/* Weekly month-one read: climb ~1 multiplier (≈ gw calories) per week toward goal-weight maintenance.
+   Pause a step ONLY if weight is >3 lb above the tracking-week average AND still rising across 2 check-ins. */
+function monthOneRead(thisCal, currentWeight, goalWeight, lbsAboveTrackingAvg, risingTwoCheckins){
+  var gw=+goalWeight||0, target=monthOneTarget(currentWeight, goalWeight);
+  var cur=(thisCal!=null && +thisCal>0)?Math.round(+thisCal):null;
+  if(cur==null) return {move:false, note:"Log this week's average calories so we can read your climb."};
+  if(cur>=target) return {move:false, dir:"hold", note:"You're at your goal-weight maintenance. Hold here and dial in food quality — the first deficit comes after your Assign call."};
+  if(lbsAboveTrackingAvg!=null && lbsAboveTrackingAvg>3 && risingTwoCheckins){
+    return {move:false, dir:"pause", note:"Weight is more than 3 lb above your tracking-week average and still climbing — hold this step one more week and let it settle."};
+  }
+  var next=Math.min(target, cur+gw);
+  return {move:true, dir:"up", next:next, note:"Step up to about "+next+" — roughly one more multiplier toward your goal-weight maintenance. Expect 1–3 lb of water the first week; that's fuel landing, not fat."};
+}
+/* Maintenance-first STARTING macros for a member the coach hasn't assigned a real phase to yet.
+   Calories = goal-weight maintenance (monthOneTarget, by pounds to lose from CURRENT weight); protein =
+   the Lean floor (1 g/lb goal). At onboarding there's no measured week, so the start IS the target —
+   the climb (monthOneStart/monthOneRead) only applies once a measured week exists. Returns macros shaped
+   like computePFS so callers can swap it in. Current weight missing → treated as at goal (x15, the safe,
+   higher side for month one). */
+function monthOneAnchor(w){
+  var gbw=+w.goalweight;
+  if(!(gbw>0) && typeof estimateGoalWeight==='function') gbw=estimateGoalWeight(w);
+  if(!(gbw>0)) return null;
+  var cw=+w.weight; if(!(cw>0)) cw=gbw;
+  var ppl=(typeof PROTEIN_PER_LB!=='undefined' && PROTEIN_PER_LB.Lean)?PROTEIN_PER_LB.Lean:1.0;
+  var base=macrosFrom(monthOneTarget(cw,gbw), Math.round(gbw*ppl), w.sex);
+  base.tdee=computeTDEE(w); base.delta=base.calories-base.tdee;
+  base.phase="Maintenance"; base.monthOne=true; base.multiplier=monthOneMult(cw,gbw); base.goalweight=gbw;
+  return base;
+}
+
+/* ===== LIMITER LADDER (weekly check-in) — walk the member's phase ladder top→bottom; the FIRST lever
+   that misses its bar is her one focus. Check-in #1 is always consistency. Month one uses the Reverse
+   ladder (building the floor + the skills). Bars per handoff 2026-10-17 §2c. ===== */
+var LIMITER_LADDER={
+  Lean:   ["consistency","protein","calories","training","steps"],
+  Strong: ["training","protein","calories","consistency","steps"],
+  Sustain:["protein","calories","steps","training","consistency"],
+  Reverse:["protein","calories","training","consistency","steps"]
+};
+LIMITER_LADDER.MonthOne=LIMITER_LADDER.Reverse;
+/* m = {consistencyPct, proteinAvg, proteinTarget, proteinDaysHit, calAvg, calTarget, phaseForCal,
+        stepsAvg, stepsTarget, sessionsDone, sessionsPlanned}. checkinNum is 1-based. */
+function limiterOf(phase, m, checkinNum){
+  if(checkinNum===1) return "consistency";                     // check-in #1 = HOLD, limiter = consistency
+  var ladder=LIMITER_LADDER[phase]||LIMITER_LADDER.Lean, x=m||{};
+  function miss(lever){
+    if(lever==="consistency") return x.consistencyPct!=null && x.consistencyPct<85;
+    if(lever==="protein")     return !((x.proteinAvg!=null && x.proteinTarget!=null && x.proteinAvg>=x.proteinTarget) && (x.proteinDaysHit==null || x.proteinDaysHit>=6));
+    if(lever==="calories"){
+      if(x.calAvg==null || x.calTarget==null) return false;
+      var hi=x.calAvg>x.calTarget*1.10, lo=x.calAvg<x.calTarget*0.90, ph=x.phaseForCal||phase;
+      if(ph==="Lean") return hi;                               // Lean miss = over
+      if(ph==="Reverse"||ph==="Strong"||ph==="MonthOne") return lo;   // these miss = under
+      return hi||lo;                                           // Sustain = either direction
+    }
+    if(lever==="training") return x.sessionsDone!=null && x.sessionsDone<Math.max(2, x.sessionsPlanned||2);  // floor 2/week
+    if(lever==="steps")    return x.stepsAvg!=null && x.stepsTarget!=null && x.stepsAvg<x.stepsTarget;
+    return false;
+  }
+  for(var i=0;i<ladder.length;i++){ if(miss(ladder[i])) return ladder[i]; }
+  return null;                                                 // everything on target
+}
+
 /* n  = name
    g  = grams of the ANCHOR macro per unit (kept so every existing caller still works)
    p / c / f = grams of protein / carbs / fat per unit      kcal = calories per unit

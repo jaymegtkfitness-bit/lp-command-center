@@ -1864,7 +1864,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=69"></script>
+<script src="nutrition-engine.js?v=70"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -2766,6 +2766,19 @@ function buildModel(server){
     it.phaseIdx = Math.max(0, Math.min(it.phaseIdx, ladder.length-1));
     var act=ladder[it.phaseIdx];
     it.pfs = {calories:act.calories, protein:act.protein, carbs:act.carbs, fat:act.fat, tdee:it.pfsBase.tdee};  // active = current phase
+    // ===== MAINTENANCE FIRST overlay (canon 2026-10-17): a member the coach hasn't assigned a real
+    // phase to yet — no calorie/protein override AND the dial still on rung 0 — spends month one at
+    // GOAL-WEIGHT MAINTENANCE, not a deficit. The coach ends month one on the Assign call by setting
+    // targets or advancing the dial, and the overlay stops firing. =====
+    it.monthOne = (ovCal==null || ovPro==null) && !(it.phaseIdx>0);
+    if(it.monthOne && typeof monthOneAnchor==='function'){
+      var _ma=monthOneAnchor(it);
+      if(_ma){
+        it.anchor={calories:_ma.calories, protein:_ma.protein, carbs:_ma.carbs, fat:_ma.fat, tdee:_ma.tdee};
+        it.pfs   ={calories:_ma.calories, protein:_ma.protein, carbs:_ma.carbs, fat:_ma.fat, tdee:_ma.tdee};
+        it.monthOneMult=_ma.multiplier;
+      } else { it.monthOne=false; }
+    }
   }
   M.intake = it;
   // ---- Layer 2 (The Deep Read) — one JSON blob on the same Intake row, server wins over device ----
@@ -4147,6 +4160,9 @@ function readHTML(it, opts){
   /* A constraint can override the lane when their goal-picked track is the wrong place to be —
      e.g. an open medical question holds them at maintenance regardless of what they picked. */
   if(c.lane){ tn=c.lane; lane=c.laneNote||""; }
+  /* Maintenance First (canon 2026-10-17): the first month is maintenance for everyone, unless a
+     constraint already holds them somewhere more specific (keep that — it's the sharper read). */
+  else if(it.monthOne){ tn="Month 1 · Maintenance"; lane="the month is skills — tracking, protein, steps, sleep. Your first real deficit is set after your roadmap call, not before."; }
   return '<div class="read">'
     +'<div class="read-top"><span class="read-chip">'+esc(c.name)+'</span><span class="read-tag">Your Read</span></div>'
     +'<div class="read-head">'+esc(c.head)+'</div>'
@@ -5434,12 +5450,14 @@ function targetsAdjustHTML(it){
   var p=it.pfs, a=it.anchor||p, base=it.pfsBase||p;
   var ladder=computeLadder(it), nP=ladder.length, cur=(it.phaseIdx||0)+1;
   var lane=({"Reverse Diet":"Reverse","Long":"Sustain"})[it.track]||it.track||"";   // program-lane name qualifies the calorie rungs ("Lean · Phase 2 of 3")
-  var byNote = it.overridden ? '<span class="tw-badge">'+(/coach/i.test(it.targetsBy||'')?'set by your coach':'your number')+'</span>' : '<span class="tw-badge tw-rec">recommended start</span>';
-  var dialLine = nP>1
+  var byNote = it.monthOne ? '<span class="tw-badge tw-rec">month 1 · maintenance</span>' : (it.overridden ? '<span class="tw-badge">'+(/coach/i.test(it.targetsBy||'')?'set by your coach':'your number')+'</span>' : '<span class="tw-badge tw-rec">recommended start</span>');
+  var dialLine = it.monthOne
+    ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px"><span style="font-size:12.5px;color:var(--muted)">The Dial · <b style="color:var(--accent)">Month 1 · Maintenance</b> <span style="color:var(--muted)">— your roadmap call sets the first real phase</span></span></div>'
+    : (nP>1
     ? '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px"><span style="font-size:12.5px;color:var(--muted)">The Dial · <b style="color:var(--accent)">'+(lane?esc(lane)+' · ':'')+'Phase '+cur+' of '+nP+'</b></span>'
       +(cur>1?'<button class="btn btn-ghost" style="padding:3px 10px;font-size:12px" type="button" onclick="movePhase(-1)">← back a phase</button>':'')
       +(cur<nP?'<button class="btn btn-ghost" style="padding:3px 10px;font-size:12px" type="button" onclick="movePhase(1)">next phase →</button>':'')+'</div>'
-    : '';
+    : '');
   return '<div class="card">'
     +'<div class="sec-h" style="margin-bottom:8px"><h2>Your numbers</h2>'+byNote+'</div>'
     + dialLine
@@ -5513,21 +5531,25 @@ function faqsFor(track){ return (FAQ_LIB.universal||[]).concat(FAQ_LIB[track]||[
 function rmCell(n,l){ return '<div class="rm-cell"><div class="rn">'+esc(n)+'</div><div class="rl">'+esc(l)+'</div></div>'; }
 function roadmapHTML(it){
   var p=it.pfs, ladder=computeLadder(it), first=ladder[0];
+  if(it.monthOne){ first={calories:p.calories, protein:p.protein, carbs:p.carbs, fat:p.fat, label:"Month 1 · maintenance"}; }  // maintenance-first: the start IS goal-weight maintenance, not the ladder's deficit rung
+  var startLbl=it.monthOne?"Month 1":"Phase 1";
   var lastW=(M.checkins.length?M.checkins[M.checkins.length-1].weight:null);
   var curW=(lastW!=null?lastW:it.weight);
   var cv=M.checkins.map(function(x){return x.cons;}).filter(function(v){return v!=null;});
   var cons=cv.length?Math.round(cv.reduce(function(a,b){return a+b;},0)/cv.length):null;
-  var deficit=p.tdee-first.calories, dir=(it.track==="Strong"||it.track==="Reverse Diet")?"surplus":"deficit";
+  var deficit=p.tdee-first.calories, dir=it.monthOne?"built-in gap":((it.track==="Strong"||it.track==="Reverse Diet")?"surplus":"deficit");
   var pace=Math.min(Math.abs(deficit*7/3500), 1.5, (+curW||+it.weight||200)*0.01).toFixed(1);   // never quote past 1.5 lb or 1% of bodyweight a week
   var snap='<div class="lp-sub">Where you are now</div>'
     +'<div class="rm-grid">'+rmCell(curW!=null?curW+" lb":"—","Current")+rmCell((+it.goalweight)+" lb","Goal (IBW)")+rmCell("~"+p.tdee,"Upper limit (×15)")+rmCell((deficit>=0?"−":"+")+Math.abs(deficit),"Daily "+dir)+'</div>'
-    +'<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Your calories live between your fat-loss number (goal weight × 13) and your upper limit (goal weight × 15). We build from who you are becoming, not who you are today. Phase 1 sits about '+Math.abs(deficit)+' cal/day under your upper limit, roughly '+pace+' lb a week before steps. Your weekly check-ins do the fine-tuning. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>';
+    +(it.monthOne
+      ? '<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. <b style="color:var(--accent)">Month one sits at your goal-weight maintenance</b> ('+first.calories+' cal) — maintenance for the body you are building, and about '+Math.abs(deficit)+' cal/day under what you burn today, so you move forward without dieting. The job this month is the skills, not the scale. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'Your first real deficit is set on your roadmap call, not before.</p>'
+      : '<p class="wiz-hint" style="margin-top:8px">Your goal weight of '+(+it.goalweight)+' lb is the average of four established clinical formulas from your height and frame — you never have to calculate it. Your calories live between your fat-loss number (goal weight × 13) and your upper limit (goal weight × 15). We build from who you are becoming, not who you are today. Phase 1 sits about '+Math.abs(deficit)+' cal/day under your upper limit, roughly '+pace+' lb a week before steps. Your weekly check-ins do the fine-tuning. '+(cons!=null?"Your consistency so far is running "+cons+"%. ":"")+'One day is noise; the two-week trend is what we act on.</p>');
   var targets='<div class="lp-sub">Your targets</div>'
-    +'<p class="wiz-hint" style="margin:0"><b style="color:var(--accent)">Protein '+p.protein+'g</b> — fixed in every phase, the anchor of every meal. Phase 1 starts at <b>'+first.calories+' cal</b> ('+first.carbs+'g carbs · '+first.fat+'g fat). ~'+produceTarget(first.calories,it.track)+'g produce and ~'+Math.round((curW||it.weight)/2)+' oz water a day.</p>';
+    +'<p class="wiz-hint" style="margin:0"><b style="color:var(--accent)">Protein '+p.protein+'g</b> — fixed in every phase, the anchor of every meal. '+startLbl+' starts at <b>'+first.calories+' cal</b> ('+first.carbs+'g carbs · '+first.fat+'g fat). ~'+produceTarget(first.calories,it.track)+'g produce and ~'+Math.round((curW||it.weight)/2)+' oz water a day.</p>';
   var rows=ladder.map(function(ph){
     return '<tr'+(ph.current?' class="rm-now"':'')+'><td>'+esc(ph.label)+(ph.current?' <span class="rm-badge">now</span>':'')+'</td><td>'+ph.calories+'</td><td>'+ph.protein+'g</td><td>'+ph.carbs+'g</td><td>'+ph.fat+'g</td></tr>';
   }).join("");
-  var phaseNote=it.track==="Lean"?"You only touch Phase 1 for now. We step down a phase only when the plan says to — protein holds the whole way; carbs and fat do the stepping.":it.track==="Strong"?"We climb only when growth stalls. Protein holds; carbs and fat rise to fuel the build.":it.track==="Reverse Diet"?"We add food in small, earned steps to rebuild your metabolism before any cut.":"We hold steady — the win is keeping it through real life.";
+  var phaseNote=(it.monthOne?"<b>Month one holds at goal-weight maintenance</b> — you don't move onto these phases until your roadmap call sets your first real one. Here's the map so you can see where it goes. ":"")+(it.track==="Lean"?"You only touch Phase 1 for now. We step down a phase only when the plan says to — protein holds the whole way; carbs and fat do the stepping.":it.track==="Strong"?"We climb only when growth stalls. Protein holds; carbs and fat rise to fuel the build.":it.track==="Reverse Diet"?"We add food in small, earned steps to rebuild your metabolism before any cut.":"We hold steady — the win is keeping it through real life.");
   var phases='<div class="lp-sub">The phases</div>'
     +'<div class="rm-tablewrap"><table class="rm-table"><thead><tr><th>Phase</th><th>Cal</th><th>Pro</th><th>Carb</th><th>Fat</th></tr></thead><tbody>'+rows+'</tbody></table></div>'
     +'<p class="wiz-hint" style="margin-top:6px">'+phaseNote+'</p>';
@@ -5544,7 +5566,7 @@ function roadmapHTML(it){
     return '<div class="rm-faq"><b>'+esc(q[0])+'</b><span>'+esc(q[1])+'</span></div>';
   }).join("");
   var next='<div class="lp-sub">Your next actions</div>'
-    +'<div class="rm-rules"><div><span>1</span> Plug Phase 1 into your tracker: '+first.calories+' cal · '+first.protein+'g protein.</div>'
+    +'<div class="rm-rules"><div><span>1</span> Plug '+startLbl+' into your tracker: '+first.calories+' cal · '+first.protein+'g protein.</div>'
     +'<div><span>2</span> Log your weekly check-in right here in the dashboard.</div>'
     +'<div><span>3</span> Anchor protein every meal, hit your produce, water before coffee.</div>'
     +'<div><span>4</span> Questions → message '+esc(CONFIG.coachName)+' in Everfit.</div></div>';
@@ -6326,7 +6348,10 @@ function wizCompute(){
   WIZ.track = adapted ? "Reverse Diet" : (WIZ.goal || "Lean");
   WIZ.signal = adapted ? "strong" : "clear";
   WIZ.activity = WIZ.activity || "Active";                       // numbers = goal wt × phase multiplier; activity only shades the TDEE estimate we don't show
-  WIZ.pfs = computePFS(WIZ, WIZ.track);
+  // MAINTENANCE FIRST: a brand-new member starts month one at goal-weight maintenance, not a deficit.
+  // Track still drives the Read narrative/route; only the NUMBER is maintenance-first.
+  WIZ.pfs = (typeof monthOneAnchor==='function' ? monthOneAnchor(WIZ) : null) || computePFS(WIZ, WIZ.track);
+  WIZ.monthOne = !!(WIZ.pfs && WIZ.pfs.monthOne);
   WIZ.routes = raRoutes();
 }
 /* POP routes (priority): a strong ADAPTED signal (D) wins over the goal; else the goal route (A/B/C);
@@ -6461,15 +6486,17 @@ function readinessRead(){
     var goalMap={Lean:"lose fat and lean out",Strong:"build muscle and get stronger",Sustain:"feel better and hold a healthy weight"};
     var goalPlain=goalMap[WIZ.goal]||"get after your goal";
     var trackPlain={Lean:"Lean",Strong:"Strong",Sustain:"Sustain","Reverse Diet":"Reverse"}[t]||phaseName;
+    var trackDisp=WIZ.monthOne?"Maintenance":trackPlain, trackLbl=WIZ.monthOne?"Phase · month 1":"Your track (for now)";
     var oh='<div class="ra-read">';
     oh+='<p class="ra-h1">This is your starting point.</p><p class="ra-h2" style="margin-top:4px">Real numbers you can run today.</p>';
     oh+='<div class="ra-nums">'
       +'<div class="ra-num"><div class="ra-nv">'+(p.calories||"—")+'</div><div class="ra-nl">Calories · day</div></div>'
       +'<div class="ra-num"><div class="ra-nv">'+pfloor+'–'+ptarget+'g</div><div class="ra-nl">Protein · floor → target</div></div>'
       +'<div class="ra-num"><div class="ra-nv">'+stepsT+'</div><div class="ra-nl">Daily steps</div></div>'
-      +'<div class="ra-num"><div class="ra-nv" style="font-size:22px">'+esc(trackPlain)+'</div><div class="ra-nl">Your track (for now)</div></div>'
+      +'<div class="ra-num"><div class="ra-nv" style="font-size:22px">'+esc(trackDisp)+'</div><div class="ra-nl">'+esc(trackLbl)+'</div></div>'
       +'</div>';
     oh+='<p class="ra-micro" style="margin-top:14px">Based on your goal to <b>'+esc(goalPlain)+'</b> and your basic metrics, this is where you start — real, usable targets, not a 1,200-calorie handout.</p>';
+    if(WIZ.monthOne) oh+='<p class="ra-micro" style="margin-top:10px"><b style="color:var(--gold)">Month one is maintenance.</b> This is your <b>goal-weight maintenance</b> — you’re eating like the person you’re becoming. For the body you’re in today it’s already a little less than you burn, so you move forward without dieting. The job this month is the skills: tracking, protein, steps, sleep. Your first real deficit is set after your roadmap call, not before.</p>';
     oh+='<div class="ob-note" style="border-left-color:var(--gold)"><b>Here’s the honest part:</b> your dieting history, how adapted your metabolism is, and any conditions dictate how well these actually work. Without a deeper read, no one can say for sure what your body truly needs.'
       +(WIZ.reverse?' Your answers already point to a body that’s been under-fuelled for a while — so treat these as a floor to <b>build up</b> from, not a deficit to cut from.':'')+'</div>';
     oh+='<p class="ra-micro ra-scaleframe">The scale is a tool, not a verdict. You’ll learn to read it, not fear it.</p>';
