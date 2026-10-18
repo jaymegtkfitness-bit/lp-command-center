@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<!-- LEGACY INSTALL post-DEPOSIT page, served at dashboard.legacyperformance.co/install-welcome/.
-     The $200 deposit checkout redirects here. It matches the one-page PDF (pdf.html) on purpose:
-     same steps, same words, same links, so the page they land on and the file they keep never disagree.
-     BOTH read their links from links.js. Run make-pdf.sh after changing either.
-     ⚠️ The $797 balance completes at the onboarding call. Say that here and in the checkout terms,
-     never only in one of the two, or the call turns into a surprise instead of a delivery. -->
+<!-- LEGACY INSTALL post-purchase page, served at dashboard.legacyperformance.co/install-welcome/.
+     Both the $997 PIF checkout and the 2-pay checkout redirect here. It matches the one-page PDF
+ (pdf.html) on purpose: same steps, same words, same links, so the page they land on and the file
+ they keep never disagree. BOTH read their links from links.js. Run make-pdf.sh after changing either.
+ ⚠️ PAID IN FULL as of 2026-10-18. The $200 deposit and the $797 balance are dead. Nothing is
+ outstanding after checkout. Calls run the week of Nov 2 (Jayme is away Oct 23-31), and that week
+ is the three-day tracking week, which is what the build runs on. -->
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -101,7 +102,7 @@ h1 span{color:var(--gold)}
   <div class="hero">
     <div class="eyebrow">You're in</div>
     <h1>Here's what <span>happens now.</span></h1>
-    <p class="lead">Three things today. The first one is the only one that can hold everything up, because your system gets built by hand from your intake before we ever get on a call.</p>
+    <p class="lead">Four things. The first two are today. The intake is the one that can hold everything up, because your system gets built by hand off what you tell me, not off a template.</p>
   </div>
   <div class="rule"></div>
 
@@ -113,11 +114,16 @@ h1 span{color:var(--gold)}
     </div>
     <div class="step">
       <div class="n">02</div>
-      <div><h2>Book your onboarding call</h2><p>Book it two to four days out. Your system will already be built and waiting when we sit down, so the call is a walkthrough, not a kickoff.</p><a class="url" data-url="onboardingCallUrl" data-link="onboardingCallUrl"></a></div>
+      <div><h2>Book your first call</h2><p>Your three calls run the week of November 2nd. Book the first one now so you get the slot you want. That is the Assess call, and we go through your system line by line.</p><a class="url" data-url="onboardingCallUrl" data-link="onboardingCallUrl"></a></div>
       <a class="btn" data-link="onboardingCallUrl">Book my call</a>
     </div>
     <div class="step">
       <div class="n">03</div>
+      <div><h2>Track three honest days</h2><p>Eat exactly how you already eat and log three days. Do not clean it up and do not perform for the data. <b style="color:#fff">Those three days are what I build your go-to meals from.</b></p></div>
+      <span class="when">This week</span>
+    </div>
+    <div class="step">
+      <div class="n">04</div>
       <div><h2>Join the Project</h2><p>Free, and it is where the teaching lives between calls. If you are already in there, skip this one.</p><a class="url" data-url="skoolUrl" data-link="skoolUrl"></a></div>
       <a class="btn" data-link="skoolUrl">Join the room</a>
     </div>
@@ -125,16 +131,16 @@ h1 span{color:var(--gold)}
 
   <div class="guar">
     <img src="../shield-white-gold.png" alt="">
-    <div><b>Why the call is a few days out</b><p>Your system is built by hand off your intake, not generated off a template. That takes a couple of days, and it is the reason the plan fits your week instead of a general one. We go through it together, line by line, and everything is released to you on that call.</p></div>
+    <div><b>Why your calls start in November</b><p>Your system is built by hand off your intake and your three tracked days. I am away October 23rd to the 31st, and that is the tracking week, which is exactly where it belongs: you eat how you already eat, and I build off what is real instead of off a clean week that never happens. Your calls run the week of November 2nd. Text me anything in the meantime.</p></div>
   </div>
 
   <div class="next">
     <h3>What happens from here</h3>
     <div class="line">
-      <div class="pt"><b>Today</b><span>Intake in, call booked, and you are in the room. Your kit ships.</span></div>
-      <div class="pt"><b>2 to 4 days</b><span>Your onboarding call. We go through your system line by line, the $797 balance completes, and your files and app access are released.</span></div>
+      <div class="pt"><b>Today</b><span>Intake in, first call booked, and you are in the room.</span></div>
+      <div class="pt"><b>This week</b><span>Your kit ships. You log three honest days, eating exactly how you already eat.</span></div>
       <div class="pt"><b>5 to 7 business days</b><span>Your kit lands. Swab it and mail it back the same day.</span></div>
-      <div class="pt"><b>2 to 4 weeks later</b><span>Your genetic read is done. We sit down and put it into your system.</span></div>
+      <div class="pt"><b>Week of November 2</b><span>Your three calls. Assess, Adapt, Assign. Your system, your files and your app access are released on the first one.</span></div>
     </div>
   </div>
 
@@ -143,9 +149,11 @@ h1 span{color:var(--gold)}
   </div>
 
   <div class="notes">
-    <span>Your $200 deposit holds your build slot and ships your kit. The $797 balance completes at your onboarding call, and your system, your files and your app access are released to you there.</span>
+    <span>You paid in full. Nothing is outstanding, nothing renews and nothing auto-bills. Your system, your files and your app access are released on your first call.</span>
     <span>Nothing can be built until your intake is in, so it is the one thing to do today.</span>
     <span>Your kit ships to the address on your order. If that needs to change, reply to your receipt today.</span>
+    <span>Your genetic read comes back two to four weeks after the lab has your swab. We sit down and put it into your system then.</span>
+    <span>Money back any time right up until your system is handed over. After that it is yours and it is not refundable, and the DNA kit is non-returnable once the lab has run it.</span>
   </div>
 
   <div class="foot">
