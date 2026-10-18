@@ -2077,9 +2077,12 @@ function rbProtKey(nm){ nm=String(nm||'').toLowerCase();
   if(/shrimp|prawn/.test(nm)) return 'shrimp';
   if(/salmon/.test(nm)) return 'salmon';
   if(/\bfish\b|cod|tilapia|tuna|haddock|pollock|filet[\s-]*o/.test(nm)) return 'fish';
-  if(/chicken|nugget|tender(?!loin)|\bwing/.test(nm)) return 'chicken';
+  // BEEF "filet" only in an unmistakably-beef context (steakhouse cuts) — checked before chicken so
+  // that a bare "filet" (which at chicken chains like Chick-fil-A means a chicken filet) falls to chicken.
+  if(/filet\s*mignon|dallas filet|steakhouse filet|filet\s*(?:&|and)\s*lobster|filet\s*medallion|\d+\s*oz\s*filet/.test(nm)) return 'beef';
+  if(/chick|nugget|tender(?!loin)|\bwing|\bfilet\b|chik|chik'?n/.test(nm)) return 'chicken';   // chick = chicken / Chick-fil-A / chick-n-strips; bare "filet" = chicken filet (CFA, Culver's, etc.)
   if(/turkey/.test(nm)) return 'turkey';
-  if(/steak|sirloin|ribeye|brisket|burger|cheeseburger|patty|angus|roast beef|prime rib|\bbeef\b|meatball|philly|\bfilet\b|flat iron|\bstrip\b|porterhouse|dallas filet|t-bone/.test(nm)) return 'beef';
+  if(/steak|sirloin|ribeye|brisket|burger|cheeseburger|patty|angus|roast beef|prime rib|\bbeef\b|meatball|philly|flat iron|\bstrip\b|porterhouse|t-bone/.test(nm)) return 'beef';
   if(/carnitas|barbacoa|pulled pork|\bpork\b|bacon|\bham\b|sausage|chorizo|al pastor/.test(nm)) return 'pork';
   if(/\begg\b/.test(nm)) return 'egg';
   if(/tofu|veggie|black bean|\bbean\b|lentil|falafel|impossible|beyond/.test(nm)) return 'veg';
