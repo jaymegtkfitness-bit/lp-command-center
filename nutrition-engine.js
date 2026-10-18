@@ -2082,7 +2082,7 @@ function rbProtKey(nm){ nm=String(nm||'').toLowerCase();
   if(/filet\s*mignon|dallas filet|steakhouse filet|filet\s*(?:&|and)\s*lobster|filet\s*medallion|\d+\s*oz\s*filet/.test(nm)) return 'beef';
   if(/chick|nugget|tender(?!loin)|\bwing|\bfilet\b|chik|chik'?n/.test(nm)) return 'chicken';   // chick = chicken / Chick-fil-A / chick-n-strips; bare "filet" = chicken filet (CFA, Culver's, etc.)
   if(/turkey/.test(nm)) return 'turkey';
-  if(/steak|sirloin|ribeye|brisket|burger|cheeseburger|patty|angus|roast beef|prime rib|\bbeef\b|meatball|philly|flat iron|\bstrip\b|porterhouse|t-bone/.test(nm)) return 'beef';
+  if(/steak|sirloin|ribeye|brisket|burger|cheeseburger|patty|angus|roast beef|prime rib|\bbeef\b|meatball|philly|flat iron|\bstrip\b|porterhouse|t-bone|double.?double|smash|slider/.test(nm)) return 'beef';
   if(/carnitas|barbacoa|pulled pork|\bpork\b|bacon|\bham\b|sausage|chorizo|al pastor/.test(nm)) return 'pork';
   if(/\begg\b/.test(nm)) return 'egg';
   if(/tofu|veggie|black bean|\bbean\b|lentil|falafel|impossible|beyond/.test(nm)) return 'veg';
@@ -2101,20 +2101,30 @@ function rbName(c){
   if(!prots.length) prots=rbProteins(c);
   var keys=prots.map(function(p){ return rbProtKey(p.name); });
   var uniq=[]; keys.forEach(function(k){ if(uniq.indexOf(k)<0) uniq.push(k); });
-  var NICE={chicken:'Chicken',turkey:'Turkey',beef:'Steak',pork:'Pork',shrimp:'Shrimp',salmon:'Salmon',fish:'Fish',egg:'Egg',veg:'Veggie'};
-  var proWord;
+  var NICE={chicken:'Chicken',turkey:'Turkey',pork:'Pork',shrimp:'Shrimp',salmon:'Salmon',fish:'Fish',egg:'Egg',veg:'Veggie'};
+  function nameWithKey(k){ for(var i=0;i<prots.length;i++){ if(rbProtKey(prots[i].name)===k) return prots[i].name; } return ''; }
+  var JUNK={add:1,hard:1,the:1,and:1,side:1,extra:1,with:1,order:1,hot:1,plain:1,regular:1,small:1,large:1,kids:1};
+  function wordFor(k){                                   // beef is named by the actual cut: a patty is a Burger, not a Steak
+    if(k==='beef'){ var nm=nameWithKey(k);
+      if(/burger|patty|cheeseburger|double.?double|smash|slider|hamburger/i.test(nm)) return 'Burger';
+      if(/steak|sirloin|ribeye|filet|brisket|prime rib|t-?bone|porterhouse|flat iron|\bstrip\b|angus/i.test(nm)) return 'Steak';
+      return 'Beef'; }
+    if(NICE[k]) return NICE[k];
+    if(!k || k.length<3 || JUNK[k]) return null;         // true junk (add-ons, stopwords) → left out of the name
+    return cap(k);                                       // real but uncommon protein (lobster, crab, etc.)
+  }
+  var words=[]; uniq.forEach(function(k){ var w=wordFor(k); if(w && words.indexOf(w)<0) words.push(w); });
+  if(!words.length) words=['Protein'];
   var surf = uniq.length===2 && (RB_SEAFOOD[uniq[0]]||RB_SEAFOOD[uniq[1]]) && (uniq.indexOf('beef')>=0 || uniq.indexOf('chicken')>=0 || uniq.indexOf('pork')>=0);
-  if(uniq.length>=2) proWord=(NICE[uniq[0]]||cap(uniq[0]))+' & '+(NICE[uniq[1]]||cap(uniq[1]));
-  else proWord=NICE[uniq[0]]||cap(uniq[0]||'Protein');
-  var dens=c.t.p/c.t.kcal*100, p=c.t.p;
-  var doubled = prots.length>=2 && uniq.length===1;
+  var proWord = words.length>=2 ? words[0]+' & '+words[1] : words[0];
   var fmt = c.kind==='bowl' ? 'Bowl' : (c.bunless ? 'Stack' : (/nugget|tender|wing|bites|strip|finger/i.test((prots[0]||{}).name||'') ? 'Box' : 'Plate'));
+  /* Descriptor comes from the calorie band (Lean / Power / Loaded) so builds of the same protein read
+     distinctly instead of a wall of identical "Double ___" names. */
   var desc;
   if(surf) desc='Surf & Turf';
-  else if(doubled) desc='Double';
-  else if(p>=45 && dens>=12) desc='Power';          // genuinely high protein AND lean
-  else if(c.t.kcal<=430) desc='Lean';
-  else desc='Loaded';
+  else if(c.t.kcal<=450) desc='Lean';
+  else if(c.t.kcal>=600) desc='Loaded';
+  else desc='Power';
   return (desc+' '+proWord+' '+fmt).replace(/\bKid'?s\s+/i,'').replace(/\s+/g,' ').trim();
 }
 function cap(s){ s=String(s||''); return s.charAt(0).toUpperCase()+s.slice(1); }
@@ -2156,11 +2166,11 @@ function restaurantBuilds(chain, opts){
   var builds=[], seen={}, perBand={light:0,standard:0,big:0};
   var PER_BAND=opts.perBand||3, MAX=opts.max||9;
   function bandOf(k){ for(var i=0;i<RB_BANDS.length;i++){ if(k<=RB_BANDS[i].max) return RB_BANDS[i]; } return RB_BANDS[RB_BANDS.length-1]; }
-  function entreeKey(c){ return c.pros.map(function(p){ return rbProtKey(p.name); }).sort().join('+'); }
+  function entreeKey(c){ var u=[]; c.pros.map(function(p){ return rbProtKey(p.name); }).forEach(function(k){ if(u.indexOf(k)<0) u.push(k); }); return u.sort().join('+'); }  // unique protein TYPES (single vs doubled of the same protein collapse to one per band)
   for(var pass=0; pass<2 && builds.length<MAX; pass++){
     for(var i=0;i<pool.length && builds.length<MAX;i++){
       var c=pool[i], b=bandOf(c.t.kcal);
-      var ek=entreeKey(c), dedup=ek+'|'+Math.round(c.t.p/8)+'|'+b.key;
+      var ek=entreeKey(c), dedup=ek+'|'+b.key;   // one build per protein-combo per calorie band (no near-identical repeats)
       if(seen[dedup]) continue;
       if(pass===0 && perBand[b.key]>=PER_BAND) continue;      // first pass: spread across bands
       if(pass===0 && builds.some(function(x){ return x._ek===ek; }) && builds.filter(function(x){return x._ek===ek;}).length>=1) continue; // limit repeats of same protein on pass 1
@@ -2170,6 +2180,10 @@ function restaurantBuilds(chain, opts){
         totals:{kcal:c.t.kcal, p:c.t.p, c:c.t.c, f:c.t.f}, density:+(c.dens.toFixed(1)) });
     }
   }
+  /* Collapse any builds that ended up with the same display name to one — keep the highest-protein version —
+     so the list reads as distinct named builds, never near-duplicates or grams-suffixed repeats. */
+  (function(){ var byName={}; builds.forEach(function(b){ var ex=byName[b.name]; if(!ex || b.totals.p>ex.totals.p) byName[b.name]=b; });
+    builds=Object.keys(byName).map(function(n){ return byName[n]; }); })();
   builds.sort(function(a,b){ return a.totals.kcal-b.totals.kcal; });
   builds.forEach(function(x){ delete x._ek; delete x._c; });
   var d=(typeof RESTAURANT_DB!=='undefined')&&RESTAURANT_DB.chains[chain];
