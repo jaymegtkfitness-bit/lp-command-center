@@ -2732,6 +2732,20 @@ function freedomPlan(pfs, freeMeals, sex){
            'Protein and produce still count that day. Those two never flex.',
            'Forecast on Sunday. Count the week\'s free meals going in, never discover them as they happen.']};
 }
+/* FREE-MEAL DAY structure (Macro Freedom). The free meal (600-800 cal, composed freely) REPLACES the
+   third meal, so the structured eating shifts to TWO meals + a protein shake. Those carry the full
+   protein floor and land the LOW end of the day's calories (daily target minus the free meal); produce
+   still counts. Returns the structured macros + a 2-meal-plus-shake split to render for that day.
+   Jayme 2026-10-19. */
+function freeMealDay(pfs, sex, shakeGrams, freeMealCal){
+  var lo=MACRO_FREEDOM.mealCal[0], hi=MACRO_FREEDOM.mealCal[1];
+  var fm=Math.max(lo, Math.min(hi, Math.round(freeMealCal||Math.round((lo+hi)/2))));
+  var structCal=Math.max(900, Math.round((+pfs.calories||0)-fm));   // the low end: what's left after the free meal
+  var macros=macrosFrom(structCal, +pfs.protein||0, sex);           // full protein floor held; carbs/fat fill the rest
+  var split=mealSplit(macros, "2 + shake", shakeGrams);
+  return { freeMealCal:[lo,hi], freeMealMid:fm, structured:macros, split:split,
+    note:"Free-meal day: your free meal ("+lo+"–"+hi+" cal, composed freely) replaces one meal, so you eat two meals + a protein shake. Those carry your full protein and the low end of your calories; produce still counts." };
+}
 
 /* ===== TIME TO GOAL =====
    Jayme's gauge (2026-09-17): maintenance is CURRENT bodyweight x a multiplier set by how much she

@@ -197,6 +197,10 @@
 .mp-chip.mp-today{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
 .mp-dayhead{font:800 15px/1.2 'Montserrat',sans-serif;letter-spacing:.02em;color:var(--ink);margin:12px 0 10px;display:flex;align-items:center;gap:8px}
 .mp-today-tag{font:700 10px/1 'Montserrat',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:3px 8px}
+.mp-aim{font:600 12px/1 'Montserrat',sans-serif;color:var(--muted)}
+.mp-edit{margin-left:auto;font:600 12px/1 'Montserrat',sans-serif;color:var(--gold);background:none;border:none;cursor:pointer;padding:4px}
+.mp-typemenu{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}
+.mp-meal.mp-free{border:1px dashed var(--gold)}
 .mp-meal{padding:11px 0;border-top:1px solid var(--line)}
 /* ===== Awareness Loop (body-as-a-loop) ===== */
 .aw-circle{position:relative;width:min(80vw,300px);aspect-ratio:1;margin:18px auto 6px}
@@ -1867,7 +1871,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=73"></script>
+<script src="nutrition-engine.js?v=74"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -5603,18 +5607,69 @@ function mpDayHTML(day){
       +'<ul class="mp-items">'+(m.items||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';
   }).join('');
 }
-function mpDay(i){ MP_DAY=i; var b=g("mpDayBox"); if(b&&M.mealplan) b.innerHTML=mpDayLabel(i)+mpDayHTML(M.mealplan.days[i]);
+function mpDay(i){ MP_DAY=i; var b=g("mpDayBox"); if(b&&M.mealplan) b.innerHTML=mpDayLabel(i)+mpDayBody(i);
   Array.from(document.querySelectorAll('#mealPlanBox .mp-chip')).forEach(function(c,idx){ c.classList.toggle('on', idx===i); }); }
-/* The selected day's real weekday + (for 4-2-1) its day type, shown above the meals. */
+/* ===== Editable weekly day-types (Jayme 2026-10-19). A per-device overlay on the plan's schedule:
+   for 4-2-1 the member sets each day Low / Moderate / High; for Macro Freedom they mark free-meal days.
+   It drives the day header and — on a Macro-Freedom free-meal day — swaps that day to the
+   two-meals-plus-shake free-meal structure. ===== */
+var MSCHED=null;
+function mpFramework(){ var mp=M.mealplan; return (mp&&mp.framework==='421')?'421':'macro'; }
+function mpSchedDefault(){
+  var mp=M.mealplan;
+  if(mpFramework()==='421') return (typeof sched421==='function')?sched421(mp&&mp.schedule):['mod','mod','mod','mod','mod','mod','mod'];
+  return ['normal','normal','normal','normal','normal','normal','normal'];
+}
+function mpSched(){
+  if(MSCHED && MSCHED.fw===mpFramework() && MSCHED.days.length===7) return MSCHED.days;
+  var saved=loadLS('lp_meal_schedule',null), def=mpSchedDefault();
+  if(saved && saved.fw===mpFramework() && Array.isArray(saved.days) && saved.days.length===7){ MSCHED=saved; return saved.days; }
+  MSCHED={fw:mpFramework(), days:def.slice()}; return MSCHED.days;
+}
+function mpDayType(i){ return mpSched()[i] || mpSchedDefault()[i]; }
+function isFreeDay(i){ return mpFramework()==='macro' && mpDayType(i)==='free'; }
+var MP_TYPEL_421={low:'Low', mod:'Moderate', high:'High'}, MP_TYPEL_MF={normal:'Normal', free:'Free meal'};
+function mpTypeLabel(i){ var t=mpDayType(i); return (mpFramework()==='421'?MP_TYPEL_421[t]:MP_TYPEL_MF[t])||''; }
+function mpSetType(i,t){ var d=mpSched().slice(); d[i]=t; MSCHED={fw:mpFramework(), days:d};
+  try{ saveLS('lp_meal_schedule', MSCHED); }catch(e){}
+  if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:'mealsched', email:ID.email, fw:mpFramework(), days:d.join(','), ts:new Date().toISOString()});
+  MP_DAY=i; renderMealPlan(); }
+function mpTypeMenu(i){
+  var box=g('mpTypeMenu'); if(!box) return;
+  if(box.getAttribute('data-open')==String(i)){ box.innerHTML=''; box.removeAttribute('data-open'); return; }
+  var types=(mpFramework()==='421')?[['low','Low'],['mod','Moderate'],['high','High']]:[['normal','Normal'],['free','Free meal']];
+  var cur=mpDayType(i);
+  box.setAttribute('data-open', i);
+  box.innerHTML='<div class="mp-typemenu">'+types.map(function(t){ return '<button class="mp-chip'+(t[0]===cur?' on':'')+'" onclick="mpSetType('+i+',\''+t[0]+'\')">'+esc(t[1])+'</button>'; }).join('')+'</div>';
+}
+/* The selected day's real weekday, its type, (for 4-2-1) its calorie aim, and a Change control. */
 function mpDayLabel(i){
-  var mp=M.mealplan; if(!mp||!mp.days||!mp.days[i]) return '';
+  var mp=M.mealplan, it=M.intake; if(!mp||!mp.days||!mp.days[i]) return '';
   var WDL=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
   var seven=(mp.days.length===7), today=(new Date().getDay()+6)%7;
-  var fw=(mp.framework==='421' && typeof sched421==='function')?sched421(mp.schedule):null;
   var name=seven?WDL[i]:((mp.days[i].label)||('Day '+(i+1)));
-  var typ=(fw && typeof FTO_TYPEL!=='undefined' && FTO_TYPEL[fw[i]])?' · '+FTO_TYPEL[fw[i]]+' day':'';
+  var tl=mpTypeLabel(i), typ=(tl && tl!=='Normal')?' · '+tl+' day':'';
+  var tgt='';
+  if(mpFramework()==='421' && it && it.pfs && typeof FTO_MULT!=='undefined'){
+    var mult=FTO_MULT[mpDayType(i)]||1; tgt=' <span class="mp-aim">aim ~'+Math.round(it.pfs.calories*mult)+' cal</span>';
+  }
   var todayTag=(seven && i===today)?' <span class="mp-today-tag">Today</span>':'';
-  return '<div class="mp-dayhead">'+esc(name)+esc(typ)+todayTag+'</div>';
+  var edit=seven?'<button class="mp-edit" onclick="mpTypeMenu('+i+')">Change ▾</button>':'';
+  return '<div class="mp-dayhead">'+esc(name)+esc(typ)+tgt+todayTag+edit+'</div><div id="mpTypeMenu"></div>';
+}
+/* A day's meals — the pre-built plan, OR the free-meal structure on a Macro-Freedom free-meal day. */
+function mpDayBody(i){
+  var mp=M.mealplan, it=M.intake;
+  if(isFreeDay(i) && it && it.pfs && typeof freeMealDay==='function') return freeMealDayHTML(freeMealDay(it.pfs, it.sex, it.shakeGrams));
+  return mpDayHTML(mp.days[i]);
+}
+function freeMealDayHTML(fmd){
+  var s=fmd.split, pm=s.perMeal;
+  var meals=s.names.map(function(n){ return '<div class="mp-meal"><div class="mp-meal-h"><b>'+esc(n)+'</b><span class="mp-macros">'+pm.calories+' cal · '+pm.protein+'g P · '+pm.carbs+'g C · '+pm.fat+'g F</span></div>'
+    +'<ul class="mp-items"><li>Build it to the numbers from your Power Food List — protein first, produce, then carbs and a little fat.</li></ul></div>'; }).join('');
+  var shake=s.shake?'<div class="mp-meal"><div class="mp-meal-h"><b>Protein shake</b><span class="mp-macros">'+s.shake.calories+' cal · '+s.shake.protein+'g P</span></div><ul class="mp-items"><li>Whenever it fits your day.</li></ul></div>':'';
+  var free='<div class="mp-meal mp-free"><div class="mp-meal-h"><b>🔥 Free meal</b><span class="mp-macros">'+fmd.freeMealCal[0]+'–'+fmd.freeMealCal[1]+' cal</span></div><ul class="mp-items"><li>Composed freely — the only number is calories. It replaces your third meal.</li></ul></div>';
+  return '<p class="wiz-hint" style="margin:0 0 8px">'+esc(fmd.note)+'</p>'+meals+shake+free;
 }
 function mealPlanPrintHTML(){
   if(!M.mealplan||!(M.mealplan.days||[]).length) return '';
@@ -6079,7 +6134,7 @@ function renderMealPlan(){
   box.innerHTML=(mp.note?'<p class="wiz-hint" style="margin:0 0 10px">'+esc(mp.note)+'</p>':'')
     +freeMealsCallout(mp)
     +'<div class="mp-days">'+chips+'</div>'
-    +'<div id="mpDayBox">'+mpDayLabel(MP_DAY)+mpDayHTML(mp.days[MP_DAY])+'</div>'
+    +'<div id="mpDayBox">'+mpDayLabel(MP_DAY)+mpDayBody(MP_DAY)+'</div>'
     +rebuildPrompt()
     +'<div class="actions no-print"><button class="btn btn-primary" onclick="openMySystem()">⬇ My full system (PDF)</button> <button class="btn btn-ghost" onclick="showMealBuilder()">🍳 Edit my foods & regenerate</button></div>';
 }
