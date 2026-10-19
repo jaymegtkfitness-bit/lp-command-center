@@ -74,6 +74,14 @@ td:first-child{color:var(--parch);font-weight:600;white-space:nowrap}
 .toc a{color:var(--body);text-decoration:none;border-bottom:1px solid transparent}
 .toc a:hover{color:var(--gold);border-bottom-color:var(--gold-dim)}
 
+.dl{display:block;max-width:420px;margin:0 auto 64px;text-align:center;
+  background:linear-gradient(180deg,#cdb87d,#b9a165);color:#1C1C1C;text-decoration:none;
+  border-radius:12px;padding:17px 26px;font-weight:800;letter-spacing:.03em;font-size:.97rem;
+  box-shadow:0 10px 26px rgba(193,173,114,.18)}
+.dl span{display:block;font-weight:500;font-size:.76rem;letter-spacing:.1em;
+  text-transform:uppercase;opacity:.72;margin-top:5px}
+.dl:hover{filter:brightness(1.06)}
+@media print{.dl{display:none}}
 .foot{border-top:1px solid var(--line);padding-top:30px;margin-top:70px;text-align:center;
   font-size:.86rem;color:var(--soft)}
 .foot a{color:var(--gold);text-decoration:none}
@@ -441,6 +449,11 @@ td:first-child{color:var(--parch);font-weight:600;white-space:nowrap}
 
     <p>You can find it at <a href="https://legacyperformance.co/install" style="color:var(--gold)">legacyperformance.co/install</a>, or reply to the email this came in on and ask me anything.</p>
   </section>
+
+  <a class="dl" href="../Legacy-Performance-Didache.pdf" download>
+    Download the Didache
+    <span>PDF &middot; 20 pages &middot; print at home</span>
+  </a>
 
   <div class="foot">
     <p><strong style="color:var(--parch)">Jayme Olson</strong><br>Functional Performance Coach · Founder, Legacy Performance</p>
