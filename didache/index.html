@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- THE DIDACHE — the six-month map. Served at dashboard.legacyperformance.co/didache/
+     Structure is Jayme's (Oct 19 2026): the Two Ways, then Awareness / Desire / Application,
+     then the phases, with Foundations framed as the education layer.
+     Print stylesheet included so "save as PDF" produces the ebook. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1C1C1C">
+<title>The Didache | Legacy Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#1C1C1C;--olive:#4A5C3E;--olive-lt:#8FA97A;--parch:#F2EDE4;--gold:#C1AD72;
+  --gold-dim:rgba(193,173,114,.30);--soft:#a49d90;--body:#d9d3c8;--line:rgba(242,237,228,.12)}
+*{box-sizing:border-box;margin:0;padding:0}
+html{background:var(--ink);scroll-behavior:smooth}
+body{font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--body);
+  -webkit-font-smoothing:antialiased;line-height:1.75;overflow-x:hidden;background:var(--ink)}
+.bg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:radial-gradient(ellipse 60% 35% at 100% 0%, rgba(193,173,114,.10), transparent 70%),
+   radial-gradient(ellipse 85% 55% at 0% 100%, rgba(74,92,62,.45), transparent 72%),
+   linear-gradient(180deg,#1e1e1e 0%,#1a1a1a 55%,#151515 100%)}
+.topbar{position:fixed;left:0;top:0;right:0;height:4px;z-index:3;
+  background:linear-gradient(90deg,var(--olive) 0%,var(--olive-lt) 45%,var(--gold) 85%,#e3d3a1)}
+.wrap{position:relative;z-index:1;max-width:760px;margin:0 auto;padding:70px 26px 110px}
+
+.mast{text-align:center;padding:40px 0 10px;border-bottom:1px solid var(--line);margin-bottom:56px}
+.mast img{width:150px;margin:0 auto 26px;display:block}
+.eyebrow{font-family:Cinzel,Georgia,serif;font-size:.74rem;letter-spacing:.34em;text-transform:uppercase;color:var(--gold);font-weight:600}
+h1{font-family:Cinzel,Georgia,serif;font-size:clamp(2.6rem,9vw,4rem);line-height:1.04;color:var(--parch);
+  font-weight:700;margin:16px 0 14px;letter-spacing:.02em}
+.sub{font-size:1.02rem;color:var(--soft);max-width:520px;margin:0 auto 34px;font-weight:300}
+
+h2{font-family:Cinzel,Georgia,serif;font-size:clamp(1.6rem,5vw,2.15rem);color:var(--parch);
+  font-weight:700;line-height:1.2;margin:0 0 6px}
+h3{font-size:1.16rem;color:var(--parch);font-weight:800;margin:36px 0 10px;letter-spacing:.01em}
+h4{font-size:.78rem;letter-spacing:.2em;text-transform:uppercase;color:var(--olive-lt);font-weight:700;margin:30px 0 8px}
+p{margin:0 0 18px}
+p.lead{font-size:1.1rem;color:var(--parch);font-weight:400}
+strong{color:var(--parch);font-weight:700}
+em{color:var(--gold);font-style:italic}
+
+section{margin:0 0 74px;scroll-margin-top:30px}
+.partno{font-family:Cinzel,Georgia,serif;font-size:.72rem;letter-spacing:.3em;text-transform:uppercase;
+  color:var(--gold);font-weight:600;display:block;margin-bottom:10px}
+.rule{height:1px;background:var(--line);margin:0 0 30px}
+
+ul,ol{margin:0 0 20px;padding-left:22px}
+li{margin:0 0 10px}
+li::marker{color:var(--gold)}
+
+.pull{border-left:3px solid var(--gold);padding:4px 0 4px 22px;margin:28px 0;
+  font-size:1.12rem;color:var(--parch);font-weight:500;line-height:1.55}
+.card{background:rgba(255,255,255,.035);border:1px solid var(--line);border-left:3px solid var(--olive-lt);
+  border-radius:12px;padding:20px 22px;margin:22px 0}
+.card h4{margin-top:0}
+.card p:last-child{margin-bottom:0}
+.gold{border-left-color:var(--gold)}
+
+table{width:100%;border-collapse:collapse;margin:24px 0;font-size:.93rem}
+th{text-align:left;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;color:var(--olive-lt);
+  font-weight:700;padding:0 12px 10px 0;border-bottom:1px solid var(--line)}
+td{padding:12px 12px 12px 0;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{color:var(--parch);font-weight:600;white-space:nowrap}
+
+.toc{background:rgba(255,255,255,.03);border:1px solid var(--line);border-radius:14px;padding:24px 26px;margin:0 0 64px}
+.toc h4{margin-top:0}
+.toc ol{margin:0;padding-left:20px}
+.toc a{color:var(--body);text-decoration:none;border-bottom:1px solid transparent}
+.toc a:hover{color:var(--gold);border-bottom-color:var(--gold-dim)}
+
+.foot{border-top:1px solid var(--line);padding-top:30px;margin-top:70px;text-align:center;
+  font-size:.86rem;color:var(--soft)}
+.foot a{color:var(--gold);text-decoration:none}
+.disc{font-size:.78rem;color:#7e776c;line-height:1.6;margin-top:18px;font-style:italic}
+
+@media print{
+  html,body{background:#fff;color:#1a1a1a}
+  .bg,.topbar,.toc{display:none}
+  .wrap{max-width:none;padding:0}
+  h1,h2,h3,p.lead,strong{color:#111}
+  h4{color:#4A5C3E}
+  .eyebrow,.partno{color:#8a7430}
+  em{color:#6b5a22}
+  td:first-child{color:#111}
+  section{page-break-inside:avoid;margin-bottom:38px}
+  h2{page-break-after:avoid}
+  .card{background:#f6f3ee;border-color:#ddd}
+  .pull{border-left-color:#8a7430;color:#111}
+  td,th{border-bottom-color:#ddd}
+}
+</style>
+</head>
+<body>
+<div class="bg"></div>
+<div class="topbar"></div>
+
+<div class="wrap">
+
+  <div class="mast">
+    <img src="../logo-white-gold.png" alt="Legacy Performance">
+    <div class="eyebrow">Legacy Performance</div>
+    <h1>The Didache</h1>
+    <p class="sub">The teaching. The whole system, written down, and the map for the next six months.</p>
+  </div>
+
+  <div class="toc">
+    <h4>What is in here</h4>
+    <ol>
+      <li><a href="#two-ways">The Two Ways</a></li>
+      <li><a href="#awareness">Part One: Awareness</a></li>
+      <li><a href="#desire">Part Two: Desire</a></li>
+      <li><a href="#application">Part Three: Application</a></li>
+      <li><a href="#foundations">The Phases: Foundations</a></li>
+      <li><a href="#seasons">The Phases: The Season Cycle</a></li>
+      <li><a href="#install">If You Want It Built For You</a></li>
+    </ol>
+  </div>
+
+  <section id="two-ways">
+    <span class="partno">The Opening</span>
+    <h2>The Two Ways</h2>
+    <div class="rule"></div>
+
+    <p class="lead">The oldest teaching document the church ever wrote opens by saying there are two ways, and that the difference between them is great.</p>
+
+    <p>It does not start with rules. It starts with a fork. Everything after it is just the detail of which road you are standing on.</p>
+
+    <p>I am going to borrow that, because health works the same way and almost nobody says it out loud.</p>
+
+    <h4>The first way</h4>
+    <p>You find a plan. You follow it as written. It works for a while, because almost all of them do. Then something normal happens. A holiday. A week of travel. A kid gets sick. The plan has no instruction for that week, so you fall off it, and falling off it feels like failing.</p>
+    <p>So you wait. For Monday, for the first of the month, for January. And you start another one.</p>
+    <p>That is not a discipline problem. <strong>That is a road.</strong> It has a beginning and an end, and the end is always the same place you started.</p>
+
+    <h4>The second way</h4>
+    <p>You build a system you keep. It has a rule for a good week and a rule for a terrible one. It tells you what to do when the scale does not move, which is the week that ends the first way every single time. It gets handed down, adjusted, and run again at a different weight, in a different season, for the rest of your life.</p>
+
+    <div class="pull">You did not fail six diets. You finished six diets. Nobody ever handed you the part that came after.</div>
+
+    <p>That part is what this document is.</p>
+
+    <p>It runs in three movements, and the order is not decorative. <strong>Awareness</strong> is seeing where you actually are. <strong>Desire</strong> is being honest about what you actually want and what you will not give up to get it. <strong>Application</strong> is how we turn those two into something you can run on a Tuesday when everything has gone sideways.</p>
+
+    <p>Most programs skip the first two entirely and sell you the third.</p>
+  </section>
+
+  <section id="awareness">
+    <span class="partno">Part One</span>
+    <h2>Awareness</h2>
+    <div class="rule"></div>
+
+    <p class="lead">You do not have a knowledge problem. You have an awareness problem.</p>
+
+    <p>You already know vegetables are good. You already know you should sleep more and drink water and lift something heavy. If knowledge were the gap, you would have closed it a decade ago.</p>
+
+    <p>Here is what a good doctor does. They observe, then they prescribe. They draw blood, they ask questions, they look at you. Then, and only then, they hand you something.</p>
+
+    <p>Here is what every diet you have run does. It prescribes first. It hands you the plan on day one, before it has observed a single thing about your body, your week, or your life.</p>
+
+    <div class="pull">A plan handed to you before anyone looked at you is a guess with a brand name on it.</div>
+
+    <h3>Your body is a loop, not a checklist</h3>
+
+    <p>The model we use is a circle, because that is what a body is. Four domains, and each one feeds the next.</p>
+
+    <table>
+      <tr><td>Signals</td><td>What is going on inside. Day to day that is energy, sleep, digestion, hunger, mood, focus. The deep read is bloodwork and DNA.</td></tr>
+      <tr><td>Fuel</td><td>What goes in. Your calories, and specifically your protein.</td></tr>
+      <tr><td>Output</td><td>What your body puts back out. Movement and training are the lever you pull. How you show up for the people who need you is the proof it is working.</td></tr>
+      <tr><td>Recovery</td><td>Sleep, stress, rest. It closes the loop and feeds back into Signals.</td></tr>
+    </table>
+
+    <p>Pull one slice out and look at it alone and you will reach the wrong conclusion almost every time. The scale is flat, so you cut calories, when the actual problem was six weeks of four-hour nights.</p>
+
+    <h3>The seven-day read</h3>
+
+    <p>Before anything changes, you watch. Seven honest days. Track your food, grade your signals one to five, count your steps and your training, note how you are recovering.</p>
+
+    <p><strong>Change nothing.</strong> Do not clean it up. Do not be good for the data. Do not perform.</p>
+
+    <p>This is the hardest instruction in the whole document, and it is the one that makes everything after it work.</p>
+
+    <div class="card">
+      <h4>The key truth</h4>
+      <p>You cannot be consistent on something you cannot yet see.</p>
+    </div>
+
+    <h3>Sorting the bucket</h3>
+
+    <p>"I am eating 1,400 calories and nothing is happening" is one of exactly two things. Not three. Two. And your own data tells you which, so you never have to guess.</p>
+
+    <table>
+      <tr><td>Bucket A</td><td>You have genuinely adapted. Your body has walked its output down to meet a long, low intake. The fix is to <em>eat more</em> and rebuild the engine, which is the opposite of what feels safe.</td></tr>
+      <tr><td>Bucket B</td><td>You are under-reporting by three to five hundred calories a day. Not lying. Nobody is lying. Oil in the pan, the bites while cooking, the handful at 4pm that never registered as a decision. The fix is learning to see it.</td></tr>
+    </table>
+
+    <p>Get these backwards and you dig the hole deeper. Cut a Bucket A woman and you bury her. Add calories to a Bucket B woman and she gains.</p>
+    <p>This is the single most expensive mistake in the industry, and it is only solvable with a week of honest data.</p>
+
+    <h3>A word about the scale</h3>
+
+    <p>The scale is a tool. It is not a verdict on you, your week, or your worth.</p>
+    <p>It measures one thing badly on any given morning and measures it well across seven. Water, salt, hormones, the timing of your last meal and your last bathroom trip all move it more than fat does in a day. So you weigh often and you read the average, which turns the most emotionally loaded number in your life into just another line item.</p>
+    <p>And I will say this plainly, because the internet will not: <strong>your metabolism is not broken.</strong> There is a real, physical thing happening in your body. It is measurable, it is fixable, and it is almost never what you have been told it is.</p>
+  </section>
+
+  <section id="desire">
+    <span class="partno">Part Two</span>
+    <h2>Desire</h2>
+    <div class="rule"></div>
+
+    <p class="lead">Awareness tells you where you are standing. Desire is the honest account of where you actually want to go, and what you are genuinely willing to trade to get there.</p>
+
+    <p>This is the part nobody asks you about. They ask for your goal weight and then hand you a plan. They never ask the two questions that decide whether you will still be running it in March.</p>
+
+    <h3>First: what are you actually after?</h3>
+
+    <p>Every goal leans toward one of three directions. Naming yours changes what we build.</p>
+
+    <table>
+      <tr><td>Aesthetics</td><td>You want to look and feel like yourself again. You want your clothes to fit the way you remember.</td></tr>
+      <tr><td>Performance</td><td>You want to be capable. Stronger, more useful, able to do hard things without paying for them for three days.</td></tr>
+      <tr><td>Longevity</td><td>You want to still be able to do this in twenty years. You are thinking about your parents, or your kids, or a number on a lab report.</td></tr>
+    </table>
+
+    <p>Most people lean toward one and get sold the other. A woman whose real goal is longevity gets handed an aesthetics plan with an aggressive deficit, and it works against the very thing she came for.</p>
+    <p>The direction is not the vehicle. It points at a phase, which is the next section, but first it has to be said out loud.</p>
+
+    <h3>Second: what will you not give up?</h3>
+
+    <p>This is the question that saves the whole thing, and I have never once seen another program ask it.</p>
+
+    <p>Write it down. Be specific and be honest, because nobody is grading this.</p>
+
+    <ul>
+      <li>The glass of wine on Friday.</li>
+      <li>The family table on Sunday, eaten the way your family eats.</li>
+      <li>Dessert with your kids, because that is a memory you are making, not a lapse.</li>
+      <li>Your coffee the way you actually like it.</li>
+      <li>Not weighing food in front of your family.</li>
+      <li>Not training six days a week, because you do not have six days.</li>
+    </ul>
+
+    <div class="pull">A plan that requires you to surrender a non-negotiable is not a plan. It is a countdown.</div>
+
+    <p>Every one of those is survivable inside a real system. Not one of them survives a plan built by someone who never asked.</p>
+
+    <h3>Third: what are you actually willing to trade?</h3>
+
+    <p>This is the other side, and it has to be just as honest.</p>
+
+    <ul>
+      <li>Fifteen minutes a day of logging, for a while, until it is automatic.</li>
+      <li>Two or three resistance sessions a week, every week, even the bad ones.</li>
+      <li>Getting your protein, which will feel like a lot of food at first.</li>
+      <li>Looking at the number more often, not less, until it stops carrying a charge.</li>
+      <li>Being told something you do not want to hear, by someone who is reading your data.</li>
+    </ul>
+
+    <p>When you have both lists, something useful happens. The plan stops being a negotiation with yourself every single day. The things you kept are in the budget on purpose. The things you traded, you traded on purpose, with your eyes open, because you decided they were worth it.</p>
+
+    <div class="card gold">
+      <h4>Why this comes before the plan</h4>
+      <p>Adherence is not a character trait. It is what happens when the plan already contains the life you refuse to give up.</p>
+    </div>
+  </section>
+
+  <section id="application">
+    <span class="partno">Part Three</span>
+    <h2>Application</h2>
+    <div class="rule"></div>
+
+    <p class="lead">Now we build. Awareness gave us the truth. Desire gave us the constraints. Application is the system that runs inside both.</p>
+
+    <h3>Structure first. Freedom second.</h3>
+
+    <p>You track hard for one short stretch so that tracking becomes effortless forever. That is the trade. A week or so of real structure buys you years of eating by feel, because your feel finally becomes accurate.</p>
+    <p>You do not get to eat by instinct until your instinct is calibrated. That is not a moral position. It is the same reason you do not drive without a speedometer until you know what sixty feels like.</p>
+
+    <h3>Pillar one: four numbers, off your goal weight</h3>
+
+    <p>Not the body you are in. The body you are building. This one shift changes everything downstream.</p>
+
+    <table>
+      <tr><td>Calories</td><td>Your goal weight times 13 to start. Goal of 150 means roughly 1,950.</td></tr>
+      <tr><td>Protein</td><td><strong>1 gram per pound of goal weight.</strong> Goal of 150 means 150 grams. The absolute floor, in any phase, is 0.8 per pound.</td></tr>
+      <tr><td>Produce</td><td>600 to 800 grams a day. Fruit and vegetables. A medium banana is about 125 grams.</td></tr>
+      <tr><td>Water</td><td>Half your bodyweight in ounces.</td></tr>
+    </table>
+
+    <p>Four numbers. That is the entire nutritional foundation, and you can start it tonight with a pen.</p>
+
+    <h3>Pillar two: your go-to meals</h3>
+
+    <p>The numbers are not the system. What you actually build is your go-to meals, and this is the part that makes it survive contact with a real week.</p>
+
+    <ul>
+      <li><strong>One each.</strong> A default breakfast, lunch and dinner, plus a snack if you need one. Built from food you already eat, portioned to hit those four numbers. You run them for eighty to ninety percent of your week and swap inside the same budget for the rest.</li>
+      <li><strong>At least one takes no cooking.</strong> There will be a night you walk in at eight o'clock and there is no version of you that is cooking. That is the night the plan usually dies. A no-cook go-to is how it does not.</li>
+      <li><strong>Picked three ways.</strong> Food you digest well, food you actually like, food you can make on a Tuesday when you are tired. Fail one of the three and it is not a go-to meal, it is a plan you will quit.</li>
+      <li><strong>The same thing happens where you eat out.</strong> Pick your regular spots and pick one order at each. That becomes your go-to order. You stop reading the menu, because you already know what you are getting and you already know it fits.</li>
+    </ul>
+
+    <p>Boring is the point. The constant starting over, the new plan every Monday, is what has been costing you. Not the food.</p>
+
+    <h3>Pillar three: two free meals a week, built in</h3>
+
+    <p>These are the other ten to twenty percent. Eat pretty much whatever you want and <em>do not track it.</em> Your starting calories already have room for them.</p>
+    <p>Two rules, and both live outside the free meal, not inside it:</p>
+    <ol>
+      <li>Hit your protein floor from your other meals that same day.</li>
+      <li>Get your produce in across those same meals.</li>
+    </ol>
+    <p>That is not permission. That is arithmetic. The holiday table is inside the numbers before you sit down at it.</p>
+
+    <h3>Pillar four: three small things inside the free meal</h3>
+
+    <p>Nothing to count and nothing to log. You earned it from the rest of the day.</p>
+    <ol>
+      <li>A noticeable protein source.</li>
+      <li>A fruit or a vegetable, even in the car on the way.</li>
+      <li>Stop at about eighty percent full.</li>
+    </ol>
+
+    <h3>Keeping it running: the weekly read</h3>
+
+    <p>Here is the test that separates a system from a plan. <strong>Every system you already run answers four questions. A diet answers one.</strong></p>
+
+    <table>
+      <th>The question</th><th>Your budget</th><th>Your last diet</th>
+      <tr><td>What do I measure?</td><td>Every dollar in and out</td><td>"Eat clean"</td></tr>
+      <tr><td>How often do I look?</td><td>Weekly</td><td>When you feel brave</td></tr>
+      <tr><td>What when it is off?</td><td>Move a line item</td><td>Try harder</td></tr>
+      <tr><td>What at the goal?</td><td>Keep it running, set a new target</td><td>Back to normal</td></tr>
+    </table>
+
+    <p>Once a week you read your averages. Weight, steps, calories and protein, strength on a handful of key lifts, and how you are actually feeling. Weigh at least three times a week. Log your food most days, call it six out of seven.</p>
+
+    <h4>And when it is off, you get a rule, not a feeling</h4>
+
+    <table>
+      <tr><td>HOLD</td><td>Change nothing for a week. One flat week is completely normal and most people blow up a working plan here.</td></tr>
+      <tr><td>ADJUST</td><td>No new low after ten to fourteen days? First ask whether you actually tracked. If yes, move exactly one lever: portions, protein, or steps.</td></tr>
+      <tr><td>MOVE</td><td>Move the number down a step in your phase. Or move the season entirely, which sometimes means a planned break. Doing less is a legitimate move and it is often the right one.</td></tr>
+    </table>
+
+    <div class="pull">A bad week is information. It is not a verdict on your character.</div>
+
+    <h3>Standards and rhythms</h3>
+    <p>A <strong>standard</strong> is what you hold daily: calorie awareness, protein, steps. A <strong>rhythm</strong> is what you return to weekly: your resistance sessions, your check-in, your read. Resistance training is a rhythm, not a standard. You do not fail it by missing Tuesday. You fail it by never returning.</p>
+  </section>
+
+  <section id="foundations">
+    <span class="partno">The Phases</span>
+    <h2>Foundations</h2>
+    <div class="rule"></div>
+
+    <p class="lead">Foundations is the education layer. It is not a six-week course and it is not a calendar. It is the skill stack that closes the gap between what you know how to do and what actually needs doing.</p>
+
+    <p>It runs on eight pillars, and they split by function, not by importance.</p>
+
+    <h4>The Load-Bearing Four. These change your body</h4>
+    <ul>
+      <li><strong>Protein Sovereignty.</strong> Protein first, every day, non-negotiable.</li>
+      <li><strong>Nutrition Calibration.</strong> Your numbers, set off goal weight and adjusted by evidence.</li>
+      <li><strong>Movement Floor.</strong> Daily steps. The least glamorous lever and frequently the biggest.</li>
+      <li><strong>Training.</strong> Resistance work, two to three times a week, to keep what you have and build more.</li>
+    </ul>
+
+    <h4>The Sustaining Four. These hold it</h4>
+    <ul>
+      <li><strong>Hydration Baseline.</strong> Hit the floor and hold it.</li>
+      <li><strong>Sleep, Stress and Rest.</strong> Where most stalls actually live.</li>
+      <li><strong>Relational Stewardship.</strong> The people side of output. This is the real reason you are doing any of it.</li>
+      <li><strong>Biofeedback Awareness.</strong> Reading your own signals without a device telling you how to feel.</li>
+    </ul>
+
+    <p>You do not queue these. They run together. And nothing here is a gate on anything else.</p>
+  </section>
+
+  <section id="seasons">
+    <span class="partno">The Phases</span>
+    <h2>The Season Cycle</h2>
+    <div class="rule"></div>
+
+    <p class="lead">Fat loss is a season, not a life sentence. The reason your last plan ended is that it only had one.</p>
+
+    <table>
+      <tr><td>Reverse</td><td>Calories walk up, deliberately and slowly, to rebuild an engine that has been run too low for too long. Counterintuitive, and for a large number of people it is the correct first move.</td></tr>
+      <tr><td>Lean</td><td>The fat loss season. Run with the numbers above, with free meals built in, for a defined stretch and not forever.</td></tr>
+      <tr><td>Sustain</td><td>The hinge, not the end. You hold at the new weight long enough for it to become normal. Most people have never done this once, which is exactly why it keeps coming back.</td></tr>
+      <tr><td>Strong</td><td>Calories up, training up, building the thing that makes the next Lean season easier and the next twenty years possible.</td></tr>
+    </table>
+
+    <p>You will cycle these for the rest of your life, in different orders, at different weights, for different reasons. That is not a failure of the plan. <strong>That is the plan.</strong></p>
+
+    <div class="pull">When you pay off the debt, you do not throw out the budget. You set the next target.</div>
+
+    <h3>What the next six months actually looks like</h3>
+    <ol>
+      <li><strong>You get an honest read.</strong> Seven days of real data and your bucket sorted.</li>
+      <li><strong>You name your direction and your non-negotiables.</strong> Both lists, written down.</li>
+      <li><strong>Your numbers get set off your goal weight</strong> and your go-to meals get built from the food you already eat.</li>
+      <li><strong>You run it and read it weekly.</strong> HOLD, ADJUST, MOVE. No feelings required.</li>
+      <li><strong>You hit the first target and you hold it.</strong> Sustain, on purpose, long enough for it to stop feeling temporary.</li>
+      <li><strong>You set the next one.</strong> Which is where the second way stops looking like a program and starts looking like how you live.</li>
+    </ol>
+  </section>
+
+  <section id="install">
+    <span class="partno">If You Want It Built For You</span>
+    <h2>The Legacy Install</h2>
+    <div class="rule"></div>
+
+    <p class="lead">Everything above is yours. You can build it by hand, and plenty of people do. This is what it looks like when I build it with you instead.</p>
+
+    <p>Three parts, one price, one time.</p>
+
+    <div class="card">
+      <h4>1. The LP Nutrition System</h4>
+      <p>Your four numbers off your goal weight. Your go-to meals, three options each with the recipes, and one that takes no cooking. The meals-a-day you actually want, built around your own shake. Two free meals a week already inside the numbers. Your orders at 48 restaurant chains plus hundreds of high-protein builds. A shopping list and prep guide. All of it in the Legacy App, and printable.</p>
+    </div>
+
+    <div class="card">
+      <h4>2. The Install Coaching</h4>
+      <p>Thirty days. Three calls, and my phone the whole time. <strong>Assess</strong>, where we read your real week of data together. <strong>Adapt</strong>, where we change what did not fit your actual life. <strong>Assign</strong>, where we set your phase and exactly what you run after the thirty days.</p>
+    </div>
+
+    <div class="card">
+      <h4>3. Genetic Testing</h4>
+      <p>An at-home test, done once. Which split your body handles better. Where you may run short, so supplementation stops being a guess. Why appetite has been harder for you than it looks. How fast you clear caffeine. Your system is built off what you eat; your genetics tune it to how you process it. Educational coaching guidance, never a diagnosis.</p>
+    </div>
+
+    <div class="pull">And you do not just get the system. You get the thing that builds it, in your app, so when you lose fifteen pounds and the numbers need to move, you rebuild it yourself. Free. For life.</div>
+
+    <p>You can find it at <a href="https://legacyperformance.co/install" style="color:var(--gold)">legacyperformance.co/install</a>, or reply to the email this came in on and ask me anything.</p>
+  </section>
+
+  <div class="foot">
+    <p><strong style="color:var(--parch)">Jayme Olson</strong><br>Functional Performance Coach · Founder, Legacy Performance</p>
+    <p class="disc">This document is educational coaching guidance. It is not medical advice, not a diagnosis, and not a substitute for your physician. Anything clinical stays between you and your provider. Outcomes vary. Genetic reads are educational and are never a diagnosis.</p>
+  </div>
+
+</div>
+</body>
+</html>
