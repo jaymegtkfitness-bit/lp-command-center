@@ -194,6 +194,9 @@
 .mp-days{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
 .mp-chip{border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:999px;padding:6px 14px;font:600 12.5px/1 'Montserrat',sans-serif;cursor:pointer}
 .mp-chip.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.mp-chip.mp-today{border-color:var(--gold);box-shadow:0 0 0 1px var(--gold) inset}
+.mp-dayhead{font:800 15px/1.2 'Montserrat',sans-serif;letter-spacing:.02em;color:var(--ink);margin:12px 0 10px;display:flex;align-items:center;gap:8px}
+.mp-today-tag{font:700 10px/1 'Montserrat',sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold);border-radius:999px;padding:3px 8px}
 .mp-meal{padding:11px 0;border-top:1px solid var(--line)}
 /* ===== Awareness Loop (body-as-a-loop) ===== */
 .aw-circle{position:relative;width:min(80vw,300px);aspect-ratio:1;margin:18px auto 6px}
@@ -1864,7 +1867,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=72"></script>
+<script src="nutrition-engine.js?v=73"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -1916,7 +1919,7 @@ var QT_GOAL    = ["Fat loss","Build muscle & strength","Maintain, protect & long
 var QT_TRACK   = ["Lean","Strong","Sustain"];   // quarterly re-choose (record-only; "Long" retired → Sustain)
 var ID = null;                 // {name,email,gender}
 var M = { checkins:[], monthly:[], quarterly:[], coachNotes:[], clientNotes:[], prs:[], intake:null, mealplan:null, onboardingDone:[] };  // merged model
-var MP_DAY=0;  // selected meal-plan day
+var MP_DAY=-1;  // selected meal-plan day (-1 = not chosen yet → default to today for a 7-day plan)
 var serverOk = false;
 var LS_ID="lp_client_id", LS_LOG="lp_client_log", LS_PR="lp_client_pr", LS_NOTE="lp_client_note", LS_MONTHLY="lp_client_monthly", LS_QUARTERLY="lp_client_quarterly", LS_TOKEN="lp_client_token", LS_INTAKE="lp_client_intake", LS_ONBOARD="lp_client_onboard", LS_THEME="lp_client_theme", LS_TARGETS="lp_client_targets";
 var CLIENT_TAB="home";
@@ -5600,8 +5603,19 @@ function mpDayHTML(day){
       +'<ul class="mp-items">'+(m.items||[]).map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ul></div>';
   }).join('');
 }
-function mpDay(i){ MP_DAY=i; var b=g("mpDayBox"); if(b&&M.mealplan) b.innerHTML=mpDayHTML(M.mealplan.days[i]);
+function mpDay(i){ MP_DAY=i; var b=g("mpDayBox"); if(b&&M.mealplan) b.innerHTML=mpDayLabel(i)+mpDayHTML(M.mealplan.days[i]);
   Array.from(document.querySelectorAll('#mealPlanBox .mp-chip')).forEach(function(c,idx){ c.classList.toggle('on', idx===i); }); }
+/* The selected day's real weekday + (for 4-2-1) its day type, shown above the meals. */
+function mpDayLabel(i){
+  var mp=M.mealplan; if(!mp||!mp.days||!mp.days[i]) return '';
+  var WDL=['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+  var seven=(mp.days.length===7), today=(new Date().getDay()+6)%7;
+  var fw=(mp.framework==='421' && typeof sched421==='function')?sched421(mp.schedule):null;
+  var name=seven?WDL[i]:((mp.days[i].label)||('Day '+(i+1)));
+  var typ=(fw && typeof FTO_TYPEL!=='undefined' && FTO_TYPEL[fw[i]])?' · '+FTO_TYPEL[fw[i]]+' day':'';
+  var todayTag=(seven && i===today)?' <span class="mp-today-tag">Today</span>':'';
+  return '<div class="mp-dayhead">'+esc(name)+esc(typ)+todayTag+'</div>';
+}
 function mealPlanPrintHTML(){
   if(!M.mealplan||!(M.mealplan.days||[]).length) return '';
   var mp=M.mealplan;
@@ -6051,12 +6065,21 @@ function renderMealPlan(){
       +(done?'':' <button class="btn btn-ghost" onclick="showCnsSetup()">Do the full setup</button>')+'</div>';
     return;
   }
-  if(MP_DAY>=mp.days.length) MP_DAY=0;
-  var chips=mp.days.map(function(d,i){ return '<button class="mp-chip'+(i===MP_DAY?' on':'')+'" onclick="mpDay('+i+')">'+esc(d.label||('Day '+(d.day||i+1)))+'</button>'; }).join('');
+  var mpSeven=(mp.days.length===7), mpToday=(new Date().getDay()+6)%7;   // Mon=0 .. Sun=6
+  if(MP_DAY<0) MP_DAY = mpSeven ? mpToday : 0;                           // first open of a 7-day plan → jump to today
+  if(MP_DAY>=mp.days.length || MP_DAY<0) MP_DAY=0;
+  var MP_WD=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  var mp421 = (mp.framework==='421' && typeof sched421==='function') ? sched421(mp.schedule) : null;
+  var chips=mp.days.map(function(d,i){
+    var wd = mpSeven ? MP_WD[i] : (d.label||('Day '+(d.day||i+1)));
+    var typ = (mp421 && typeof FTO_TYPEL!=='undefined' && FTO_TYPEL[mp421[i]]) ? ' · '+FTO_TYPEL[mp421[i]] : '';
+    var isToday = mpSeven && i===mpToday;
+    return '<button class="mp-chip'+(i===MP_DAY?' on':'')+(isToday?' mp-today':'')+'" onclick="mpDay('+i+')">'+esc(wd)+(isToday?' • Today':'')+esc(typ)+'</button>';
+  }).join('');
   box.innerHTML=(mp.note?'<p class="wiz-hint" style="margin:0 0 10px">'+esc(mp.note)+'</p>':'')
     +freeMealsCallout(mp)
     +'<div class="mp-days">'+chips+'</div>'
-    +'<div id="mpDayBox">'+mpDayHTML(mp.days[MP_DAY])+'</div>'
+    +'<div id="mpDayBox">'+mpDayLabel(MP_DAY)+mpDayHTML(mp.days[MP_DAY])+'</div>'
     +rebuildPrompt()
     +'<div class="actions no-print"><button class="btn btn-primary" onclick="openMySystem()">⬇ My full system (PDF)</button> <button class="btn btn-ghost" onclick="showMealBuilder()">🍳 Edit my foods & regenerate</button></div>';
 }

@@ -10,7 +10,11 @@ function macrosFrom(cal, protein, sex){
   cal=Math.round(+cal); protein=Math.round(+protein);
   var rem=cal-protein*4;
   var floor=/^m/i.test(sex)?55:40;
-  var fat=Math.max(floor, Math.round(rem*0.40/9));
+  /* Split the non-protein calories ~30% fat / 70% carb (was 40/60): leans into carbs and lands most
+     plans near ~20% fat of total, inside the AMDR (carb 45-65 / fat 20-35 / protein 10-35) and good for
+     the perimenopausal/menopausal avatar (protein anchors lean mass; fiber carbs fuel; fat stays floored,
+     never below essential — women 40g / men 55g). */
+  var fat=Math.max(floor, Math.round(rem*0.30/9));
   var carbs=Math.max(0, Math.round((rem-fat*9)/4));
   return {calories:cal, protein:protein, carbs:carbs, fat:fat};
 }
