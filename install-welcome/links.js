@@ -5,7 +5,8 @@
    the buyer already owns. install-intake/ is the buyer-only intake: no price, no checkout.
    bundle-intake/ is left in place so any old link still resolves; install-intake/ is the live one. */
 var IW_LINKS = {
-  intakeUrl:         "https://dashboard.legacyperformance.co/install-intake/",   // buyer-only intake: no price, no checkout
+  intakeUrl:         "https://dashboard.legacyperformance.co/install-intake/",   // buyer-only intake: no price, no checkout. Opens their Roster row.
+  appUrl:            "https://dashboard.legacyperformance.co/client.html",       // the Legacy App. Identity gate = name + DOB + email vs their Roster row
   onboardingCallUrl: "https://legacyperformance.co/onboarding-call",            // GHL: Onboarding Call w/ Jayme Olson
   skoolUrl:          "https://www.skool.com/legacy-performance/about"
 };

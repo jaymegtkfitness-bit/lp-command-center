@@ -1291,6 +1291,8 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
       <div class="f"><label for="fname">First name</label><input type="text" id="fname" autocomplete="given-name" placeholder="Rachel"></div>
       <div class="f"><label for="lname">Last name</label><input type="text" id="lname" autocomplete="family-name" placeholder="Stevens"></div>
       <div class="f full"><label for="email">Email address</label><input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@email.com"></div>
+      <div class="f full"><label for="dob">Date of birth</label><input type="date" id="dob" autocomplete="bday">
+        <span class="help" style="display:block;margin-top:5px">This is how the app knows it is you. Your name, birthday and this email are what sign you in.</span></div>
       <div class="f full"><label for="phone">Phone (optional)</label><input type="tel" id="phone" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555"></div>
       <div class="f full"><label for="work">What do you do? (optional)</label>
         <input type="text" id="work" placeholder="It tells me what your day actually looks like."></div>
@@ -1472,10 +1474,10 @@ const CONFIG = {
   writeUrl:   "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
 
   /* FastPayDirect checkout links (live). */
-  pifUrl:     "",   // BUNDLE INTAKE: no checkout on this page. The buyer already paid.
+  pifUrl:     "",   // INSTALL INTAKE: no checkout on this page. The buyer already paid.
 
   /* Readiness Consultation booking link (GHL calendar). "" -> button hidden. */
-  consultUrl: "",   // BUNDLE INTAKE: no consult CTA. Their next step is the onboarding call.
+  consultUrl: "",   // INSTALL INTAKE: no consult CTA. Their next step is their first call.
 
 
   /* ═══ CAPACITY (monthly). KEEP THIS TRUE. ═══
@@ -1760,7 +1762,7 @@ qsa('.ack').forEach(a => a.addEventListener('click', () => {
   a.classList.toggle('checked'); updateSubmit();
 }));
 
-['age','height','cw','gw','avgcal','fname','lname','email','sig']
+['age','height','cw','gw','avgcal','fname','lname','email','dob','sig']
   .forEach(id => { const el = $(id); if (el) el.addEventListener('input', recalc); });
 $('height').addEventListener('change', recalc);
 
@@ -2606,7 +2608,7 @@ function updateSubmit(){
   const email = /\S+@\S+\.\S+/.test(val('email'));
   const core = S.goal && S.sex && num('age') && num('height') && num('cw') &&
                S.stall && S.dur && S.track && S.obstacle && S.why && S.frequency &&
-               Object.keys(S.med).length >= 9 && val('fname') && val('sig');
+               Object.keys(S.med).length >= 9 && val('fname') && val('lname') && val('dob') && val('sig');
   const ok = !!(acks && email && core);
   btn.disabled = !ok;
   if (ok){
@@ -2698,9 +2700,10 @@ function payload(status){
   const M = S.multi;
   const medYes = Object.keys(S.med).filter(k => S.med[k] === 'yes').join(', ');
   return {
-    type:'cnsintake', source:'bundle-intake', bundle:true, status:status, ts:new Date().toISOString(),
+    type:'cnsintake', source:'install-intake', bundle:true, install:true, status:status, ts:new Date().toISOString(),
     email: val('email').toLowerCase(),
     name: (val('fname') + ' ' + val('lname')).trim(),
+    dob: val('dob'),
     phone: val('phone'),
     /* engine inputs */
     sex:S.sex, age:num('age'), height:num('height'), weight:num('cw'), goalweight:num('gw'),
@@ -2783,7 +2786,7 @@ $('intake-form').addEventListener('submit', async e => {
   e.preventDefault();
   if ($('submit-btn').disabled) return;
 
-  const p = payload(hardStop() ? 'lead_referred_out' : 'lead');
+  const p = payload(hardStop() ? 'lead_referred_out' : 'install_buyer');   // paid Install buyer, not a lead: the doorway opens their Roster row off this
   postDoorway(p);
   await runRitual();
   showReveal();
