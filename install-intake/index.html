@@ -1192,7 +1192,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
     </div>
 
     <p class="grouplbl">How many times a day do you want to eat?</p>
-    <p class="muted" style="margin:-4px 0 10px">This is a preference, not a rule. Meal frequency does not change fat loss. It changes whether you can actually stick to the plan, which is the part that matters. Your shake is 30 g of protein and it gets reserved out of your day first.</p>
+    <p class="muted" style="margin:-4px 0 10px">This is a preference, not a rule. Meal frequency does not change fat loss. It changes whether you can actually stick to the plan, which is the part that matters. The default shake is 30 g of protein, reserved out of your day before anything else gets split. Use your own? Tell me below and I will build around it.</p>
     <div class="opts" data-single="frequency">
       <label class="opt" data-v="2 + shake"><span class="dot"></span><span>
         <span class="t">2 meals and a protein shake</span>
@@ -1205,6 +1205,10 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
       <label class="opt" data-v="4"><span class="dot"></span><span>
         <span class="t">4 meals</span><span class="d">The upper end. Smaller, more frequent, if you prefer eating often.</span></span></label>
     </div>
+
+    <p class="grouplbl">Which shake do you use? (optional)</p>
+    <div class="fields"><div class="f full">
+      <input type="text" id="shake" placeholder="Brand and grams of protein per scoop. Leave blank for the 30 g default."></div></div>
 
     <p class="grouplbl">Anything about your eating window?</p>
     <div class="opts row2" data-single="schedule">
@@ -1285,8 +1289,8 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 
   <div class="step">
     <span class="num">15</span>
-    <h3>Where should I send your build?</h3>
-    <p class="help">Your calorie target and protein floor are already above, free and yours to keep. This opens the rest of it: your phase, your projection, your full macros and a week of meals built from the food you picked. Still no card, still no payment. I ask because every one of these gets finished by hand and I need to know where to send yours.</p>
+    <h3>Last thing. This is how your system finds you.</h3>
+    <p class="help">Use the email you paid with. The name and date of birth you put here are also what you will use to sign into the Legacy App, so enter them the way you normally write them.</p>
     <div class="fields">
       <div class="f"><label for="fname">First name</label><input type="text" id="fname" autocomplete="given-name" placeholder="Rachel"></div>
       <div class="f"><label for="lname">Last name</label><input type="text" id="lname" autocomplete="family-name" placeholder="Stevens"></div>
@@ -2704,6 +2708,7 @@ function payload(status){
     email: val('email').toLowerCase(),
     name: (val('fname') + ' ' + val('lname')).trim(),
     dob: val('dob'),
+    shake: val('shake'),
     phone: val('phone'),
     /* engine inputs */
     sex:S.sex, age:num('age'), height:num('height'), weight:num('cw'), goalweight:num('gw'),
