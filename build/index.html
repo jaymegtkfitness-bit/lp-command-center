@@ -638,7 +638,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
       <a href="#q1" class="btn">Get my numbers &mdash; free <span aria-hidden="true">&rarr;</span></a>
       <p class="cta-side">
         <strong>No payment to see your numbers.</strong> If you want the full system, with meal plans for life,
-        your restaurant orders and your phases mapped, that is optional, and it&rsquo;s $497.
+        your restaurant orders and your phases mapped, that is optional &mdash; it&rsquo;s the Legacy Install, $997.
         I set it up with you, step by step, and it is backed by a 30-day guarantee.
       </p>
     </div>
@@ -985,7 +985,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <li><strong>No more guessing at restaurants.</strong> Meals that get you to your goal at 48 restaurants, sized to your needs.</li>
         <li><strong>Built for your body.</strong> Menopause, thyroid, allergies and how you eat.</li>
       </ul>
-      <p class="up-close"><strong>$497 once. No subscription. Yours for life, and backed by a 30-day guarantee.</strong></p>
+      <p class="up-close"><strong>$997 once. No subscription. Yours for life, and backed by a 30-day guarantee.</strong></p>
       <p class="up-close">Keep answering. Your plan gets built as you go.</p>
     </div>
   </div>
@@ -1654,9 +1654,9 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 
     <div class="note" style="margin-top:26px">
       <strong>Where this sits.</strong> The free <strong>Power Food System</strong> teaches you the food
-      tiers and how to adjust your own portions. The <strong>Complete Nutrition System</strong> is what
-      keeps it right: you rebuild your plan yourself every time your body or your phase changes. That
-      second part is what you are buying.
+      tiers and how to adjust your own portions. <strong>The Legacy Install</strong> is the done-for-you
+      build: your complete nutrition system (built around the foods you eat), your Genetic Blueprint, the
+      Legacy app, and a month of coaching to perfect it together. That is what you are buying.
     </div>
   </div>
 </section>
@@ -1666,7 +1666,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
   <div class="wrap narrow">
     <div class="price-card">
       <p class="price-anchor">The average person spends around <s>$1,100</s> on a program in this category.</p>
-      <div class="price-big" id="pc-price">$497</div>
+      <div class="price-big" id="pc-price">$997</div>
       <p class="price-sub">One time &middot; No subscription &middot; Yours for life</p>
       <div class="incl">
         <div><span class="ck"></span><span><strong>Protein on autopilot.</strong> Every meal is built around your protein, so you hit your number without thinking about it.</span></div>
@@ -1677,12 +1677,15 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <div><span class="ck"></span><span><strong>Swap anything, any time.</strong> Tired of a food? Trade it and still hit your numbers.</span></div>
         <div><span class="ck"></span><span><strong>No more guessing at restaurants.</strong> Meals that get you to your goal at 48 restaurants, sized to your needs.</span></div>
         <div><span class="ck"></span><span><strong>Your starting read from the LP Coach.</strong> Your own numbers, read back to you, with the phase to start in and why. Ongoing weekly reads and progress tracking live in the membership.</span></div>
+        <div><span class="ck"></span><span><strong>Your Genetic Blueprint.</strong> A DNA test that sharpens your plan to how your body actually works, reviewed with you.</span></div>
+        <div><span class="ck"></span><span><strong>The Legacy app.</strong> Your numbers, your plan, and your weekly reads &mdash; in your pocket.</span></div>
         <div><span class="ck"></span><span><strong>The full system, done for you.</strong> Fill out the intake and I build your complete system. Then we perfect it together over 30 days.</span></div>
         <div><span class="ck"></span><span><strong>30-day guarantee.</strong> If it isn't working, I rebuild it or refund you.</span></div>
       </div>
       <div class="paylinks">
-        <a href="#" class="btn js-pif" id="pay-pif">Build my system &middot; $497</a>
-        <p class="klarna-note">Want to spread it out? Choose <strong>Klarna</strong> at checkout and pay over time.</p>
+        <a href="#" class="btn js-pif" id="pay-pif">The Legacy Install &middot; $997</a>
+        <a href="#" class="btn ghost js-2pay" id="pay-2pay" style="max-width:none;margin-top:10px">Or 2 payments of $597</a>
+        <p class="klarna-note">Pay in full, or split it into <strong>two payments of $597</strong>, 30 days apart.</p>
       </div>
       <p class="btn-note" id="cap-note"></p>
       <p class="btn-note"><strong>30 days.</strong> If it is not right for you, I will rebuild it or refund you. No argument.</p>
@@ -1724,8 +1727,8 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
   <div class="wrap narrow center">
     <h2 style="font-size:clamp(1.4rem,4.4vw,1.9rem);margin:0 0 14px">You already have the numbers.</h2>
     <p class="muted" style="margin-bottom:22px">What you are buying is the part that turns them into something you can actually run.</p>
-    <a href="#" class="btn js-pif" style="max-width:340px">Build my system &middot; $497</a>
-    <p class="btn-note"><a href="#" id="consult-btn-2" style="color:var(--gold)">Or book a free Readiness Consultation first</a></p>
+    <a href="#" class="btn js-pif" style="max-width:340px">The Legacy Install &middot; $997</a>
+    <p class="btn-note"><a href="#" class="js-2pay" style="color:var(--gold)">Or 2 payments of $597</a> &middot; <a href="#" id="consult-btn-2" style="color:var(--gold)">book a free Readiness Consultation</a></p>
   </div>
 </section>
 
@@ -1753,14 +1756,15 @@ const CONFIG = {
   /* Apps Script doorway. "" -> the page still works, saves on-device only. */
   writeUrl:   "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
 
-  /* FastPayDirect checkout links (live). */
-  pifUrl:     "https://link.fastpaydirect.com/payment-link/6a70cebea655fa0b802a7a30",   // $497 pay in full
+  /* FastPayDirect checkout links (live). THE LEGACY INSTALL, $997. */
+  pifUrl:     "https://link.fastpaydirect.com/payment-link/6ac90ef9075ea22a20cdd6ef",   // $997 paid in full (checkout.install_pif)
+  twoPayUrl:  "https://link.fastpaydirect.com/payment-link/6ad52353db15f6a453c8ada6",   // 2 x $597, 30 days apart (checkout.install_2pay)
 
   /* Readiness Consultation booking link (GHL calendar). "" -> button hidden. */
   consultUrl: "https://legacyperformance.co/book-a-call",   // GHL: nutrition-and-fitness-consult
 
   /* Displayed price. Change here and the page follows. */
-  priceFull:  "$497",
+  priceFull:  "$997",
 
   /* ═══ CAPACITY (monthly). KEEP THIS TRUE. ═══
      The cap is real: every buyer gets walked through the install personally, so the ceiling is
@@ -2528,7 +2532,7 @@ function renderSeasonPlan(phase, cw, gw, extraKcal){
     $('sp-note').innerHTML = '<strong>Your first season is not a diet.</strong> It is the reverse, back up to '
       + 'maintenance, because you cannot subtract from a number you do not have. Your ' + work + ' lb of fat '
       + 'loss runs in Lean seasons that start from there, each one at its own number.'
-      + '<br><br><strong>That is why the Complete Nutrition System rebuilds your plan at every step.</strong> '
+      + '<br><br><strong>That is why the Legacy Install rebuilds your plan at every step.</strong> '
       + 'A meal plan built for one number gets you through one season. You have several ahead of you.';
     return;
   }
@@ -2565,8 +2569,8 @@ function renderSeasonPlan(phase, cw, gw, extraKcal){
     note += '<br><br><strong>This is ' + span(sp.seasonsLo, sp.seasonsHi) + ' Lean seasons, not one long diet.</strong> '
       + 'Nobody should diet more than 12 to 16 weeks at a time, so there is a stretch at maintenance between each '
       + 'one. Lean, Sustain, Lean again, and every one of those runs at its own number. A meal plan built for one '
-      + 'number gets you through one season. <strong>The Complete Nutrition System rebuilds yours for every season, '
-      + 'as many times as it takes, for $497 once.</strong>';
+      + 'number gets you through one season. <strong>The Legacy Install rebuilds yours for every season, '
+      + 'as many times as it takes, for $997 once.</strong>';
   }
   $('sp-note').innerHTML = note;
 }
@@ -3138,7 +3142,7 @@ function showReveal(){
       'you will not be.</p>' +
       '<p>If it would help to be pointed toward one, email me and I will do that for free.</p>' +
       '<p style="color:var(--gold)">jayme.gtkfitness@gmail.com</p></div></div>';
-    qsa('#reveal .js-pif, #reveal .klarna-note').forEach(b => b.classList.add('hidden'));
+    qsa('#reveal .js-pif, #reveal .js-2pay, #reveal .klarna-note').forEach(b => b.classList.add('hidden'));
   }
 
   ['intake','note-section'].forEach(id => $(id).classList.add('hidden'));
@@ -3161,6 +3165,7 @@ function goCheckout(url, label){
   };
 }
 qsa('.js-pif').forEach(b => b.addEventListener('click', goCheckout(CONFIG.pifUrl, 'pif')));
+qsa('.js-2pay').forEach(b => { if(!CONFIG.twoPayUrl){ b.style.display='none'; return; } b.addEventListener('click', goCheckout(CONFIG.twoPayUrl, '2pay')); });
 
 ['consult-btn-1','consult-btn-2'].forEach(id => {
   const b = $(id); if (!b) return;
