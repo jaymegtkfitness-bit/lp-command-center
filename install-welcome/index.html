@@ -2,12 +2,14 @@
 <html lang="en">
 <head>
 <!-- LEGACY INSTALL post-purchase page, served at dashboard.legacyperformance.co/install-welcome/.
-     Both the $997 PIF checkout and the 2-pay checkout redirect here. It matches the one-page PDF
- (pdf.html) on purpose: same steps, same words, same links, so the page they land on and the file
- they keep never disagree. BOTH read their links from links.js. Run make-pdf.sh after changing either.
- ⚠️ PAID IN FULL as of 2026-10-18. The $200 deposit and the $797 balance are dead. Nothing is
- outstanding after checkout. Calls run the week of Nov 2 (Jayme is away Oct 23-31), and that week
- is the three-day tracking week, which is what the build runs on. -->
+     The $200 DEPOSIT checkout redirects here. It matches the one-page PDF (pdf.html) on purpose:
+ same steps, same words, same links, so the page they land on and the file they keep never disagree.
+ BOTH read their links from links.js. Run make-pdf.sh after changing either.
+ ⚠️ $200 DEPOSIT MODEL as of 2026-10-20. This page is for a buyer who has put down the $200 deposit,
+ NOT paid in full. They get ONLY: the intake, booking their call, starting food tracking, and the
+ Skool room. They do NOT get app access, the built system, or the DNA kit — those unlock after the
+ call + the $797 balance. Do not add an "open your app" step or system-delivery promises here. -->
+
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="robots" content="noindex">
@@ -100,52 +102,47 @@ h1 span{color:var(--gold)}
   </div>
 
   <div class="hero">
-    <div class="eyebrow">You're in</div>
+    <div class="eyebrow">Your spot is reserved</div>
     <h1>Here's what <span>happens now.</span></h1>
-    <p class="lead">Five things. The first two take ten minutes, and your app opens as soon as your intake is in. The intake is the one that can hold everything up, because your system gets built by hand off what you tell me, not off a template.</p>
+    <p class="lead">You've reserved one of ten spots. Four quick things while I build your system to show you. The first one matters most, because your intake is what I build that system from before our call.</p>
   </div>
   <div class="rule"></div>
 
   <div class="steps">
     <div class="step">
       <div class="n">01</div>
-      <div><h2>Fill out your intake. Today.</h2><p>This is what the whole build runs on: your numbers, your training, and a three-day recall of the food you actually eat. <b style="color:#fff">Nothing starts until it is in</b>, so do it before you close this page.</p><a class="url" data-url="intakeUrl" data-link="intakeUrl"></a></div>
+      <div><h2>Fill out your intake. Today.</h2><p>This is what I build your system from before we talk: your numbers, your training, and a three-day recall of the food you actually eat. <b style="color:#fff">Do it before you close this page</b> — I can't build anything without it.</p><a class="url" data-url="intakeUrl" data-link="intakeUrl"></a></div>
       <a class="btn" data-link="intakeUrl">Start my intake</a>
     </div>
     <div class="step">
       <div class="n">02</div>
-      <div><h2>Set up your app</h2><p>Your access opens the moment your intake is in. Sign in with <b style="color:#fff">the same name, birthday and email you just gave me</b>, then add it to your home screen so it opens like an app.</p><a class="url" data-url="appUrl" data-link="appUrl"></a></div>
-      <a class="btn" data-link="appUrl">Open my app</a>
-    </div>
-    <div class="step">
-      <div class="n">03</div>
-      <div><h2>Book your first call</h2><p>Your three calls run the week of November 2nd. Book the first one now so you get the slot you want. That is the Assess call, and we go through your system line by line.</p><a class="url" data-url="onboardingCallUrl" data-link="onboardingCallUrl"></a></div>
+      <div><h2>Book your call</h2><p>This is where I walk you through your actual system, built for you off your intake, and you decide if it's a fit. <b style="color:#fff">Book it now</b> so you get the slot you want over the next few days.</p><a class="url" data-url="onboardingCallUrl" data-link="onboardingCallUrl"></a></div>
       <a class="btn" data-link="onboardingCallUrl">Book my call</a>
     </div>
     <div class="step">
-      <div class="n">04</div>
-      <div><h2>Then you run it and track</h2><p>Your system lands in 48 to 72 hours, built by hand off your intake. From there you run it and track your week. <b style="color:#fff">That week is what your first call reads.</b></p></div>
-      <span class="when">Week one</span>
+      <div class="n">03</div>
+      <div><h2>Start tracking your food now</h2><p>Don't wait for the call. Start logging what you actually eat today — <b style="color:#fff">Cronometer is free and it's what we'll use.</b> Real data beats a perfect week: it's what makes your system accurate, and it gets the habit going.</p></div>
+      <span class="when">Today</span>
     </div>
     <div class="step">
-      <div class="n">05</div>
-      <div><h2>Join the Project</h2><p>Free, and it is where the teaching lives between calls. If you are already in there, skip this one.</p><a class="url" data-url="skoolUrl" data-link="skoolUrl"></a></div>
+      <div class="n">04</div>
+      <div><h2>Join the Project</h2><p>Free, and it's where the teaching lives. Jump in, say hi, and start there while I get your system ready.</p><a class="url" data-url="skoolUrl" data-link="skoolUrl"></a></div>
       <a class="btn" data-link="skoolUrl">Join the room</a>
     </div>
   </div>
 
   <div class="guar">
     <img src="../shield-white-gold.png" alt="">
-    <div><b>Why your calls start in November</b><p>Your system is built by hand off your intake, and it is in your hands within 48 to 72 hours. I am away October 23rd to the 31st, and that is the tracking week, which is exactly where it belongs: you eat how you already eat, and I build off what is real instead of off a clean week that never happens. Your calls run the week of November 2nd. Text me anything in the meantime.</p></div>
+    <div><b>What your deposit does</b><p>Your deposit holds one of ten hand-built spots. Over the next few days we get on a call, I walk you through your actual system, built for you, and you decide. If it's a fit, you take care of the balance and everything unlocks — your app, your full system, your DNA kit and your 30 days of coaching. Until then, your intake and your tracking are all I need from you. Text me anything in the meantime.</p></div>
   </div>
 
   <div class="next">
     <h3>What happens from here</h3>
     <div class="line">
-      <div class="pt"><b>Today</b><span>Intake in, app set up, first call booked, and you are in the room.</span></div>
-      <div class="pt"><b>48 to 72 hours</b><span>Your system lands, built by hand off your intake.</span></div>
-      <div class="pt"><b>Week one</b><span>You run it and track. Your kit lands, you swab it and mail it straight back.</span></div>
-      <div class="pt"><b>Week of November 2</b><span>Your three calls. Assess, Adapt, Assign. Your finished system and your files are released on the first one.</span></div>
+      <div class="pt"><b>Today</b><span>Intake in, your call booked, you're in the room, and you start tracking.</span></div>
+      <div class="pt"><b>Your call</b><span>I walk you through your system, built for you off your intake. You decide if it's a fit.</span></div>
+      <div class="pt"><b>If it's a fit</b><span>You take care of the balance, and your app, your full system and your DNA kit all unlock.</span></div>
+      <div class="pt"><b>Your 30 days</b><span>Three coaching calls — Assess, Adapt, Assign — plus my phone the whole month.</span></div>
     </div>
   </div>
 
@@ -154,11 +151,10 @@ h1 span{color:var(--gold)}
   </div>
 
   <div class="notes">
-    <span>You paid in full. Nothing is outstanding, nothing renews and nothing auto-bills. Your app opens as soon as your intake is in, and your system lands within 48 to 72 hours.</span>
-    <span>Nothing can be built until your intake is in, so it is the one thing to do today.</span>
-    <span>Your kit ships to the address on your order. If that needs to change, reply to your receipt today.</span>
-    <span>Your genetic read comes back two to four weeks after the lab has your swab. We sit down and put it into your system then.</span>
-    <span>Money back any time right up until your system is handed over. After that it is yours and it is not refundable, and the DNA kit is non-returnable once the lab has run it.</span>
+    <span>Your deposit holds one of ten spots. The balance is taken care of after your call, once you've seen your system and it's a fit.</span>
+    <span>Nothing can be built until your intake is in, so it's the one thing to do today.</span>
+    <span>Your app, your full system, your DNA kit and your coaching all unlock once your balance is in — not before.</span>
+    <span>Questions before your call? Text me anytime.</span>
   </div>
 
   <div class="foot">
