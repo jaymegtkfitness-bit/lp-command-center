@@ -2889,7 +2889,7 @@ function updateProgress(){
 
 function updateSubmit(){
   const btn = $('submit-btn'), note = $('submit-note');
-  const acks = qsa('.ack.checked').length === 4;
+  const acks = qsa('.ack').length > 0 && qsa('.ack.checked').length === qsa('.ack').length;
   const email = /\S+@\S+\.\S+/.test(val('email'));
   const core = S.goal && S.sex && num('age') && num('height') && num('cw') &&
                S.stall && S.dur && S.track && S.obstacle && S.why && S.frequency &&
@@ -2903,7 +2903,7 @@ function updateSubmit(){
   } else if (!email){
     note.textContent = 'Add a valid email so I can send your Read.';
   } else {
-    note.textContent = 'Check the four acknowledgments to continue.';
+    note.textContent = 'Check every acknowledgment to continue.';
   }
   updateProgress();
 }
