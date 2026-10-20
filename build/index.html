@@ -2906,6 +2906,7 @@ function updateSubmit(){
     note.textContent = 'Check every acknowledgment to continue.';
   }
   updateProgress();
+  queueSave();
 }
 
 /* ===================== THE CONSTRAINT (naming the real problem) ===================== */
@@ -3080,6 +3081,7 @@ $('intake-form').addEventListener('submit', async e => {
 
   const p = payload(hardStop() ? 'lead_referred_out' : 'lead');
   postDoorway(p);
+  clearSaved();
   await runRitual();
   showReveal();
 });
@@ -3159,7 +3161,8 @@ function goCheckout(url, label){
     const p = payload('checkout_initiated');
     p.checkout = label;
     postDoorway(p);
-    track('InitiateCheckout', {value: 497, currency:'USD'});
+    clearSaved();
+    track('InitiateCheckout', {value: 997, currency:'USD'});
     location.href = url;
   };
 }
@@ -3211,10 +3214,90 @@ if (CONFIG.metaPixelId){
   fbq('init', CONFIG.metaPixelId); fbq('track','PageView');
 }
 
+/* ===================== PROGRESS PERSISTENCE =====================
+   The intake is long. An accidental refresh used to wipe everything, which kills the sale.
+   Every answer is mirrored to localStorage and restored on load. Cleared on submit / checkout. */
+const SAVE_KEY = 'lp_build_progress_v1';
+const FIELD_IDS = ['fname','lname','email','phone','age','height','cw','gw','avgcal',
+                   'whytext','work','meds','extra','hate','never','glp1when','rest-other','sig'];
+let _saveTimer = null;
+function saveState(){
+  try {
+    const inputs = {};
+    FIELD_IDS.forEach(id => { const el = $(id); if (el && el.value) inputs[id] = el.value; });
+    localStorage.setItem(SAVE_KEY, JSON.stringify({
+      v:1, ts:Date.now(), inputs:inputs,
+      acks: qsa('.ack').map(a => a.classList.contains('checked') ? 1 : 0),
+      S:{ goal:S.goal, sex:S.sex, activity:S.activity, training:S.training,
+          stall:S.stall, dur:S.dur, track:S.track, obstacle:S.obstacle, why:S.why,
+          cooking:S.cooking, frequency:S.frequency, schedule:S.schedule, eatout:S.eatout,
+          glp1:S.glp1, horizon:S.horizon, protect:S.protect, labs:S.labs,
+          med:S.med, multi:S.multi, starred:S.starred }
+    }));
+  } catch(e){}
+}
+function queueSave(){ clearTimeout(_saveTimer); _saveTimer = setTimeout(saveState, 300); }
+function clearSaved(){ try { localStorage.removeItem(SAVE_KEY); } catch(e){} }
+function restoreState(){
+  let data; try { data = JSON.parse(localStorage.getItem(SAVE_KEY) || 'null'); } catch(e){ data = null; }
+  if (!data || !data.S) return false;
+  const sv = data.S;
+  /* 1. text fields */
+  if (data.inputs) Object.keys(data.inputs).forEach(id => { const el = $(id); if (el) el.value = data.inputs[id]; });
+  /* 2. S scalars + collections */
+  ['goal','sex','activity','training','stall','dur','track','obstacle','why','cooking',
+   'frequency','schedule','eatout','glp1','horizon','protect','labs'].forEach(k => {
+    if (sv[k] !== undefined && sv[k] !== '') S[k] = sv[k];
+  });
+  S.med = sv.med || {};
+  S.multi = sv.multi || {};
+  S.starred = sv.starred || {proteins:[],carbs:[],fruits:[],fats:[],veg:[]};
+  /* 3. single-select .on (obstacle options depend on goal, so rebuild them first;
+        renderObstacles() clears S.obstacle, so put the saved value back after it) */
+  renderObstacles();
+  if (sv.obstacle) S.obstacle = sv.obstacle;
+  qsa('[data-single]').forEach(box => {
+    const v = S[box.dataset.single];
+    qsa('.opt', box).forEach(o => o.classList.toggle('on', v !== undefined && v !== '' && o.dataset.v === v));
+  });
+  /* 4. static multi pills (diet/allergies must be set before foods re-render, since they filter) */
+  qsa('[data-multi]').forEach(box => {
+    const key = box.dataset.multi;
+    if (['proteins','carbs','fruits','fats','veg'].includes(key)) return; // rendered from S.multi below
+    const picked = S.multi[key] || [];
+    qsa('.pill', box).forEach(p => p.classList.toggle('on', picked.includes(pillLabel(p))));
+  });
+  /* 5. food pills + stars render straight from S.multi / S.starred */
+  renderFoodPills();
+  /* 6. medical yes/no */
+  qsa('.yn').forEach(box => {
+    const v = S.med[box.dataset.med];
+    qsa('button', box).forEach(b => {
+      const on = v && b.dataset.v === v;
+      b.classList.toggle('on', !!on);
+      b.classList.toggle('warn', !!on && v === 'yes');
+    });
+    const w = $('w-' + box.dataset.med); if (w) w.classList.toggle('show', v === 'yes');
+  });
+  /* 7. acknowledgments */
+  if (data.acks) qsa('.ack').forEach((a,i) => a.classList.toggle('checked', !!data.acks[i]));
+  /* 8. conditional GLP-1 copy + when-field visibility */
+  const warn = $('w-glp1'), wrap = $('glp1-when-wrap');
+  if (typeof GLP1_COPY !== 'undefined'){
+    const copy = GLP1_COPY[S.glp1];
+    if (warn){ warn.innerHTML = copy || ''; warn.classList.toggle('show', !!copy); }
+    if (wrap) wrap.style.display = (S.glp1 === 'on' || S.glp1 === 'off') ? 'block' : 'none';
+  }
+  return true;
+}
+
 /* ===================== BOOT ===================== */
 qsa('.starnote').forEach(n => n.textContent = STAR_HELP);
 renderFoodPills();
+restoreState();
 recalc();
+const _form = $('intake-form');
+if (_form){ _form.addEventListener('input', queueSave); _form.addEventListener('change', queueSave); }
 </script>
 <div id="shotbox" onclick="this.style.display='none'"><img id="shotbox-img" alt=""></div>
 <script>
