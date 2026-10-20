@@ -1681,10 +1681,9 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <div><span class="ck"></span><span><strong>30-day guarantee.</strong> If it isn't working, I rebuild it or refund you.</span></div>
       </div>
       <div class="paylinks">
-        <p class="price-sub" style="margin:0 0 14px;color:var(--gold)"><strong>Your last question: do you want to pay in full, or two payments of $597?</strong></p>
-        <a href="#" class="btn js-pif" id="pay-pif">The Legacy Install &middot; $997</a>
-        <a href="#" class="btn ghost js-2pay" id="pay-2pay" style="max-width:none;margin-top:10px">Or 2 payments of $597</a>
-        <p class="klarna-note">Pay in full, or split it into <strong>two payments of $597</strong>, 30 days apart.</p>
+        <p class="price-sub" style="margin:0 0 14px;color:var(--gold)"><strong>$200 holds your spot. You see your system before you pay another cent.</strong></p>
+        <a href="#" class="btn js-pif" id="pay-pif">Hold my spot &middot; $200 deposit</a>
+        <p class="klarna-note">The Legacy Install is <strong>$997</strong>. A <strong>$200 deposit</strong> reserves one of the spots today. Within 72 hours we get on a call &mdash; or I send you a Loom walking through your actual system, built for you &mdash; and only then do you take care of the $797 balance.</p>
       </div>
       <p class="btn-note" id="cap-note"></p>
       <p class="btn-note"><strong>The Legacy Guarantee.</strong> Do the work for 30 days and if the system still is not right for you, I refine it or refund you. Not a guarantee of a specific result; full terms below.</p>
@@ -1726,8 +1725,8 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
   <div class="wrap narrow center">
     <h2 style="font-size:clamp(1.4rem,4.4vw,1.9rem);margin:0 0 14px">You already have the numbers.</h2>
     <p class="muted" style="margin-bottom:22px">What you are buying is the part that turns them into something you can actually run.</p>
-    <a href="#" class="btn js-pif" style="max-width:340px">The Legacy Install &middot; $997</a>
-    <p class="btn-note"><a href="#" class="js-2pay" style="color:var(--gold)">Or 2 payments of $597</a> &middot; <a href="#" id="consult-btn-2" style="color:var(--gold)">book a free Readiness Consultation</a></p>
+    <a href="#" class="btn js-pif" style="max-width:340px">Hold my spot &middot; $200 deposit</a>
+    <p class="btn-note">$997 total. $200 holds your spot today; the balance comes after you've seen your system. <a href="#" id="consult-btn-2" style="color:var(--gold)">Or book a free Readiness Consultation</a> first.</p>
   </div>
 </section>
 
@@ -1757,8 +1756,8 @@ const CONFIG = {
   writeUrl:   "https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec",
 
   /* FastPayDirect checkout links (live). THE LEGACY INSTALL, $997. */
-  pifUrl:     "https://link.fastpaydirect.com/payment-link/6ac90ef9075ea22a20cdd6ef",   // $997 paid in full (checkout.install_pif)
-  twoPayUrl:  "https://link.fastpaydirect.com/payment-link/6ad52353db15f6a453c8ada6",   // 2 x $597, 30 days apart (checkout.install_2pay)
+  pifUrl:     "https://link.fastpaydirect.com/payment-link/6ac90a6ec0e70c7fefb738e9",   // $200 DEPOSIT on the $997 Install (checkout.install_deposit, reactivated 2026-10-20). js-pif buttons now reserve with the deposit.
+  twoPayUrl:  "",   // DEPOSIT MODEL 2026-10-20: no 2-pay from this page. Empty = js-2pay buttons auto-hide.
 
   /* Readiness Consultation booking link (GHL calendar). "" -> button hidden. */
   consultUrl: "https://legacyperformance.co/book-a-call",   // GHL: nutrition-and-fitness-consult
