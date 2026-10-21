@@ -1441,7 +1441,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
       <div class="f"><label for="fname">First name</label><input type="text" id="fname" autocomplete="given-name" placeholder="Rachel"></div>
       <div class="f"><label for="lname">Last name</label><input type="text" id="lname" autocomplete="family-name" placeholder="Stevens"></div>
       <div class="f full"><label for="email">Email address</label><input type="email" id="email" autocomplete="email" inputmode="email" placeholder="you@email.com"></div>
-      <div class="f full"><label for="phone">Phone (optional)</label><input type="tel" id="phone" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555"></div>
+      <div class="f full"><label for="phone">Phone <span style="font-weight:400;opacity:.6">so I can text you your numbers the moment they are built</span></label><input type="tel" id="phone" autocomplete="tel" inputmode="tel" placeholder="(555) 555-5555"></div>
       <div class="f full"><label for="work">What do you do? (optional)</label>
         <input type="text" id="work" placeholder="It tells me what your day actually looks like."></div>
       <div class="f full"><label for="extra">Anything else I should know? (optional)</label>
@@ -2890,10 +2890,11 @@ function updateSubmit(){
   const btn = $('submit-btn'), note = $('submit-note');
   const acks = qsa('.ack').length > 0 && qsa('.ack.checked').length === qsa('.ack').length;
   const email = /\S+@\S+\.\S+/.test(val('email'));
+  const phone = val('phone').replace(/\D/g, '').length >= 10;
   const core = S.goal && S.sex && num('age') && num('height') && num('cw') &&
                S.stall && S.dur && S.track && S.obstacle && S.why && S.frequency &&
                Object.keys(S.med).length >= 9 && val('fname') && val('sig');
-  const ok = !!(acks && email && core);
+  const ok = !!(acks && email && phone && core);
   btn.disabled = !ok;
   if (ok){
     note.textContent = 'Free. No card. Your build appears on the next screen.';
@@ -2901,6 +2902,8 @@ function updateSubmit(){
     note.textContent = 'Answer the questions above, including the safety check, to continue.';
   } else if (!email){
     note.textContent = 'Add a valid email so I can send your Read.';
+  } else if (!phone){
+    note.textContent = 'Add your phone so I can text you your numbers.';
   } else {
     note.textContent = 'Check every acknowledgment to continue.';
   }
