@@ -128,11 +128,11 @@
 <!-- ============ SET YOUR LINKS TO GO LIVE ============ -->
 <script>
   const LINKS = {
-    book:        "#",   // GHL kickoff-session booking link
-    dashboard:   "#",   // client dashboard / setup link
-    foundations: "#",   // Foundations Protocol (Skool / course link)
-    community:   "#",   // Legacy Performance community (Skool)
-    support:     "#"    // support / contact link (or mailto:)
+    book:        "https://legacyperformance.co/onboarding-call",            // GHL kickoff/onboarding call with Jayme
+    dashboard:   "https://dashboard.legacyperformance.co/client.html",      // client dashboard (sign in with name + DOB + email, or your magic link)
+    foundations: "https://www.skool.com/legacy-performance",                // Foundations Protocol lives in Skool
+    community:   "https://www.skool.com/legacy-performance/about",          // Legacy Performance community (Skool)
+    support:     "mailto:jayme.gtkfitness@gmail.com"                        // support / contact
   };
   function wire(cls, url){ document.querySelectorAll('.'+cls).forEach(function(a){
     if(url && url !== "#"){ a.setAttribute('href', url); if(url.indexOf('mailto:')!==0){ a.setAttribute('target','_blank'); a.setAttribute('rel','noopener'); } }
