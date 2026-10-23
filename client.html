@@ -5416,9 +5416,9 @@ function renderNutritionHero(){
   h+='<div class="k-slabel">Your Nutrition System'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
   if(meals.length){
     meals.forEach(function(m,mi){ h+=nutMealRow(m,mi); });
-    h+=coachManaged()?COACH_LOCK_NOTE:'<div class="krow" onclick="if(typeof showMealBuilder===\'function\')showMealBuilder(); else openInAppPage(\'build/\',\'Nutrition System Generator\')"><div class="ic">🔄</div><div class="rb"><div class="rt2">Nutrition System Generator</div><div class="rs">Update your custom nutrition system</div></div><div class="go">›</div></div>';
+    h+=coachManaged()?COACH_LOCK_NOTE:'<div class="krow" onclick="showMealBuilder()"><div class="ic">🔄</div><div class="rb"><div class="rt2">Nutrition System Generator</div><div class="rs">Update your custom nutrition system</div></div><div class="go">›</div></div>';
   } else if(!coachManaged()){
-    h+='<div class="krow" onclick="openInAppPage(\'build/\',\'Nutrition System Generator\')"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Nutrition System Generator</div><div class="rs">Build your custom nutrition system</div></div><div class="go">›</div></div>';
+    h+='<div class="krow" onclick="showMealBuilder()"><div class="ic">🍽️</div><div class="rb"><div class="rt2">Nutrition System Generator</div><div class="rs">Build your custom nutrition system</div></div><div class="go">›</div></div>';
   } else {
     h+=COACH_LOCK_NOTE;
   }
