@@ -188,7 +188,9 @@ td b{color:#fff}
   .no-print{display:none!important}
   .wrap{max-width:none;padding:0}
   .doc{padding:0;gap:0;display:block}
-  .sheet{border:0;border-radius:0;background:transparent;padding:.45in .55in .4in;break-after:page;min-height:11in}
+  .sheet{border:0;border-radius:0;background:transparent;padding:.45in .55in .4in;overflow:visible;break-before:auto;break-after:auto;min-height:0}
+  .sheet + .sheet{break-before:page}   /* each section starts a new page; NO break-after (avoids WebKit/iPad trailing blank pages) */
+  .bg{display:none!important}          /* body already dark in print; a fixed bg element duplicates/blanks pages on iOS Safari */
   .sheet h2{font-size:22px;margin:4px 0 8px}
   .sheet .intro{margin-bottom:6px}
   .slot{margin-top:8px}
@@ -226,8 +228,7 @@ td b{color:#fff}
   .sheet-foot{margin-top:12px}
   .cover .mark{width:360px}
   .cover img.logo{width:3.1in;min-width:0}
-  .sheet:last-child{break-after:auto}
-  .cover{min-height:11in}
+  .sheet.cover{min-height:11in}   /* branded cover fills its page; it is the first sheet, so no break-before */
   .opts{grid-template-columns:repeat(3,1fr)}
   .principles{grid-template-columns:1fr 1fr}
   .swapgrid{grid-template-columns:repeat(3,1fr)}
