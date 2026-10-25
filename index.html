@@ -691,7 +691,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .cs-btn.on-sched{background:var(--watch-bg);color:var(--watch-tx);border-color:var(--watch)}
 .cs-btn.on-done{background:var(--good-bg);color:var(--good-tx);border-color:var(--good)}
 /* ===== DASHBOARD + CALENDAR (Sep 30) ===== */
-.dash-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:18px 0 20px}
+.dash-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin:18px 0 20px}
 .dash-stat{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px;cursor:pointer;text-align:left;font-family:inherit;color:inherit}
 .dash-stat:hover{border-color:var(--gold)}
 .dash-stat b{display:block;font-family:'Cinzel',serif;font-size:28px;color:var(--gold);line-height:1}
@@ -721,6 +721,15 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 .attn:first-of-type{border-top:0}
 .attn:hover .nm{color:var(--gold)}
 .attn .why{color:var(--muted);font-size:12.5px;white-space:nowrap}
+.attn.ask{align-items:center;cursor:default}
+.attn.ask .nm{flex:1 1 auto;min-width:0}
+.attn.ask .why{flex:0 1 auto;min-width:0;white-space:normal;text-align:right}
+.attn.ask .btn-line{flex:0 0 auto;white-space:nowrap}
+@media(max-width:560px){
+  .attn.ask{flex-wrap:wrap;row-gap:4px}
+  .attn.ask .nm{flex:1 1 100%;font-weight:600}
+  .attn.ask .why{flex:1 1 auto;text-align:left}
+}
 .post-hook{font-size:15px;color:var(--headline);font-weight:700;line-height:1.4}
 .post-body{font-size:13.5px;color:var(--ink);white-space:pre-wrap;margin-top:8px;line-height:1.55;max-height:9.5em;overflow:hidden}
 .post-body.open{max-height:none}
@@ -833,6 +842,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <section class="view" id="view-content"><div class="wrap" id="contentView"></div></section>
 <section class="view" id="view-toolkit"><div class="wrap" id="toolkitView"></div></section>
 <section class="view" id="view-integrations"><div class="wrap" id="integrationsView"></div></section>
+<section class="view" id="view-ask"><div class="wrap" id="askView"></div></section>
 <section class="view" id="view-links"><div class="wrap" id="linksView"></div></section>
 <section class="view" id="view-journey"><div class="wrap" id="journeyView"></div></section>
 <section class="view" id="view-orders"><div class="wrap" id="ordersView"></div></section>
@@ -1368,6 +1378,93 @@ const IMP = {
 const LANE_LABEL={bizdev:'biz-dev',fulfillment:'fulfillment'};
 const DAYS=['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const DOW =['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+/* ===================== THE ASK — the outreach queue =====================
+   The Client Board surfaces people by CHECK-IN signal (quiet / stall / review due).
+   That hides the ones who never check in at all, which is exactly where the money
+   sits: a paused top-tier client, the people who paid a lump sum and were never
+   asked for anything since, and long-tenure $97 members nobody has offered the
+   Install to. This computes that list live from the roster. No new data entry.
+
+   TODO (next Apps Script redeploy): add an `asked` key to saveState() in
+   apps-script.gs and include it in pushTasks()/syncTasks() so the marks follow
+   Jayme across devices. Until then they are on-device only, which is fine
+   because the queue rebuilds itself from the roster every week anyway. */
+
+function askStart(v){                       // "7/1/2026" / "Aug-Sep 2026" / "TBD" / ""
+  if(!v) return null;
+  const m = String(v).match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if(m) return new Date(+m[3], +m[1]-1, +m[2]);
+  const y = String(v).match(/(\d{4})/);
+  return y ? new Date(+y[1], 0, 1) : null;
+}
+function askMonths(v){
+  const d = askStart(v); if(!d) return null;
+  return Math.max(0, Math.round((Date.now()-d.getTime())/2629800000));
+}
+
+/* One row per person, highest-value reason only. */
+function askQueue(){
+  const all = window.__allRoster || [];
+  const out = [];
+  all.forEach(c=>{
+    const tier=(c.program||'').trim(), st=(c.status||'').trim();
+    const mo = askMonths(c.start);
+    let rank=null, why='';
+
+    if(st==='Paused' && tier==='Built for More'){
+      rank=1; why = c.amount ? `paused top tier · was $${c.amount.toLocaleString()}/${(c.frequency||'').toLowerCase()||'term'}`
+                             : 'paused top tier';
+    } else if(tier!=='Built for More' && c.down>=497){
+      rank=2; why = `paid $${c.down.toLocaleString()} up front · never asked since`;
+    } else if(tier!=='Built for More' && /annual/i.test(c.frequency||'') && c.amount>=497){
+      rank=2; why = `paid $${c.amount.toLocaleString()} for the year · never asked since`;
+    } else if(tier==='Built to Last' && mo!=null && mo>=2){
+      rank=3; why = `on $97 for ${mo} month${mo===1?'':'s'} · never offered the Install`;
+    } else if(st==='Prospect'){
+      rank=4; why = 'never joined';
+    }
+    if(rank) out.push({name:c.name, email:c.email, rank, why});
+  });
+  const done = lsLoad('lp_asked', {})[wkey()] || {};
+  return out.filter(r=>!done[r.email||r.name])
+            .sort((a,b)=> a.rank-b.rank || a.name.localeCompare(b.name));
+}
+
+function askDone(key){
+  const all = lsLoad('lp_asked', {}), wk = wkey();
+  all[wk] = all[wk] || {}; all[wk][key] = 1;
+  // keep only the last 8 weeks so this never grows unbounded
+  Object.keys(all).sort().slice(0, -8).forEach(k=>delete all[k]);
+  lsSave('lp_asked', all);
+  renderAsk(); if(document.getElementById('view-dash').classList.contains('active')) renderDash();
+}
+
+function askRow(r){
+  const k = esc(r.email || r.name);
+  return `<div class="attn ask">
+    <span class="nm"${r.email?` style="cursor:pointer" onclick="openClient('${k}')"`:''}>${esc(r.name)}</span>
+    <span class="why">${esc(r.why)}</span>
+    <button class="btn-line" style="padding:3px 9px;font-size:.72rem;margin-left:8px" onclick="askDone('${k}')">Asked</button>
+  </div>`;
+}
+
+function renderAsk(){
+  const el=document.getElementById('askView'); if(!el) return;
+  const q=askQueue();
+  let h=`<div class="view-head"><h1>The Ask</h1><p class="view-sub">People who should be pitched and generate no check-in signal. Rebuilt from the roster every week.</p></div>`;
+  if(!q.length){
+    h+=`<div class="dash-card"><div class="dash-empty">Nobody outstanding this week. It refills on Monday.</div></div>`;
+  } else {
+    const groups=[[1,'Paused at the top tier'],[2,'Already paid you a lump sum'],[3,'Long-tenure $97 members'],[4,'Never joined']];
+    groups.forEach(([rank,label])=>{
+      const rows=q.filter(r=>r.rank===rank); if(!rows.length) return;
+      h+=`<div class="dash-card"><h3>${label} <span class="dash-empty" style="font-weight:400">${rows.length}</span></h3>${rows.map(askRow).join('')}</div>`;
+    });
+  }
+  el.innerHTML=h;
+}
+/* =================== END THE ASK =================== */
+
 function lsLoad(k,def){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?def:v; }catch(e){ return def; } }
 function lsSave(k,v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
 let SCORE = lsLoad('lp_score', {});         // { weekKey: {dms,posts,calls} } — weekly, auto-resets
@@ -2222,7 +2319,7 @@ function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCa
 const NAV = [
   {group:"Today", items:[["dash","Dashboard"],["tasks","This Week"],["calendar","Calendar"],["ea","EA Inbox"]]},
   {group:"Business", items:[["snapshot","Business Snapshot"]]},
-  {group:"Clients", items:[["command","Client Board"],["journey","Member Journey"],["calls","Fulfillment Calls"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["links","Client Links"]]},
+  {group:"Clients", items:[["command","Client Board"],["ask","The Ask"],["journey","Member Journey"],["calls","Fulfillment Calls"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["links","Client Links"]]},
   {group:"System", items:[["integrations","Integrations"]]}
   // Toolkit removed Sep 30 — the skills launcher lives in the Ascend OS now (view code kept below).
   // Hidden — biz-dev, owned by the Ascend OS (uncomment to restore):
@@ -2242,6 +2339,7 @@ function showTab(id){
   renderSidebar(id);
   if(id==="tasks"){ syncTasks(); renderTasks(); }
   else if(id==="dash"){ syncTasks(); renderDash(); }
+  else if(id==="ask") renderAsk();
   else if(id==="calendar") renderCalendar();
   else if(id==="ea") renderEA();
   else if(id==="launch") renderLaunch();
@@ -3588,6 +3686,8 @@ function renderDash(){
     active.filter(c=>c.signal!=='quiet'&&c.dSince!=null&&c.dSince>=CONFIG.reviewDueDays).map(c=>[c,'review due']));
   const neverIn=active.filter(c=>c.dSince==null).length;   // shown as one line, not 16 rows of noise
   const callsToday=todayEv.filter(e=>!e.allDay).length;
+  const askList=(typeof askQueue==='function')?askQueue():[];
+  const askHot=askList.filter(r=>r.rank<=2), askN=askHot.length;   // tile + card = the actionable ones only
 
   let h=`<div class="view-head"><h1>Dashboard</h1><p class="view-sub">${now.toLocaleDateString(undefined,{weekday:'long',month:'long',day:'numeric'})} · here’s your day</p></div>`;
   h+=`<div class="dash-stats">
@@ -3595,6 +3695,7 @@ function renderDash(){
     <button class="dash-stat" onclick="showTab('calendar')"><b>${DASH_CAL.state==='ok'?callsToday:'–'}</b><span>On the calendar</span></button>
     <button class="dash-stat" onclick="showTab('ea')"><b>${DASH_EA.n==null?'–':DASH_EA.n}</b><span>EA Inbox open</span></button>
     <button class="dash-stat" onclick="showTab('command')"><b>${attn.length}</b><span>Clients need you</span></button>
+    <button class="dash-stat" onclick="showTab('ask')"><b>${askN}</b><span>To ask this week</span></button>
   </div>`;
 
   let L='';
@@ -3634,6 +3735,12 @@ function renderDash(){
       +(attn.length>8?`<div class="dash-empty" style="margin-top:6px">${attn.length-8} more on the Client Board.</div>`:'')
       : `<div class="dash-empty">Everyone who checks in is on track.</div>`)
     +(neverIn?`<div class="attn" onclick="showTab('command')"><span class="nm">${neverIn} active client${neverIn>1?'s have':' has'}n’t checked in yet</span><span class="why">Client Board →</span></div>`:'')+`</div>`;
+
+  // The Ask — the people no check-in signal will ever surface
+  R+=`<div class="dash-card"><h3>The Ask <a onclick="showTab('ask')">All ${askList.length} →</a></h3>`
+    +(askN ? askHot.slice(0,5).map(askRow).join('')
+             +(askN>5?`<div class="dash-empty" style="margin-top:6px">${askN-5} more.</div>`:'')
+           : `<div class="dash-empty">Nobody hot this week. ${askList.length} in the full list.</div>`)+`</div>`;
 
   h+=`<div class="dash-grid"><div>${L}</div><div>${R}</div></div>`;
   el.innerHTML=h;
