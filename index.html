@@ -1005,14 +1005,16 @@ function shapeRoster(rows){
         iGoal=col(h,"goal"), iStatus=col(h,"status"), iStart=col(h,"start"),
         iAmt=col(h,"amount"), iFreq=col(h,"frequency"), iMrr=col(h,"mrr"),
         iDown=col(h,"down payment","downpayment"), iDownMo=col(h,"down months","downmonths"), iDownConc=col(h,"down concurrent","downconcurrent"),
-        iFound=col(h,"founding"), iPay=col(h,"payment");
+        iFound=col(h,"founding"), iPay=col(h,"payment"),
+        iComplete=col(h,"complete");   // "Yes" = already has the Install / Complete Nutrition System
   const all=rows.slice(1).map(r=>({
     name:(r[iName]||"").trim(), email:(r[iEmail]||"").trim().toLowerCase(),
     program:(r[iProg]||"").trim(), goal:(r[iGoal]||"Lose").trim(),
     status:(r[iStatus]||"Active").trim(), start:(r[iStart]||"").trim(),
     amount:num(r[iAmt]), frequency:(r[iFreq]||"").trim(), mrr:num(r[iMrr]),
     down:num(r[iDown]), downMo:num(r[iDownMo]), downConc:/^y/i.test((r[iDownConc]||"").trim()),
-    founding:(r[iFound]||"").trim(), payment:(r[iPay]||"").trim()
+    founding:(r[iFound]||"").trim(), payment:(r[iPay]||"").trim(),
+    complete:/^y/i.test((r[iComplete]||"").trim())   // already bought the Install — never put them in The Ask
   })).filter(x=>x.name);                 // keep everyone with a name (incl no-email community)
   window.__allRoster = all;              // full list for tier/member counts (dashboards still use the email-only __clients)
   return all.filter(x=>x.email);
@@ -1403,33 +1405,74 @@ function askMonths(v){
 }
 
 /* One row per person, highest-value reason only. */
+/* ================= THE ASK — segmented by OFFER, not by neglect =================
+   Rebuilt 2026-10-26. The old version ranked people by how ignored they looked, which meant
+   inferring neglect from a "last asked" field that does not exist — so it surfaced active,
+   well-served clients as people you had abandoned. A queue that is wrong about your own clients
+   is a queue you stop opening.
+
+   This version asks one question per person: WHAT IS THE NEXT THING THEY SHOULD BE OFFERED.
+   Everybody on the roster gets an answer. Nobody is excluded for looking fine.
+
+   Per Jayme 2026-10-26: assume nobody has been asked, and put as many people on it as possible. */
+
+const ASK_SEGMENTS = [
+  {k:'renewal', label:'Renewal due',            offer:'Built 4 More — $6k/yr or $4k/6mo'},
+  {k:'done',    label:'Term finished',          offer:'B4M, or the wellness membership'},
+  {k:'install', label:'No Install yet',         offer:'$497 nutrition system + $500 upgrade'},
+  {k:'b4m',     label:'Installed, not in B4M',  offer:'B4M — the Install was month one'},
+  {k:'perf',    label:'In B4M',                 offer:'Performance layer — genetics + bloodwork'},
+  {k:'react',   label:'Paused or cancelled',    offer:'Reactivation'},
+  {k:'entry',   label:'In the room, never bought', offer:'The Install, or the low-ticket'}
+];
+/* CHANNEL — locked 2026-10-26, and it follows the one-job-per-platform rule:
+   Skool is the group, GHL/LeadConnector is one-to-one.
+     paying client          -> GHL text. They are owed a personal message, not a post.
+     free, already in Skool -> Skool. Do not text someone who has never paid you.
+     old lead, not in Skool -> invite to Skool FIRST, then they become a Skool conversation.
+   This also lets the list be worked in batches: all your texts, then all your Skool messages. */
+const ASK_CHANNELS = {
+  ghl:    {label:'Text (GHL)',     hint:'LeadConnector — personal, one to one'},
+  skool:  {label:'Skool',          hint:'DM or comment inside the group'},
+  invite: {label:'Invite to Skool',hint:'Not in the room yet — the invite IS the outreach'}
+};
+function askChannel(c){
+  const st=(c.status||'').trim().toLowerCase();
+  if(st==='prospect')  return 'invite';
+  if(st==='community') return 'skool';
+  return 'ghl';                      // anyone who has paid, including paused and cancelled
+}
+function askSegment(c){
+  const st=(c.status||'').trim().toLowerCase(), tier=(c.program||'').trim(), has=!!c.complete;
+  if(st==='staff'||st==='partner') return null;          // not prospects
+  if(/renewal/.test(st))                 return 'renewal';
+  if(/cancel/.test(st)||st==='paused')   return 'react';
+  if(st==='prospect'||st==='community')  return 'entry';
+  if(tier==='Accelerator')               return 'done';  // 12 weeks complete, nothing queued next
+  if(tier==='Built for More')            return 'perf';
+  if(has)                                return 'b4m';
+  return 'install';
+}
 function askQueue(){
   const all = window.__allRoster || [];
+  const done = lsLoad('lp_asked', {})[wkey()] || {};
+  const order = {}; ASK_SEGMENTS.forEach((s,i)=>order[s.k]=i);
   const out = [];
   all.forEach(c=>{
-    const tier=(c.program||'').trim(), st=(c.status||'').trim();
+    const seg = askSegment(c); if(!seg) return;
+    const meta = ASK_SEGMENTS[order[seg]];
+    /* The offer is on the group header, so the row carries context instead of repeating it:
+       their tier, and how long they have been around. */
     const mo = askMonths(c.start);
-    let rank=null, why='';
-
-    if(st==='Paused' && tier==='Built for More'){
-      rank=1; why = c.amount ? `paused top tier · was $${c.amount.toLocaleString()}/${(c.frequency||'').toLowerCase()||'term'}`
-                             : 'paused top tier';
-    } else if(tier!=='Built for More' && c.down>=497){
-      rank=2; why = `paid $${c.down.toLocaleString()} up front · never asked since`;
-    } else if(tier!=='Built for More' && /annual/i.test(c.frequency||'') && c.amount>=497){
-      rank=2; why = `paid $${c.amount.toLocaleString()} for the year · never asked since`;
-    } else if(tier==='Built to Last' && mo!=null && mo>=2){
-      rank=3; why = `on $97 for ${mo} month${mo===1?'':'s'} · never offered the Install`;
-    } else if(st==='Prospect'){
-      rank=4; why = 'never joined';
-    }
-    if(rank) out.push({name:c.name, email:c.email, rank, why});
+    const bits = [c.program||'no tier'];
+    if(mo!=null && mo>0) bits.push(mo+' mo');
+    if(c.status && !/^active$/i.test(c.status)) bits.push(c.status.toLowerCase());
+    out.push({ name:c.name, email:c.email, seg:seg, rank:order[seg],
+               ch:askChannel(c), why: bits.join(' · ') });
   });
-  const done = lsLoad('lp_asked', {})[wkey()] || {};
   return out.filter(r=>!done[r.email||r.name])
             .sort((a,b)=> a.rank-b.rank || a.name.localeCompare(b.name));
 }
-
 function askDone(key){
   const all = lsLoad('lp_asked', {}), wk = wkey();
   all[wk] = all[wk] || {}; all[wk][key] = 1;
@@ -1443,7 +1486,7 @@ function askRow(r){
   const k = esc(r.email || r.name);
   return `<div class="attn ask">
     <span class="nm"${r.email?` style="cursor:pointer" onclick="openClient('${k}')"`:''}>${esc(r.name)}</span>
-    <span class="why">${esc(r.why)}</span>
+    <span class="why">${esc(r.why)}${r.ch?` · <b style="color:var(--gold)">${esc((ASK_CHANNELS[r.ch]||{}).label||r.ch)}</b>`:''}</span>
     <button class="btn-line" style="padding:3px 9px;font-size:.72rem;margin-left:8px" onclick="askDone('${k}')">Asked</button>
   </div>`;
 }
@@ -1451,14 +1494,19 @@ function askRow(r){
 function renderAsk(){
   const el=document.getElementById('askView'); if(!el) return;
   const q=askQueue();
-  let h=`<div class="view-head"><h1>The Ask</h1><p class="view-sub">People who should be pitched and generate no check-in signal. Rebuilt from the roster every week.</p></div>`;
+  let h=`<div class="view-head"><h1>The Ask</h1><p class="view-sub">Everyone on the roster, grouped by the next thing they should be offered. Assume nobody has been asked. Clears as you work it; refills Monday.</p></div>`;
   if(!q.length){
-    h+=`<div class="dash-card"><div class="dash-empty">Nobody outstanding this week. It refills on Monday.</div></div>`;
+    h+=`<div class="dash-card"><div class="dash-empty">Everyone has been asked this week. It refills Monday.</div></div>`;
   } else {
-    const groups=[[1,'Paused at the top tier'],[2,'Already paid you a lump sum'],[3,'Long-tenure $97 members'],[4,'Never joined']];
-    groups.forEach(([rank,label])=>{
-      const rows=q.filter(r=>r.rank===rank); if(!rows.length) return;
-      h+=`<div class="dash-card"><h3>${label} <span class="dash-empty" style="font-weight:400">${rows.length}</span></h3>${rows.map(askRow).join('')}</div>`;
+    h+=`<div class="dash-card"><div class="dash-empty"><b style="color:var(--gold)">${q.length}</b> people outstanding across ${ASK_SEGMENTS.filter(s=>q.some(r=>r.seg===s.k)).length} offers.</div></div>`;
+    ASK_SEGMENTS.forEach(seg=>{
+      const rows=q.filter(r=>r.seg===seg.k); if(!rows.length) return;
+      const chCount={}; rows.forEach(r=>chCount[r.ch]=(chCount[r.ch]||0)+1);
+      const chTxt=Object.keys(chCount).map(k=>`${chCount[k]} \u00d7 ${(ASK_CHANNELS[k]||{}).label||k}`).join(' · ');
+      h+=`<div class="dash-card"><h3>${esc(seg.label)} <span class="dash-empty" style="font-weight:400">${rows.length}</span></h3>`
+        +`<div class="dash-empty" style="margin:-2px 0 2px">Offer: <b style="color:var(--ink)">${esc(seg.offer)}</b></div>`
+        +`<div class="dash-empty" style="margin:0 0 10px">How: ${esc(chTxt)}</div>`
+        +rows.map(askRow).join('')+`</div>`;
     });
   }
   el.innerHTML=h;
@@ -2317,10 +2365,10 @@ function delAddon(id){ ADDONS=ADDONS.filter(a=>a.id!==id); pushTasks(); renderCa
    the weekly report to Mike), so the biz-dev groups below are hidden from the nav to kill the
    redundancy. Their views + render code are untouched — uncomment a group to bring it back. */
 const NAV = [
-  {group:"Today", items:[["dash","Dashboard"],["tasks","This Week"],["calendar","Calendar"],["ea","EA Inbox"]]},
-  {group:"Business", items:[["snapshot","Business Snapshot"]]},
-  {group:"Clients", items:[["command","Client Board"],["ask","The Ask"],["journey","Member Journey"],["calls","Fulfillment Calls"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["links","Client Links"]]},
-  {group:"System", items:[["integrations","Integrations"]]}
+  /* Trimmed 2026-10-26. Four items you open daily; everything else moved to "More".
+     Nothing was deleted — a long nav is the reason the landing screen stopped being used. */
+  {group:"Today", items:[["dash","Dashboard"],["ask","The Ask"],["tasks","This Week"],["ea","EA Inbox"]]},
+  {group:"More", items:[["command","Client Board"],["calendar","Calendar"],["snapshot","Business Snapshot"],["journey","Member Journey"],["calls","Fulfillment Calls"],["requests","Requests & Travel"],["orders","Wellness Orders"],["consults","Consult Requests"],["links","Client Links"],["integrations","Integrations"]]}
   // Toolkit removed Sep 30 — the skills launcher lives in the Ascend OS now (view code kept below).
   // Hidden — biz-dev, owned by the Ascend OS (uncomment to restore):
   // {group:"Personal", items:[["goals","Big Goals"]]},
@@ -2650,9 +2698,17 @@ function eaUnlock(){
   if(!v){ out.textContent='Enter the passphrase.'; return; }
   out.textContent='Checking…';
   eaCheckKeyRemote(v, function(d){
-    if(d && d.ok){ try{ localStorage.setItem(EA_KEY_STORE, v); }catch(e){} renderEA(); }
-    else if(d){ out.textContent='That’s not it.'; }
-    else{ out.textContent='Couldn’t reach the doorway.'; }
+    if(d && d.ok){
+      try{ localStorage.setItem(EA_KEY_STORE, v); }catch(e){}
+      out.innerHTML='<b style="color:var(--gold)">Unlocked.</b>';
+      setTimeout(renderEA, 700);
+    } else if(d){
+      out.textContent='That’s not it. Checking the saved length…';
+      eaCheckKeyRemote('', function(probe){
+        var want=(probe && typeof probe.trimmedLen==='number')?probe.trimmedLen:null;
+        out.innerHTML='That’s not it.'+(want!==null?' Saved passphrase is <b>'+want+'</b> characters; you typed <b>'+v.length+'</b>.':'');
+      });
+    } else { out.textContent='Couldn’t reach the doorway.'; }
   });
 }
 function eaForgetKey(){ try{ localStorage.removeItem(EA_KEY_STORE); }catch(e){} renderEA(); }
@@ -3611,6 +3667,22 @@ function loadContentPlan(){
     .then(d=>{ CONTENT_PLAN=(d&&Array.isArray(d.posts))?d.posts:[]; if(viewOn('dash')) renderDash(); })
     .catch(()=>{ CONTENT_PLAN=[]; if(viewOn('dash')) renderDash(); });
 }
+/* Q4 plan — the build list. Generated from Q4-PLAN.md; see that file for the reasoning.
+   Same shape as loadContentPlan: fetch once, re-render when it lands, never block the page. */
+let Q4_PLAN=null;
+function loadQ4Plan(){
+  if(Q4_PLAN!==null) return;
+  Q4_PLAN='loading';
+  fetch('q4-plan.json?v='+Date.now()).then(r=>r.ok?r.json():null)
+    .then(d=>{ Q4_PLAN=(d&&Array.isArray(d.phases))?d.phases:[]; if(viewOn('dash')) renderDash(); })
+    .catch(()=>{ Q4_PLAN=[]; if(viewOn('dash')) renderDash(); });
+}
+/* The current phase = the first with unfinished work that is not blocked.
+   A blocked phase is shown but never becomes "current" — it would park the whole board. */
+function q4Current(){
+  const ph=Array.isArray(Q4_PLAN)?Q4_PLAN:[];
+  return ph.find(p=>!p.blocked && p.items.some(i=>!i.done)) || null;
+}
 function loadTokens(){
   if(TOKENS!==null) return;
   TOKENS={};
@@ -3658,10 +3730,29 @@ function calUnlock(){
   const v=(el&&el.value||'').trim(); if(!v){ if(out) out.textContent='Enter the passphrase.'; return; }
   if(out) out.textContent='Checking…';
   eaCheckKeyRemote(v, function(d){
-    if(d&&d.ok){ try{ localStorage.setItem(EA_KEY_STORE, v); }catch(e){}
+    /* ALWAYS say what happened. The old version was silent on success and just re-rendered —
+       so a correct passphrase on a day with no events looked exactly like a dead button. */
+    if(d&&d.ok){
+      try{ localStorage.setItem(EA_KEY_STORE, v); }catch(e){}
+      if(out){ out.innerHTML='<b style="color:var(--gold)">Unlocked.</b> Loading your calendar…'; }
       DASH_CAL.day=''; CAL_DATA.key='';
-      if(viewOn('dash')) renderDash(); if(viewOn('calendar')) renderCalendar(); }
-    else if(out) out.textContent = d ? 'That’s not it.' : 'Couldn’t reach the doorway.';
+      setTimeout(function(){ if(viewOn('dash')) renderDash(); if(viewOn('calendar')) renderCalendar(); }, 900);
+    } else if(d){
+      /* d.len on a FAILED check is the length of what WAS TYPED, not the stored key — the probe
+         (eacheck with no key) is the only thing that reports the stored length. So ask it, then
+         show both numbers. Mixing these up is exactly the bug this message exists to prevent. */
+      out.innerHTML = 'That’s not it. Checking the saved length…';
+      eaCheckKeyRemote('', function(probe){
+        var want = (probe && typeof probe.trimmedLen==='number') ? probe.trimmedLen : null;
+        var same = (want!==null && want===v.length);
+        out.innerHTML = 'That’s not it.'
+          + (want!==null ? ' Saved passphrase is <b>'+want+'</b> characters; you typed <b>'+v.length+'</b>.' : '')
+          + (same ? ' Same length, so it is a typo rather than the wrong phrase.' : '')
+          + '<br><span style="opacity:.8">Read it in Apps Script → ⚙️ Project Settings → Script Properties (bottom of the page).</span>';
+      });
+    } else {
+      out.textContent = 'Couldn’t reach the doorway. Check your connection and try again.';
+    }
   });
 }
 function todaysTasks(){
@@ -3673,7 +3764,7 @@ function todaysTasks(){
 }
 function renderDash(){
   const el=document.getElementById('dashView'); if(!el) return;
-  loadDashCal(); loadDashEA(); loadContentPlan(); loadTokens();
+  loadDashCal(); loadDashEA(); loadContentPlan(); loadTokens(); loadQ4Plan();
   const now=new Date(), ds=dstr(now);
   const todayEv=DASH_CAL.events.filter(e=>{ const s=new Date(e.start); return dstr(s)===ds || (e.allDay && s<=now && new Date(e.end)>now); });
   const upcoming=DASH_CAL.events.filter(e=>!e.allDay && new Date(e.end).getTime()>Date.now());
@@ -3707,40 +3798,63 @@ function renderDash(){
       <div class="btn-row">${next.join?`<a class="btn-gold" href="${esc(next.join)}" target="_blank" rel="noopener">Join Zoom</a>`:''}
       ${c?`<button class="btn-line" onclick="openClient('${esc(c.email)}')">Open ${esc(c.name.trim().split(/\s+/)[0])}'s info</button>`:''}</div></div>`;
   }
-  // Today's schedule
-  L+=`<div class="dash-card"><h3>Today’s schedule <a onclick="showTab('calendar')">Full calendar →</a></h3>`
-    +(DASH_CAL.state!=='ok' ? calStateMsg(DASH_CAL.state)
-      : (todayEv.length ? todayEv.map(e=>evRow(e)).join('') : `<div class="dash-empty">Nothing on the calendar today.</div>`))+`</div>`;
-  // Today's post
+  /* ================= TODAY — the three things that move the business =================
+     Order is deliberate and comes from the Q4 plan: The Ask is the constraint, so it is first.
+     Everything that is not one of these three moved to "More" in the nav. Nothing was deleted. */
+
+  // 1. The Ask — BY NAME. A count tells you nothing; a name is a thing you can do.
+  L+=`<div class="dash-card"><h3>The Ask <a onclick="showTab('ask')">All ${askList.length} →</a></h3>`
+    +(askN ? `<div class="dash-empty" style="margin-bottom:8px">Today\u2019s people. Ten a day clears the list.</div>`
+             +askHot.slice(0,10).map(askRow).join('')
+             +(askN>10?`<div class="dash-empty" style="margin-top:6px">${askN-10} more in the full list.</div>`:'')
+           : `<div class="dash-empty">Nobody outstanding. It refills Monday.</div>`)+`</div>`;
+
+  // 2. Today's post
   let post='';
   if(Array.isArray(CONTENT_PLAN)){
     const p=CONTENT_PLAN.find(x=>x.date===ds), n=p?null:CONTENT_PLAN.filter(x=>x.date>ds).sort((a,b)=>a.date.localeCompare(b.date))[0];
     if(p) post=`<div class="post-hook">${esc(p.hook||p.title||'')}</div>${p.format?`<div class="ev-cal" style="margin-top:4px">${esc(p.format)}</div>`:''}${p.caption?`<div class="post-body" id="postBody">${esc(p.caption)}</div><div class="btn-row" style="margin-top:10px"><button class="btn-line" onclick="document.getElementById('postBody').classList.toggle('open')">Show all</button><button class="btn-line" onclick="navigator.clipboard&&navigator.clipboard.writeText(${esc(JSON.stringify(p.caption))});this.textContent='Copied'">Copy caption</button></div>`:''}`;
     else if(n) post=`<div class="dash-empty">No post planned today. Next up ${fmtDay(new Date(n.date+'T00:00:00'))}: <b style="color:var(--ink)">${esc(n.hook||n.title||'')}</b></div>`;
-    else post=`<div class="dash-empty">No content plan loaded. Hand Claude your Ascend content calendar and today’s post shows here.</div>`;
+    else post=`<div class="dash-empty">No post planned today.</div>`;
   }
-  L+=`<div class="dash-card"><h3>Today’s post</h3>${post||'<div class="dash-empty">Loading…</div>'}</div>`;
+  L+=`<div class="dash-card"><h3>Today\u2019s post</h3>${post||'<div class="dash-empty">Loading…</div>'}</div>`;
 
-  let R='';
-  // Today's tasks
-  const shown=tasks.slice(0,10);
-  R+=`<div class="dash-card"><h3>Today’s tasks <a onclick="showTab('tasks')">This Week →</a></h3>`
-    +(shown.length ? shown.map(t=>taskRow(t,ds)).join('') : `<div class="dash-empty">Nothing due today.</div>`)
-    +(tasks.length>shown.length?`<div class="dash-empty" style="margin-top:6px">${tasks.length-shown.length} more in This Week.</div>`:'')+`</div>`;
-  // Clients
-  const mrr=window.__mrr;
-  R+=`<div class="dash-card"><h3>Clients <a onclick="showTab('command')">Client Board →</a></h3>
-    <div class="btn-row" style="margin-bottom:10px"><span class="dash-empty"><b style="color:var(--gold)">${active.length}</b> active${mrr?` · <b style="color:var(--gold)">$${Math.round(mrr).toLocaleString()}</b>/mo`:''}</span></div>`
+  // 3. Owed a reply — clients the check-in signal flagged, plus today's schedule underneath
+  L+=`<div class="dash-card"><h3>Owed a reply <a onclick="showTab('command')">Client Board →</a></h3>`
     +(attn.length ? attn.slice(0,8).map(([c,why])=>`<div class="attn" onclick="openClient('${esc(c.email)}')"><span class="nm">${esc(c.name)}</span><span class="why">${esc(why)}</span></div>`).join('')
       +(attn.length>8?`<div class="dash-empty" style="margin-top:6px">${attn.length-8} more on the Client Board.</div>`:'')
-      : `<div class="dash-empty">Everyone who checks in is on track.</div>`)
-    +(neverIn?`<div class="attn" onclick="showTab('command')"><span class="nm">${neverIn} active client${neverIn>1?'s have':' has'}n’t checked in yet</span><span class="why">Client Board →</span></div>`:'')+`</div>`;
+      : `<div class="dash-empty">Nobody waiting on you.</div>`)
+    +(neverIn?`<div class="attn" onclick="showTab('command')"><span class="nm">${neverIn} active client${neverIn>1?'s have':' has'}n\u2019t checked in yet</span><span class="why">Client Board →</span></div>`:'')+`</div>`;
 
-  // The Ask — the people no check-in signal will ever surface
-  R+=`<div class="dash-card"><h3>The Ask <a onclick="showTab('ask')">All ${askList.length} →</a></h3>`
-    +(askN ? askHot.slice(0,5).map(askRow).join('')
-             +(askN>5?`<div class="dash-empty" style="margin-top:6px">${askN-5} more.</div>`:'')
-           : `<div class="dash-empty">Nobody hot this week. ${askList.length} in the full list.</div>`)+`</div>`;
+  /* ================= THE BUILD — what is actually being built, and what is next =================
+     Source of truth is Q4-PLAN.md; q4-plan.json is generated from it. Three items, never more:
+     a longer list is a backlog, and a backlog on the landing screen is just guilt. */
+  let R='';
+  const cur=q4Current();
+  if(Q4_PLAN==='loading'||Q4_PLAN===null){
+    R+=`<div class="dash-card"><h3>The Build</h3><div class="dash-empty">Loading…</div></div>`;
+  } else if(!cur){
+    R+=`<div class="dash-card"><h3>The Build</h3><div class="dash-empty">No plan loaded, or every phase is done. Q4-PLAN.md drives this.</div></div>`;
+  } else {
+    const nextUp=cur.items.filter(i=>!i.done).slice(0,3);
+    const doneN=cur.items.filter(i=>i.done).length;
+    R+=`<div class="dash-card"><h3>The Build</h3>`
+      +`<div class="post-hook">${esc(cur.phase)} — ${esc(cur.title)}</div>`
+      +`<div class="dash-empty" style="margin:4px 0 10px">${doneN} of ${cur.items.length} done</div>`
+      +nextUp.map(i=>`<div class="attn"><span class="nm">${esc(i.t)}</span></div>`).join('')
+      +(cur.items.filter(i=>!i.done).length>3?`<div class="dash-empty" style="margin-top:6px">${cur.items.filter(i=>!i.done).length-3} more in this phase.</div>`:'')
+      +`</div>`;
+    const blocked=(Q4_PLAN||[]).filter(x=>x.blocked && x.items.some(i=>!i.done));
+    if(blocked.length){
+      R+=`<div class="dash-card"><h3>Blocked</h3>`
+        +blocked.map(x=>`<div class="attn"><span class="nm">${esc(x.phase)} — ${esc(x.title)}</span><span class="why">blocked</span></div>`).join('')
+        +`</div>`;
+    }
+  }
+  // Today's schedule — context, not an action, so it sits under the build
+  R+=`<div class="dash-card"><h3>Today\u2019s schedule <a onclick="showTab('calendar')">Full calendar →</a></h3>`
+    +(DASH_CAL.state!=='ok' ? calStateMsg(DASH_CAL.state)
+      : (todayEv.length ? todayEv.map(e=>evRow(e)).join('') : `<div class="dash-empty">Nothing on the calendar today.</div>`))+`</div>`;
 
   h+=`<div class="dash-grid"><div>${L}</div><div>${R}</div></div>`;
   el.innerHTML=h;

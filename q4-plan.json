@@ -1,0 +1,143 @@
+{
+ "generated": "2026-10-26",
+ "source": "Q4-PLAN.md",
+ "phases": [
+  {
+   "phase": "PHASE 0",
+   "title": "Unblock (this week, hours not days)",
+   "blocked": false,
+   "items": [
+    {
+     "t": "Fix `~/.legacy-ea-key`",
+     "done": false
+    },
+    {
+     "t": "Deploy The Ask fix",
+     "done": false
+    },
+    {
+     "t": "Define Jen's commission scope — in writing",
+     "done": false
+    }
+   ]
+  },
+  {
+   "phase": "PHASE 1",
+   "title": "Fix the room (before anything is pointed at it)",
+   "blocked": false,
+   "items": [
+    {
+     "t": "Audit run",
+     "done": false
+    },
+    {
+     "t": "The Oct 7 \"one thing\"",
+     "done": false
+    },
+    {
+     "t": "Pinned welcome",
+     "done": false
+    },
+    {
+     "t": "First-48 sequence live",
+     "done": false
+    },
+    {
+     "t": "Group rename",
+     "done": false
+    }
+   ]
+  },
+  {
+   "phase": "PHASE 2",
+   "title": "Trial consultations (starts now, runs forever)",
+   "blocked": false,
+   "items": [
+    {
+     "t": "Agree the handoff with Jen",
+     "done": false
+    },
+    {
+     "t": "Booking link",
+     "done": false
+    },
+    {
+     "t": "Consultation → install",
+     "done": false
+    },
+    {
+     "t": "Track four numbers:",
+     "done": false
+    }
+   ]
+  },
+  {
+   "phase": "PHASE 3",
+   "title": "The 6-week Install (the product everything sells)",
+   "blocked": false,
+   "items": [
+    {
+     "t": "Define the 6 weeks",
+     "done": false
+    },
+    {
+     "t": "Build it in Skool",
+     "done": false
+    },
+    {
+     "t": "Confirm the split:",
+     "done": false
+    },
+    {
+     "t": "Wire install → B4M month 1",
+     "done": false
+    }
+   ]
+  },
+  {
+   "phase": "PHASE 4",
+   "title": "FitBody quarterly cohort",
+   "blocked": false,
+   "items": [
+    {
+     "t": "Date it",
+     "done": false
+    },
+    {
+     "t": "Jen's promo assets",
+     "done": false
+    },
+    {
+     "t": "Run it",
+     "done": false
+    }
+   ]
+  },
+  {
+   "phase": "PHASE 5",
+   "title": "Workshops to strangers",
+   "blocked": true,
+   "items": [
+    {
+     "t": "`funnel-doctor` on both workshops",
+     "done": false
+    }
+   ]
+  },
+  {
+   "phase": "PHASE 6",
+   "title": "$7 low-ticket + ads",
+   "blocked": false,
+   "items": [
+    {
+     "t": "Macro Freedom ebook → $7",
+     "done": false
+    },
+    {
+     "t": "Ad → purchase → Skool",
+     "done": false
+    }
+   ]
+  }
+ ]
+}
