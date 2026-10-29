@@ -28,3 +28,6 @@ recipe-vault.js
 # client PII — names, emails, amounts, MRR, notes. This repo is PUBLIC.
 # The roster is served from the key-gated doorway (?action=roster&key=...), never as a file.
 clients.csv
+
+# internal ops script — writes to the doorway, not part of the site
+task.py
