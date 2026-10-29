@@ -42,7 +42,9 @@ const CONFIG = {
 
   // Consolidated Clients roster — a local CSV deployed with the dashboard (Claude maintains it,
   // merging the weekly Skool export). Columns: Name|Email|Status|Tier|Goal|Start|Amount|Frequency|MRR|Payment|Founding|Notes
-  rosterCsvUrl: "clients.csv",
+  rosterCsvUrl: "",   /* DEAD ON PURPOSE. The roster comes from the key-gated doorway
+                         (?action=roster&key=...). This file used to be served publicly
+                         from this repo; never point this at a deployed file again. */
 
   // Business tiles are COMPUTED from the Clients sheet (MRR, active members, lead projection,
   // founding counts) — no separate tab needed. Leave "" to keep the computed tiles.
@@ -2576,9 +2578,13 @@ function fetchRoster(cb){
   if(__rosterCache){ cb(__rosterCache); return; }
   if(!CONFIG.writeUrl){ cb(null); return; }
   var name='__lpR'+Date.now(), s=document.createElement('script'), done=false;
-  window[name]=function(d){ done=true; try{delete window[name];}catch(e){} s.remove(); __rosterCache=(d&&d.rows)||[]; cb(__rosterCache); };
+  window[name]=function(d){ done=true; try{delete window[name];}catch(e){} s.remove();
+    /* Only cache a REAL answer. A key failure must not be remembered, or unlocking
+       afterwards would keep serving the empty list until a hard reload. */
+    if(d && d.rows){ __rosterCache=d.rows; cb(__rosterCache); }
+    else { cb(null); } };
   s.onerror=function(){ if(!done){ done=true; s.remove(); cb(null); } };
-  s.src=CONFIG.writeUrl+'?action=roster&callback='+name;
+  s.src=CONFIG.writeUrl+'?action=roster&key='+encodeURIComponent(eaKey())+'&callback='+name;
   document.body.appendChild(s);
   setTimeout(function(){ if(!done){ done=true; s.remove(); cb(null); } }, 9000);
 }
@@ -2626,7 +2632,7 @@ function fetchOrders(cb){
   var name='__lpO'+Date.now(), s=document.createElement('script'), done=false;
   window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
   s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
-  s.src=CONFIG.writeUrl+'?action=orders&callback='+name;
+  s.src=CONFIG.writeUrl+'?action=orders&key='+encodeURIComponent(eaKey())+'&callback='+name;
   document.body.appendChild(s);
   setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
 }
@@ -2718,7 +2724,7 @@ function fetchInbox(cb){
   var name='__lpI'+Date.now(), s=document.createElement('script'), done=false;
   window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
   s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
-  s.src=CONFIG.writeUrl+'?action=inbox&callback='+name;
+  s.src=CONFIG.writeUrl+'?action=inbox&key='+encodeURIComponent(eaKey())+'&callback='+name;
   document.body.appendChild(s);
   setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
 }
@@ -2847,7 +2853,7 @@ function fetchRequests(cb){
   var name='__lpR'+Date.now(), s=document.createElement('script'), done=false;
   window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
   s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
-  s.src=CONFIG.writeUrl+'?action=requests&callback='+name;
+  s.src=CONFIG.writeUrl+'?action=requests&key='+encodeURIComponent(eaKey())+'&callback='+name;
   document.body.appendChild(s);
   setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
 }
@@ -2883,7 +2889,7 @@ function fetchConsults(cb){
   var name='__lpCn'+Date.now(), s=document.createElement('script'), done=false;
   window[name]=function(dt){ done=true; try{delete window[name];}catch(e){} s.remove(); cb(dt&&dt.rows?dt.rows:null); };
   s.onerror=function(){ if(!done){done=true;s.remove();cb(null);} };
-  s.src=CONFIG.writeUrl+'?action=consults&callback='+name;
+  s.src=CONFIG.writeUrl+'?action=consults&key='+encodeURIComponent(eaKey())+'&callback='+name;
   document.body.appendChild(s);
   setTimeout(function(){ if(!done){done=true;s.remove();cb(null);} }, 9000);
 }
@@ -3586,7 +3592,7 @@ async function loadAll(){
     if(haveLive){
       const [ck,rs,bz,pr,rv] = await Promise.all([
         CONFIG.checkinsCsvUrl? fetchCsv(CONFIG.checkinsCsvUrl).then(shapeCheckins).catch(()=>null):null,
-        CONFIG.rosterCsvUrl?   fetchCsv(CONFIG.rosterCsvUrl).then(shapeRoster).catch(()=>null):null,
+        fetchRosterShaped().catch(()=>null),
         CONFIG.businessCsvUrl? fetchCsv(CONFIG.businessCsvUrl).then(shapeBusiness).catch(()=>null):null,
         CONFIG.prsCsvUrl?      fetchCsv(CONFIG.prsCsvUrl).then(shapePRs).catch(()=>null):null,
         CONFIG.revenueCsvUrl?  fetchCsv(CONFIG.revenueCsvUrl).then(shapeRevenue).catch(()=>null):null
@@ -3682,6 +3688,22 @@ function loadQ4Plan(){
 function q4Current(){
   const ph=Array.isArray(Q4_PLAN)?Q4_PLAN:[];
   return ph.find(p=>!p.blocked && p.items.some(i=>!i.done)) || null;
+}
+/* The roster now comes from the key-gated doorway, never from a file deployed next to the
+   page. clients.csv used to live in this PUBLIC repo — names, emails, amounts, MRR, notes —
+   readable by anyone at dashboard.legacyperformance.co/clients.csv. Removed 2026-10-26.
+   shapeRoster still wants [headerRow, ...rows], so convert the JSON into that shape. */
+function fetchRosterShaped(){
+  return new Promise(function(res){
+    fetchRoster(function(rows){
+      if(!rows || !rows.length){ res(null); return; }
+      var head = Object.keys(rows[0]);
+      var arr  = [head].concat(rows.map(function(r){
+        return head.map(function(k){ return r[k]==null ? '' : String(r[k]); });
+      }));
+      res(shapeRoster(arr));
+    });
+  });
 }
 function loadTokens(){
   if(TOKENS!==null) return;
