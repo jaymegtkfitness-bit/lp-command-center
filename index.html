@@ -3845,7 +3845,30 @@ function renderDash(){
   }
   L+=`<div class="dash-card"><h3>Today\u2019s post</h3>${post||'<div class="dash-empty">Loading…</div>'}</div>`;
 
-  // 3. Owed a reply — clients the check-in signal flagged, plus today's schedule underneath
+  /* 3. YOUR TASKS — the EA Inbox, on the landing screen.
+     It was moved to its own nav item in the first rebuild, which meant tasks lived somewhere you
+     had to go looking for them. That is the opposite of a daily to-do list. */
+  L+=`<div class="dash-card"><h3>Your tasks <a onclick="showTab('ea')">EA Inbox \u2192</a></h3><div id="dashEA"><div class="dash-empty">Loading\u2026</div></div></div>`;
+  setTimeout(function(){
+    var el=document.getElementById('dashEA'); if(!el) return;
+    if(!eaKey()){ el.innerHTML='<div class="dash-empty">Unlock the EA Inbox once on this device to see your tasks here.</div>'; return; }
+    fetchInbox(function(rows){
+      if(!rows){ el.innerHTML='<div class="dash-empty">Couldn\u2019t reach the inbox.</div>'; return; }
+      var live=rows.filter(function(r){ return String(rv(r,'Status')||'Open')!=='Done'; });
+      if(!live.length){ el.innerHTML='<div class="dash-empty">Nothing outstanding.</div>'; return; }
+      live.sort(function(a,b){ return String(rv(a,'Timestamp')).localeCompare(String(rv(b,'Timestamp'))); });
+      var star=live.filter(function(r){ return /^\u2605/.test(String(rv(r,'Message'))); });
+      var rest=live.filter(function(r){ return !/^\u2605/.test(String(rv(r,'Message'))); });
+      var show=star.concat(rest).slice(0,8);
+      el.innerHTML = show.map(function(r){
+        var flagged = String(rv(r,'Status'))==='Flagged';
+        return '<div class="attn"><span class="nm">'+esc(String(rv(r,'Message')).slice(0,120))+'</span>'
+             + (flagged?'<span class="why" style="color:#c98b8b">needs your eyes</span>':'')+'</div>';
+      }).join('') + (live.length>show.length ? '<div class="dash-empty" style="margin-top:6px">'+(live.length-show.length)+' more in the EA Inbox.</div>' : '');
+    });
+  }, 60);
+
+  // 4. Owed a reply — clients the check-in signal flagged, plus today's schedule underneath
   L+=`<div class="dash-card"><h3>Owed a reply <a onclick="showTab('command')">Client Board →</a></h3>`
     +(attn.length ? attn.slice(0,8).map(([c,why])=>`<div class="attn" onclick="openClient('${esc(c.email)}')"><span class="nm">${esc(c.name)}</span><span class="why">${esc(why)}</span></div>`).join('')
       +(attn.length>8?`<div class="dash-empty" style="margin-top:6px">${attn.length-8} more on the Client Board.</div>`:'')
