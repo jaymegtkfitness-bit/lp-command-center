@@ -1682,7 +1682,11 @@ let TASKS;
     try{ localStorage.setItem('lp_tasks_sv', String(SEED_VERSION)); }catch(e){}
     changed=true;
   }
-  if(changed){ try{ localStorage.setItem('lp_tasks', JSON.stringify(TASKS)); }catch(e){} if(CONFIG.writeUrl) postToSheet(stateBlob()); }
+  // Save the re-seed locally only. Do NOT push it: this runs before syncTasks() has pulled,
+  // and the doorway is whole-blob last-write-wins, so a fresh browser (new device, cleared
+  // site data, a local preview) would overwrite every hand-added task with the bare seed set.
+  // syncTasks() merges the real list in a moment; the first toggle or add pushes it back up.
+  if(changed){ try{ localStorage.setItem('lp_tasks', JSON.stringify(TASKS)); }catch(e){} }
 })();
 
 function saveTasksLocal(){ try{localStorage.setItem('lp_tasks',JSON.stringify(TASKS));}catch(e){} }
