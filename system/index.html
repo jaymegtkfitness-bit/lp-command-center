@@ -365,7 +365,7 @@ try{ new MutationObserver(function(){ lpSyncLogo(document.documentElement.classL
 
 <script src="../restaurant-data.js?v=9bbbcd2f"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=74"></script>
+<script src="../nutrition-engine.js?v=75"></script>
 <script>
 /* ======================= INPUTS ======================= */
 var LS_KEY = 'lp_system_inputs';
@@ -452,20 +452,35 @@ function macros(o){ return '<div class="macros"><span><b>' + Math.round(o.cal) +
 
 /* ======================= BUILD ======================= */
 function build(){
-  var FREE = (typeof freedomPlan === 'function') ? freedomPlan({calories:+IN.cal, protein:+IN.pro}, IN.free || 2) : null;
+  /* FLEX CALORIES, two modes (2026-10-29). Free meals is the default. Calorie banking is the
+     advanced one and does not move the ordinary day, so DAILY stays the base number. */
+  var BANK = (/^bank/.test(String(IN.flexMode || '')) && typeof bankingPlan === 'function')
+    ? bankingPlan({calories:+IN.cal, protein:+IN.pro}, IN.banking || {}, IN.sex || '') : null;
+  var FREE = BANK ? null
+    : ((typeof freedomPlan === 'function') ? freedomPlan({calories:+IN.cal, protein:+IN.pro}, IN.free || 2) : null);
   var DAILY = (FREE && FREE.extra) ? FREE.pfs : {calories:+IN.cal, protein:+IN.pro, carbs:+IN.carbG, fat:+IN.fatG};
   var it = {pfs:{calories:DAILY.calories, protein:DAILY.protein, carbs:DAILY.carbs, fat:DAILY.fat}};
   PG = 1;
   var sel = {protein:IN.protein||[], carb:IN.carb||[], fruit:IN.fruit||[], fat:IN.fat||[], veg:IN.veg||[], style:IN.style||'', allergies:IN.allergies||[], glp1:IN.glp1||'', dislikes:IN.dislikes||'',
              mealNames:IN.mealNames||null,
              strict:!!IN.strict,
+             /* HOW SHE SHAPED IT (2026-10-29): equipment she owns, her own meal split, the tier
+                trade, and her own produce grams. All four have working defaults. */
+             appliances:IN.appliances||null, mealPct:IN.mealPct||null,
+             abundance:IN.abundance||'abundance', produce:IN.produce||null,
              frequency:IN.freq||'3', shakeGrams:+IN.shake||30};
   var deck = generateMealOptions(it, sel, IN.name||'');
   var shop = [shoppingList(deck, {week:true})];
   var prep = PREP_SESSIONS.map(function(x, i){ return prepGuide(deck, {session:i}); });
   var week = exampleWeek(deck);
-  var produce = (typeof produceTarget === 'function') ? produceTarget(DAILY.calories, IN.phase === 'Reverse Diet' ? 'Reverse Diet' : IN.phase) : null;
-  if (produce && deck.glp1) produce = Math.round(produce * GLP1.vegFactor / 50) * 50;
+  /* THE PRODUCE SPLIT (2026-10-29). One number to hit, three numbers underneath it so the fibre
+     question has an honest answer. produceSplit already applies the GLP-1 cut, so it is not
+     applied twice here the way it used to be. */
+  var PS = (typeof produceSplit === 'function')
+    ? produceSplit(DAILY.calories, IN.phase === 'Reverse Diet' ? 'Reverse Diet' : IN.phase, sel) : null;
+  var produce = PS ? PS.total
+    : ((typeof produceTarget === 'function') ? produceTarget(DAILY.calories, IN.phase) : null);
+  var FIB = (typeof fiberOfDeck === 'function') ? fiberOfDeck(deck) : null;
   var lunch = deck.slots.filter(function(s){ return s.name === 'Lunch'; })[0] || deck.slots[0];
   var lunchCal = lunch.target.protein*4 + lunch.target.carbs*4 + lunch.target.fat*9;
   var perMeal = mealSplit(it.pfs, sel.frequency, sel.shakeGrams).perMeal;
@@ -485,7 +500,9 @@ function build(){
       '<div class="tile num"><b>' + DAILY.protein + 'g</b><span>Protein floor</span></div>' +
       '<div class="tile num"><b>' + DAILY.carbs + 'g</b><span>Carbs</span></div>' +
       '<div class="tile num"><b>' + DAILY.fat + 'g</b><span>Fat</span></div>' +
-      (produce ? '<div class="tile num"><b>' + produce + 'g</b><span>Fruit and veg</span></div>' : '') +
+      (PS ? '<div class="tile num"><b>' + PS.veg + 'g</b><span>Vegetables</span></div>' +
+            '<div class="tile num"><b>' + PS.fruit + 'g</b><span>Fruit</span></div>'
+          : (produce ? '<div class="tile num"><b>' + produce + 'g</b><span>Fruit and veg</span></div>' : '')) +
     '</div>' +
     '<p class="meta">' + esc(deck.label) + ' · Built ' + fmtDate() + ' · Rebuild it any time from your dashboard.</p>' +
     '</section>');
@@ -497,7 +514,19 @@ function build(){
     '<p class="intro">You do not have to count anything. The numbers are already inside the meals. Your job is to eat the portions, check in weekly, and rebuild when life changes.</p>' +
     '<div class="principles">' +
       '<div class="tile pr"><b>Protein on autopilot</b><p>Every meal is built around your protein, about ' + perMeal.protein + 'g a meal, so you hit ' + IN.pro + 'g without thinking about it.</p></div>' +
-      '<div class="tile pr"><b>Nourishment made simple</b><p>' + (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '') + (deck.glp1 ? 'That covers your fiber and micronutrients. On your GLP-1 the vegetables are already portioned smaller, so eat what the meal lists and do not force extra.' : 'That covers your fiber and micronutrients. Vegetables are unlimited.') + (IN.weight ? ' Drink about ' + Math.round(+IN.weight/2) + ' oz of water a day, sipped through the day.' : '') + '</p></div>' +
+      '<div class="tile pr"><b>Nourishment made simple</b><p>' +
+        (PS ? 'Eat about ' + PS.veg + 'g of vegetables and ' + PS.fruit + 'g of fruit a day. '
+            : (produce ? 'Eat about ' + produce + 'g of fruit and vegetables a day. ' : '')) +
+        (deck.glp1
+          ? 'That covers your fiber and micronutrients. On your GLP-1 the vegetables are already portioned smaller, so eat what the meal lists and do not force extra.'
+          : 'That covers your fiber and micronutrients. Vegetables are unlimited.') +
+        (IN.weight ? ' Drink about ' + Math.round(+IN.weight/2) + ' oz of water a day, sipped through the day.' : '') +
+        '</p></div>' +
+      /* No <b> inside the paragraph: in this tile <b> is the heading and renders as a block. */
+      (PS ? '<div class="tile pr"><b>Your fiber is already handled</b><p>You are not being asked to count it. ' +
+        (FIB ? 'This plan comes to about ' + FIB + 'g of fiber a day' : 'Your produce alone is about ' + PS.fiberProduce + 'g of fiber') +
+        ', against a recommended ' + PS.target + 'g for your calories. ' +
+        'Hit the produce and the fiber lands on its own, which is one less number on your list.</p></div>' : '') +
       '<div class="tile pr"><b>Carbs and fats, done for you</b><p>Every option is already balanced. All you do is stick to the portions.</p></div>' +
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
@@ -543,6 +572,31 @@ function build(){
       '<li><b>It trains the skill you actually need.</b> Structure most of the time, freedom on purpose, and you learn what a normal portion feels like instead of guessing forever.</li>' +
     '</ul>' +
     '<p class="note" style="margin-top:14px">Free meals are free meals, not cheat meals. Nothing to cheat on and nothing to feel bad about. Enjoy it, then go back to the plan at the next meal, not next Monday.</p>' +
+    foot() + '</section>');
+
+  /* The advanced version of the same idea: the week is the unit instead of the meal. */
+  if (BANK) doc.push('<section class="sheet"><span class="label">Calorie Banking</span>' +
+    '<h2>The week is the unit. <span class="gold">Not the day.</span></h2>' +
+    '<p class="intro">You chose the advanced way to hold room for real life. Instead of a free meal, you hold a little back on ordinary days and spend it on one you already know is coming. Your weekly total does not change, and the weekly total is the only number that decides the result.</p>' +
+    '<div class="numbers">' +
+      '<div class="tile num"><b>' + BANK.low.calories.toLocaleString() + '</b><span>On your ' + BANK.days + ' banking days</span></div>' +
+      '<div class="tile num"><b>' + BANK.base.toLocaleString() + '</b><span>On an ordinary day</span></div>' +
+      '<div class="tile num"><b>' + BANK.big.calories.toLocaleString() + '</b><span>On your big ' + (BANK.spend === 'meal' ? 'meal day' : 'day') + '</span></div>' +
+      '<div class="tile num"><b>' + BANK.bank.toLocaleString() + '</b><span>Banked for it</span></div>' +
+    '</div>' +
+    '<div class="principles" style="margin-top:16px">' +
+      '<div class="tile pr"><b>How your week runs</b><p>' + BANK.days + ' days at ' + BANK.low.calories.toLocaleString() +
+        (BANK.normalDays > 0 ? ', ' + BANK.normalDays + ' ordinary ' + (BANK.normalDays === 1 ? 'day' : 'days') + ' at ' + BANK.base.toLocaleString() : '') +
+        ', and one ' + (BANK.spend === 'meal' ? 'meal carrying an extra ' + BANK.bank + ' calories on a day that comes to ' + BANK.big.calories.toLocaleString() : 'day at ' + BANK.big.calories.toLocaleString()) +
+        '. Add it up and it is the same week as ' + BANK.base.toLocaleString() + ' every day.</p></div>' +
+      '<div class="tile pr"><b>Protein does not move</b><p>' + BANK.low.protein + 'g every single day, banking day or big day. The bank is built out of carbs and fat only, which is why your muscle is never what pays for the dinner.</p></div>' +
+      '<div class="tile pr"><b>Decide it on Sunday</b><p>Look at the week, find the day that is already coming, and bank toward it going in. A bank you work out afterwards is not a plan, it is a deficit you are giving a nicer name.</p></div>' +
+      '<div class="tile pr"><b>A banked day is still a tracked day</b><p>' + (BANK.spend === 'meal' ? 'The meal gets logged.' : 'The big day gets logged.') + ' Not to punish it, to know it. Spend what you banked, not what you hoped you banked.</p></div>' +
+      '<div class="tile pr"><b>If you overspend</b><p>Pay it back inside the same week, never the next one. Carrying a debt forward is how one big day turns into a bad month.</p></div>' +
+      '<div class="tile pr"><b>Your floor still holds</b><p>No day of yours goes under ' + BANK.floor.toLocaleString() + ' calories, whatever the bank says.' +
+        (BANK.clipped ? ' You asked to bank ' + BANK.wanted + ' a day and I set it at ' + BANK.shave + ' for exactly that reason.' : '') + '</p></div>' +
+    '</div>' +
+    '<p class="note" style="margin-top:14px">Banking asks more of you than a free meal does, which is the whole trade. It plans further ahead and it holds the quiet days. Done right it covers more than a free meal ever could, because a bank can carry a whole day. If a week comes where you do not want to think about it, take two free meals instead and nothing is lost.</p>' +
     foot() + '</section>');
 
   /* 2b. how the numbers change: the whole adjustment method, so the PDF stands alone */

@@ -1345,6 +1345,19 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
         <span class="t">4 meals</span><span class="d">The upper end. Smaller, more frequent, if you prefer eating often.</span></span></label>
     </div>
 
+    <p class="grouplbl">How should the day be split?</p>
+    <p class="muted" style="margin:-4px 0 10px">Automatic is back-weighted, because that is how most people actually eat: a lighter start and the biggest meal at the end. If you already run your own shape, set it yourself. Protein follows the split, and the daily floor still lands either way.</p>
+    <div class="opts row2" data-single="splitmode">
+      <label class="opt on" data-v="auto"><span class="dot"></span><span>
+        <span class="t">Automatic</span><span class="d">I pick the shape. The default.</span></span></label>
+      <label class="opt" data-v="custom"><span class="dot"></span><span>
+        <span class="t">I will set the percentages</span><span class="d">Small breakfast, big dinner, whatever you already do.</span></span></label>
+    </div>
+    <div id="splitwrap" style="display:none;margin:4px 0 14px">
+      <div class="fields" id="splitfields"></div>
+      <p class="help" id="splitsum" style="margin:8px 0 0"></p>
+    </div>
+
     <p class="grouplbl">What do you actually like to eat?</p>
     <p class="muted" style="margin:-4px 0 10px">Not a filter, a flavour steer. It shapes how your foods get put together.</p>
     <div class="pills" data-multi="cuisines">
@@ -1363,6 +1376,20 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
       <label class="opt" data-v="love"><span class="dot"></span><span>
         <span class="t">I like to cook</span><span class="d">Send me real recipes and I will make them.</span></span></label>
     </div>
+
+    <p class="grouplbl">What do you cook with?</p>
+    <p class="muted" style="margin:-4px 0 10px">Everything is on. Switch off anything you do not have and no recipe will ask you for it. If you are in a hotel, a dorm, or between kitchens, this is the question that saves the week.</p>
+    <div class="pills" data-multi="appliances">
+      <span class="pill on" data-eq="stovetop">Stovetop</span>
+      <span class="pill on" data-eq="oven">Oven</span>
+      <span class="pill on" data-eq="microwave">Microwave</span>
+      <span class="pill on" data-eq="airfryer">Air fryer</span>
+      <span class="pill on" data-eq="slowcooker">Slow cooker</span>
+      <span class="pill on" data-eq="blender">Blender or food processor</span>
+      <span class="pill on" data-eq="grill">Grill or griddle</span>
+      <span class="pill on" data-eq="instantpot">Instant Pot or pressure cooker</span>
+    </div>
+    <div class="note" id="equip-note" style="display:none"></div>
 
     <p class="grouplbl">Anything about your eating window?</p>
     <div class="opts row2" data-single="schedule">
@@ -1415,8 +1442,83 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
   </div>
 
   <!-- 15 CONTACT -->
+  <!-- 14 HOW THE FOOD IS SHAPED -->
   <div class="step">
     <span class="num">14</span>
+    <h3>How you want the food shaped.</h3>
+    <p class="help">Three choices that do not change your numbers at all. They change what those
+      numbers buy you. Every one of them has a default, so you can read them and move on.</p>
+
+    <p class="grouplbl">Most food, or richer food?</p>
+    <p class="muted" style="margin:-4px 0 10px">Same calories either way. This is the trade the free Power Food List teaches, and it has been running quietly under every plan I build. Now it is yours to set.</p>
+    <div class="opts" data-single="abundance">
+      <label class="opt on" data-v="abundance"><span class="dot"></span><span>
+        <span class="t">Most food for the calories</span>
+        <span class="d">Leaner, higher-volume foods, so the portions are big. The default, and the one most people should pick.</span></span></label>
+      <label class="opt" data-v="rich"><span class="dot"></span><span>
+        <span class="t">Richer foods, smaller portions</span>
+        <span class="d">Butter, cheese, granola, fattier cuts. The food is richer and there is less of it on the plate for the same number.</span></span></label>
+    </div>
+
+    <p class="grouplbl">Fruit, vegetables and fibre</p>
+    <p class="muted" style="margin:-4px 0 10px">You get one produce number to hit. These are the three numbers sitting underneath it, so when you ask what your fibre is doing I can answer it instead of guessing. You are not being asked to track fibre.</p>
+    <div class="opts row2" data-single="producemode">
+      <label class="opt on" data-v="rec"><span class="dot"></span><span>
+        <span class="t">Use the recommended split</span><span class="d">Mostly vegetables, fruit for the rest. The default.</span></span></label>
+      <label class="opt" data-v="custom"><span class="dot"></span><span>
+        <span class="t">I will set my own grams</span><span class="d">If you already know what you eat, say so.</span></span></label>
+    </div>
+    <div id="producewrap" style="display:none;margin:4px 0 0">
+      <div class="fields">
+        <div class="f"><label for="pveg">Vegetables, grams a day</label><input type="number" id="pveg" inputmode="numeric" placeholder="500"></div>
+        <div class="f"><label for="pfruit">Fruit, grams a day</label><input type="number" id="pfruit" inputmode="numeric" placeholder="300"></div>
+      </div>
+    </div>
+    <div class="note" id="produce-note" style="margin-top:12px"></div>
+
+    <p class="grouplbl">Room for the food that is not on the plan</p>
+    <p class="muted" style="margin:-4px 0 10px">Nobody eats on plan every meal of every week, and a plan that pretends otherwise is the one you quit. So the room is built in rather than stolen. Pick how you want to hold it.</p>
+    <div class="opts" data-single="flexmode">
+      <label class="opt on" data-v="meals"><span class="dot"></span><span>
+        <span class="t">Free meals</span>
+        <span class="d">Simple. The unit is the meal. Two are already in your number and there is nothing to work out.</span></span></label>
+      <label class="opt" data-v="banking"><span class="dot"></span><span>
+        <span class="t">Calorie banking</span>
+        <span class="d">Advanced. The unit is the week. You hold back a little on ordinary days and spend it on one planned day or one planned meal.</span></span></label>
+    </div>
+    <div id="flexmeals">
+      <p class="grouplbl" style="margin-top:14px">How many free meals a week?</p>
+      <div class="opts row2" data-single="freemeals">
+        <label class="opt on" data-v="2"><span class="dot"></span><span><span class="t">2 a week</span><span class="d">Already built into your number. Costs you nothing.</span></span></label>
+        <label class="opt" data-v="3"><span class="dot"></span><span><span class="t">3 a week</span><span class="d">Costs 100 calories a day that week.</span></span></label>
+        <label class="opt" data-v="4"><span class="dot"></span><span><span class="t">4 a week</span><span class="d">Costs 200 calories a day that week. The ceiling.</span></span></label>
+      </div>
+    </div>
+    <div id="flexbank" style="display:none">
+      <p class="grouplbl" style="margin-top:14px">How you want to bank it</p>
+      <div class="opts row2" data-single="bankshave">
+        <label class="opt" data-v="50"><span class="dot"></span><span><span class="t">50 a day</span></span></label>
+        <label class="opt on" data-v="100"><span class="dot"></span><span><span class="t">100 a day</span></span></label>
+        <label class="opt" data-v="150"><span class="dot"></span><span><span class="t">150 a day</span></span></label>
+        <label class="opt" data-v="200"><span class="dot"></span><span><span class="t">200 a day</span></span></label>
+      </div>
+      <div class="opts row2" data-single="bankdays" style="margin-top:10px">
+        <label class="opt" data-v="2"><span class="dot"></span><span><span class="t">over 2 days</span></span></label>
+        <label class="opt" data-v="3"><span class="dot"></span><span><span class="t">over 3 days</span></span></label>
+        <label class="opt on" data-v="4"><span class="dot"></span><span><span class="t">over 4 days</span></span></label>
+        <label class="opt" data-v="5"><span class="dot"></span><span><span class="t">over 5 days</span></span></label>
+      </div>
+      <div class="opts row2" data-single="bankspend" style="margin-top:10px">
+        <label class="opt on" data-v="day"><span class="dot"></span><span><span class="t">Spend it on one big day</span><span class="d">A holiday, a wedding, a vacation day.</span></span></label>
+        <label class="opt" data-v="meal"><span class="dot"></span><span><span class="t">Spend it on one big meal</span><span class="d">A dinner out you do not want to hold back at.</span></span></label>
+      </div>
+      <div class="note" id="bank-note" style="margin-top:12px"></div>
+    </div>
+  </div>
+
+  <!-- 15 RESTAURANTS -->
+  <div class="step">
+    <span class="num">15</span>
     <h3>Where do you actually eat when you are not cooking?</h3>
     <p class="help">Your plan comes with the specific order at the places you already go, macros
       attached. Not "make better choices." The actual order. Skip this if you cook nearly
@@ -1434,7 +1536,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
   </div>
 
   <div class="step">
-    <span class="num">15</span>
+    <span class="num">16</span>
     <h3>Where should I send your build?</h3>
     <p class="help">Your calorie target and protein floor are already above, free and yours to keep. This opens the rest of it: your phase, your projection, your full macros and a week of meals built from the food you picked. Still no card, still no payment. I ask because every one of these gets finished by hand and I need to know where to send yours.</p>
     <div class="fields">
@@ -1505,7 +1607,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 
   <!-- 16 ACKNOWLEDGMENTS -->
   <div class="step">
-    <span class="num">16</span>
+    <span class="num">17</span>
     <h3>Before I send you your build.</h3>
     <p class="help">Check each one. This is the part that keeps both of us honest.</p>
     <div class="acks">
@@ -1748,7 +1850,7 @@ footer{background:rgba(0,0,0,.35);border-top:1px solid var(--olive-dim)}
 <!-- bump ?v= whenever nutrition-engine.js changes, so returning visitors never run a stale engine -->
 <script src="../restaurant-data.js?v=9bbbcd2f"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=74"></script>
+<script src="../nutrition-engine.js?v=75"></script>
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK =================== */
 const CONFIG = {
@@ -1790,6 +1892,10 @@ const S = {
   stall:'', dur:'', track:'', obstacle:'', why:'',
   cooking:'normal', frequency:'3', schedule:'normal', eatout:'weekly', glp1:'no',
   horizon:'12', protect:'yes',
+  /* HOW THE FOOD IS SHAPED (2026-10-29). None of these move her calories or her protein. */
+  splitmode:'auto', abundance:'abundance', producemode:'rec',
+  flexmode:'meals', freemeals:'2', bankshave:'100', bankdays:'4', bankspend:'day',
+  mealPct:null,
   med:{}, multi:{}, starred:{proteins:[],carbs:[],fruits:[],fats:[],veg:[]}
 };
 const MAX_STARS = 3;
@@ -1953,6 +2059,122 @@ function renderObstacles(){
   wireSingle(box, 'obstacle');
 }
 
+/* ===================== HOW THE FOOD IS SHAPED =====================
+   Equipment, the meal split, the produce split and the flex calories. Four answers that change
+   what her numbers buy her without changing the numbers. Every one has a working default, so a
+   member who reads the step and moves on gets exactly what she gets today. */
+
+/* The appliance keys she still has. An empty list means no restriction, so a fully checked row
+   and an untouched row behave identically. */
+function activeAppliances(){
+  const box = qs('[data-multi="appliances"]'); if (!box) return [];
+  return qsa('.pill.on', box).map(p => p.dataset.eq).filter(Boolean);
+}
+function realMeals(){
+  return (typeof mealsPerDay === 'function') ? mealsPerDay(S.frequency) : 3;
+}
+/* Her own per-meal percentages, or null for the automatic back-weighted split. */
+function activeMealPct(){
+  if (S.splitmode !== 'custom') return null;
+  const n = realMeals(), out = [];
+  for (let i = 0; i < n; i++) out.push(num('mpct' + i) || 0);
+  return out.some(x => x > 0) ? out : null;
+}
+function renderSplitFields(){
+  const wrap = $('splitwrap'), box = $('splitfields');
+  if (!wrap || !box) return;
+  const on = S.splitmode === 'custom';
+  wrap.style.display = on ? 'block' : 'none';
+  if (!on) { S.mealPct = null; return; }
+  const n = realMeals();
+  const names = (typeof mealSplit === 'function' && CALC)
+    ? (mealSplit(CALC, S.frequency, 30).names || []) : [];
+  /* Rebuild only when the meal count changed, so typing does not wipe the field under the cursor. */
+  if (box.dataset.n !== String(n)){
+    const auto = (typeof mealSplitPct === 'function') ? mealSplitPct(n, null) : [];
+    box.innerHTML = '';
+    for (let i = 0; i < n; i++){
+      const start = Math.round(((auto[i] || {}).e || 1 / n) * 100);
+      box.innerHTML += '<div class="f"><label for="mpct' + i + '">'
+        + (names[i] || ('Meal ' + (i + 1))) + ', % of the day</label>'
+        + '<input type="number" id="mpct' + i + '" inputmode="numeric" value="' + start + '"></div>';
+    }
+    box.dataset.n = String(n);
+    qsa('input', box).forEach(el => el.addEventListener('input', () => { recalc(); queueSave(); }));
+  }
+  S.mealPct = activeMealPct();
+  const tot = (S.mealPct || []).reduce((a, b) => a + b, 0);
+  const sum = $('splitsum');
+  if (sum){
+    sum.textContent = tot === 100
+      ? 'That adds to 100%. Protein follows the same split, and the daily floor still lands.'
+      : 'That adds to ' + tot + '%. It does not have to hit 100 exactly, I scale it, but the closer it is the easier it is to read.';
+  }
+}
+function renderEquipNote(){
+  const note = $('equip-note'); if (!note) return;
+  const have = activeAppliances(), all = (typeof APPLIANCES !== 'undefined') ? APPLIANCES.length : 8;
+  if (!have.length || have.length === all){ note.style.display = 'none'; return; }
+  let makeable = null;
+  if (typeof RECIPE_LIBRARY !== 'undefined' && typeof equipOk === 'function'){
+    makeable = RECIPE_LIBRARY.filter(r => equipOk(r, have)).length;
+  }
+  /* Only mention the substitutions she is actually missing, so the line stays true. */
+  const soft = (typeof EQUIP_SUBS !== 'undefined')
+    ? ['oven','airfryer','grill','slowcooker','instantpot']
+        .filter(k => have.indexOf(k) < 0 && (EQUIP_SUBS[k] || []).some(x => have.indexOf(x) >= 0))
+    : [];
+  note.style.display = 'block';
+  note.innerHTML = '<strong>Noted.</strong> Nothing in your plan will ask you for equipment you do not have'
+    + (makeable != null ? ', and there are still <b>' + makeable + '</b> recipes that work in your kitchen' : '')
+    + '.'
+    + (soft.length ? ' What you are missing there I can cover with what you kept, so it costs you almost nothing.' : '')
+    + (have.indexOf('blender') < 0 ? ' A blender is the one with no substitute, so smoothies are off the list.' : '');
+}
+function renderProduceNote(){
+  const wrap = $('producewrap'), note = $('produce-note');
+  if (wrap) wrap.style.display = (S.producemode === 'custom') ? 'block' : 'none';
+  if (!note) return;
+  if (!CALC || typeof produceSplit !== 'function'){ note.innerHTML = ''; return; }
+  const sel = { glp1:S.glp1 };
+  if (S.producemode === 'custom') sel.produce = { veg:num('pveg') || 0, fruit:num('pfruit') || 0 };
+  const ps = produceSplit(CALC.calories, (PLAN && PLAN.phase) || 'Lean', sel);
+  const gap = ps.target - ps.fiberProduce;
+  note.innerHTML = '<strong>' + ps.total + ' g of produce a day.</strong> About <b>' + ps.veg
+    + ' g of vegetables</b> and <b>' + ps.fruit + ' g of fruit</b>'
+    + (ps.custom ? ', the way you set it' : ' at a ' + (100 - ps.fruitShare) + '/' + ps.fruitShare + ' split')
+    + '. That alone is roughly <b>' + ps.fiberProduce + ' g of fibre</b>, against a recommended '
+    + ps.target + ' g for your calories. '
+    + (gap > 0
+        ? 'Your grains, beans, nuts and seeds carry the rest, which is why fibre is not a number you are asked to chase.'
+        : 'You clear the recommendation on produce alone, before a single grain or bean is counted.')
+    + (ps.glp1 ? ' <em>On a GLP-1 this is deliberately lower and leans toward fruit, because volume is the constraint and protein still has to win.</em>' : '');
+}
+function renderBankNote(){
+  const meals = $('flexmeals'), bank = $('flexbank');
+  const on = S.flexmode === 'banking';
+  if (meals) meals.style.display = on ? 'none' : 'block';
+  if (bank)  bank.style.display  = on ? 'block' : 'none';
+  const note = $('bank-note'); if (!note) return;
+  if (!on || !CALC || typeof bankingPlan !== 'function'){ note.innerHTML = ''; return; }
+  const b = bankingPlan(CALC, { shave:+S.bankshave, days:+S.bankdays, spend:S.bankspend }, S.sex);
+  const plural = (n, word) => n + ' ' + word + (n === 1 ? '' : 's');
+  note.innerHTML = '<strong>' + b.bank + ' calories banked.</strong> '
+    + plural(b.days, 'day') + ' at <b>' + b.low.calories + '</b> instead of ' + b.base + ', '
+    + (b.normalDays > 0 ? plural(b.normalDays, 'ordinary day') + ' at ' + b.base + ', ' : '')
+    + (b.spend === 'meal'
+        ? 'and one meal carrying an extra <b>' + b.bank + '</b>, on a day that comes to '
+          + b.big.calories + '. '
+        : 'and one day at <b>' + b.big.calories + '</b>. ')
+    + 'Same weekly total, which is the only number that has to be true. Protein holds at '
+    + b.low.protein + ' g every single day.'
+    + (b.clipped ? ' <em>You asked for ' + b.wanted + ' a day and I gave you ' + b.shave
+        + ', because no day of yours goes under ' + b.floor + ' calories.</em>' : '');
+}
+function renderShape(){
+  renderSplitFields(); renderEquipNote(); renderProduceNote(); renderBankNote();
+}
+
 /* ===================== INPUT WIRING ===================== */
 function wireSingle(box, key){
   qsa('.opt', box).forEach(el => {
@@ -1962,33 +2184,6 @@ function wireSingle(box, key){
       S[key] = el.dataset.v;
       if (key === 'goal') renderObstacles();
 
-/* ===================== GLP-1 ===================== */
-const GLP1_COPY = {
-  on:  'Then the plan gets built around appetite, not willpower. Protein first and highest priority, '
-     + 'smaller volume per meal: vegetables portioned 20% smaller, and rice and potatoes ahead of oats, whole wheat and beans, because the risk on a GLP-1 is not '
-     + 'overeating. It is under-eating protein and losing muscle alongside the fat. That is the thing '
-     + 'your plan has to prevent.',
-  off: 'This is the part almost nobody gets taught, and it is where most of the weight comes back. '
-     + 'The appetite comes back before the habits do. Your plan gets built for that specifically: a '
-     + 'protein floor you can hold without the medication doing it for you, and a structure for the '
-     + 'weeks when the food noise returns.',
-  considering: 'Good. That is a conversation for you and a prescriber, not a form. What I can tell you '
-     + 'is that the plan is the same either way. Whether appetite is being managed for you or not, '
-     + 'protein and training are what decide whether you keep your muscle.'
-};
-(function(){
-  const box = qs('[data-single="glp1"]'); if (!box) return;
-  const warn = $('w-glp1'), wrap = $('glp1-when-wrap');
-  box.addEventListener('click', () => {
-    setTimeout(() => {
-      const v = S.glp1;
-      const copy = GLP1_COPY[v];
-      warn.innerHTML = copy || '';
-      warn.classList.toggle('show', !!copy);
-      wrap.style.display = (v === 'on' || v === 'off') ? 'block' : 'none';
-    }, 0);
-  });
-})();
       recalc();
     });
   });
@@ -2005,7 +2200,9 @@ qsa('[data-single]').forEach(box => {
 const pillLabel = p => (p.firstChild ? p.firstChild.textContent : p.textContent).trim();
 qsa('[data-multi]').forEach(box => {
   const key = box.dataset.multi;
-  S.multi[key] = [];
+  /* Read the pills that start ON rather than assuming none do. The appliance list starts fully
+     checked, and zeroing it here meant "I have everything" read as "I declared nothing". */
+  S.multi[key] = qsa('.pill.on', box).map(pillLabel);
   box.addEventListener('click', e => {
     /* A click on the star toggles the favourite, never the food selection. */
     if (e.target.classList && e.target.classList.contains('star')){
@@ -2046,7 +2243,7 @@ qsa('.ack').forEach(a => a.addEventListener('click', () => {
   a.classList.toggle('checked'); updateSubmit();
 }));
 
-['age','height','cw','gw','avgcal','fname','lname','email','sig']
+['age','height','cw','gw','avgcal','fname','lname','email','sig','pveg','pfruit']
   .forEach(id => { const el = $(id); if (el) el.addEventListener('input', recalc); });
 $('height').addEventListener('change', recalc);
 
@@ -2213,7 +2410,7 @@ function recalc(){
   $('live-empty').classList.toggle('hidden', !!ready);
   $('live-data').classList.toggle('hidden', !ready);
 
-  if (!ready){ CALC = null; renderTeaser(); updateLock(); renderTrajectory(); renderMirrors(); renderSample(); updateSubmit(); updateProgress(); return; }
+  if (!ready){ CALC = null; renderTeaser(); updateLock(); renderTrajectory(); renderMirrors(); renderSample(); renderShape(); updateSubmit(); updateProgress(); return; }
 
   const w = { weight:cw, goalweight:gw, height:h, age:age, sex:S.sex, activity:S.activity };
 
@@ -2270,6 +2467,7 @@ function recalc(){
   renderTrajectory();
   renderMirrors();
   renderSample();
+  renderShape();
   updateSubmit();
   updateProgress();
 }
@@ -2772,6 +2970,9 @@ function renderSample(){
       {protein:picked, carb:pc, fat:pf, veg:pv,
        style:activeStyle(), allergies:activeAllergens(),
        frequency:S.frequency, shakeGrams:30,
+       /* how she shaped it: equipment, her own split, the tier trade */
+       appliances:activeAppliances(), mealPct:activeMealPct(), abundance:S.abundance,
+       glp1:S.glp1,
        optionsPerSlot:(CALC.condition && CALC.condition.optionsPerSlot) || 3,
        starred:{protein:S.starred.proteins, carb:(S.starred.carbs||[]).concat(S.starred.fruits||[]), fat:S.starred.fats}},
       val('fname'));
@@ -3023,6 +3224,22 @@ function payload(status){
     fats:(M.fats||[]).join(', '),        veg:(M.veg||[]).join(', '),
     meals:S.frequency, frequency:S.frequency, shakeGrams:30,
     schedule:S.schedule, cooking:S.cooking, prep:S.cooking,
+    /* HOW SHE SHAPED IT (2026-10-29). These four ride to the sheet so the kit gets built the way
+       she asked for it, not the way the defaults would have built it. */
+    appliances:activeAppliances().join(', '),
+    appliancesMissing:((typeof APPLIANCES !== 'undefined' ? APPLIANCES : [])
+      .filter(a => activeAppliances().indexOf(a.k) < 0).map(a => a.label).join(', ') || 'none'),
+    mealSplit:(S.splitmode === 'custom' && activeMealPct())
+      ? activeMealPct().map(x => x + '%').join(' / ') : 'automatic',
+    abundance:(S.abundance === 'rich' ? 'richer foods, smaller portions' : 'most food for the calories'),
+    produceSplit:(S.producemode === 'custom')
+      ? ((num('pveg') || 0) + 'g veg / ' + (num('pfruit') || 0) + 'g fruit')
+      : 'recommended',
+    flexMode:(S.flexmode === 'banking' ? 'calorie banking' : 'free meals'),
+    freeMeals:(S.flexmode === 'banking' ? '' : S.freemeals),
+    banking:(S.flexmode === 'banking'
+      ? S.bankshave + ' cal x ' + S.bankdays + ' days = ' + (+S.bankshave * +S.bankdays)
+        + ' banked, spent on one ' + S.bankspend : ''),
     eatout:S.eatout, restaurants:(M.restaurants||[]).join(', '), drinks:(M.drinks||[]).join(', '),
     allergies:[(M.allergies||[]).join(', '), (M.diet||[]).join(', '), val('never'), val('hate')]
       .filter(Boolean).join(' | '),
@@ -3221,7 +3438,8 @@ if (CONFIG.metaPixelId){
    Every answer is mirrored to localStorage and restored on load. Cleared on submit / checkout. */
 const SAVE_KEY = 'lp_build_progress_v1';
 const FIELD_IDS = ['fname','lname','email','phone','age','height','cw','gw','avgcal',
-                   'whytext','work','meds','extra','hate','never','glp1when','rest-other','sig'];
+                   'whytext','work','meds','extra','hate','never','glp1when','rest-other','sig',
+                   'pveg','pfruit','mpct0','mpct1','mpct2','mpct3','mpct4'];
 let _saveTimer = null;
 function saveState(){
   try {
@@ -3234,6 +3452,9 @@ function saveState(){
           stall:S.stall, dur:S.dur, track:S.track, obstacle:S.obstacle, why:S.why,
           cooking:S.cooking, frequency:S.frequency, schedule:S.schedule, eatout:S.eatout,
           glp1:S.glp1, horizon:S.horizon, protect:S.protect, labs:S.labs,
+          splitmode:S.splitmode, abundance:S.abundance, producemode:S.producemode,
+          flexmode:S.flexmode, freemeals:S.freemeals, bankshave:S.bankshave,
+          bankdays:S.bankdays, bankspend:S.bankspend,
           med:S.med, multi:S.multi, starred:S.starred }
     }));
   } catch(e){}
@@ -3248,7 +3469,9 @@ function restoreState(){
   if (data.inputs) Object.keys(data.inputs).forEach(id => { const el = $(id); if (el) el.value = data.inputs[id]; });
   /* 2. S scalars + collections */
   ['goal','sex','activity','training','stall','dur','track','obstacle','why','cooking',
-   'frequency','schedule','eatout','glp1','horizon','protect','labs'].forEach(k => {
+   'frequency','schedule','eatout','glp1','horizon','protect','labs',
+   'splitmode','abundance','producemode','flexmode','freemeals','bankshave',
+   'bankdays','bankspend'].forEach(k => {
     if (sv[k] !== undefined && sv[k] !== '') S[k] = sv[k];
   });
   S.med = sv.med || {};

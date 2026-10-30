@@ -487,7 +487,7 @@ var FOOD_DB={
     {n:"olive oil",g:1,p:0,c:0,f:1,kcal:8.84,u:"g",max:27,slot:"pm",t:3,k:"plant",src:"USDA FDC 171413 \u00b7 1 tbsp"},
     {n:"butter",g:11.5,p:0.1,c:0,f:11.5,kcal:102,u:"tbsp",frac:true,max:2,slot:"any",t:3,k:"dairy",a:["dairy"],src:"USDA FDC 173410 \u00b7 1 tbsp"},
     {n:"avocado oil",g:1.0,p:0.0,c:0.0,f:1.0,kcal:8.84,u:"g",max:27,slot:"pm",t:3,k:"plant",src:"USDA FDC 173573 \u00b7 1 g"},
-    {n:"coconut oil",g:1.0,p:0.0,c:0.0,f:1.0,kcal:8.92,u:"g",max:27,slot:"any",t:3,k:"plant",src:"USDA FDC 171412 \u00b7 1 g"},
+    {n:"coconut oil",g:1.0,p:0.0,c:0.0,f:1.0,kcal:8.92,u:"g",max:27,slot:"any",t:3,k:"plant",a:["coconut"],src:"USDA FDC 171412 \u00b7 1 g"},
     {n:"dark chocolate",g:12.1,p:2.2,c:13.0,f:12.1,kcal:170,u:"oz",frac:true,max:1,slot:"any",t:3,k:"plant",src:"USDA FDC 170273 \u00b7 1 oz, 70 to 85% cacao"}],
   /* Vegetables stay plain strings: client.html and index.html consume FOOD_DB.veg directly.
      They are eaten freely and not calorie-counted, per the Power Food System. */
@@ -547,6 +547,180 @@ var GRAMS_PER_UNIT={"egg whites": 32.7, "nonfat Greek yogurt": 226.2, "low-fat c
 var VEG_G={broccoli:91, spinach:30, peppers:92, zucchini:124, 'green beans':110, asparagus:134, 'salad greens':47,
   cauliflower:107, mushrooms:70, cucumber:119, tomatoes:180, cabbage:89, 'brussels sprouts':88, carrots:128};
 function vegGrams(n, cups){ return Math.max(25, Math.round((VEG_G[n]||90)*(cups||1)/5)*5); }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PRODUCE AS THREE NUMBERS — VEGETABLES, FRUIT, AND THE FIBRE THAT FALLS OUT
+   (Jayme 2026-10-29)
+
+   The produce target is still ONE number to hit. What is new is that the system can now show the
+   three numbers underneath it: how much of that produce is vegetables, how much is fruit, and how
+   much fibre the plan therefore produces.
+
+   This does NOT add a fourth thing to track. topics/fiber.md stands: she gets a produce target and
+   fibre is the byproduct. The reason to compute it is so the honest answer is available when she
+   asks — "you are at 31 grams, you just were not counting it" — instead of being a guess.
+
+   THE SPLIT is 60 percent vegetables, 40 percent fruit, which is what the dashboard has been
+   telling members in plain words since September. Phase nudges it: on Lean, vegetables carry more
+   because they are cheaper calorically; on Strong and Reverse, fruit earns more room because carbs
+   are welcome there. A member can set her own grams instead (RECOMMENDED vs CUSTOM).
+
+   THE FIBRE NUMBER is computed from HER OWN FOODS, not from a category average. There is no usable
+   published average for "fruit" versus "vegetables" — water content makes a per-100 g category
+   figure close to meaningless — so every food below carries its own USDA value and the plan sums
+   what she actually eats. Same method as every other number in this engine.
+
+   THE RECOMMENDED INTAKE is 14 g of fibre per 1,000 kcal. That is the basis of the US Adequate
+   Intake (Institute of Medicine, carried into the Dietary Guidelines Appendix E-3.1 Table A4), and
+   it scales with calories exactly the way the produce target already does.
+
+   ON A GLP-1 THIS INVERTS, which the engine already knew for recipes and now knows for the target:
+   produce comes down 20 percent and the split leans toward fruit, because volume is the constraint
+   and high-fibre vegetables fill her up before protein does. Protein still wins. Fibre gives way.
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* g total dietary fibre per 100 g, AS EATEN. USDA FoodData Central, same records as the macros
+   above. Keys are lowercase so recipe ingredient names ("Blueberries") match too. A food absent
+   from this table contributes no fibre rather than a guess. */
+var FIBER_100G={
+  /* protein */
+  'extra-firm tofu':2.0,'tofu':1.2,'seitan':0.6,'edamame':5.2,'plant protein powder':5.0,
+  /* carbs and grains */
+  'oats':10.1,'rolled oats':10.1,'certified gluten-free oats':10.1,'potatoes':2.2,'sweet potato':3.3,
+  'lentils':7.9,'black beans':8.7,'chickpeas':7.6,'green peas':5.5,'peas':5.5,'butternut squash':2.0,
+  'corn':2.0,'pinto beans':9.0,'kidney beans':6.4,'white beans':6.3,'barley':3.8,'popcorn':14.5,
+  'white rice':0.3,'brown rice':1.6,'quinoa':2.8,'sourdough':2.4,'whole-wheat pasta':4.5,
+  'corn tortilla':5.2,'whole-wheat bread':7.0,'english muffin':4.0,'rice cakes':4.2,
+  'cream of rice':0.4,'couscous':1.4,'white pasta':1.8,'bagel':2.3,'flour tortilla':2.3,'granola':7.5,
+  'flour':2.7,'gluten-free flour':2.7,'farro':3.5,'bulgur':4.5,
+  /* fruit */
+  'berries':2.2,'apple':2.4,'green apple':2.4,'raspberries':6.5,'blackberries':5.3,'strawberries':2.0,
+  'blueberries':2.4,'dried blueberries':7.0,'pear':3.1,'orange':2.4,'kiwi':3.0,'grapefruit':1.6,
+  'banana':2.6,'peach':1.5,'peaches':1.5,'cherries':2.1,'pineapple':1.4,'mango':1.6,'cantaloupe':0.9,
+  'watermelon':0.4,'grapes':0.9,'raisins':3.7,'dates':6.7,'plum':1.4,'apricot':2.0,'figs':2.9,
+  /* fats, nuts and extras */
+  'avocado':6.7,'chia seeds':34.4,'ground flaxseed':27.3,'flaxseed':27.3,'hemp seeds':4.0,
+  'walnuts':6.7,'olives':3.2,'almonds':12.5,'almond butter':10.3,'peanut butter':6.0,
+  'sunflower seed butter':9.0,'tahini':9.3,'pumpkin seeds':6.0,'hummus':6.0,'sunflower seeds':8.6,
+  'cashews':3.3,'pistachios':10.6,'pecans':9.6,'dark chocolate':10.9,
+  'unsweetened shredded coconut':16.3,'shredded coconut':16.3,'coconut milk':2.2,'coconut water':0,
+  'unsweetened almond milk':0.3,'unsweetened oat milk':0.8,'cacao nibs':27.0,'cocoa powder':33.2,
+  /* vegetables that turn up as recipe ingredients but are not on the veg pick list */
+  'kale':4.1,'onion':1.7,'red onion':1.7,'green onion':2.6,'garlic':2.1,'bell pepper':1.9,
+  'red bell pepper':2.1,'celery':1.6,'beets':2.0,'eggplant':2.5,'squash':1.1,'leeks':1.8,
+  'artichoke':5.4,'sauerkraut':2.9,'snap peas':2.6,'bok choy':1.0,'arugula':1.6,'romaine':2.1
+};
+/* The 14 pick-list vegetables, per 100 g as eaten. Same USDA records as VEG_G above. */
+var VEG_FIB={broccoli:3.3, spinach:2.2, peppers:1.9, zucchini:1.0, 'green beans':3.2, asparagus:2.0,
+  'salad greens':2.1, cauliflower:2.3, mushrooms:1.0, cucumber:0.5, tomatoes:1.2, cabbage:1.9,
+  'brussels sprouts':2.6, carrots:2.8};
+var VEG_FIB_AVG=2.0;                                  // the list average, for a vegetable off the list
+(function(){ for(var n in VEG_FIB) FIBER_100G[n]=VEG_FIB[n]; })();
+/* Hang the fibre value on the food rows so a caller holding a food does not need the table. */
+(function(){
+  ['protein','carb','fat','fruit'].forEach(function(cat){
+    (FOOD_DB[cat]||[]).forEach(function(f){
+      var v=FIBER_100G[String(f.n).toLowerCase()];
+      f.fib=(v===undefined)?0:v;
+    });
+  });
+})();
+
+var FIBER_PER_1000=14;                                // g per 1,000 kcal — the US Adequate Intake basis
+function fiberTarget(calories){ return Math.round((+calories||0)/1000*FIBER_PER_1000); }
+
+/* Share of the produce target that is FRUIT. The rest is vegetables. */
+var FRUIT_SHARE={"Lean":0.35, "Sustain":0.40, "Long":0.40, "Strong":0.45, "Reverse Diet":0.45};
+
+/* How many GRAMS of food a portion is, whatever unit it prints in. Weighed foods print in grams
+   already; meat and fish print in ounces; a countable food (a banana, an egg) keeps its unit and
+   carries its gram weight on .gpu. */
+function gramsOf(f, units){
+  if(!f) return 0;
+  var u=+units||0;
+  if(f.u==='g')  return u;
+  if(f.u==='oz') return u*28.3495;
+  if(f.gpu)      return u*f.gpu;
+  return 0;
+}
+/* Fibre in one plan part. Parts come in three shapes: a vegetable (grams already), a FOOD_DB food
+   (look it up), or a recipe ingredient (carries gpe, grams per each, from recipeWeigh). */
+function fiberOfPart(p){
+  if(!p) return 0;
+  if(p.veg) return (+p.grams||0)/100*(VEG_FIB[p.n]!==undefined?VEG_FIB[p.n]:VEG_FIB_AVG);
+  var f=(typeof foodByName==='function')?foodByName(p.n):null;
+  if(f && f.fib) return gramsOf(f, p.units)/100*f.fib;
+  var fib=FIBER_100G[String(p.n||'').toLowerCase()];
+  if(fib===undefined || !fib) return 0;
+  var g=p.gpe ? (+p.units||0)*(+p.gpe)
+              : (p.u==='g' ? (+p.units||0) : (p.u==='oz' ? (+p.units||0)*28.3495 : 0));
+  return g/100*fib;
+}
+function fiberOfParts(parts){
+  return (parts||[]).reduce(function(a,p){ return a+fiberOfPart(p); }, 0);
+}
+/* Fibre in a built day (a {meals:[{parts}]} row) and in a whole plan (the average day). */
+function fiberOfDay(day){
+  return Math.round((day&&day.meals||[]).reduce(function(a,m){ return a+fiberOfParts(m.parts); }, 0));
+}
+function fiberOfPlan(plan){
+  var ds=(plan&&plan.days)||[];
+  if(!ds.length) return 0;
+  return Math.round(ds.reduce(function(a,d){ return a+fiberOfDay(d); }, 0)/ds.length);
+}
+
+/* The fibre an average day of a delivered DECK carries: every option in a slot averaged, then the
+   slots summed. This is the number that answers "what is my fibre actually doing", because it is
+   read off the meals she was given rather than off a chart. */
+function fiberOfDeck(deck){
+  var slots=(deck&&deck.slots)||[];
+  if(!slots.length) return 0;
+  var total=0;
+  slots.forEach(function(sl){
+    var opts=sl.options||[];
+    if(!opts.length) return;
+    total += opts.reduce(function(a,o){ return a+fiberOfParts(o.parts); }, 0)/opts.length;
+  });
+  return Math.round(total);
+}
+
+/* The produce target split three ways, plus the fibre it is expected to produce. */
+function produceSplit(calories, track, sel){
+  sel=sel||{};
+  var total=produceTarget(calories, track);
+  var share=FRUIT_SHARE[track]; if(share===undefined) share=0.40;
+  var glp=(typeof glp1On==='function') && glp1On(sel);
+  if(glp){ total=Math.round(total*GLP1.vegFactor/50)*50; share=Math.min(0.6, share+0.10); }
+  var cf=+((sel.produce||{}).fruit)||0, cv=+((sel.produce||{}).veg)||0;
+  var custom=(cf>0 || cv>0), fruit, veg;
+  if(custom){ fruit=Math.round(cf); veg=Math.round(cv); total=fruit+veg; }
+  else { fruit=Math.round(total*share/25)*25; veg=total-fruit; }
+  /* Fibre from the produce alone, using her own picked foods where she has picked some. */
+  var fFib=avgFiber100(((sel.fruit||[]).length?sel.fruit:null), 'fruit');
+  var vFib=avgFiber100(((sel.veg||[]).length?sel.veg:null), 'veg');
+  return {total:total, fruit:fruit, veg:veg, fruitShare:(total?Math.round(fruit/total*100):0),
+          custom:custom, glp1:glp, target:fiberTarget(calories),
+          fiberFruit:Math.round(fruit/100*fFib), fiberVeg:Math.round(veg/100*vFib),
+          fiberProduce:Math.round(fruit/100*fFib + veg/100*vFib),
+          per100:{fruit:Math.round(fFib*10)/10, veg:Math.round(vFib*10)/10}};
+}
+/* Average fibre per 100 g across a set of foods: her picks when she has made them, else the
+   whole list. This is why the number is hers and not a category average off a chart. */
+function avgFiber100(names, kind){
+  var vals=[];
+  if(kind==='veg'){
+    var vl=(names&&names.length)?names:(FOOD_DB.veg||[]);
+    vl.forEach(function(n){ var v=VEG_FIB[n]; vals.push(v===undefined?VEG_FIB_AVG:v); });
+  } else {
+    var fl=FOOD_DB.fruit||[];
+    fl.forEach(function(f){
+      if(names && names.length && names.indexOf(f.n)<0) return;
+      vals.push(f.fib||0);
+    });
+  }
+  if(!vals.length) return kind==='veg'?VEG_FIB_AVG:2.6;
+  return vals.reduce(function(a,b){ return a+b; },0)/vals.length;
+}
 
 
 
@@ -850,6 +1024,10 @@ function recipeCandidates(slotKind, sel, k, used, slotName, seed){
       if(wantVeg   && (x.r.v||0)<1) return false;
       return true;
     })
+    /* EQUIPMENT GATE: never offer a recipe she has no way to cook. */
+    .filter(function(x){ return equipOk(x.r, sel.appliances); })
+    /* The eleven allergens the tag system never covered, matched on ingredient wording. */
+    .filter(function(x){ return ingAllergensOk(x.r, AL); })
     .filter(function(x){ return !picks.length || fams.indexOf(proteinFamily(x.r.lead))>=0; })   // only proteins she eats
     .filter(function(x){ var rx=dislikeRx(sel.dislikes);
       return !rx || !(x.r.ing||[]).some(function(g){ return g[4]!=='ps' && rx.test(String(g[2])); }); })
@@ -1150,6 +1328,22 @@ var MEAL_SPLIT=[
   [{pro:.27,e:.24},{pro:.25,e:.26},{pro:.30,e:.34},{pro:.18,e:.16}],
   [{pro:.22,e:.20},{pro:.20,e:.21},{pro:.26,e:.29},{pro:.16,e:.15},{pro:.16,e:.15}]
 ];
+/* CUSTOM MEAL SPLIT (Jayme 2026-10-29). The automatic split above is the default and it is
+   deliberately back-weighted, because that is how people actually eat. A member who already runs
+   her own shape (a small breakfast and a big dinner, the Kinobody pattern, a skipped breakfast)
+   can set the percentages herself and the plan is built to them instead.
+   Her percentages drive PROTEIN as well as calories: the floor is a daily number, not a per-meal
+   one, so a 70 percent dinner carries 70 percent of the protein and the floor still lands. */
+function mealSplitPct(m, pct){
+  var base=MEAL_SPLIT[Math.min(m,5)-1]||MEAL_SPLIT[2];
+  if(!pct || !pct.length) return base;
+  var p=[], i;
+  for(i=0;i<m;i++) p.push(Math.max(0, +pct[i]||0));
+  var sum=p.reduce(function(a,b){ return a+b; }, 0);
+  if(sum<=0) return base;
+  return p.map(function(x){ var sh=x/sum; return {pro:sh, e:sh}; });
+}
+
 /* Fruit is its own pick list (sel.fruit) but it is eaten as a carb, so the builders see one carb list. */
 function withFruit(sel){
   sel=sel||{};
@@ -1170,8 +1364,14 @@ function generateMealPlan(it, sel, days, name){
      week and the plan rebuilds at the lower number, so portions come down with it. Protein NEVER
      moves (macrosFrom holds it and pulls the cut from carbs + fat). Applies in every phase.
      The choice persists so a fresh "build my plan" defaults to what they last chose. */
-  var freedom=null;
-  if(+sel.freeMeals){
+  /* FLEX CALORIES, two modes (Jayme 2026-10-29). FREE MEALS is the default and works as above.
+     CALORIE BANKING is the advanced option: it does not move the ordinary day at all, it
+     redistributes the WEEK around it, so the plan is still built on the base day and the banked
+     days are reported alongside it. */
+  var freedom=null, bank=null;
+  if(/^bank/.test(String(sel.flexMode||'').toLowerCase())){
+    bank=bankingPlan(it.pfs, sel.banking||{}, it.sex||sel.sex||'');
+  } else if(+sel.freeMeals){
     freedom=freedomPlan(it.pfs, +sel.freeMeals, it.sex||sel.sex||'');
     p=freedom.pfs;                                  // protein unchanged; carbs/fat carry the cut
   }
@@ -1203,7 +1403,7 @@ function generateMealPlan(it, sel, days, name){
   var V=(sel.veg&&sel.veg.length)?sel.veg:FOOD_DB.veg;
   if(DIS){ var vkeep=V.filter(function(v){ return dislikesOk(DIS, v.n||v); }); if(vkeep.length) V=vkeep; }
   var names=S.names;
-  var split=MEAL_SPLIT[Math.min(m,5)-1]||MEAL_SPLIT[2];
+  var split=mealSplitPct(m, sel.mealPct);
   var out=[];
   /* 4-2-1 framework builds a real day-typed WEEK (7 days) from the schedule; meals lead with
      protein + fruit + veggies, then carbs/fat fill the rest. Macro Freedom keeps the flat build. */
@@ -1230,11 +1430,14 @@ function generateMealPlan(it, sel, days, name){
                   fat:Math.round(dp.fat*s.e)};
       /* Same meal builder as the /build deck (buildOption), so the dashboard's "Build my meal plan"
          gets the same accuracy fixes instead of a second, older copy of the fill logic. */
-      var o=buildOption(P, C, F, V, target, slot, seed, d*m+k, null,
+      var o=buildOption(P, C, F, V, target, slot, seed, d*m+k, abundanceTier(sel),
                         sel.starred||{}, {protein:sel.protein, carb:sel.carb, fat:sel.fat});
-      var mItems=o.items, mCal=o.cal, mCarbs=o.carbs;
-      if(fr){ mItems=o.items.concat([fr.item]); mCal=(o.cal||0)+fr.cal; mCarbs=(o.carbs||0)+fr.carbs; }
-      meals.push({name:names[k]||("Meal "+(k+1)), items:mItems,
+      var mItems=o.items, mCal=o.cal, mCarbs=o.carbs, mParts=(o.parts||[]).slice();
+      if(fr){ mItems=o.items.concat([fr.item]); mCal=(o.cal||0)+fr.cal; mCarbs=(o.carbs||0)+fr.carbs;
+              if(fr.part) mParts.push(fr.part); }
+      /* parts were dropped here before 2026-10-29, which left this path with nothing structured to
+         read: no fibre sum, and nothing to hand a shopping or prep list. */
+      meals.push({name:names[k]||("Meal "+(k+1)), items:mItems, parts:mParts,
         cal:mCal, protein:o.protein, carbs:mCarbs, fat:o.fat});
     }
     /* The shake is its own slot, always last, so its protein is never double-counted. */
@@ -1247,8 +1450,18 @@ function generateMealPlan(it, sel, days, name){
     out.push({day:d+1,label:dlabel,type:dtype,meals:meals});
   }
   var nm=name?(String(name).split(' ')[0]+"'s"):"Your";
+  /* The three produce numbers and the fibre that falls out of them, reported not prescribed. */
+  var psplit=produceSplit(it.pfs.calories, it.track||sel.phase||'Lean', sel);
+  var fibActual=fiberOfPlan({days:out});
   return {title:nm+" meal plan", frequency:S.frequency, label:S.label,
     note:"Built from your favorites. Swap any food and regenerate anytime.", days:out,
+    banking: bank,
+    abundance: abundanceMode(sel),
+    mealPct: (sel.mealPct && sel.mealPct.length) ? sel.mealPct.slice(0, m) : null,
+    appliances: (sel.appliances && sel.appliances.length) ? sel.appliances.slice() : null,
+    produce: psplit,
+    fiber: {perDay:fibActual, target:psplit.target, fromProduce:psplit.fiberProduce,
+            fromRest:Math.max(0, fibActual-psplit.fiberProduce), meets:fibActual>=psplit.target},
     freeMeals: freedom?freedom.freeMeals:(+sel.freeMeals?+sel.freeMeals:0),
     framework: (sel.framework==='421'?'421':'macro'),
     schedule: SCHED,
@@ -1547,7 +1760,7 @@ function generateMealOptions(it, sel, name){
   function glpPool(pool){ if(!GLP) return pool; var easy=pool.filter(function(f){ return LATER.indexOf(f.n)<0; }); return easy.length>=2 ? easy : pool; }
   if(GLP){ V=V.map(function(v){ return v.n||v; }); var easy=V.filter(function(n){ return GLP1.vegLater.indexOf(n)<0; });
     V=glp1Order(easy.length>=2 ? easy : V, GLP1.vegFirst, GLP1.vegLater); V.scale=GLP1.vegFactor; }
-  var split=MEAL_SPLIT[Math.min(S.meals,5)-1]||MEAL_SPLIT[2];
+  var split=mealSplitPct(S.meals, sel.mealPct);
   var n=sel.optionsPerSlot||OPTIONS_PER_SLOT;
 
   var usedRecipes={};
@@ -1673,7 +1886,7 @@ function generateMealOptions(it, sel, name){
        option first, then what it costs you to reach past it. */
     for(var tier=1; tier<=3 && options.length<n; tier++){
       for(var seed=0; seed<12 && options.length<n; seed++){
-        var opt=buildOption(P,C,F,V,target,slot,seed,k+options.length,tier,star,chose);
+        var opt=buildOption(P,C,F,V,target,slot,seed,k+options.length,(abundanceTier(sel)||tier),star,chose);
         if(slot==='am' && (opt.parts||[]).some(function(x){ return /protein powder|yogurt|cottage/.test(x.n); })){
           /* A shake or yogurt breakfast does not get a handful of broccoli on the side. */
           var vegItems=(opt.parts||[]).filter(function(x){ return x.veg; }).map(function(x){ return x.grams+' g '+x.n; });
@@ -1858,7 +2071,15 @@ var RM_ALLERGEN_BLOCK={
   egg:       /\b(eggs?\b|omelet|mayo|mayonnaise|aioli|hollandaise|meringue|custard)\b/i,
   soy:       /\b(soy|tofu|edamame|teriyaki|miso|tempeh)\b/i,
   shellfish: /\b(shrimp|prawn|crab|lobster|scallop|clam|mussel|oyster|crawfish|calamari)\b/i,
-  fish:      /\b(fish|salmon|tuna|cod|tilapia|anchov|halibut|haddock|pollock|filet[\s-]*o)\b/i
+  fish:      /\b(fish|salmon|tuna|cod|tilapia|anchov|halibut|haddock|pollock|filet[\s-]*o)\b/i,
+  coconut:   /\b(coconuts?|coco ?nut)\b/i,
+  sesame:    /\b(sesame|tahini|hummus|za'?atar)\b/i,
+  corn:      /\b(corn|cornmeal|polenta|grits|hominy|masa|tortilla chips?|corn tortillas?|popcorn|elote)\b/i,
+  mustard:   /\b(mustard|dijon|honey mustard)\b/i,
+  celery:    /\b(celery|celeriac)\b/i,
+  allium:    /\b(onions?|shallots?|scallions?|garlic|leeks?|chives?|green onions?)\b/i,
+  nightshade:/\b(tomato(es)?|potato(es)?|eggplants?|bell peppers?|peppers?|paprika|cayenne|chil(i|e|li)(es|s)?|jalape|poblano|chipotle|salsa|marinara|ketchup)\b/i,
+  mollusk:   /\b(clams?|mussels?|oysters?|scallops?|squid|calamari|octopus)\b/i
 };
 RM_ALLERGEN_BLOCK['wheat']=RM_ALLERGEN_BLOCK.gluten;
 RM_ALLERGEN_BLOCK['tree nut']=RM_ALLERGEN_BLOCK.nut;
@@ -2951,4 +3172,213 @@ function weeklySets(experience, days, fatLoss){
   var perSession=Math.round(programmed/d);
   return {experience:key, days:d, range:[lo,hi], target:target, groups:groups, programmed:programmed,
           perSession:perSession, split:SPLIT_BY_DAYS[d], rir:fatLoss?'2 to 3':'1 to 3', heavySession:perSession>24};
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   EQUIPMENT — WHAT SHE ACTUALLY COOKS WITH (Jayme 2026-10-29)
+
+   A recipe she cannot physically make is worse than no recipe. "How much time do you have to cook"
+   was already asked; what was never asked is what she has to cook WITH. A hotel room, a dorm, a
+   kitchen mid-renovation, or a member who simply does not own a blender all broke the same way:
+   the plan looked fine and a third of it was unmakeable.
+
+   Requirements are read off the recipe's own method text, which is why this works across the whole
+   library without re-tagging 1,467 recipes. A requirement is satisfied by a sensible substitute:
+   an air fryer stands in for an oven, the broiler or a pan stands in for a grill, an Instant Pot
+   stands in for a slow cooker or a sauté. A blender has no substitute and does not get a fake one.
+
+   An EMPTY or ABSENT list means no restriction. Nothing changes for an existing member.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var APPLIANCES=[
+  {k:'stovetop',   label:'Stovetop'},
+  {k:'oven',       label:'Oven'},
+  {k:'microwave',  label:'Microwave'},
+  {k:'airfryer',   label:'Air fryer'},
+  {k:'slowcooker', label:'Slow cooker'},
+  {k:'blender',    label:'Blender or food processor'},
+  {k:'grill',      label:'Grill or griddle'},
+  {k:'instantpot', label:'Instant Pot or pressure cooker'}
+];
+/* What the method text has to say for a recipe to need each appliance. */
+var EQUIP_RX={
+  oven:       /\boven\b|\bbake[ds]?\b|\bbaking\b|baking sheet|baking dish|\broast(ed|ing)?\b|\bbroil/i,
+  stovetop:   /\bskillet\b|\bsaucepan\b|\bsauce pan\b|\bfrying pan\b|\bnon-?stick pan\b|\bstock ?pot\b|\blarge pot\b|\bmedium pot\b|\bsaut[eé]|\bsimmer|\bboil|\bsear\b|\bpan-?fry|\bstove/i,
+  microwave:  /\bmicrowave/i,
+  blender:    /\bblender\b|\bblend\b|\bblending\b|food processor|immersion blender|\bpur[eé]e/i,
+  slowcooker: /\bslow cooker\b|\bcrock ?-?pot\b/i,
+  instantpot: /\binstant ?pot\b|pressure cook/i,
+  airfryer:   /\bair ?-?fry/i,
+  grill:      /\bgrill\b|\bgrilled\b|\bgriddle\b|\bbarbecue\b/i
+};
+/* A requirement is met if she owns ANY of these. */
+var EQUIP_SUBS={
+  oven:       ['oven','airfryer'],
+  airfryer:   ['airfryer','oven'],
+  grill:      ['grill','stovetop','oven'],
+  stovetop:   ['stovetop','instantpot'],
+  slowcooker: ['slowcooker','instantpot'],
+  instantpot: ['instantpot','stovetop'],
+  microwave:  ['microwave'],
+  blender:    ['blender']
+};
+/* The appliances this recipe needs, cached on the row. A no-cook recipe needs nothing. */
+function recipeEquip(r){
+  if(!r) return [];
+  if(r._eq) return r._eq;
+  var need=[];
+  if(!r.nocook){
+    var txt=String(r.how||'');
+    for(var k in EQUIP_RX){ if(EQUIP_RX[k].test(txt)) need.push(k); }
+    /* A recipe that clearly cooks but names no vessel still needs a stovetop. */
+    if(!need.length && /\bcook|\bheat\b|\bwarm\b/i.test(txt)) need.push('stovetop');
+  }
+  r._eq=need;
+  return need;
+}
+function equipOk(r, have){
+  var h=(have&&have.length)?have:null;
+  if(!h) return true;                                       // nothing declared -> no restriction
+  var need=recipeEquip(r);
+  for(var i=0;i<need.length;i++){
+    var subs=EQUIP_SUBS[need[i]]||[need[i]];
+    var met=false;
+    for(var j=0;j<subs.length;j++){ if(h.indexOf(subs[j])>=0){ met=true; break; } }
+    if(!met) return false;
+  }
+  return true;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ALLERGENS THE TAG SYSTEM NEVER COVERED (Jayme 2026-10-29)
+
+   The intake offers nineteen allergy pills. The recipe tag system covers eight of them (dairy,
+   egg, fish, shellfish, tree nut, peanut, gluten, soy). Everything else she checked was removed
+   from her FOOD_DB food lists and then walked straight back in through a recipe, because recipes
+   were only ever filtered on those eight tags.
+
+   Coconut was the one Jayme named. It is the same silent failure for all eleven, so they are all
+   matched here on ingredient wording, the same way the restaurant builder matches allergens on
+   dish wording. Honest limits: this reads names, so an allergen hidden inside a compound
+   ingredient can still slip. The severe-allergy free-text field stays the real backstop.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var ING_ALLERGEN_RX={
+  coconut:    /\bcoconuts?\b|\bcoco ?nut\b/i,
+  mollusk:    /\b(clams?|mussels?|oysters?|scallops?|squid|calamari|octopus|snails?|escargot)\b/i,
+  nightshade: /\b(tomato(es)?|tomatillos?|potato(es)?|eggplants?|aubergine|bell peppers?|peppers?|paprika|cayenne|chil(i|e|li)(es|s)?|jalape|poblano|serrano|habanero|chipotle|salsa|marinara|ketchup|goji)\b/i,
+  allium:     /\b(onions?|shallots?|scallions?|garlic|leeks?|chives?|green onions?)\b/i,
+  sulfite:    /\b(wine|dried apricots?|raisins?|dried fruit|molasses|balsamic|sauerkraut|pickled)\b/i,
+  mustard:    /\bmustard\b|\bdijon\b/i,
+  celery:     /\bcelery\b|\bceleriac\b/i,
+  lupin:      /\blupin(e)?\b/i,
+  histamine:  /\b(aged cheese|parmesan|blue cheese|sauerkraut|kimchi|kombucha|vinegar|balsamic|wine|cured|salami|pepperoni|prosciutto|smoked|canned (tuna|sardines|anchov)|anchov|spinach|eggplant|avocado)\b/i,
+  corn:       /\b(corn|cornmeal|corn ?starch|polenta|grits|hominy|masa|tortilla chips?|corn tortillas?|popcorn|corn syrup)\b/i,
+  sesame:     /\b(sesame|tahini|hummus|za'?atar|halva)\b/i
+};
+ING_ALLERGEN_RX['wheat']=undefined; delete ING_ALLERGEN_RX['wheat'];   // gluten already has a tag
+/* True when a recipe's ingredients are clear of the allergens the tag system does not cover.
+   Seasonings (section 'ps') are checked too: paprika matters to a nightshade allergy. */
+function ingAllergensOk(r, allergies){
+  var al=allergies||[]; if(!al.length) return true;
+  var rxs=[];
+  for(var i=0;i<al.length;i++){
+    var key=String(al[i]||'').toLowerCase().replace(/\s*(free|intolerant|allergy)\s*$/,'').trim();
+    if(ING_ALLERGEN_RX[key]) rxs.push(ING_ALLERGEN_RX[key]);
+  }
+  if(!rxs.length) return true;
+  var hay=String(r.name||'')+' '+(r.ing||[]).map(function(g){ return g[2]; }).join(' ');
+  for(var j=0;j<rxs.length;j++){ if(rxs[j].test(hay)) return false; }
+  return true;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   ABUNDANCE — THE TIER LADDER, SAID OUT LOUD (Jayme 2026-10-29)
+
+   The engine has always built on tier 1, which IS "most food for the calories". It was a rule
+   inside the code and a badge on a card, never a choice the member could see or make. Now it is
+   a switch with two honest settings and no hidden default:
+
+     ABUNDANCE (the default)  tier 1 leads. Leaner, higher-volume foods, so the portions are big.
+                              You eat more food for the same number.
+     RICHER                   all three tiers compete equally. Butter, cheese, granola, fattier
+                              cuts. The food is richer and the portions get smaller for it.
+
+   Neither one is better and neither one changes the calories. It is the same number spent two
+   different ways, and that trade is exactly what the free Power Food List teaches.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var ABUNDANCE={
+  abundance:{label:'Most food for the calories', sub:'Leaner foods, bigger portions. The default.', tier:null},
+  rich:     {label:'Richer foods, smaller portions', sub:'All three tiers compete. Less food on the plate for the same number.', tier:3}
+};
+function abundanceMode(sel){
+  var v=String((sel||{}).abundance||'').toLowerCase();
+  return (v==='rich'||v==='richer'||v==='rich foods') ? 'rich' : 'abundance';
+}
+function abundanceTier(sel){ return ABUNDANCE[abundanceMode(sel)].tier; }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   FLEX CALORIES — FREE MEALS (simple) or CALORIE BANKING (advanced)
+   (Jayme 2026-10-29)
+
+   Two ways to hold room for the food that is not on the plan. Same idea, different unit.
+
+   FREE MEALS is the simple one and stays the default. The unit is the MEAL. Two are built into the
+   Lean number; each extra one costs 100 calories a day that week. Nothing to calculate.
+
+   CALORIE BANKING is the advanced one. The unit is the WEEK. She shaves a set number of calories
+   off a set number of ordinary days and spends the total on one planned day or one planned meal.
+   Same weekly total either way, which is the only number that has to be true.
+
+   Banking asks for more than free meals do: she has to decide it in advance, and she has to
+   actually hold the shaved days. That is why it is the advanced option and not the default. Done
+   right it is more flexible than a free meal, because a bank can cover a whole day.
+
+   PROTEIN NEVER MOVES, on any day, in either mode. The bank is built out of carbs and fat only.
+   THE FLOOR STILL HOLDS: no shaved day may fall under 1,200 calories for a woman or 1,500 for a
+   man. If the bank she asked for would break the floor, the shave comes down until it does not.
+   ═══════════════════════════════════════════════════════════════════════════ */
+var BANKING={
+  shave:[50,100,150,200],        // calories a day she may hold back
+  shaveDefault:100,
+  daysMin:2, daysMax:6, daysDefault:4,
+  spend:['day','meal'],          // what the bank is for
+  floorF:1200, floorM:1500       // Maintenance First floors, unchanged
+};
+function bankFloor(sex){ return /^m/i.test(String(sex||'')) ? BANKING.floorM : BANKING.floorF; }
+/* The banked week. Returns the shaved ordinary day, the big day, and the rules. */
+function bankingPlan(pfs, opts, sex){
+  opts=opts||{};
+  var base=Math.round(+pfs.calories||0), pro=Math.round(+pfs.protein||0);
+  var days=Math.max(BANKING.daysMin, Math.min(BANKING.daysMax, Math.round(+opts.days||BANKING.daysDefault)));
+  var want=Math.max(0, Math.round(+opts.shave||BANKING.shaveDefault));
+  var floor=bankFloor(sex);
+  /* Hold the floor: shave only as far as the floor allows, then say so. */
+  var room=Math.max(0, base-floor);
+  var shave=Math.min(want, room);
+  var clipped=shave<want;
+  var bank=shave*days;
+  var low=macrosFrom(base-shave, pro, sex);
+  var big=macrosFrom(base+bank, pro, sex);
+  var normal=macrosFrom(base, pro, sex);
+  return {mode:'banking', base:base, shave:shave, days:days, bank:bank, clipped:clipped,
+          wanted:want, floor:floor, spend:(opts.spend==='meal'?'meal':'day'),
+          low:low, big:big, normal:normal,
+          normalDays:Math.max(0, 7-days-1), bigDays:1,
+          weekly:base*7,
+          rules:['The week is the unit, not the day. Your weekly total does not change.',
+                 'Protein holds every day. The bank is built out of carbs and fat only.',
+                 'Decide it on Sunday. A bank you work out afterwards is just a deficit you are calling a plan.',
+                 'A banked day is still a tracked day. '+(opts.spend==='meal'?'The meal gets logged.':'The big day gets logged.'),
+                 'Spend what you banked, not what you hoped you banked. If you overspend, pay it back inside the same week, never the next one.',
+                 'No day goes under '+floor+' calories, whatever the bank says.']};
+}
+/* One call for either mode, so callers do not branch on it. */
+function flexPlan(pfs, sel, sex){
+  sel=sel||{};
+  var mode=String(sel.flexMode||'').toLowerCase();
+  if(mode==='banking' || mode==='bank') return bankingPlan(pfs, sel.banking||{}, sex);
+  var fm=+sel.freeMeals||0;
+  if(!fm) return null;
+  var f=freedomPlan(pfs, fm, sex);
+  f.mode='meals';
+  return f;
 }

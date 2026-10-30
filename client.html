@@ -1871,7 +1871,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=74"></script>
+<script src="nutrition-engine.js?v=75"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -4073,7 +4073,15 @@ function stdProtein(it){ var f=readFloor(it);
 function stdTrack(){ return {p:2, t:"Log everything you eat", w:"Every day, honestly, no editing. You can't adjust a number you've never looked at."}; }
 function stdEatTarget(it){ return {p:2, t:"Eat your target — "+((it.pfs&&it.pfs.calories)||"your number")+" calories", w:"Hitting it on the low days matters more than the high ones."}; }
 function stdMealTimes(){ return {p:2, t:"Eat at your three set times", w:"Same times every day, even the strange ones. Structure first, numbers after."}; }
-function stdProduce(){ var it=M.intake, g=(it&&it.pfs)?produceTarget(it.pfs.calories,it.track):null; return {p:2, t:(g?g+"g of fruit & veg":"500g of fruit & veg per 1,000 cal"), w:"Volume, fibre, and fullness — it does more work than any supplement you could buy."}; }
+function stdProduce(){
+  var it=M.intake;
+  var ps=(it&&it.pfs&&typeof produceSplit==='function')?produceSplit(it.pfs.calories,it.track,it):null;
+  var g=(it&&it.pfs)?produceTarget(it.pfs.calories,it.track):null;
+  return {p:2,
+    t:(ps ? ps.veg+"g veg + "+ps.fruit+"g fruit" : (g?g+"g of fruit & veg":"500g of fruit & veg per 1,000 cal")),
+    w:"Volume, fibre, and fullness — it does more work than any supplement you could buy."
+      +(ps?" That is about "+ps.fiberProduce+"g of fibre before anything else on your plate, against a recommended "+ps.target+"g.":"")};
+}
 function stdSteps(cur){ var target = /5,000–7,500/.test(cur||"") ? "8,000" : "7,500";  // unknown → the entry target
   return {p:3, t:"Walk "+target+" steps", w:"Not a workout. Just movement your body counts, spread through the day."}; }
 function stdResistance(n){ return {p:4, t:n+" resistance sessions this week", w:"Muscle is the organ of longevity. This is the one that protects everything else."}; }
@@ -4780,7 +4788,13 @@ var FDN_NUMBERS=[
   {k:'track',   label:'Log your weekly averages (calories + protein)', auto:'avgs'},
   {k:'floor',   label:'Hit your protein floor', gate:'protein'},
   {k:'target',  label:'Know your target & deficit', auto:'intake'},
-  {k:'produce', labelFn:function(){ var it=M.intake; return (it&&it.pfs)?(produceTarget(it.pfs.calories,it.track)+'g fruit & veg, daily'):'Fruit & veg — 500g per 1,000 cal'; }}
+  {k:'produce', labelFn:function(){
+    var it=M.intake;
+    if(!(it&&it.pfs)) return 'Fruit & veg — 500g per 1,000 cal';
+    var ps=(typeof produceSplit==='function')?produceSplit(it.pfs.calories,it.track,it):null;
+    return ps ? (ps.veg+'g veg + '+ps.fruit+'g fruit, daily')
+              : (produceTarget(it.pfs.calories,it.track)+'g fruit & veg, daily');
+  }}
 ];
 var FDN_STANDARDS=[   // the 8 Pillars, run as Daily Standards
   {k:'p_protein',    label:'Protein — anchor every meal'},
@@ -5066,7 +5080,13 @@ function nutritionHTML(it){
       +'<div class="macro"><div class="mn">'+p.protein+'g</div><div class="ml">Protein</div></div>'
       +'<div class="macro"><div class="mn">'+p.carbs+'g</div><div class="ml">Carbs</div></div>'
       +'<div class="macro"><div class="mn">'+p.fat+'g</div><div class="ml">Fat</div></div></div>'
-    +'<p class="wiz-hint" style="margin:2px 0 0">Protein is the anchor and never moves. Aim ~'+produceTarget(p.calories,it.track)+'g produce a day (about 60% veg, 40% fruit) and about half your bodyweight in ounces of water.</p>'
+    /* The 60/40 used to be typed into this sentence. It comes off produceSplit now, so the copy
+       cannot drift away from what the engine actually builds. */
+    +'<p class="wiz-hint" style="margin:2px 0 0">Protein is the anchor and never moves. '
+      +(function(){ var ps=(typeof produceSplit==='function')?produceSplit(p.calories,it.track,it):null;
+          return ps ? 'Aim ~'+ps.veg+'g vegetables and ~'+ps.fruit+'g fruit a day'
+                    : 'Aim ~'+produceTarget(p.calories,it.track)+'g produce a day'; })()
+      +' and about half your bodyweight in ounces of water.</p>'
     +'<div class="lp-sub">How to build every meal</div>'
     +'<div class="lp-steps"><div><b>1.</b> Protein first — start the plate with it.</div>'
       +'<div><b>2.</b> Add a smart carb (a fist).</div>'
@@ -5913,6 +5933,11 @@ function doGenerate(){
   sel.shake={on:shakeOn, protein:shakeP||'', cal:shakeC||''};
   sel.frequency=String(meals)+(shakeOn?' + shake':'');
   if(shakeOn){ sel.shakeGrams=shakeP||30; sel.shakeCal=shakeC||150; }
+  /* Carry the shape answers from the intake so a rebuild does not quietly reset the equipment,
+     the custom split, the tier trade or the produce grams back to the defaults. */
+  ['appliances','mealPct','abundance','produce','flexMode','banking','freeMeals','glp1'].forEach(function(k){
+    if(sel[k]===undefined && M.intake && M.intake[k]!==undefined) sel[k]=M.intake[k];
+  });
   saveFoods(sel);
   var plan=generateMealPlan(M.intake, sel, 3, (ID&&ID.name)||"");
   M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
