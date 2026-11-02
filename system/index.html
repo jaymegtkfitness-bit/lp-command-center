@@ -522,11 +522,25 @@ function build(){
           : 'That covers your fiber and micronutrients. Vegetables are unlimited.') +
         (IN.weight ? ' Drink about ' + Math.round(+IN.weight/2) + ' oz of water a day, sipped through the day.' : '') +
         '</p></div>' +
-      /* No <b> inside the paragraph: in this tile <b> is the heading and renders as a block. */
-      (PS ? '<div class="tile pr"><b>Your fiber is already handled</b><p>You are not being asked to count it. ' +
-        (FIB ? 'This plan comes to about ' + FIB + 'g of fiber a day' : 'Your produce alone is about ' + PS.fiberProduce + 'g of fiber') +
-        ', against a recommended ' + PS.target + 'g for your calories. ' +
-        'Hit the produce and the fiber lands on its own, which is one less number on your list.</p></div>' : '') +
+      /* No <b> inside the paragraph: in this tile <b> is the heading and renders as a block.
+         The copy BRANCHES, because at a low calorie number there is simply less food and the plan
+         can land under the recommendation. Saying "it lands on its own" to a member whose own
+         number is below it would be the document contradicting itself on the same line. */
+      (PS ? (function(){
+        var meals = FIB || PS.fiberProduce;
+        var clears = meals >= PS.target;
+        return '<div class="tile pr"><b>' + (clears ? 'Your fiber is already handled' : 'Where your fiber sits') + '</b><p>' +
+          'You are not being asked to count it. ' +
+          (FIB ? 'Your meals carry about ' + FIB + 'g of fiber a day' : 'Your produce alone is about ' + PS.fiberProduce + 'g') +
+          ', against a recommended ' + PS.target + 'g for your calories. ' +
+          (clears
+            ? 'You clear it without counting a thing, which is exactly why fiber is not on your list of numbers. Hit the produce and it takes care of itself.'
+            : 'That is a little under, and the reason is simply that ' + DAILY.calories.toLocaleString() +
+              ' calories is less food. The lever is produce, not a supplement: hit your ' + PS.veg +
+              'g of vegetables and ' + PS.fruit + 'g of fruit, and lean to the tier 1 picks in your food lists, which are the highest-fiber ones. ' +
+              'Close the gap with food and it stays one less number to track.') +
+          '</p></div>';
+      })() : '') +
       '<div class="tile pr"><b>Carbs and fats, done for you</b><p>Every option is already balanced. All you do is stick to the portions.</p></div>' +
       '<div class="tile pr"><b>Swap anything, any time</b><p>Every option in a meal hits the same numbers, so any option works on any day. Use the swap guide for single foods.</p></div>' +
     '</div>' +
