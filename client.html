@@ -220,6 +220,23 @@
 .aw-node.n-right{right:2px;top:50%;transform:translateY(-50%)}
 .aw-legend{font-size:12px;color:var(--ink-soft);text-align:center;line-height:1.5;margin-top:6px}
 .mp-meal:first-child{border-top:none}
+/* --- saved recipes --- */
+.rc-tabs{display:flex;gap:8px;margin:0 0 12px;flex-wrap:wrap}
+.rc-list{display:grid;gap:10px}
+.rc{border:1px solid var(--line);border-radius:12px;padding:12px 14px;background:var(--surface-2)}
+.rc-h{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.rc-h b{font:800 14.5px/1.25 'Montserrat',sans-serif;color:var(--headline)}
+.rc-slot{font:700 9.5px/1 'Montserrat',sans-serif;letter-spacing:.14em;text-transform:uppercase;color:var(--touch);display:block;margin-bottom:4px}
+.rc-m{font-size:11.5px;color:var(--touch);font-weight:600;margin-top:5px}
+.rc-save{flex:0 0 auto;border:1px solid var(--line);background:none;border-radius:999px;width:34px;height:34px;cursor:pointer;font-size:15px;line-height:1;color:var(--muted)}
+.rc-save.on{border-color:var(--gold);color:var(--gold);background:rgba(193,173,114,.12)}
+.rc-ing{margin:8px 0 0;padding-left:17px}
+.rc-ing li{font-size:13px;line-height:1.5;color:var(--ink-soft)}
+.rc-act{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.rc-act .btn{padding:7px 14px;font-size:12px;flex:0 0 auto;width:auto;display:inline-block}
+.rc-more{background:none;border:none;color:var(--gold);font:600 12px/1 'Montserrat',sans-serif;cursor:pointer;padding:6px 0;margin-top:6px}
+.rc-how{margin:8px 0 0;padding-left:17px}
+.rc-how li{font-size:12.5px;line-height:1.55;color:var(--ink-soft);margin-bottom:3px}
 .mp-meal-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap}
 .mp-meal-h b{font-size:14.5px;color:var(--headline)}
 .mp-macros{font-size:11.5px;color:var(--touch);font-weight:600;white-space:nowrap}
@@ -1632,6 +1649,13 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
         <div id="mealPlanBox"></div>
       </div>
 
+      <!-- Saved recipes (Jayme 2026-11-02): the real library recipes with methods, savable,
+           downloadable one at a time, and loggable to Cronometer. -->
+      <div class="card" id="recipesCard" style="display:none">
+        <div class="sec-h"><h2>Your Recipes</h2></div>
+        <div id="recipesBox"></div>
+      </div>
+
       <div class="card" id="swapCard" style="display:none">
         <div class="sec-h"><h2>Your Swap Guide</h2></div>
         <div id="swapBox"></div>
@@ -1872,6 +1896,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
 <script src="nutrition-engine.js?v=75"></script>
+<script src="recipe-card.js?v=2"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
 /* =================== CONFIG — EDIT THIS BLOCK ===================
@@ -2023,7 +2048,7 @@ function showClientTab(tab){
   /* Lazy render: build each tab's content only when it's opened (keeps the initial
      Home paint fast). Nutrition's heavy meal-plan generation runs once per session. */
   if(tab==="coach"){ renderCoach(); renderProgressHero(); }
-  else if(tab==="nutrition"){ if(!window._nutRendered){ renderNutritionHero(); renderMealPlan(); renderSwaps(); window._nutRendered=true; } renderEatingOutTeaser(); }
+  else if(tab==="nutrition"){ if(!window._nutRendered){ renderNutritionHero(); renderMealPlan(); renderRecipes(); renderSwaps(); window._nutRendered=true; } renderEatingOutTeaser(); }
   else if(tab==="wellness"){ renderWellnessTiles(); renderSupplements(); renderBloodwork(); }
   else if(tab==="workouts") renderWorkouts();
   window.scrollTo(0,0);
@@ -2663,7 +2688,7 @@ function mergeVault(b64){
       if(window._nutRendered){                                   // already rendered on 36 → refresh with the full pool
         window._nutRendered=false;
         var np=g("ctab-nutrition");
-        if(np && !np.classList.contains("hidden")){ try{ renderNutritionHero(); renderMealPlan(); renderSwaps(); window._nutRendered=true; }catch(e){} }
+        if(np && !np.classList.contains("hidden")){ try{ renderNutritionHero(); renderMealPlan(); renderRecipes(); renderSwaps(); window._nutRendered=true; }catch(e){} }
       }
     }
   }).catch(function(){});
@@ -2793,6 +2818,12 @@ function buildModel(server){
   var ldeep=loadLS(LS_DEEP,"null");
   M.deep = sdeep || ldeep || {};
   if(sdeep) saveLS(LS_DEEP, sdeep);   // keep the device copy in step so resume works offline
+  /* Saved recipes: one JSON blob on the same Intake row. Server wins, then the device copy is
+     brought into step. Absent column (handler not deployed yet) just leaves the device copy. */
+  try{
+    var ssav = sin && sin['Saved recipes'] ? JSON.parse(sin['Saved recipes']) : null;
+    if(ssav && ssav.keys) saveLS(LS_SAVED, ssav);
+  }catch(e){}
   // ---- meal plan (Complete Nutrition System — coach-built, pushed as type:mealplan) ----
   var smp=(server&&server.mealplan&&server.mealplan.length)?server.mealplan[server.mealplan.length-1]:null;
   if(smp){ try{ var pj=JSON.parse(smp['Plan']||'{}');
@@ -5361,14 +5392,42 @@ function mealRecipeHTML(o){
   var steps=mealMethod(o).map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('');
   var macro=[]; if(o.protein)macro.push(o.protein+'g protein'); if(o.cal)macro.push(o.cal+' cal');
   if(o.carbs!=null)macro.push(o.carbs+'g carbs'); if(o.fat!=null)macro.push(o.fat+'g fat');
+  /* Save / download / Cronometer live HERE, on the recipe she is already looking at, rather than
+     in a separate place she has to go and find. */
+  var k=(typeof rcKey==='function') ? rcKey(o, o.slot||'', 1) : '';
+  var on=(typeof rcIsSaved==='function') && k && rcIsSaved(k);
+  var acts=k ? '<div class="rc-act">'
+      +'<button class="btn '+(on?'btn-primary':'btn-ghost')+'" onclick="rcToggleFrom(this,\''+k+'\')">'+(on?'★ Saved':'☆ Save')+'</button>'
+      +'<button class="btn btn-ghost" onclick="rcDownload(\''+k+'\')">⬇ Download</button>'
+      +'<button class="btn btn-ghost" onclick="rcCron(\''+k+'\')">Log in Cronometer</button>'
+    +'</div>' : '';
   return '<div class="mrh">Ingredients</div><ul class="mrl">'+ing+'</ul>'
     +'<div class="mrh">Method</div><ol class="mrs">'+steps+'</ol>'
-    +(macro.length?'<div class="mrmac">'+esc(macro.join('  ·  '))+'</div>':'');
+    +(macro.length?'<div class="mrmac">'+esc(macro.join('  ·  '))+'</div>':'')
+    +acts;
+}
+/* The hero's options are not always in the generated deck, so the snapshot is taken from the
+   option object this button was rendered from, found back through its own row. */
+var RC_FROM={};
+function rcRegister(k, opt, slot, idx){ RC_FROM[k]={opt:opt, slot:slot, idx:idx}; }
+function rcToggleFrom(btn, k){
+  var f=RC_FROM[k];
+  rcToggle(k, f&&f.opt, f&&f.slot, f&&f.idx);
+  var on=rcIsSaved(k);
+  btn.textContent=on?'★ Saved':'☆ Save';
+  btn.className='btn '+(on?'btn-primary':'btn-ghost');
 }
 function toggleRecipe(mi,oi){
   var b=g('mrec'+mi+'_'+oi), c=g('mrchev'+mi+'_'+oi); if(!b)return;
   var open=b.style.display==='none';
   b.style.display=open?'block':'none'; if(c)c.textContent=open?'⌄':'›';
+}
+/* Tag an option with the slot it came from and register it, so the Save button on its recipe
+   view can snapshot the real thing. */
+function oWithSlot(o, slot, idx){
+  o.slot=o.slot||slot;
+  if(typeof rcKey==='function' && typeof rcRegister==='function') rcRegister(rcKey(o, slot, idx), o, slot, idx);
+  return o;
 }
 function nutMealRow(m,mi){
   var opts=(m&&m.options)||[];
@@ -5388,7 +5447,7 @@ function nutMealRow(m,mi){
     body+='<div class="mopt'+(oi===0?' star':'')+'"><div class="mn">'+esc(o.name||('Option '+(oi+1)))+'</div>'
       +'<div class="mi">'+esc((o.items||[]).join(' · '))+'</div><div class="mm">'+om+'</div>'
       +'<div class="mrecipe-btn" onclick="toggleRecipe('+mi+','+oi+')"><span>View recipe</span><span class="mrec-chev" id="mrchev'+mi+'_'+oi+'">›</span></div>'
-      +'<div class="mrecipe" id="mrec'+mi+'_'+oi+'" style="display:none">'+mealRecipeHTML(o)+'</div></div>';
+      +'<div class="mrecipe" id="mrec'+mi+'_'+oi+'" style="display:none">'+mealRecipeHTML(oWithSlot(o, slot, oi+1))+'</div></div>';
   });
   body+='</div>';
   return head+body;
@@ -5939,6 +5998,7 @@ function doGenerate(){
     if(sel[k]===undefined && M.intake && M.intake[k]!==undefined) sel[k]=M.intake[k];
   });
   saveFoods(sel);
+  RC_DECK=null;                       // her foods changed, so the recipe deck has to be rebuilt
   var plan=generateMealPlan(M.intake, sel, 3, (ID&&ID.name)||"");
   M.mealplan=plan; try{ localStorage.setItem(LS_MEALPLAN, JSON.stringify(plan)); }catch(e){}
   if(CONFIG.writeUrl && ID && ID.email) postToSheet({type:"mealplan", email:ID.email, title:plan.title, plan:plan});
@@ -6083,8 +6143,9 @@ function ffBuild(){
 }
 /* Her whole Complete Nutrition System as one document she can rebuild and download any time:
    meals, shopping lists, prep guides, swap guide and restaurant orders (system/index.html). */
-function openMySystem(){
-  try{ localStorage.setItem('lp_system_built', String(Date.now())); }catch(e){}
+/* ONE input object for everything built from her record: the system PDF, and the recipe deck in
+   the app. They used to be able to disagree because only openMySystem() knew how to assemble it. */
+function clientSystemInput(){
   var it=M.intake||{}, p=it.pfs||{}, f=loadFoods(), c=(M.cnsintake&&M.cnsintake.length)?M.cnsintake[M.cnsintake.length-1]:{};
   var list=function(v){ return Array.isArray(v)?v:String(v||'').split(',').map(function(x){return x.trim();}).filter(Boolean); };
   var alias={"Panera":"Panera Bread","Outback":"Outback Steakhouse","Tropical Smoothie":"Tropical Smoothie Cafe","Moe's":"Moe's Southwest Grill","Sonic":"Sonic Drive-In","In-N-Out":"In-N-Out Burger"};
@@ -6096,7 +6157,143 @@ function openMySystem(){
     restaurants:list(c['Restaurants']).map(function(r){ return alias[r]||r; })};
   inp.lowNutrients=(typeof flaggedNutrients==='function') ? flaggedNutrients(c) : [];
   inp.glp1=(typeof glp1FromIntake==='function') ? (glp1FromIntake(c) || glp1FromIntake(it) || ((typeof DEEP!=='undefined' && DEEP && DEEP.glp1==='On one now') ? 'on' : '')) : '';
-  openInAppPage(systemLink(inp,'system/'),'Your Nutrition System');
+  /* The shape answers, so the app's deck matches the document she was sent. */
+  inp.appliances=it.appliances||null; inp.mealPct=it.mealPct||null;
+  inp.abundance=it.abundance||'abundance'; inp.produce=it.produce||null;
+  inp.strict=!!(it.strict||c['Strict']);
+  return inp;
+}
+function openMySystem(){
+  try{ localStorage.setItem('lp_system_built', String(Date.now())); }catch(e){}
+  openInAppPage(systemLink(clientSystemInput(),'system/'),'Your Nutrition System');
+}
+
+/* ===================== YOUR RECIPES =====================
+   The same deck the system document is built from, in the app, one card per option. She can save
+   the ones she likes, download any of them as the printable sheet, and send one to Cronometer.
+
+   Saves live on the device immediately AND go to her Intake row when the doorway has the handler,
+   so a save follows her to a new phone. The device copy is the one that renders, so the feature
+   never waits on a network call. */
+var LS_SAVED="lp_client_saved";
+var RC_DECK=null, RC_VIEW='all', RC_OPEN={};
+function rcDeck(){
+  if(RC_DECK) return RC_DECK;
+  if(typeof generateMealOptions!=='function') return null;
+  var it=M.intake; if(!it||!it.pfs) return null;
+  var inp=clientSystemInput();
+  try{
+    RC_DECK=generateMealOptions({pfs:{calories:inp.cal, protein:inp.pro, carbs:inp.carbG, fat:inp.fatG}},
+      {protein:inp.protein, carb:inp.carb, fruit:inp.fruit, fat:inp.fat, veg:inp.veg,
+       style:inp.style, allergies:inp.allergies, dislikes:inp.dislikes, glp1:inp.glp1,
+       strict:inp.strict, appliances:inp.appliances, mealPct:inp.mealPct,
+       abundance:inp.abundance, produce:inp.produce,
+       frequency:inp.freq, shakeGrams:inp.shake},
+      inp.name);
+  }catch(e){ RC_DECK=null; }
+  return RC_DECK;
+}
+/* Every option in the deck, flattened, each with a stable key. */
+function rcAll(){
+  var d=rcDeck(); if(!d) return [];
+  var out=[];
+  (d.slots||[]).filter(function(sl){ return !/shake/i.test(sl.name); }).forEach(function(sl){
+    (sl.options||[]).forEach(function(o,i){ out.push({slot:sl.name, idx:i+1, opt:o, key:rcKey(o, sl.name, i+1)}); });
+  });
+  (d.companions||[]).forEach(function(c,i){ out.push({slot:'Snack', idx:0, opt:c, key:rcKey(c,'Snack',i+1)}); });
+  return out;
+}
+/* A recipe keeps its library id. A built meal has none, so it is keyed by slot and name. */
+function rcKey(o, slot, idx){
+  if(o && o.recipe && o.recipe.id) return 'r:'+o.recipe.id;
+  return 'm:'+String(slot||'').toLowerCase()+':'+String(o&&o.name||('option '+idx)).toLowerCase().replace(/[^a-z0-9]+/g,'-');
+}
+function rcSaved(){ var v=loadLS(LS_SAVED,"null"); return (v&&typeof v==='object'&&v.keys)?v:{keys:[],at:{},items:{}}; }
+function rcIsSaved(k){ return rcSaved().keys.indexOf(k)>=0; }
+/* A save stores a SNAPSHOT of the recipe, not just a pointer. Her plan gets rebuilt and the deck
+   reshuffles; a recipe she kept should not vanish with it. */
+function rcSnapshot(opt, slot, idx){
+  return {name:opt.name||'', slot:slot||'', idx:idx||0, items:(opt.items||[]).slice(),
+          parts:(opt.parts||[]).slice(), cal:Math.round(opt.cal||0), protein:Math.round(opt.protein||0),
+          carbs:Math.round(opt.carbs||0), fat:Math.round(opt.fat||0), nocook:!!opt.nocook,
+          recipe:opt.recipe?{id:opt.recipe.id, how:opt.recipe.how}:null};
+}
+function rcToggle(k, opt, slot, idx){
+  var sv=rcSaved(), i=sv.keys.indexOf(k);
+  sv.items=sv.items||{};
+  if(i>=0){ sv.keys.splice(i,1); delete sv.at[k]; delete sv.items[k]; }
+  else {
+    sv.keys.push(k); sv.at[k]=Date.now();
+    var row=opt?null:rcFind(k);
+    sv.items[k]=rcSnapshot(opt||(row&&row.opt)||{}, slot||(row&&row.slot)||'', idx||(row&&row.idx)||0);
+  }
+  saveLS(LS_SAVED, sv);
+  /* Server copy is best-effort: the device copy is what renders, so a failed write costs nothing. */
+  if(ID && ID.email) postToSheet({type:"savedrecipes", email:ID.email, ts:new Date().toISOString(),
+    saved:JSON.stringify(sv)});
+  renderRecipes();
+  if(typeof renderNutritionHero==='function' && g('nutHeroBox')){ try{ renderNutritionHero(); }catch(e){} }
+}
+function rcView(v){ RC_VIEW=v; renderRecipes(); }
+function rcToggleHow(k){ RC_OPEN[k]=!RC_OPEN[k]; renderRecipes(); }
+function rcFind(k){
+  var all=rcAll(); for(var i=0;i<all.length;i++) if(all[i].key===k) return all[i];
+  var sv=rcSaved(), it=(sv.items||{})[k];                 // fall back to the snapshot she kept
+  return it ? {slot:it.slot, idx:it.idx, opt:it, key:k} : null;
+}
+function rcCardOpts(row){
+  var inp=clientSystemInput();
+  return {slot:row.slot, idx:row.idx, first:(inp.name||'').split(' ')[0]||'', footerName:inp.name||'',
+          shopInfo:(typeof SHOP_INFO!=='undefined')?SHOP_INFO:{}, forScreen:true,
+          mealLink:(typeof mealLink==='function')?mealLink(row.opt):''};
+}
+/* Download one recipe as the printable Legacy sheet. Open it and print to PDF for a paper copy. */
+function rcDownload(k){
+  var row=rcFind(k); if(!row || typeof LP_RECIPE_CARD==='undefined') return;
+  var html=LP_RECIPE_CARD.html(row.opt, rcCardOpts(row));
+  var name=(LP_RECIPE_CARD.slug(row.opt.name||row.slot)||'recipe')+'.html';
+  var blob=new Blob([html],{type:'text/html'});
+  var a=document.createElement('a');
+  a.href=URL.createObjectURL(blob); a.download=name;
+  document.body.appendChild(a); a.click();
+  setTimeout(function(){ URL.revokeObjectURL(a.href); a.remove(); }, 2000);
+}
+function rcCron(k){
+  var row=rcFind(k); if(!row || typeof mealLink!=='function') return;
+  openInAppPage(mealLink(row.opt), row.opt.name||'Log it in Cronometer');
+}
+function rcRowHTML(row){
+  var o=row.opt, k=row.key, on=rcIsSaved(k);
+  var macros=[Math.round(o.cal||0)+' cal', Math.round(o.protein||0)+'g P',
+              Math.round(o.carbs||0)+'g C', Math.round(o.fat||0)+'g F'].join(' · ');
+  var sideRx=/^on the side:\s*/i;
+  var ing=(o.items||[]).map(function(x){
+    return '<li>'+esc(x.replace(sideRx,''))+(sideRx.test(x)?' <span style="color:var(--touch)">on the side</span>':'')+'</li>'; }).join('');
+  var how=(typeof LP_RECIPE_CARD!=='undefined') ? LP_RECIPE_CARD.steps(o, (typeof SHOP_INFO!=='undefined')?SHOP_INFO:{}) : [];
+  var open=!!RC_OPEN[k];
+  return '<div class="rc">'
+    +'<div class="rc-h"><div><span class="rc-slot">'+esc(row.slot)+(row.idx?' · option '+row.idx:'')+(o.nocook?' · no cooking':'')+'</span>'
+      +'<b>'+esc(o.name||row.slot)+'</b><div class="rc-m">'+esc(macros)+'</div></div>'
+      +'<button class="rc-save'+(on?' on':'')+'" onclick="rcToggle(\''+k+'\')" aria-pressed="'+(on?'true':'false')+'" title="'+(on?'Saved':'Save this recipe')+'">'+(on?'★':'☆')+'</button></div>'
+    +'<ul class="rc-ing">'+ing+'</ul>'
+    +(how.length?'<button class="rc-more" onclick="rcToggleHow(\''+k+'\')">'+(open?'Hide the method':'How to make it')+'</button>':'')
+    +(open&&how.length?'<ol class="rc-how">'+how.map(function(x){return '<li>'+esc(x)+'</li>';}).join('')+'</ol>':'')
+    +'<div class="rc-act">'
+      +'<button class="btn btn-ghost" onclick="rcDownload(\''+k+'\')">⬇ Download</button>'
+      +'<button class="btn btn-ghost" onclick="rcCron(\''+k+'\')">Log in Cronometer</button>'
+    +'</div></div>';
+}
+/* Her saved recipes, and only those. The full deck is already in the hero above, so listing it
+   again here would be the same twelve cards twice. This is the keep pile. */
+function renderRecipes(){
+  var card=g("recipesCard"), box=g("recipesBox"); if(!card) return;
+  if(!hasCNS()){ card.style.display="none"; return; }
+  var sv=rcSaved();
+  if(!sv.keys.length){ card.style.display="none"; return; }   // empty keep pile shows nothing
+  card.style.display="";
+  var rows=sv.keys.map(function(k){ return rcFind(k); }).filter(Boolean);
+  box.innerHTML='<p class="wiz-hint" style="margin:0 0 10px">The ones you kept. Download any of them as a sheet to print or keep on your phone, or send one straight to Cronometer. They stay here even after your plan is rebuilt.</p>'
+    +'<div class="rc-list">'+rows.map(rcRowHTML).join('')+'</div>';
 }
 /* The PDF is the product. It gets its own card on Home so it is never more than one tap away, and
    so a slow or failed load never hides it. */
