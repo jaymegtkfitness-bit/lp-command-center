@@ -2033,12 +2033,12 @@ function showClientTab(tab){
    a program yet get the getting-started view. Jayme's account carries the Min-Max program. */
 function assignedProgram(){
   if(ID && ID.email && ID.email.toLowerCase()===(typeof JAYME_EMAIL!=='undefined'?JAYME_EMAIL:"")){
-    // Local dev auto-loads from the (gitignored) private file; the deployed site uses the
-    // content-free mine/ loader (program rides in the private link, cached to the device).
+    // Jayme's program now lives in the Programs sheet like any member (lp_prog_data), so the
+    // Home/Workouts summary is derived from it and stays correct whenever the program changes.
+    var mp=memberProgram();
+    if(mp) return mp;
     var isLocal=/^(localhost$|127\.|192\.168\.|10\.|\[?::1)/.test(location.hostname);
-    var src=isLocal ? "workout/private/?embed=1" : "workout/mine/?embed=1";
-    return { name:"2× Full Body", src:src, pct:0, weeks:1,
-      days:[{t:"Full Body A",mins:55,ex:8},{t:"Full Body B",mins:50,ex:7}] };
+    return { name:"My Training", src:(isLocal?"workout/private/?embed=1":"workout/mine/?embed=1"), pct:0, weeks:1, days:[] };
   }
   return memberProgram();
 }
