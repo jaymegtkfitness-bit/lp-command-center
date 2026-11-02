@@ -98,20 +98,9 @@ ${body}</div>
 
 /* ---- recipe sheets: one per meal option, plus the snacks ---- */
 const COOK = ctx.SHOP_INFO || {};
-function steps(opt) {
-  if (opt.recipe && opt.recipe.how)
-    return String(opt.recipe.how).split(/(?<=\.)\s+/).filter(Boolean);
-  /* A built meal has no written method, so the steps come from how each food is cooked. */
-  const out = [], seen = {};
-  (opt.parts || []).forEach(pt => {
-    const info = COOK[pt.n];
-    if (info && info.cook && !seen[info.cook]) { seen[info.cook] = 1; out.push(cap(pt.n) + ': ' + info.cook); }
-  });
-  const veg = (opt.parts || []).filter(p => p.veg).map(p => p.n);
-  if (veg.length) out.push('Vegetables (' + veg.join(', ') + '): raw, steamed, or roasted at 425°F for 15 to 20 minutes.');
-  out.push('Plate it together and weigh anything you are unsure of.');
-  return out;
-}
+/* The card template is shared with the client app (recipe-card.js), so the sheet in her Drive
+   folder and the one she downloads in the app cannot drift apart. */
+const CARD = require(path.join(DASH, 'recipe-card.js'));
 const cap = s => String(s || '').charAt(0).toUpperCase() + String(s || '').slice(1);
 const slug = s => String(s).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48);
 
@@ -122,28 +111,12 @@ deck.slots.filter(s => !/shake/i.test(s.name)).forEach(sl => {
 (deck.companions || []).forEach(c => cards.push({ slot: 'Snack', idx: 0, opt: c, target: null }));
 
 cards.forEach((card, n) => {
-  const o = card.opt, sideRx = /^on the side:\s*/i;
-  const ing = (o.items || []).map(x => sideRx.test(x)
-    ? `<li><b>${esc(x.replace(sideRx, ''))}</b> <span class="side">on the side</span></li>`
-    : `<li><b>${esc(x)}</b></li>`).join('');
-  const body = `
-  <span class="label">${esc(card.slot)}${card.idx ? ' &middot; option ' + card.idx : ''}${o.nocook ? ' &middot; no cooking' : ''}</span>
-  <h1>${esc(o.name || (card.slot + ' option ' + card.idx))}</h1>
-  <p class="lede">Portioned for ${esc(first)}. Every option in this meal hits the same numbers, so this one can be eaten on any day.</p>
-  <div class="nums">
-    <div class="num"><b>${Math.round(o.cal)}</b><span>Calories</span></div>
-    <div class="num"><b>${Math.round(o.protein)}g</b><span>Protein</span></div>
-    <div class="num"><b>${Math.round(o.carbs)}g</b><span>Carbs</span></div>
-    <div class="num"><b>${Math.round(o.fat)}g</b><span>Fat</span></div>
-  </div>
-  <h2>What goes in it</h2>
-  <ul class="ing">${ing}</ul>
-  <h2>How to make it</h2>
-  <ol>${steps(o).map(s => '<li>' + esc(s) + '</li>').join('')}</ol>
-  <div class="tile"><b>Weigh it, at least at first</b><p>The numbers on this sheet are only true at these portions. Weigh the protein and the carb until you can call them by eye, and keep the vegetables generous.</p></div>
-  ${typeof ctx.mealLink === 'function' ? `<p class="note">Track it in one tap: <a href="${esc(ctx.mealLink(o))}">Log this meal in Cronometer</a></p>` : ''}`;
+  const o = card.opt;
+  const page = CARD.html(o, { slot: card.slot, idx: card.idx, first: first, shield: shield,
+    footerName: inp.name || '', shopInfo: COOK,
+    mealLink: (typeof ctx.mealLink === 'function') ? ctx.mealLink(o) : '' });
   const file = 'recipe-' + String(n + 1).padStart(2, '0') + '-' + slug(o.name || (card.slot + '-' + card.idx)) + '.html';
-  fs.writeFileSync(path.join(htmlDir, file), shell(o.name || card.slot, body));
+  fs.writeFileSync(path.join(htmlDir, file), page);
   /* The filename carries the real meal name and its slot, so two slots that land on the same
      no-cook plate do not overwrite each other in the client's folder. */
   manifest.push({ file: file, n: n + 1, slot: card.slot, title: (o.name || (card.slot + ' option ' + card.idx)) });
