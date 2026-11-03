@@ -1,5 +1,5 @@
 /* =================== THE LINKS — EDIT THIS BLOCK =================== */
-/* One place for every link on the Built 4 More post-purchase page.
+/* One place for every link on the Built 4 More onboarding guide.
    Mirrors install-welcome/links.js on purpose, so the two pages can never drift.
    The ENTRY INTAKE is not a link here. It lives inside the app (client.html obStart: tour,
    basics, the Read), and the deeper intake lives in each tab. Do not add a link to
