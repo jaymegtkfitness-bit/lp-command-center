@@ -1959,7 +1959,7 @@ function checkinForm(c){
   const cons=["Under 60%","60–70%","70–85%","85–95%","95–100%"].map(x=>`<button type="button" class="ci-chip" data-v="${x}" onclick="pickChip(this)">${x}</button>`).join("");
   return `<div class="ci-form" id="ciForm" style="display:none">
     <div class="ci-field"><label>This week's average weight (lb)</label>
-      <input type="number" inputmode="decimal" id="ci_weight" class="ci-input" placeholder="read it off Everfit, e.g. 211.4"></div>
+      <input type="number" inputmode="decimal" id="ci_weight" class="ci-input" placeholder="e.g. 211.4"></div>
     <div class="ci-block"><div class="ci-blocklabel">Rate each 1–5 · 1 rough, 5 great</div>${markers.map(m=>scaleRow(m[0],m[1])).join("")}</div>
     <div class="ci-field"><label>Food quality (1–10)</label><div class="scl-btns wide" id="scl-food" data-val="">${food}</div></div>
     <div class="ci-field"><label>How much of your plan did you actually hit this week?</label><div class="ci-chips" id="ci_cons" data-val="">${cons}</div></div>
@@ -3593,7 +3593,7 @@ function renderIntegrations(){
      ${row(w?"ok":"wait","Write doorway (Apps Script)", w?"Connected · saves check-ins, PRs, notes to your sheet":"Not wired yet")}
      ${row("wait","Google Sheets — Revenue", "Add a Revenue tab to light up the Revenue view")}
      ${row("off","GoHighLevel", "Planned — leads + payments → sheet via Zapier")}
-     ${row("off","Everfit", "Dashboard embeds inside Everfit; data is entered here, not pulled from Everfit")}`;
+     ${row("off","Everfit", "RETIRED 2026-11-04 — workouts moved into the Legacy app. Cancel the subscription by 30 Nov")}`;
 }
 
 /* ============================ ORCHESTRATION ============================ */

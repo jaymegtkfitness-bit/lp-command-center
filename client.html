@@ -536,7 +536,7 @@ ol.stds li::before{content:counter(std);position:absolute;left:0;top:0;width:21p
 .std-t{font-size:14.5px;font-weight:600;color:var(--headline);line-height:1.35}
 .std-p{font-size:10px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;color:var(--muted);margin-top:2px}
 .std-w{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:4px}
-/* ---- daily-driver Standards card (Everfit task deep-links to #standards) ---- */
+/* ---- daily-driver Standards card (deep-link target: ?k=…#standards) ---- */
 .fdn-wk{background:var(--touch-soft);border-radius:9px;padding:9px 12px;margin:-2px 0 11px}
 .fdn-wk b{display:block;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--headline)}
 .fdn-wk span{display:block;font-size:12.5px;color:var(--ink-soft);margin-top:2px;line-height:1.45}
@@ -1185,6 +1185,40 @@ header .brand.cb-lock{flex-direction:column!important;align-items:center;justify
 .cb-lock .cb-power .cb-pb{font-size:.42rem;letter-spacing:.18em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;white-space:nowrap}
 header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 </style>
+<style id="gb-report">
+/* Genetic Blueprint report (geneticsReportHtml). Montserrat everywhere, Cinzel only on the eyebrow. */
+.gb-hero{background:linear-gradient(160deg,rgba(74,92,62,.35),rgba(193,173,114,.10));border:1px solid var(--line);border-radius:16px;padding:18px 16px 16px;margin:2px 0 6px}
+.gb-eye{font-family:'Cinzel',serif;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.gb-name{font-family:'Montserrat',sans-serif;font-weight:900;font-size:24px;line-height:1.1;text-transform:uppercase;color:var(--headline);margin-top:6px}
+.gb-line{color:var(--ink-soft);font-size:14px;line-height:1.5;margin-top:8px}
+.gb-chip{display:inline-block;margin-top:12px;padding:5px 11px;border-radius:999px;background:var(--accent-soft);color:var(--accent);font-size:12px;font-weight:700;letter-spacing:.03em}
+.gb-h{font-family:'Montserrat',sans-serif;font-weight:800;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:20px 0 8px}
+.gb-short{margin:0;padding-left:18px;color:var(--ink);font-size:14px;line-height:1.55}
+.gb-short li{margin-bottom:6px}
+.gb-cat{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);margin-bottom:8px;overflow:hidden}
+.gb-ch{display:flex;align-items:center;gap:10px;padding:12px 14px;cursor:pointer}
+.gb-ct{flex:1;font-weight:700;color:var(--headline);font-size:14.5px}
+.gb-cv{color:var(--muted);transition:transform .2s;font-size:18px}
+.gb-cat.open .gb-cv{transform:rotate(90deg)}
+.gb-tag{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.gb-tag.pri{background:var(--accent-soft);color:var(--accent)}
+.gb-tag.exp{background:var(--good-bg);color:var(--good-tx)}
+.gb-cb{display:none;padding:0 14px 14px}
+.gb-cat.open .gb-cb{display:block}
+.gb-cb p{margin:0 0 4px;color:var(--ink);font-size:14px;line-height:1.55}
+.gb-sub{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:10px 0 4px}
+.gb-genes{margin-top:10px;font-size:11px;color:var(--muted);letter-spacing:.04em}
+.gb-li{display:flex;flex-direction:column;gap:2px;padding:10px 0;border-bottom:1px solid var(--line)}
+.gb-li b{color:var(--headline);font-size:14px}
+.gb-li span{color:var(--ink-soft);font-size:13px;line-height:1.45}
+.gb-li .gb-rec{display:inline-block;margin-left:6px;padding:2px 7px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;vertical-align:2px}
+.gb-nut{margin-top:10px;display:grid;gap:8px}
+.gb-nr{background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:10px 12px;display:flex;flex-direction:column;gap:4px}
+.gb-nr b{color:var(--headline);font-size:13.5px}
+.gb-nr span{color:var(--ink-soft);font-size:13px;line-height:1.45}
+.gb-nr .gb-add{color:var(--good-tx);font-weight:600}
+.gb-fine{margin:18px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted)}
+</style>
 </head>
 <body>
 <div class="appbg"></div>
@@ -1327,11 +1361,13 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
         <div class="lg-card">
           <div class="field"><label>Email</label>
             <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
+          <div class="field" id="lgPwField" style="display:none"><label>Password</label>
+            <input class="input" id="ob_pw" type="password" placeholder="Your password" autocomplete="current-password" /></div>
           <button class="btn btn-primary lg-fullbtn" id="obBtn" onclick="magicLinkRequest()">Send magic link</button>
           <div class="status" id="obStatus"></div>
           <div class="lg-alt">
-            <button class="lg-altlink" onclick="pwSoon()">Use password instead</button>
-            <button class="lg-altlink" onclick="pwSoon()">Forgot / set password?</button>
+            <button class="lg-altlink" id="lgPwToggle" onclick="togglePwMode()">Use a password instead</button>
+            <button class="lg-altlink" onclick="sbResetPassword()">Forgot / set password?</button>
           </div>
         </div>
         <div class="lg-foot2">The Legacy Performance Project</div>
@@ -1535,10 +1571,10 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
           <div class="lk">Your progress and weight trends over time</div>
           <div class="lk">Your Awareness Loop — your whole body at a glance</div>
           <div class="lk">Your coach's eyes on every check-in</div>
-          <div class="lk">The Everfit app and Cronometer, connected</div>
+          <div class="lk">Your workouts and Cronometer, connected</div>
         </div>
         <a class="btn btn-primary" id="liteUpgradeBtn" href="#" target="_blank" rel="noopener" style="margin-top:12px">Join the membership →</a>
-        <p class="empty" style="margin:12px 0 0;font-size:12.5px">Want it all built for you? The <b>Legacy Performance OS Install</b> sets up your entire system — genetics, nutrition, training — done for you. Ask about it on your call.</p>
+        <p class="empty" style="margin:12px 0 0;font-size:12.5px">Want it all built for you? The <b>Legacy Install</b> sets up your entire system — genetics, nutrition, training — done for you. Ask about it on your call.</p>
       </div>
 
       <!-- One-time DOB backfill (existing members without a DOB on file — so the identity gate works for them later) -->
@@ -1558,7 +1594,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
         <div id="journeyBox"></div>
       </div>
 
-      <!-- Daily Standards — the daily-driver card. Everfit's daily task deep-links to #standards,
+      <!-- Daily Standards — the daily-driver card. Reminders deep-link to #standards,
            so tapping the task lands them here on their three non-negotiables. Sits at the very top
            because it's the thing they open the dashboard for every single day. -->
       <div class="card" id="stdCard" style="display:none"><div id="stdBox"></div></div>
@@ -1593,12 +1629,6 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
         <a class="btn btn-primary" id="bookCallLink" href="#" target="_blank" rel="noopener">Book my call →</a>
       </div>
 
-
-      <!-- Genetic Blueprint (shows once purchased) -->
-      <div class="card" id="geneticsCard" style="display:none">
-        <div class="sec-h"><h2>Genetic Blueprint</h2></div>
-        <div id="geneticsBox"></div>
-      </div>
 
       <!-- Guides & library -->
       <div class="card" id="libraryCard">
@@ -1746,6 +1776,12 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
         <div id="bloodBox"></div>
       </div>
 
+      <!-- Genetic Blueprint (opened from the Wellness tile; the full report once results are in) -->
+      <div class="card" id="geneticsCard" style="display:none">
+        <div class="sec-h"><h2>Genetic Blueprint</h2></div>
+        <div id="geneticsBox"></div>
+      </div>
+
       <!-- Dosing calculator -->
       <div class="card" id="doseCard">
         <div class="sec-h"><h2>Dosing calculator</h2></div>
@@ -1776,7 +1812,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
     <h1>How did this week go?</h1>
     <p class="sub">Be honest — this is the data your coach uses to adjust your plan. Only weight and consistency are required.</p>
     <div class="card">
-      <div class="field"><label>This week's average weight (lb) <span class="hint">— read it off Everfit</span></label>
+      <div class="field"><label>This week's average weight (lb) <span class="hint">your weekly average</span></label>
         <input class="input" type="number" inputmode="decimal" id="ci_weight" placeholder="e.g. 211.4" /></div>
       <div class="block"><div class="blocklabel">This week's daily averages <span class="hint" style="text-transform:none;letter-spacing:0">— from your tracker</span></div>
         <div class="field"><label>Average calories / day</label>
@@ -1895,7 +1931,7 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 <!-- restaurant-data.js (280KB) is LAZY-LOADED on demand (only when the eating-out card renders),
      so it no longer blocks the initial load. See ensureRestaurantData(). -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=75"></script>
+<script src="nutrition-engine.js?v=76"></script>
 <script src="recipe-card.js?v=2"></script>
 <script src="fb-workouts.js?v=2"></script><!-- Fit Body bootcamp weeks (gitignored; prod serves current week via doorway) -->
 <script>
@@ -1920,13 +1956,11 @@ var CONFIG = {
   onboardCallUrl: "https://api.leadconnectorhq.com/widget/booking/OqTfr9WIrNoJVSrG3rfR",  // roadmap-call GHL form + booking (qualifier Qs + "interested in coaching?" live in this form)
   skoolAppUrl: "https://apps.apple.com/us/app/skool-communities/id6447270545",  // Skool app (iOS)
   skoolAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.skool.skoolcommunities",  // Skool app (Android)
-  everfitAppUrl: "https://apps.apple.com/us/app/everfit-train-smart/id1438926364",  // Everfit app (iOS)
-  everfitAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.everfit",  // Everfit app (Android)
   cronoAppUrl: "https://apps.apple.com/us/app/cronometer-calorie-counter/id1145935738",  // Cronometer (iOS) — premium tracker (upgrade/cohort/coaching)
   cronoAppUrlAndroid: "https://play.google.com/store/apps/details?id=com.cronometer.android.gold",  // Cronometer (Android)
   paidCallUrl: "https://calendly.com/jayme-calendar/new-meeting",  // Built to Last ($97) PAID 1:1 session (temporary link — swap for the GHL paid-session link). "" hides for community.
   geneticsBuyUrl: "https://dashboard.legacyperformance.co/genetic-blueprint.html",  // Genetic Blueprint SALES PAGE (has both checkout links). "" hides the buy card.
-  geneticsPrice: "$997"   // Blueprint Bundle price (CNS + Genetic Blueprint). Genetics is bundle-only now; no standalone. Ladder: CNS $497 · Bundle $997; credits toward Built for More.
+  geneticsPrice: "$997"   // Legacy Install price (CNS + Genetic Blueprint). Genetics is bundle-only now; no standalone. Ladder: CNS $497 · Bundle $997; credits toward Built for More.
 };
 /* =============== END CONFIG (stop editing here) =============== */
 
@@ -2126,15 +2160,12 @@ function openInAppPage(url, title){
   return false;
 }
 function closeInAppPage(){ var ov=g("pageOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("pageOverlayFrame"); if(fr) fr.src="about:blank"; }
-/* In-app target editor. A saved override sets it.pfs.calories/protein and persists (re-applied on
-   every render); Reset clears it and recomputes from the coefficient scale. */
+/* RETIRED 2026-11-04. 'lp_target_override' was a SECOND, device-only target system with no
+   'by' field and no sync, applied on top of the real one at render time. The real system is
+   LS_TARGETS / postToSheet({type:"targets", by:...}) — server-authoritative, coach-aware.
+   Kept as a purge so returning devices shed the stale key instead of silently running it. */
 function applyTargetOverride(){
-  try{ var o=JSON.parse(localStorage.getItem('lp_target_override')||'null');
-    if(o && M && M.intake && M.intake.pfs){
-      if(isFinite(+o.cal)&&+o.cal>0) M.intake.pfs.calories=+o.cal;
-      if(isFinite(+o.pro)&&+o.pro>0) M.intake.pfs.protein=+o.pro;
-    }
-  }catch(e){}
+  try{ localStorage.removeItem('lp_target_override'); }catch(e){}
 }
 /* ===== EDIT GOAL — Kino-style: change goal or stats, targets recompute from the coefficient scale.
    Outcome labels map to LP phases; estimateGoalWeight() gives the recommended weight. ===== */
@@ -2221,18 +2252,9 @@ function egApply(){
 }
 function closeTargetEditor(){ var m=g('targetEditor'); if(m)m.classList.remove('open'); document.body.style.overflow=''; }
 function reRenderTargets(){ if(typeof renderHomeHero==='function') renderHomeHero(); window._nutRendered=false; if(typeof renderNutritionHero==='function') renderNutritionHero(); }
-function saveTarget(){
-  var cal=+(g('teCal')&&g('teCal').value), pro=+(g('tePro')&&g('tePro').value);
-  if(!isFinite(cal)||cal<=0||!isFinite(pro)||pro<=0) return;
-  try{ localStorage.setItem('lp_target_override', JSON.stringify({cal:Math.round(cal),pro:Math.round(pro),ts:Date.now()})); }catch(e){}
-  applyTargetOverride(); closeTargetEditor(); reRenderTargets();
-}
-function resetTarget(){
-  try{ localStorage.removeItem('lp_target_override'); }catch(e){}
-  var it=M&&M.intake;
-  if(it && typeof computePFS==='function'){ try{ it.pfs=computePFS(it, it.track); }catch(e){} }
-  closeTargetEditor(); reRenderTargets();
-}
+/* saveTarget() / resetTarget() REMOVED 2026-11-04 — dead code. They read #teCal / #tePro,
+   inputs that no longer exist in the DOM, so neither could ever run. The live editor is
+   openTargetEditor() -> egApply() (goal + stats), and the numbers derive from there. */
 /* Workouts tab = the PROGRAM LIBRARY (Kino "Programs"). Your active program lives on Home;
    here you browse every program and switch. */
 /* ===== FIT BODY bootcamp week (brand=fitbody) — the Workouts tab IS the gym's calendar workout.
@@ -2521,32 +2543,104 @@ function verifyMe(){
 }
 function saveIdentity(){ verifyMe(); }   // legacy alias, in case anything still calls it
 
-/* ---- Magic-link login (secure on this stack; only the email travels, no secret).
-   The doorway emails the member their private ?k= link. Password login is deferred to
-   the Supabase app rollout — JSONP GET can't carry a password securely. ---- */
+/* ---- Supabase Auth — magic link + password. Replaces the broken doorway magic-link and the
+   old name+DOB+email gate. Supabase proves identity (email only, no DOB); the app still loads a
+   member's data by email through the doorway. The library is loaded async at the bottom of the
+   page and sbInit() runs on its onload. Offline-safe: if it never loads, __sb stays null and the
+   login screen just says it isn't ready. Auth only — no member data touches Supabase yet. ---- */
+var SB_URL="https://gtvzoxfudbxchreuydfq.supabase.co";
+var SB_KEY="sb_publishable_V75x0U54pSVjhzjBHORnxw_jHAvCMMQ";
+var __sb=null, __sbBooted=false, __sbPwMode=false;
+function sbRedirectUrl(){ return location.origin+location.pathname; }
+function sbHasAuthRedirect(){ try{ return /access_token=|[?&]code=|type=recovery|type=magiclink/.test((location.hash||"")+(location.search||"")); }catch(e){ return false; } }
+function sbInit(){
+  if(__sb || !window.supabase || !window.supabase.createClient) return;
+  try{ __sb = window.supabase.createClient(SB_URL, SB_KEY); window.__sb=__sb; }catch(e){ return; }
+  __sb.auth.onAuthStateChange(function(ev, sess){
+    if(ev==='PASSWORD_RECOVERY'){ sbShowSetPassword(); return; }
+    var em = sess && sess.user && sess.user.email;
+    if((ev==='SIGNED_IN'||ev==='INITIAL_SESSION') && em && !__sbBooted && !(ID&&ID.email) && !TOKEN){ sbBootWithEmail(em); }
+  });
+}
+function sbBootWithEmail(email){
+  if(__sbBooted) return; __sbBooted=true;
+  email=String(email||"").trim().toLowerCase();
+  ID={ email:email, name:(ID&&ID.name)||"", gender:(ID&&ID.gender)||"" };
+  try{ saveLS(LS_ID, ID); }catch(e){}
+  boot();
+}
+/* Email magic link — the primary path. */
 function magicLinkRequest(){
   var em=g("ob_email"), st=g("obStatus"), btn=g("obBtn");
   var email=em?em.value.trim().toLowerCase():"";
   function fail(m){ if(st){st.textContent=m; st.style.color="var(--stall-tx)";} if(btn)btn.disabled=false; }
   if(window.DEMO_NOSAVE){ if(st){ st.textContent="Signing you in…"; st.style.color="var(--muted)"; } if(btn)btn.disabled=true;
-    setTimeout(function(){ if(typeof obStart==='function') obStart(); }, 500); return; }   // setup walkthrough: skip the real email, go straight into onboarding
+    setTimeout(function(){ if(typeof obStart==='function') obStart(); }, 500); return; }   // setup walkthrough: skip the real email
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Enter the email you signed up with.");
-  if(email===JAYME_EMAIL){ jaymeBoot(); return; }   // Jayme's own preview account — straight in, no server
-  if(!CONFIG.writeUrl) return fail("Login link needs the server — not available in demo.");
+  if(email===JAYME_EMAIL){ jaymeBoot(); return; }   // Jayme's preview account — straight in
+  if(!__sb) return fail("Login isn't ready yet — give it a second and try again.");
   if(st){ st.textContent="Sending your link…"; st.style.color="var(--muted)"; } if(btn)btn.disabled=true;
-  magicLinkJSONP(email, function(res){
-    if(res && res.ok){ if(st){ st.textContent="Check your email — your login link is on the way."; st.style.color="var(--accent)"; } if(btn)btn.disabled=false; }
-    else if(res && res.reason==='notfound') fail("We couldn't find that email. Use the one you signed up with, or contact your coach.");
-    else fail("Couldn't send the link — check your connection and try again.");
-  });
+  __sb.auth.signInWithOtp({ email:email, options:{ emailRedirectTo: sbRedirectUrl() } }).then(function(r){
+    if(r && r.error) fail(r.error.message||"Couldn't send the link — try again.");
+    else { if(st){ st.textContent="Check your email — your login link is on the way."; st.style.color="var(--accent)"; } if(btn)btn.disabled=false; }
+  }).catch(function(){ fail("Couldn't send the link — check your connection and try again."); });
 }
-function magicLinkJSONP(email, cb){
-  var done=false, nm="__ml"+Date.now(), s=document.createElement("script");
-  window[nm]=function(d){ done=true; try{delete window[nm];}catch(e){} s.remove(); cb(d); };
-  s.onerror=function(){ if(!done){ try{delete window[nm];}catch(e){} s.remove(); cb(null); } };
-  s.src=CONFIG.writeUrl+"?action=magiclink&email="+encodeURIComponent(email)+"&callback="+nm;
-  document.body.appendChild(s);
-  setTimeout(function(){ if(!done){ try{delete window[nm];}catch(e){} s.remove(); cb(null); } }, 9000);
+/* Email + password. */
+function passwordLogin(){
+  var em=g("ob_email"), pw=g("ob_pw"), st=g("obStatus"), btn=g("obBtn");
+  var email=em?em.value.trim().toLowerCase():"", pass=pw?pw.value:"";
+  function fail(m){ if(st){st.textContent=m; st.style.color="var(--stall-tx)";} if(btn)btn.disabled=false; }
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Enter your email.");
+  if(!pass) return fail("Enter your password.");
+  if(email===JAYME_EMAIL){ jaymeBoot(); return; }
+  if(!__sb) return fail("Login isn't ready yet — give it a second and try again.");
+  if(st){ st.textContent="Signing you in…"; st.style.color="var(--muted)"; } if(btn)btn.disabled=true;
+  __sb.auth.signInWithPassword({ email:email, password:pass }).then(function(r){
+    if(r && r.error) fail("That didn't work — check your email and password, or use a magic link.");
+    else if(r && r.data && r.data.session){ sbBootWithEmail(email); }
+    else fail("That didn't work — check your email and password.");
+  }).catch(function(){ fail("Couldn't sign in — check your connection and try again."); });
+}
+/* Toggle between magic-link and password modes. */
+function togglePwMode(){
+  __sbPwMode=!__sbPwMode;
+  var pf=g("lgPwField"), btn=g("obBtn"), tog=g("lgPwToggle"), st=g("obStatus");
+  if(pf) pf.style.display=__sbPwMode?"":"none";
+  if(btn){ btn.textContent=__sbPwMode?"Sign in":"Send magic link"; btn.onclick=__sbPwMode?passwordLogin:magicLinkRequest; }
+  if(tog) tog.textContent=__sbPwMode?"Use a magic link instead":"Use a password instead";
+  if(st) st.textContent="";
+  if(__sbPwMode){ var p=g("ob_pw"); if(p) setTimeout(function(){ try{ p.focus(); }catch(e){} }, 50); }
+}
+/* Forgot / set password — emails a link; on return PASSWORD_RECOVERY shows the set-password screen. */
+function sbResetPassword(){
+  var em=g("ob_email"), st=g("obStatus");
+  var email=em?em.value.trim().toLowerCase():"";
+  if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ if(st){ st.textContent="Enter your email first, then tap this."; st.style.color="var(--stall-tx)"; } return; }
+  if(!__sb){ if(st){ st.textContent="Not ready yet — give it a second."; } return; }
+  if(st){ st.textContent="Sending a set-password link…"; st.style.color="var(--muted)"; }
+  __sb.auth.resetPasswordForEmail(email, { redirectTo: sbRedirectUrl() }).then(function(r){
+    if(r && r.error){ if(st){ st.textContent=r.error.message||"Couldn't send it — try again."; st.style.color="var(--stall-tx)"; } }
+    else { if(st){ st.textContent="Check your email for a link to set your password."; st.style.color="var(--accent)"; } }
+  }).catch(function(){ if(st){ st.textContent="Couldn't send it — check your connection."; st.style.color="var(--stall-tx)"; } });
+}
+function sbShowSetPassword(){
+  show("onboard"); showSignInForm(); __sbPwMode=true;
+  var pf=g("lgPwField"); if(pf) pf.style.display="";
+  var p=g("ob_pw"); if(p){ p.setAttribute("autocomplete","new-password"); p.placeholder="Choose a new password"; }
+  var btn=g("obBtn"); if(btn){ btn.textContent="Set password"; btn.onclick=sbUpdatePassword; }
+  var tog=g("lgPwToggle"); if(tog) tog.style.display="none";
+  var st=g("obStatus"); if(st){ st.textContent="You're verified — set a password to finish."; st.style.color="var(--accent)"; }
+}
+function sbUpdatePassword(){
+  var p=g("ob_pw"), st=g("obStatus"), btn=g("obBtn");
+  var pass=p?p.value:"";
+  if(!pass || pass.length<6){ if(st){ st.textContent="Use at least 6 characters."; st.style.color="var(--stall-tx)"; } return; }
+  if(!__sb) return;
+  if(btn) btn.disabled=true;
+  __sb.auth.updateUser({ password:pass }).then(function(r){
+    if(r && r.error){ if(st){ st.textContent=r.error.message||"Couldn't set it — try again."; st.style.color="var(--stall-tx)"; } if(btn) btn.disabled=false; }
+    else { __sb.auth.getSession().then(function(s){ var em=s&&s.data&&s.data.session&&s.data.session.user&&s.data.session.user.email; if(em) sbBootWithEmail(em); else { if(st) st.textContent="Password set — sign in with it now."; if(btn) btn.disabled=false; } }); }
+  }).catch(function(){ if(st){ st.textContent="Couldn't set it — try again."; } if(btn) btn.disabled=false; });
 }
 function verifyJSONP(fn, ln, dob, email, cb){
   var done=false, name="__vf"+Date.now(), s=document.createElement("script");
@@ -2558,6 +2652,7 @@ function verifyJSONP(fn, ln, dob, email, cb){
   setTimeout(function(){ if(!done){ try{delete window[name];}catch(e){} s.remove(); cb(null); } }, 8000);
 }
 function editIdentity(){
+  try{ if(window.__sb) window.__sb.auth.signOut(); }catch(e){}   // end the Supabase session too
   try{ localStorage.removeItem(LS_TOKEN); localStorage.removeItem('lp_preview_acct'); localStorage.removeItem(LS_ID); localStorage.removeItem('lp_prog_data'); }catch(e){}   // program is private to this member: never leave it for the next login on this device
   TOKEN=null; ID=null;
   ["ob_email"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
@@ -2610,7 +2705,8 @@ function applyLite(){
   if(M.lite){ var u=CONFIG.upgradeUrl||CONFIG.skoolAppUrl||"#";
     ["liteBannerLink","liteUpgradeBtn"].forEach(function(id){ var e=g(id); if(e) e.href=u; }); }
 }
-/* Deep links from Everfit's daily task: <dashboard-link>?k=…#standards lands on the Standards card. */
+/* Deep link: <dashboard-link>?k=…#standards lands on the Standards card. (Was Everfit's daily
+   task; Everfit retired 2026-11-04. Kept because reminders/GHL can still deep-link here.) */
 function jumpToHash(){
   var h=(location.hash||"").replace("#",""); if(!h) return;
   var el=g({standards:"stdCard", read:"readCard", checkin:"ciCta", foundations:"fdnCard"}[h] || h);
@@ -2844,6 +2940,7 @@ function buildModel(server){
   M.geneticsintake = (server && server.geneticsintake) ? server.geneticsintake : (M.geneticsintake||[]);
   M.requests       = (server && server.requests)       ? server.requests       : (M.requests||[]);
   M.bloodwork      = (server && server.bloodwork)       ? server.bloodwork      : (M.bloodwork||[]);
+  M.geneticsreport = (server && server.geneticsreport)  ? server.geneticsreport : (M.geneticsreport||[]);   // Genetic Blueprint report (genetic-blueprint-manager skill), JSON in the Data col
   M.orders         = (server && server.orders)          ? server.orders         : (M.orders||[]);
   M.doses          = (server && server.doses)           ? server.doses          : (M.doses||[]);
   // ---- tier + Complete Nutrition System entitlement ----
@@ -3320,7 +3417,14 @@ function bwData(){
 function flaggedNutrients(c){
   var a=(typeof nutrientsFromIntake==='function')?nutrientsFromIntake(c||{}):[];
   var b=(typeof nutrientsFromBloodwork==='function')?nutrientsFromBloodwork(bwData()):[];
-  return a.concat(b).filter(function(k,i,arr){ return k && arr.indexOf(k)===i; });
+  var gr=(typeof nutrientsFromGenetics==='function')?nutrientsFromGenetics(geneticsReport()):[];
+  return a.concat(b, gr).filter(function(k,i,arr){ return k && arr.indexOf(k)===i; });
+}
+/* Latest Genetic Blueprint report (schema v1, written by the genetic-blueprint-manager skill), or null. */
+function geneticsReport(){
+  var r=(M&&M.geneticsreport&&M.geneticsreport.length)?M.geneticsreport[M.geneticsreport.length-1]:null;
+  if(r && r['Data']){ try{ var o=JSON.parse(r['Data']); if(o && o.archetype) return o; }catch(e){} }
+  return null;
 }
 function bwCustomRow(name,val){
   return '<div class="bw-row bw-custom"><input class="bw-cn" placeholder="Marker name" value="'+esc(name||'')+'">'
@@ -3714,7 +3818,7 @@ var BUILD_MOVES = {
   },
   resistance:{ _def:{mind:"Lifting is what tells your body to keep the muscle while you lose the fat.", tac:"Get your sessions in — even a 30-minute version beats a skipped one."},
     rt_owned:{mind:"You know the plan — this is a scheduling win, not a training problem.", tac:"Put your sessions in the calendar as appointments you don't cancel."},
-    rt_knowledge:{mind:"Confusion kills consistency — let's make it obvious.", tac:"Open Everfit and just run the next assigned session. No decisions required."},
+    rt_knowledge:{mind:"Confusion kills consistency — let's make it obvious.", tac:"Open your Workouts tab and run the next session. No decisions required."},
     rt_barrier:{mind:"Beat-up isn't lazy — it's a recovery signal.", tac:"Ease the volume this week, hit the essentials, and prioritize protein + sleep to bounce back."},
     rt_circ:{mind:"Access changed — the standard didn't.", tac:"Have a no-gym backup: a 20-minute hotel-room or bodyweight session you can run anywhere."},
     rt_external:{mind:"The gym competes with real life — so we shrink it to fit.", tac:"Book two 30-minute sessions like meetings. Short and kept beats long and skipped."}
@@ -4227,7 +4331,7 @@ function readHTML(it, opts){
     +'</div>';
 }
 
-/* The daily-driver card. Everfit's recurring task links to <dashboard>?k=…#standards → this.
+/* The daily-driver card. A reminder link <dashboard>?k=…#standards lands here.
    One tap per standard, saved per day on the device, and it resets at midnight. */
 var LS_STDDONE="lp_client_stddone";
 function todayKey(){ var d=new Date(); return d.getFullYear()+"-"+(d.getMonth()+1)+"-"+d.getDate(); }
@@ -4771,14 +4875,12 @@ var W_FILTER = ["Vegetarian","Lactose-free","Gluten-free"];
 function showWizard(){ WIZ={sex:(ID&&ID.gender==='man')?'Male':((ID&&ID.gender==='woman')?'Female':''), tried:[], statusflags:[]}; WIZ_I=0; RA_SAVED=false; renderWiz(); show("wizard"); }
 function storeLink(ios, android){ return /android/i.test(navigator.userAgent||'') ? (android||ios) : ios; }
 function skoolAppLink(){ return storeLink(CONFIG.skoolAppUrl, CONFIG.skoolAppUrlAndroid); }
-function everfitAppLink(){ return storeLink(CONFIG.everfitAppUrl, CONFIG.everfitAppUrlAndroid); }
 function cronoAppLink(){ return storeLink(CONFIG.cronoAppUrl, CONFIG.cronoAppUrlAndroid); }
 var ONBOARD_STEPS=[
   {k:'skoolapp',  label:'Download the Skool app & turn on notifications', linkFn:'skoolAppLink', linkText:'Get it →'},
   {k:'intro',     label:'Introduce yourself in the community'},
   {k:'call',      label:'Book your onboarding call', linkCfg:'onboardCallUrl', linkText:'Book →'},
   {k:'bookmark',  label:'Bookmark this dashboard to your home screen'},
-  {k:'everfit',   label:'Set up the Everfit app', linkFn:'everfitAppLink', linkText:'Get it →'},
   {k:'setup',     label:'Complete your setup — your numbers', auto:'intake'},
   {k:'rhythm',    label:'Set your check-in reminder & grab your playbook'}
 ];
@@ -5655,7 +5757,7 @@ function roadmapHTML(it){
     +'<div class="rm-rules"><div><span>1</span> Plug '+startLbl+' into your tracker: '+first.calories+' cal · '+first.protein+'g protein.</div>'
     +'<div><span>2</span> Log your weekly check-in right here in the dashboard.</div>'
     +'<div><span>3</span> Anchor protein every meal, hit your produce, water before coffee.</div>'
-    +'<div><span>4</span> Questions → message '+esc(CONFIG.coachName)+' in Everfit.</div></div>';
+    +'<div><span>4</span> Questions → message '+esc(CONFIG.coachName)+' in Skool.</div></div>';
   return verdictHTML(it)+snap+targets+phases+rules+faqs+next;
 }
 /* Upsell: the done-for-you Complete Nutrition System build (paid add-on).
@@ -5831,7 +5933,8 @@ function submitGenetics(){
 }
 function renderGeneticsCard(){
   var card=g("geneticsCard"), box=g("geneticsBox"); if(!card) return;
-  var x=String(M.genetics||'').toLowerCase();
+  var x=String(M.genetics||'').toLowerCase(), rep=geneticsReport();
+  if(rep){ card.style.display=""; box.innerHTML=geneticsReportHtml(rep); return; }
   if(!(x==='pending'||x==='in'||x==='ordered')){
     // not purchased yet → soft upsell to the sales page (genetics advertises clean)
     if(!CONFIG.geneticsBuyUrl){ card.style.display="none"; return; }
@@ -5849,6 +5952,40 @@ function renderGeneticsCard(){
     return;
   }
   box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">Setup complete ✓ Your kit is on the way. Results show here when they\'re back.</div>';
+}
+/* The client's Genetic Blueprint report in plain language: archetype → short version → one card per
+   finding (what it means / what we're doing) → nutrition (with the foods already in their plan) →
+   training → provider questions. Cards open/close like the meal rows. */
+/* One nutrition/training line. rec:true = a moderate-evidence RECOMMENDED change (Jayme's rule:
+   strong changes the plan, moderate is recommended, weak is information only). */
+function gbLi(x){ return '<div class="gb-li"><b>'+esc(x.t)+(x.rec?' <span class="gb-rec">Recommended</span>':'')+'</b><span>'+esc(x.why||'')+'</span></div>'; }
+function geneticsReportHtml(r){
+  var a=r.archetype||{}, tr={power:'Power build',endurance:'Endurance build',mixed:'Mixed build'}[a.training]||'';
+  var h='<div class="gb-hero"><div class="gb-eye">Your Nutrition Archetype</div><div class="gb-name">'+esc(a.name||'')+'</div>'
+    +'<div class="gb-line">'+esc(a.line||'')+'</div>'+(tr?'<span class="gb-chip">'+esc(tr)+'</span>':'')+'</div>';
+  if(r.shortVersion&&r.shortVersion.length) h+='<div class="gb-h">The short version</div><ul class="gb-short">'+r.shortVersion.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('')+'</ul>';
+  h+='<div class="gb-h">What your genes are telling us</div>';
+  (r.categories||[]).forEach(function(c,i){
+    h+='<div class="gb-cat'+(i===0?' open':'')+'"><div class="gb-ch" onclick="this.parentNode.classList.toggle(\'open\')">'
+      +'<span class="gb-tag '+(c.level==='priority'?'pri':'exp')+'">'+(c.level==='priority'?'Priority':'Worth knowing')+'</span>'
+      +'<span class="gb-ct">'+esc(c.name)+'</span><span class="gb-cv">›</span></div>'
+      +'<div class="gb-cb"><div class="gb-sub">What it means</div><p>'+esc(c.plain||'')+'</p>'
+      +'<div class="gb-sub">What we\'re doing about it</div><p>'+esc(c.doing||'')+'</p>'
+      +((c.genes&&c.genes.length)?'<div class="gb-genes">'+(c.count?esc(c.count)+' findings · ':'')+esc(c.genes.join(' · '))+'</div>':'')+'</div></div>';
+  });
+  var nf=[]; try{ nf=(typeof nutrientFocus==='function')?nutrientFocus(r.nutrients||[], {slots:((M.mealplan&&M.mealplan.days&&M.mealplan.days[0]&&M.mealplan.days[0].meals)||[]).map(function(m){ return {options:(m.options||[]).map(function(o){ return {parts:(o.items||[]).map(function(t){ return {n:String(t).replace(/^[\d.\s]+(g|oz|cup|cups|tbsp|tsp|slice|slices|scoop|large|medium)?\s*/i,'')}; })}; })}; })}, {style:(M.intake&&M.intake.style)||''}):[]; }catch(e){ nf=[]; }
+  if((r.nutrition&&r.nutrition.length)||nf.length){
+    h+='<div class="gb-h">Built into your nutrition</div>';
+    (r.nutrition||[]).forEach(function(x){ h+=gbLi(x); });
+    if(nf.length) h+='<div class="gb-nut">'+nf.map(function(n){ return '<div class="gb-nr"><b>'+esc(n.key.charAt(0).toUpperCase()+n.key.slice(1))+'</b><span>'+esc(n.food)+'</span>'
+      +((n.add&&n.add.length)?'<span class="gb-add">Worth adding: '+esc(n.add.join(', '))+'</span>':'')+'</div>'; }).join('')+'</div>';
+  }
+  if(r.training&&r.training.length){ h+='<div class="gb-h">Built into your training</div>';
+    r.training.forEach(function(x){ h+=gbLi(x); }); }
+  if(r.provider&&r.provider.length) h+='<div class="gb-h">Take to your provider</div><ul class="gb-short">'+r.provider.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('')+'</ul>';
+  h+='<p class="gb-fine">Your genes show tendencies, not a diagnosis, and they don\'t predict any condition. Your habits, sleep, stress and health history matter just as much, and every client is unique. Any supplement or dose is decided by your provider.'
+    +(r.kit?' Kit '+esc(r.kit)+(r.reportDate?' · '+esc(r.reportDate):'')+'.':'')+'</p>';
+  return h;
 }
 /* ---- Requests & travel — client's life/coaching requests → the coach queue ---- */
 function toggleRequestForm(){
@@ -6740,7 +6877,7 @@ function goalArcHtml(){
 }
 /* The OS-sells engine: the assessment surfaces the gap, The Read recommends the product.
    Roadmap logic → CNS (nutrition gap). Legacy-Score logic → Genetic Blueprint (wellness gap).
-   Both gaps → the Blueprint Bundle. Compliance: educational framing, never a diagnosis. */
+   Both gaps → the Legacy Install. Compliance: educational framing, never a diagnosis. */
 function readinessNextStep(){
   var tracked=WIZ.tracked||"", tried=(WIZ.tried||[]).length, energy=WIZ.energy||"", blood=WIZ.bloodwork||"", gtest=WIZ.genetictest||"";
   var nutritionGap = (tracked==="No, never") || (tracked==="Yes, but I can't live like that") || !!WIZ.reverse;
@@ -6759,8 +6896,8 @@ function raNextStepHtml(){
       body:"Your numbers are set. The next move most people miss is turning that number into meals they actually eat, so it stops being math. That is the Complete Nutrition System: your plan, built for you and re-buildable forever.",
       cta:"Build my Complete Nutrition System", url:cnsUrl, price:"One-time · "+cnsPrice },
     bundle:{ h:"The plan and the read, together",
-      body:"You have tried a lot, and the read so far says the next answer is not another diet. You need the plan built for you and the read under the hood. The Blueprint Bundle does both, your nutrition system plus your DNA and labs, and it credits toward Built for More.",
-      cta:"See the Blueprint Bundle", url:genUrl, price:"One-time · "+bunPrice+" · credits toward Built for More" }
+      body:"You have tried a lot, and the read so far says the next answer is not another diet. You need the plan built for you and the read under the hood. The Legacy Install does both, your nutrition system plus your DNA and labs, and it credits toward Built for More.",
+      cta:"See the Legacy Install", url:genUrl, price:"One-time · "+bunPrice+" · credits toward Built for More" }
   }[rec];
   return '<div class="ra-next"><div class="ra-next-eyebrow">Your best next step</div>'
     +'<div class="ra-next-h">'+esc(B.h)+'</div>'
@@ -7157,6 +7294,7 @@ function setupDemoBoot(){
     });
   }
   else if(ID && ID.email){ boot(); }
+  else if(sbHasAuthRedirect()){ setTimeout(function(){ if(!__sbBooted) show("onboard"); }, 6000); }   // from a magic-link/recovery redirect — hold the loader; sbInit() boots on the detected session
   else { show("onboard"); }
   setTimeout(function(){ var b=g("bootLoader"); if(b) b.style.display="none"; }, 12000);  // safety: never let the loader stick
 })();
@@ -7164,5 +7302,6 @@ function setupDemoBoot(){
    then refresh in the background. Data (the doorway) is never cached. Safe no-op if unsupported. */
 if('serviceWorker' in navigator){ window.addEventListener('load', function(){ navigator.serviceWorker.register('sw.js', {updateViaCache:'none'}).catch(function(){}); }); }
 </script>
+<script async src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js" onload="window.sbInit&&window.sbInit()"></script>
 </body>
 </html>
