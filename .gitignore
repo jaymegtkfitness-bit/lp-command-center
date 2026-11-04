@@ -31,3 +31,19 @@ clients.csv
 
 # internal ops script — writes to the doorway, not part of the site
 task.py
+
+# ---- added 2026-11-04 ----
+# Hand-made safety backups. Git is the history now; these are duplicates
+# of files already tracked and must never land on the PUBLIC site.
+_backups/
+
+# CLIENT HEALTH DOCUMENTS — named individuals (recaps, reads, their PDFs).
+# This repo is PUBLIC and served at dashboard.legacyperformance.co, so a
+# committed file here would be a live public URL. Deliver these by DM/email.
+client-reads/
+
+# internal ops — the LP Coach contact card build + text templates
+lp-coach/
+
+# internal content calendar, not part of the site
+content-plan.json
