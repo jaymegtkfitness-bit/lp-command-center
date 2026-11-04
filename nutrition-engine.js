@@ -2895,7 +2895,15 @@ var NUTRIENT_GUIDE={
     supp:'Food first. If you cannot get there with food, your provider can suggest a calcium supplement and how much.'},
   'zinc':{foods:['sirloin steak','96% ground beef','ground bison','pumpkin seeds','cashews','chickpeas','whole eggs','shrimp'],
     food:'Beef and bison lead, then pumpkin seeds, cashews and chickpeas.',
-    supp:'Zinc picolinate (Thorne Zinc Picolinate). Long-term zinc is best taken with your provider in the loop.'}
+    supp:'Zinc picolinate (Thorne Zinc Picolinate). Long-term zinc is best taken with your provider in the loop.'},
+  /* vitamin A + E added 2026-11-03 for the Lumyn panel (BCMO1 = slow plant beta-carotene conversion,
+     so lean on ready-made vitamin A from animal foods; the vitamin E finding is food-first). */
+  'vitamin A':{foods:['whole eggs','salmon','cheese','nonfat Greek yogurt','sweet potato','cantaloupe','mango','spinach'],
+    food:'Your body may turn the beta-carotene in orange and green plants into vitamin A more slowly, so the ready-made kind in eggs, dairy and fish does more of the work. Keep the sweet potato, mango and greens too.',
+    supp:'Food first. Most multivitamins carry some ready-made vitamin A; anything beyond that is a provider conversation, because vitamin A builds up.'},
+  'vitamin E':{foods:['almonds','sunflower seeds','avocado','olive oil','peanut butter','spinach','salmon'],
+    food:'Almonds and sunflower seeds lead by a mile. A small handful most days, plus olive oil and avocado, covers it.',
+    supp:'Food first. Bigger is not better with vitamin E, so any supplement goes through your provider.'}
 };
 var NUTRIENT_NOTE={
   how:'Your genetics show what you tend toward. Your bloodwork shows where you are right now. Together they tell us which nutrients to build into your food on purpose, and when a supplement makes sense.',
@@ -2919,9 +2927,12 @@ function nutrientsFromBloodwork(bw){
   if((crp!=null && crp>1.0) || (tg!=null && tg>150)) out.push('omega-3');  // inflammation / high triglycerides
   return nutrientKeys(out);
 }
+/* Genetic Blueprint report (genetic-blueprint-manager skill, schema v1) → the same nutrient flags. */
+function nutrientsFromGenetics(rep){ return nutrientKeys((rep&&rep.nutrients)||[]); }
 function nutrientKeys(list){
   var map={'vitamin d':'vitamin D','d':'vitamin D','b12':'vitamin B12','vitamin b12':'vitamin B12','iron':'iron','ferritin':'iron','iron/ferritin':'iron',
-    'folate':'folate','folic acid':'folate','mthfr':'folate','magnesium':'magnesium','omega-3':'omega-3','omega 3':'omega-3','calcium':'calcium','zinc':'zinc'};
+    'folate':'folate','folic acid':'folate','mthfr':'folate','magnesium':'magnesium','omega-3':'omega-3','omega 3':'omega-3','calcium':'calcium','zinc':'zinc',
+    'vitamin a':'vitamin A','a':'vitamin A','beta-carotene':'vitamin A','vitamin e':'vitamin E','e':'vitamin E'};
   return (Array.isArray(list)?list:String(list||'').split(/[,|;]/)).map(function(x){ return map[String(x).trim().toLowerCase()]; })
     .filter(function(k, i, a){ return k && a.indexOf(k)===i; });
 }

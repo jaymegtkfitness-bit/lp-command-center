@@ -864,7 +864,7 @@ select.ci-input{appearance:none;-webkit-appearance:none}
 <!-- Shared nutrition engine (macro targets + meal-plan generation) — same file the client dashboard uses. -->
 <!-- bump ?v= whenever nutrition-engine.js changes, or returning visitors run a stale engine -->
 <script src="recipe-data.js?v=6"></script>
-<script src="nutrition-engine.js?v=75"></script>
+<script src="nutrition-engine.js?v=76"></script>
 <script>
 /* ============================ SAMPLE DATA (demo mode) ============================ */
 /* Mirrors your real Weekly Check-In columns so the layout matches live data exactly. */
@@ -3273,6 +3273,21 @@ function journeyPanel(d, email){
       + jpText('Health focus',genI['Health focus'])
       + jpText('Notes',genI['Notes']);
   } else h+='<div class="tool-d">'+(gv==='none'?'No Genetic Blueprint yet.':'Purchased — no intake submitted yet.')+'</div>';
+  h+='</div>';
+  // Their report as it reads in the app (pushed by the genetic-blueprint-manager skill)
+  var gRow=(d.geneticsreport&&d.geneticsreport.length)?d.geneticsreport[d.geneticsreport.length-1]:null, gRep=null;
+  if(gRow){ try{ gRep=JSON.parse(gRow['Data']||'null'); }catch(e){} }
+  h+='<div class="tile" style="margin-top:10px"><div class="nav-h" style="padding:0 0 8px">Genetic Blueprint — their report</div>';
+  if(gRep&&gRep.archetype){
+    h+='<div style="display:flex;flex-wrap:wrap;gap:14px 22px">'
+      + jpFld('Archetype',gRep.archetype.name) + jpFld('Training build',gRep.archetype.training)
+      + jpFld('Carb / fat',(gRep.archetype.carb||'')+' / '+(gRep.archetype.fat||'')) + jpFld('Kit',gRep.kit)
+      + jpFld('Live since',String(gRow['Timestamp']||'').slice(0,10)) + '</div>'
+      + jpText('Nutrient flags (feed their meal builder)',(gRep.nutrients||[]).join(', '))
+      + jpText('The short version',(gRep.shortVersion||[]).join(' '))
+      + jpText('Findings',(gRep.categories||[]).map(function(c){ return c.name+' ('+(c.level==='priority'?'priority':'explore')+', '+(c.count||0)+')'; }).join(' · '))
+      + jpText('Training levers',(gRep.training||[]).map(function(x){ return x.t; }).join(' · '));
+  } else h+='<div class="tool-d">No report live in their app yet. Build it with the Genetic Blueprint Manager skill.</div>';
   h+='</div></div>';
 
   // ---- Bloodwork (member-submitted labs) ----
