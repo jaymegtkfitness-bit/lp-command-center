@@ -6643,6 +6643,13 @@ function ageFromDob(s){
 var RA_GOAL     = [["Lose fat","Drop body fat and lean out","Lean"],["Build muscle","Get stronger and add muscle","Strong"],["Feel better & maintain","Hold a healthy weight and feel your best","Sustain"]];
 var RA_DUR      = ["Under a year","1–3 years","3+ years","Most of my life"];
 var RA_ADAPTED  = ["Yes","No","Not sure"];
+/* Added 2026-11-04. The diet-break question: the single strongest reverse signal, and the
+   only way to honour the canon rule "18 months straight with NO diet break". A duration
+   bucket cannot tell us whether she ever stopped, this does. */
+var RA_LASTMAINT= ["Never, or I'm not sure what that means","Not on purpose, but I have fallen off plan for a while","Over a year ago","Within the last year"];
+/* Current protein. NOT a reverse signal, so it is deliberately left out of the score. It tells
+   us how far her floor sits from where she already is, which is what the Read has to say. */
+var RA_PROTEINNOW=["Under 80g","80 to 120g","Over 120g","No idea"];
 var RA_TRAINDAYS= [["0","Not lifting right now"],["1–2","A couple days a week"],["3–4","Most weeks, a solid rhythm"],["5+","Nearly every day"]];
 var RA_RESTART  = ["Once or twice","A handful of times","More than I can count","I've lost count"];
 var RA_NEXTDAY  = ["I get right back on the next day","It turns into a bad week","It spirals for a while before I reset"];
@@ -6692,6 +6699,12 @@ var STEP = {
   adapted:{ q:"Have you ever eaten less and less, and still watched the scale refuse to move?", hint:"",
     render:function(){ return wizChips("adapted",RA_ADAPTED); },
     collect:function(){ return WIZ.adapted?null:"Pick one."; } },
+  lastmaint:{ q:"When did you last eat at maintenance on purpose, for more than two weeks?", hint:"Not a week off plan. A stretch where eating enough was the plan.",
+    render:function(){ return wizChips("lastmaint",RA_LASTMAINT); },
+    collect:function(){ return WIZ.lastmaint?null:"Pick one."; } },
+  proteinnow:{ q:"How much protein are you getting on a normal day?", hint:"Best guess is fine. This tells me how far your floor is from where you already are.",
+    render:function(){ return wizChips("proteinnow",RA_PROTEINNOW); },
+    collect:function(){ return WIZ.proteinnow?null:"Pick one."; } },
   traindays:{ q:"Are you lifting weights right now? How many days a week?", hint:"Lifting days — walking doesn't count here.",
     render:function(){ return wizOptions("traindays",RA_TRAINDAYS); },
     collect:function(){ return WIZ.traindays?null:"Pick one."; } },
@@ -6740,7 +6753,7 @@ var STEP = {
 };
 function gOrder(){
   // Phase 1 "get started" basics: just enough to compute numbers + a theoretical track.
-  return ["goal","sex","dob","weight","height","goalweight","traindays","intakecal","intakedur","adapted","tracked","result"];
+  return ["goal","sex","dob","weight","height","goalweight","traindays","intakecal","intakedur","adapted","lastmaint","proteinnow","tracked","result"];
 }
 function renderWiz(){
   var order=gOrder(); if(WIZ_I>=order.length) WIZ_I=order.length-1;
@@ -6778,9 +6791,35 @@ function wizNext(){
   renderWiz(); window.scrollTo(0,0);
 }
 function wizBack(){ if(WIZ_I>0){ WIZ_I--; renderWiz(); window.scrollTo(0,0); } }
+/* THE REVERSE SCORE (2026-11-04) — replaces a two-question AND gate that required both
+   "the scale would not move" AND three years of it, so a woman eating 1,100 for two years
+   who answered "not sure" was routed straight into a deficit. The public CNS door
+   (build/index.html decidePhase) never had that bug: it takes two signals and either one is
+   enough, self-report OR the arithmetic. Same client, two doors, two answers. This ends that.
+   Points, not a gate. It RECOMMENDS; she still picks. The engine stays read-only. */
+function reverseScore(w){
+  var sc=0, why=[], male=(w.sex==="Male"), cal=parseFloat(w.intakecal);
+  var floor=male?1500:1200, soft=male?1700:1400;               // canon floors: <1,200 W / <1,500 M
+  if(isFinite(cal) && cal>0){
+    if(cal<floor){ sc+=2; why.push("eating under "+floor.toLocaleString()+" a day"); }
+    else if(cal<soft){ sc+=1; why.push("eating close to the floor"); }
+    /* The arithmetic version of "the scale will not move": intake / goal weight at or under x10. */
+    if(typeof needsReverse==="function" && needsReverse(cal, w.goalweight)){ sc+=2; why.push("intake is at or under x10 of your goal weight"); }
+  }
+  if(w.adapted==="Yes"){ sc+=2; why.push("ate less and less and the scale would not move"); }
+  else if(w.adapted==="Not sure"){ sc+=1; }                     // Jayme: not being certain is itself a signal
+  var di=(typeof RA_DUR!=="undefined")?RA_DUR.indexOf(w.intakedur):-1;
+  if(di>=2){ sc+=2; why.push("years at that intake"); } else if(di===1){ sc+=1; }
+  var li=(typeof RA_LASTMAINT!=="undefined")?RA_LASTMAINT.indexOf(w.lastmaint):-1;
+  if(li===0){ sc+=2; why.push("never eaten at maintenance on purpose"); }
+  else if(li===1||li===2){ sc+=1; why.push("no real break in over a year"); }
+  if(w.energy==="Running on empty") sc+=1;
+  if((w.statusflags||[]).indexOf("Thyroid")>=0) sc+=1;
+  return {score:sc, why:why, reverse:(sc>=5)};
+}
 function wizCompute(){
-  var longDur=["3+ years","Most of my life"].indexOf(WIZ.intakedur)>=0;
-  var adapted=(WIZ.adapted==="Yes") && longDur;                 // strong metabolically-adapted signal → overrides the goal
+  var rs=reverseScore(WIZ); WIZ.reversescore=rs.score; WIZ.reversewhy=rs.why;
+  var adapted=rs.reverse;                                       // 5+ = reverse territory
   WIZ.reverse=adapted;
   WIZ.track = adapted ? "Reverse Diet" : (WIZ.goal || "Lean");
   WIZ.signal = adapted ? "strong" : "clear";
@@ -6910,7 +6949,11 @@ function readinessRead(){
   raSaveIntake();                                              // persist on first view (guarded)
   var p=WIZ.pfs||{}, t=WIZ.track, gw=+WIZ.goalweight||0;
   var pfloor=Math.round(gw*0.8);
-  var ptarget=p.protein||Math.round(gw*({Lean:1.0,Strong:0.9,Sustain:1.0}[t]||1.0));
+  /* Read the multiplier from the engine. This line used to carry its own map with Strong at 0.9
+     and Sustain at 1.0, neither of which is canon, so a missing p.protein produced a protein
+     target that disagreed with the engine. One owner per number. */
+  var PPL=(typeof PROTEIN_PER_LB!=="undefined")?PROTEIN_PER_LB:{Lean:1.0,Sustain:0.9,Strong:0.8,"Reverse Diet":1.0};
+  var ptarget=p.protein||Math.round(gw*(PPL[t]||PPL.Lean||1.0));
   var stepsT=/lean/i.test(t)?"12,000":"10,000";
   var phaseName=({"Reverse Diet":"Reverse","Long":"Sustain"})[t]||t;
   var readLabel = WIZ.reverse ? "Likely metabolically adapted" :
@@ -6935,7 +6978,8 @@ function readinessRead(){
     oh+='<p class="ra-micro" style="margin-top:14px">Based on your goal to <b>'+esc(goalPlain)+'</b> and your basic metrics, this is where you start — real, usable targets, not a 1,200-calorie handout.</p>';
     if(WIZ.monthOne) oh+='<p class="ra-micro" style="margin-top:10px"><b style="color:var(--gold)">Month one is maintenance.</b> This is your <b>goal-weight maintenance</b> — you’re eating like the person you’re becoming. For the body you’re in today it’s already a little less than you burn, so you move forward without dieting. The job this month is the skills: tracking, protein, steps, sleep. Your first real deficit is set after your roadmap call, not before.</p>';
     oh+='<div class="ob-note" style="border-left-color:var(--gold)"><b>Here’s the honest part:</b> your dieting history, how adapted your metabolism is, and any conditions dictate how well these actually work. Without a deeper read, no one can say for sure what your body truly needs.'
-      +(WIZ.reverse?' Your answers already point to a body that’s been under-fuelled for a while — so treat these as a floor to <b>build up</b> from, not a deficit to cut from.':'')+'</div>';
+      +(WIZ.reverse?' Your answers already point to a body that’s been under-fuelled for a while — so treat these as a floor to <b>build up</b> from, not a deficit to cut from.'
+        +((WIZ.reversewhy&&WIZ.reversewhy.length)?' Here is what pointed at it: '+esc(WIZ.reversewhy.join(', '))+'.':''):'')+'</div>';
     oh+='<p class="ra-micro ra-scaleframe">The scale is a tool, not a verdict. You’ll learn to read it, not fear it.</p>';
     oh+='<p class="ra-micro" style="margin-top:14px">The <b>roadmap call</b> is where we get the real read — go over your numbers, your history, and your body together, and lock in the plan that actually fits you.</p>';
     var bookUrl=CONFIG.onboardCallUrl||CONFIG.bookCallUrl||"";
@@ -6979,6 +7023,7 @@ function raSaveIntake(){
     track:WIZ.track, signal:WIZ.signal, traindays:WIZ.traindays||"", trackingexp:WIZ.tracked||""});
   var _arc=goalArc()||{};                                       // coach-side routing signal (2026-09-03)
   var blob={goal:WIZ.goal,intakecal:WIZ.intakecal,intakedur:WIZ.intakedur,adapted:WIZ.adapted,traindays:WIZ.traindays,
+    lastmaint:WIZ.lastmaint||"",proteinnow:WIZ.proteinnow||"",reversescore:(WIZ.reversescore!=null?WIZ.reversescore:""),reversewhy:(WIZ.reversewhy||[]),
     arcmonths:(_arc.mLo?(_arc.mLo+"-"+_arc.mHi):""), arcroute:_arc.route||_arc.kind||"", arcpct:(_arc.pct?_arc.pct.toFixed(0):""),
     restarts:WIZ.restarts,nextday:WIZ.nextday,scalerel:WIZ.scalerel,readiness:WIZ.readiness,tried:WIZ.tried||[],
     tracked:WIZ.tracked,normalday:WIZ.normalday,statusflags:status,routes:WIZ.routes||[],
