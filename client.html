@@ -1361,12 +1361,12 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
         <div class="lg-card">
           <div class="field"><label>Email</label>
             <input class="input" id="ob_email" type="email" placeholder="you@email.com" autocomplete="email" inputmode="email" /></div>
-          <div class="field" id="lgPwField" style="display:none"><label>Password</label>
-            <input class="input" id="ob_pw" type="password" placeholder="Your password" autocomplete="current-password" /></div>
+          <div class="field" id="lgPwField" style="display:none"><label>Your 4-digit PIN</label>
+            <input class="input" id="ob_pw" type="password" placeholder="PIN (or your password)" autocomplete="current-password" /></div>
           <button class="btn btn-primary lg-fullbtn" id="obBtn" onclick="magicLinkRequest()">Send magic link</button>
           <div class="status" id="obStatus"></div>
           <div class="lg-alt">
-            <button class="lg-altlink" id="lgPwToggle" onclick="togglePwMode()">Use a password instead</button>
+            <button class="lg-altlink" id="lgPwToggle" onclick="togglePwMode()">Use my PIN instead</button>
             <button class="lg-altlink" onclick="sbResetPassword()">Forgot / set password?</button>
           </div>
         </div>
@@ -2585,18 +2585,22 @@ function magicLinkRequest(){
     else { if(st){ st.textContent="Check your email — your login link is on the way."; st.style.color="var(--accent)"; } if(btn)btn.disabled=false; }
   }).catch(function(){ fail("Couldn't send the link — check your connection and try again."); });
 }
-/* Email + password. */
+/* The 4-digit PIN (Nov 6 2026). Supabase won't take a password under 6 characters, so the PIN is
+   turned into a longer password the same way every time. The member only ever types 4 digits. */
+function pinToPw(pin){ return "LegacyPIN#"+pin; }
+/* Email + password (or PIN). */
 function passwordLogin(){
   var em=g("ob_email"), pw=g("ob_pw"), st=g("obStatus"), btn=g("obBtn");
   var email=em?em.value.trim().toLowerCase():"", pass=pw?pw.value:"";
   function fail(m){ if(st){st.textContent=m; st.style.color="var(--stall-tx)";} if(btn)btn.disabled=false; }
   if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) return fail("Enter your email.");
-  if(!pass) return fail("Enter your password.");
+  if(!pass) return fail("Enter your PIN.");
+  if(/^\d{4}$/.test(pass)) pass=pinToPw(pass);
   if(email===JAYME_EMAIL){ jaymeBoot(); return; }
   if(!__sb) return fail("Login isn't ready yet — give it a second and try again.");
   if(st){ st.textContent="Signing you in…"; st.style.color="var(--muted)"; } if(btn)btn.disabled=true;
   __sb.auth.signInWithPassword({ email:email, password:pass }).then(function(r){
-    if(r && r.error) fail("That didn't work — check your email and password, or use a magic link.");
+    if(r && r.error) fail("That didn't work. Check your email and PIN, or use an email link.");
     else if(r && r.data && r.data.session){ sbBootWithEmail(email); }
     else fail("That didn't work — check your email and password.");
   }).catch(function(){ fail("Couldn't sign in — check your connection and try again."); });
@@ -2607,7 +2611,8 @@ function togglePwMode(){
   var pf=g("lgPwField"), btn=g("obBtn"), tog=g("lgPwToggle"), st=g("obStatus");
   if(pf) pf.style.display=__sbPwMode?"":"none";
   if(btn){ btn.textContent=__sbPwMode?"Sign in":"Send magic link"; btn.onclick=__sbPwMode?passwordLogin:magicLinkRequest; }
-  if(tog) tog.textContent=__sbPwMode?"Use a magic link instead":"Use a password instead";
+  if(tog) tog.textContent=__sbPwMode?"Email me a login link instead":"Use my PIN instead";
+  var sub=document.querySelector("#lgSignin .lg-sub"); if(sub) sub.textContent=__sbPwMode?"Enter your email and your 4-digit PIN.":"Enter your email and we'll send you a secure login link.";
   if(st) st.textContent="";
   if(__sbPwMode){ var p=g("ob_pw"); if(p) setTimeout(function(){ try{ p.focus(); }catch(e){} }, 50); }
 }
@@ -2676,6 +2681,7 @@ function show(idOn){ CUR_SECTION=idOn;
   updateBackBtn(idOn); window.scrollTo(0,0); }
 /* Login: "Sign in" swaps the landing for the dedicated sign-in screen (state 2). */
 function showSignInForm(){ var l=g("lgLanding"), s=g("lgSignin"); if(l) l.style.display="none"; if(s) s.style.display="flex";
+  try{ if(isStandaloneApp() && !__sbPwMode) togglePwMode(); }catch(_){}
   try{ window.scrollTo(0,0); }catch(_){} var e=g("ob_email"); if(e){ setTimeout(function(){ try{ e.focus(); }catch(__){} }, 60); } }
 function showLanding(){ var l=g("lgLanding"), s=g("lgSignin"); if(s) s.style.display="none"; if(l) l.style.display="flex"; try{ window.scrollTo(0,0); }catch(_){} }
 function pwSoon(){ var st=g("obStatus"); if(st){ st.textContent="Password login is coming with the new Legacy app — use your email link for now."; st.style.color="var(--muted)"; } }
@@ -4869,8 +4875,43 @@ window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); 
 function obExit(){
   OB_MODE=false;
   var seen=false; try{ seen=localStorage.getItem('lp_a2hs_seen')==='1'; }catch(e){}
-  if(isStandaloneApp() || seen){ showHome(); return; }
-  showA2HS();
+  var pinDone=false; try{ pinDone=localStorage.getItem('lp_pin_set')==='1'; }catch(e){}
+  if(!pinDone && (window.DEMO_NOSAVE || __sb)){
+    if(window.DEMO_NOSAVE){ showPinStep(); return; }
+    __sb.auth.getSession().then(function(r){ if(r&&r.data&&r.data.session) showPinStep(); else obExitA2HS(seen); }, function(){ obExitA2HS(seen); });
+    return;
+  }
+  obExitA2HS(seen);
+}
+function obExitA2HS(seen){ if(isStandaloneApp() || seen){ showHome(); return; } showA2HS(); }
+/* Setup step: pick a 4-digit PIN. It's what signs them in on the home-screen icon, which can't see
+   their Safari sign-in. Only shown to members signed in by email (a Supabase session). */
+function showPinStep(){
+  var h='<div class="obt-top"><span class="obt-step">Almost done</span></div>'
+    +'<div class="obt-body">'
+    +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
+    +'<h2 class="obt-title">Pick your PIN</h2>'
+    +'<p class="obt-lead">Four numbers you\'ll remember. You\'ll use them with your email to sign in on your phone.</p>'
+    +'<div class="field" style="margin-top:14px"><label>4-digit PIN</label><input class="input" id="pin_a" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••"></div>'
+    +'<div class="field"><label>Type it again</label><input class="input" id="pin_b" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••"></div>'
+    +'<div class="status" id="pinStatus"></div>'
+    +'</div>'
+    +'<div class="obt-nav"><button class="btn btn-primary obt-next" id="pinBtn" onclick="savePin()">Save my PIN →</button></div>';
+  g("obtourBody").innerHTML=h; show("obtour");
+}
+function savePin(){
+  var a=(g("pin_a")||{}).value||"", b=(g("pin_b")||{}).value||"", st=g("pinStatus"), btn=g("pinBtn");
+  function fail(m){ if(st){ st.textContent=m; st.style.color="var(--stall-tx)"; } if(btn) btn.disabled=false; }
+  if(!/^\d{4}$/.test(a)) return fail("Use exactly 4 numbers.");
+  if(a!==b) return fail("Those don't match. Try again.");
+  function ok(){ try{ localStorage.setItem('lp_pin_set','1'); }catch(e){} showA2HS(); }
+  if(window.DEMO_NOSAVE) return ok();
+  if(!__sb) return fail("Not ready yet. Give it a second and try again.");
+  if(btn) btn.disabled=true; if(st){ st.textContent="Saving…"; st.style.color="var(--muted)"; }
+  __sb.auth.updateUser({ password:pinToPw(a) }).then(function(r){
+    if(r && r.error) fail(r.error.message||"Couldn't save it. Try again.");
+    else ok();
+  }, function(){ fail("Couldn't save it. Check your connection."); });
 }
 function showA2HS(){
   pinTokenToUrl();
@@ -4885,7 +4926,7 @@ function showA2HS(){
     +'<div class="obt-body">'
     +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
     +'<h2 class="obt-title">Save your app</h2>'
-    +'<p class="obt-lead">Your setup is done. Put the app on your home screen so it opens straight to your dashboard, signed in, like any other app.</p>'
+    +'<p class="obt-lead">Your setup is done. Put the app on your home screen so it opens like any other app. The first time you open it there, sign in once with your email and PIN, and it stays signed in.</p>'
     +(ios&&inApp?'<p class="obt-desc"><b>First:</b> this opened inside another app. Tap the menu and choose <b>Open in Safari</b>, then follow the steps below.</p>':'')
     +'<div class="obt-pts">'+steps.map(function(t,n){ return '<div class="obt-pt"><span class="obt-ptn">'+(n+1)+'</span><span>'+t+'</span></div>'; }).join('')+'</div>'
     +'</div>'
