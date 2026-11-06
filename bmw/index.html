@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- BMW ASSESSMENT (Body · Move · Work), standalone STOPGAP, served at dashboard.legacyperformance.co/bmw/
+     Built Nov 6 2026 for Built 4 More members while the in-app BMW is held for the build freeze.
+     Every test, angle, rep count and Standard/Elite number comes from ../../BMW-Assessment-App-Spec.md
+     and the strength battery in Onboarding-Task-Map-Tiered.md. Do not improvise numbers here.
+     Results: kept on the device (localStorage) and sent to Jayme's assistant inbox (doorway type:'inbox')
+     with the full JSON, because the doorway has no BMW type yet. Videos are texted to Jayme for now
+     (final build: Supabase Storage). When the in-app BMW ships, migrate this data in. -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#1e1e1e">
+<title>Your BMW Assessment | Legacy Performance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;600;700&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="apple-touch-icon" href="../apple-touch-icon.png">
+<style>
+:root{--ink:#161616;--card:#222220;--line:rgba(255,255,255,.10);--body:#cfcac0;--white:#F6F8F5;--olive:#4A5C3E;--olive-lt:#8FA97A;--gold:#C1AD72;--warn:#e0a46b}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ink);color:var(--body);font-family:Montserrat,system-ui,sans-serif;font-size:15px;line-height:1.55;-webkit-text-size-adjust:100%}
+.wrap{max-width:720px;margin:0 auto;padding:28px 16px 120px}
+.top{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px}
+.top img{height:30px}
+.top .k{font-size:10px;letter-spacing:.2em;color:var(--gold);font-weight:700;text-transform:uppercase;text-align:right}
+h1{font-family:Montserrat;font-weight:900;text-transform:uppercase;color:var(--white);font-size:clamp(30px,8vw,46px);line-height:1;letter-spacing:-.01em;margin-bottom:14px}
+h1 span{color:var(--gold);display:block}
+.lede{font-size:16px;color:var(--body);margin-bottom:18px}
+.lede b,p b{color:#fff}
+.note{border:1px solid rgba(193,173,114,.35);border-left:3px solid var(--gold);background:rgba(193,173,114,.07);border-radius:12px;padding:14px 16px;margin:16px 0;font-size:14px}
+.note.pain{border-color:rgba(224,164,107,.4);border-left-color:var(--warn);background:rgba(224,164,107,.07)}
+.note b{color:#fff}
+.sec{margin-top:40px}
+.sec .lt{font-family:Cinzel,serif;font-size:13px;letter-spacing:.25em;color:var(--olive-lt);text-transform:uppercase;margin-bottom:6px}
+.sec h2{font-weight:900;text-transform:uppercase;color:var(--white);font-size:26px;line-height:1.05;margin-bottom:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin:14px 0}
+.card h3{color:#fff;font-size:16px;font-weight:800;margin-bottom:4px}
+.card .tag{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--ink);background:var(--gold);border-radius:999px;padding:3px 8px;margin-bottom:8px}
+.card .tag.vid{background:var(--olive-lt)}
+.card p{font-size:14px;margin:6px 0}
+.card ul{margin:6px 0 6px 18px;font-size:14px}
+.card li{margin:3px 0}
+.lbl{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);font-weight:800;margin:12px 0 6px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#1a1a19;color:var(--body);border-radius:10px;padding:9px 12px;font:600 14px Montserrat;cursor:pointer;min-width:44px}
+.chip.on{background:var(--olive);border-color:var(--olive-lt);color:#fff}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.f label{display:block;font-size:12px;color:var(--body);margin:10px 0 4px;font-weight:600}
+.f input,.f select,textarea{width:100%;background:#151514;border:1px solid var(--line);color:#fff;border-radius:10px;padding:11px 12px;font:500 15px Montserrat}
+.tg{font-size:12.5px;color:#9d978c;margin-top:6px}
+.tg b{color:var(--gold)}
+table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
+.sb td,.sb th{border-bottom:1px solid var(--line);padding:9px 6px;text-align:left;vertical-align:top}
+.sb th{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:var(--gold)}
+.sb input{width:100%;background:#151514;border:1px solid var(--line);color:#fff;border-radius:8px;padding:8px;font:500 14px Montserrat}
+.sb .t{color:#fff;font-weight:700}
+.sb .s{color:#9d978c;font-size:12px}
+.vids li{margin:6px 0}
+.btn{display:block;width:100%;background:var(--gold);color:#1c1c1c;border:0;border-radius:12px;padding:16px;font:800 15px Montserrat;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-top:18px}
+.status{margin-top:12px;font-size:14px;font-weight:600}
+.sexpick{display:flex;gap:8px;margin:8px 0 2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top"><img src="../logo-white-gold.png" alt="Legacy Performance"><div class="k">Built 4 More<br>BMW Assessment</div></div>
+
+  <h1>Your BMW<span>Assessment.</span></h1>
+  <p class="lede"><b>Body. Move. Work.</b> This is your starting line. It shows me how your body moves, where it's strong, and where we build first. We run it again every quarter so you can see the change.</p>
+
+  <div class="note"><b>What you need:</b> about 45 minutes, your phone to film, a little floor space, a bench or sturdy bed, a pull-up bar if you have one, and a friend if you can grab one (filming is easier with help). Do it in comfortable clothes you can move in.</div>
+  <div class="note pain"><b>The one rule:</b> if anything hurts at any point, stop that test and score it <b>0</b>. Don't push through pain. Any 0 means check in with a doctor or physical therapist before we load that movement.</div>
+
+  <div class="f"><label>I am</label></div>
+  <div class="sexpick" id="sexpick">
+    <button class="chip" data-sex="F">Female</button><button class="chip" data-sex="M">Male</button>
+  </div>
+  <p class="tg">This just sets which targets you see below.</p>
+
+  <!-- ============ B · BODY ============ -->
+  <div class="sec">
+    <div class="lt">B · Body</div>
+    <h2>Your numbers</h2>
+    <p>From your InBody or body-comp scan. Type what the scan gives you. Skip anything it doesn't show.</p>
+    <div class="card">
+      <div class="row f">
+        <div><label>Weight (lb)</label><input inputmode="decimal" data-k="b_weight"></div>
+        <div><label>Body fat %</label><input inputmode="decimal" data-k="b_bfpct"></div>
+        <div><label>Skeletal muscle mass (lb)</label><input inputmode="decimal" data-k="b_smm"></div>
+        <div><label>Body fat mass (lb)</label><input inputmode="decimal" data-k="b_bfm"></div>
+        <div><label>Visceral fat (optional)</label><input inputmode="decimal" data-k="b_visc"></div>
+        <div><label>BMR (optional)</label><input inputmode="decimal" data-k="b_bmr"></div>
+      </div>
+      <div class="lbl">Measurements (inches)</div>
+      <div class="row f">
+        <div><label>Waist</label><input inputmode="decimal" data-k="m_waist"></div>
+        <div><label>Chest</label><input inputmode="decimal" data-k="m_chest"></div>
+        <div><label>Arm</label><input inputmode="decimal" data-k="m_arm"></div>
+        <div><label>Thigh</label><input inputmode="decimal" data-k="m_thigh"></div>
+        <div><label>Calf</label><input inputmode="decimal" data-k="m_calf"></div>
+      </div>
+      <p class="tg">Your bloodwork lives in the app (Wellness tab), so it isn't repeated here.</p>
+    </div>
+  </div>
+
+  <!-- ============ M · MOVE ============ -->
+  <div class="sec">
+    <div class="lt">M · Move</div>
+    <h2>Five movement screens</h2>
+    <p>Film each one, then score yourself. Be honest. A 2 isn't bad, it's information.</p>
+    <div class="note"><b>Scoring for every screen:</b> <b>3</b> = clean · <b>2</b> = you can do it, but something compensates · <b>1</b> = you can't complete it · <b>0</b> = pain at any point.</div>
+
+    <div class="card">
+      <span class="tag vid">Video</span>
+      <h3>1. Split squat</h3>
+      <p><b>Set up:</b> sit on the floor with your legs straight. Put a marker at your hip and one at your feet. Stand up, put your front toes at one marker and your back toes at the other, then do a split squat.</p>
+      <p><b>Film:</b> from the side, each side.</p>
+      <p><b>What's scored:</b> back knee near the floor · front heel stays down · knee tracks over your toes · torso upright · no wobble.</p>
+      <div class="lbl">Left leg forward</div><div class="chips" data-k="mv_split_l"></div>
+      <div class="lbl">Right leg forward</div><div class="chips" data-k="mv_split_r"></div>
+    </div>
+
+    <div class="card">
+      <span class="tag vid">Video</span>
+      <h3>2. Overhead squat</h3>
+      <p><b>Set up:</b> feet about shoulder width, arms straight overhead. Squat as deep as you can and stand back up.</p>
+      <p><b>Film:</b> 3 reps from the side, then 3 reps facing the camera.</p>
+      <p><b>What's scored:</b> thighs below parallel · heels stay down · knees over your feet · arms stay overhead.</p>
+      <div class="lbl">Your score</div><div class="chips" data-k="mv_ohs"></div>
+    </div>
+
+    <div class="card">
+      <span class="tag vid">Video</span>
+      <h3>3. Scratch test</h3>
+      <p><b>Set up:</b> make two fists. Reach one fist over your shoulder and down your back, and the other up your back from below. Try to bring them together. Then switch sides.</p>
+      <p><b>Film:</b> from behind, 3 reps each side (right hand on top, then left hand on top).</p>
+      <p><b>What's scored:</b> fists within about one hand-length = <b>3</b> · within one and a half = <b>2</b> · farther apart = <b>1</b>.</p>
+      <div class="lbl">Right hand on top</div><div class="chips" data-k="mv_scratch_r"></div>
+      <div class="lbl">Left hand on top</div><div class="chips" data-k="mv_scratch_l"></div>
+    </div>
+
+    <div class="card">
+      <span class="tag vid">Video</span>
+      <h3>4. Standing toe touch</h3>
+      <p><b>Set up:</b> feet together, knees straight. Reach down toward your toes, hold 3 seconds at the bottom, stand back up.</p>
+      <p><b>Film:</b> from the side, 2 to 3 reps.</p>
+      <p><b>What's scored:</b> fingertips pass your toes · knees stay straight · hips shift back · smooth spine.</p>
+      <div class="lbl">Your score</div><div class="chips" data-k="mv_toe"></div>
+    </div>
+
+    <div class="card">
+      <span class="tag vid">Video</span>
+      <h3>5. Lying straight-leg raise</h3>
+      <p><b>Set up:</b> lie on your back, legs straight. Keeping one leg flat on the floor, lift the other leg as high as you can with the knee straight. Hold 2 seconds, lower it.</p>
+      <p><b>Film:</b> from the side, 3 lifts each leg.</p>
+      <p><b>What's scored:</b> raised ankle passes the middle of the thigh on the down leg = <b>3</b> · reaches the knee line = <b>2</b> · below the knee = <b>1</b>. The down leg has to stay flat.</p>
+      <div class="lbl">Left leg up</div><div class="chips" data-k="mv_aslr_l"></div>
+      <div class="lbl">Right leg up</div><div class="chips" data-k="mv_aslr_r"></div>
+    </div>
+  </div>
+
+  <!-- ============ W · WORK ============ -->
+  <div class="sec">
+    <div class="lt">W · Work</div>
+    <h2>Work capacity</h2>
+    <p>Time each hold until your form breaks. Type it as minutes:seconds (like 1:15) or just seconds.</p>
+
+    <div class="card">
+      <span class="tag vid">Video</span>
+      <h3>Front plank</h3>
+      <p>Forearms and toes, body in one straight line from head to heels. Stop the clock when your hips sag or lift.</p>
+      <div class="f"><label>Time held</label><input data-k="w_plank" placeholder="e.g. 1:30"></div>
+      <p class="tg" data-tg="plank"></p>
+    </div>
+    <div class="card">
+      <span class="tag vid">Video</span>
+      <h3>Side plank, each side</h3>
+      <p>On one forearm, feet stacked, body in a straight line. Stop when your hips drop.</p>
+      <div class="row f">
+        <div><label>Left side</label><input data-k="w_side_l" placeholder="e.g. 0:45"></div>
+        <div><label>Right side</label><input data-k="w_side_r" placeholder="e.g. 0:45"></div>
+      </div>
+      <p class="tg" data-tg="side"></p>
+    </div>
+    <div class="card">
+      <span class="tag">Score only</span>
+      <h3>Dead hang</h3>
+      <p>Hang from a pull-up bar with straight arms. Stop when your grip lets go. No bar? Skip it.</p>
+      <div class="f"><label>Time held</label><input data-k="w_hang" placeholder="e.g. 0:40"></div>
+      <p class="tg" data-tg="hang"></p>
+    </div>
+    <div class="card">
+      <span class="tag">Score only</span>
+      <h3>Sorensen test (back-extension hold)</h3>
+      <p>Lie face down on a bench or bed with your hips at the edge and your upper body hanging off. Have someone hold your legs down. Arms crossed on your chest, lift your upper body until you're level (a straight line) and hold. Stop when you can't stay level. Skip it if your back hurts.</p>
+      <div class="f"><label>Time held</label><input data-k="w_soren" placeholder="e.g. 1:20"></div>
+      <p class="tg" data-tg="soren"></p>
+    </div>
+  </div>
+
+  <!-- ============ STRENGTH STANDARDS ============ -->
+  <div class="sec">
+    <div class="lt">Strength standards</div>
+    <h2>The 12-test battery</h2>
+    <p>Numbers only, no video. Only test what you can do safely. Skip anything you can't do yet, that's what the program is for. Plank, dead hang and toe touch carry over from above.</p>
+    <div class="card">
+      <table class="sb">
+        <thead><tr><th>Test</th><th>Your result</th></tr></thead>
+        <tbody id="sbBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ============ SEND ============ -->
+  <div class="sec">
+    <div class="lt">Last step</div>
+    <h2>Send it to me</h2>
+    <div class="card">
+      <p><b>Text me your videos.</b> Seven in all:</p>
+      <ul class="vids">
+        <li>Split squat, left and right</li>
+        <li>Overhead squat, side and front</li>
+        <li>Scratch test, both sides</li>
+        <li>Toe touch</li>
+        <li>Lying straight-leg raise, both legs</li>
+        <li>Front plank</li>
+        <li>Side plank, both sides</li>
+      </ul>
+      <div class="f"><label>Your name</label><input data-k="name" autocomplete="name"></div>
+      <div class="f"><label>Your email (the one you signed up with)</label><input data-k="email" type="email" autocomplete="email" inputmode="email"></div>
+      <div class="f"><label>Anything I should know? Old injuries, anything that felt off</label><textarea data-k="notes" rows="3"></textarea></div>
+      <button class="btn" id="sendBtn">Send my results</button>
+      <div class="status" id="status"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+var WRITE_URL="https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec";
+var LS="lp_bmw_v1";
+// Standard / Elite, format [M, F]. Work bands: BMW-Assessment-App-Spec.md (LOCKED 2026-11-06).
+var WORK={plank:{s:["2:00","2:00"],e:["4:00","4:00"]}, side:{s:["90s","60s"],e:["2:00","90s"]},
+          hang:{s:["60s","45s"],e:["2:00","90s"]}, soren:{s:["90s","90s"],e:["2:30","3:00"]}};
+// 12-test battery: Onboarding-Task-Map-Tiered.md (LOCKED 2026-11-03).
+var BATTERY=[
+  ["sb_mile","Run 1 mile","time",["8:00","9:30"],["6:00","7:30"]],
+  ["sb_400","Run 400m","time",["90s","1:50"],["70s","85s"]],
+  ["sb_bench","Bench press","weight (lb)",["1× BW","0.6× BW"],["1.5× BW","1× BW"]],
+  ["sb_dead","Deadlift","weight (lb)",["1.5× BW","1.25× BW"],["2.5× BW","2× BW"]],
+  ["sb_squat","Squat","weight (lb)",["1× BW","0.75× BW"],["2× BW","1.5× BW"]],
+  ["sb_pull","Pull-ups","reps",["15","5"],["20","10"]],
+  ["sb_push","Push-ups","reps",["30","15"],["50","30"]],
+  ["sb_plank","Plank hold","same as front plank above",["2:00","2:00"],["4:00","4:00"],"w_plank"],
+  ["sb_hang","Dead hang","same as above",["60s","45s"],["2:00","90s"],"w_hang"],
+  ["sb_toe","Toe touch, straight knees","how far",["palms to toes","palms to toes"],["palms flat on floor","palms flat on floor"]],
+  ["sb_carry","Farmer's carry 50m","weight per hand or total (lb)",["1× BW","0.75× BW"],["1.5× BW","1.25× BW"]],
+  ["sb_burp","Burpees, no rest","reps unbroken",["10","10"],["20","20"]]
+];
+var S={}; try{ S=JSON.parse(localStorage.getItem(LS)||"{}")||{}; }catch(e){ S={}; }
+function save(){ try{ localStorage.setItem(LS, JSON.stringify(S)); }catch(e){} }
+function sexIdx(){ return S.sex==="M"?0:1; }
+
+// strength table
+var tb=document.getElementById("sbBody");
+BATTERY.forEach(function(b){
+  var tr=document.createElement("tr");
+  tr.innerHTML='<td><div class="t">'+b[1]+'</div><div class="s" data-sb="'+b[0]+'"></div></td>'
+    +'<td><input data-k="'+b[0]+'" placeholder="'+b[2]+'"'+(b[5]?' data-mirror="'+b[5]+'"':'')+'></td>';
+  tb.appendChild(tr);
+});
+
+// score chips
+document.querySelectorAll(".chips[data-k]").forEach(function(box){
+  [3,2,1,0].forEach(function(n){
+    var c=document.createElement("button"); c.className="chip"; c.textContent=n; c.type="button";
+    c.onclick=function(){ S[box.dataset.k]=n; save(); paintChips(); };
+    box.appendChild(c);
+  });
+});
+function paintChips(){
+  document.querySelectorAll(".chips[data-k]").forEach(function(box){
+    Array.prototype.forEach.call(box.children,function(c){ c.classList.toggle("on", String(S[box.dataset.k])===c.textContent); });
+  });
+  document.querySelectorAll("#sexpick .chip").forEach(function(c){ c.classList.toggle("on", S.sex===c.dataset.sex); });
+}
+document.querySelectorAll("#sexpick .chip").forEach(function(c){ c.onclick=function(){ S.sex=c.dataset.sex; save(); paintChips(); paintTargets(); }; });
+
+// inputs
+document.querySelectorAll("[data-k]").forEach(function(el){
+  if(el.classList.contains("chips")) return;
+  if(S[el.dataset.k]!=null) el.value=S[el.dataset.k];
+  el.addEventListener("input",function(){ S[el.dataset.k]=el.value; save(); mirror(); });
+});
+function mirror(){
+  document.querySelectorAll("[data-mirror]").forEach(function(el){
+    var src=S[el.dataset.mirror]; if(src && !el.value){ el.value=src; S[el.dataset.k]=src; }
+  });
+}
+function paintTargets(){
+  var i=sexIdx();
+  Object.keys(WORK).forEach(function(k){
+    var el=document.querySelector('[data-tg="'+k+'"]'); if(!el) return;
+    el.innerHTML='Target: <b>Standard '+WORK[k].s[i]+'</b> · Elite '+WORK[k].e[i]+(k==="side"?' (each side)':'');
+  });
+  BATTERY.forEach(function(b){
+    var el=document.querySelector('[data-sb="'+b[0]+'"]'); if(el) el.innerHTML='Standard '+b[3][i]+' · Elite '+b[4][i];
+  });
+}
+paintChips(); paintTargets(); mirror();
+
+// send
+document.getElementById("sendBtn").onclick=function(){
+  var st=document.getElementById("status");
+  function msg(t,c){ st.textContent=t; st.style.color=c||"var(--gold)"; }
+  if(!S.email || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(S.email)) return msg("Add the email you signed up with.","var(--warn)");
+  S.sentAt=new Date().toISOString(); save();
+  var lines=["BMW ASSESSMENT from "+(S.name||"")+" <"+S.email+">"];
+  Object.keys(S).sort().forEach(function(k){ if(["name","email","sentAt"].indexOf(k)<0 && S[k]!=="" && S[k]!=null) lines.push(k+": "+S[k]); });
+  var payload={type:"inbox", from:S.email, channel:"bmw-page", kind:"bmw", when:S.sentAt,
+    message:lines.join("\n")+"\n\nJSON: "+JSON.stringify(S)};
+  msg("Sending…","#9d978c");
+  fetch(WRITE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(payload)})
+    .then(function(){ msg("Sent. Now text me your videos, and I'll take it from here."); })
+    .catch(function(){ msg("Couldn't send. Check your connection and try again. Your answers are saved on this phone.","var(--warn)"); });
+};
+</script>
+</body>
+</html>
