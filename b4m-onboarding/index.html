@@ -186,6 +186,8 @@ h1 span{color:var(--gold)}
 
 <script src="links.js"></script>
 <script>
+// ?demo=1 → walkthrough copy of this page: Set up my app opens the app's no-save setup preview.
+if (/[?&]demo=1/.test(location.search)) BW_LINKS.appUrl = BW_LINKS.appUrl + '?setupdemo=1';
 document.querySelectorAll('[data-link]').forEach(function(a){
   var u = BW_LINKS[a.dataset.link];
   if (u) a.href = u;

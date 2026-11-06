@@ -7388,10 +7388,21 @@ function setupDemoBoot(){
     + 'border-top:1px solid #C1AD72;color:#EAE4D8;font:600 12.5px/1.3 -apple-system,Segoe UI,Roboto,sans-serif;'
     + 'padding:10px 14px;display:flex;align-items:center;gap:10px;box-shadow:0 -6px 20px rgba(0,0,0,.35)';
   bar.innerHTML = '<span style="color:#C1AD72">●</span>'
-    + '<span style="flex:1">Setup preview — nothing is saved. Walk the real account setup, then see the full app.</span>'
+    + '<span style="flex:1">Setup preview, nothing is saved.<br><b id="demoScreen" style="color:#C1AD72"></b></span>'
     + '<button onclick="location.href=location.pathname+\'?setupdemo=1\'" style="background:none;border:1px solid #6b6455;color:#EAE4D8;border-radius:7px;padding:6px 10px;font:inherit;cursor:pointer">↻ Restart</button>'
     + '<button onclick="window.DEMO_NOSAVE=true;demoBoot()" style="background:#C1AD72;border:0;color:#1C1C1C;border-radius:7px;padding:6px 12px;font:inherit;font-weight:700;cursor:pointer">See the full app →</button>';
   document.body.appendChild(bar);
+  // Name the screen in the bar so feedback can say exactly which one ("on the PIN screen…").
+  setInterval(function(){
+    var el=g("demoScreen"); if(!el) return; var s=CUR_SECTION, n="";
+    if(s==="onboard") n=(g("lgSignin")&&g("lgSignin").style.display!=="none")?"Screen: Sign in":"Screen: Welcome";
+    else if(s==="obtour"){ var t=document.querySelector("#obtourBody .obt-title"); var st=document.querySelector("#obtourBody .obt-step"); n="Screen: "+((t&&t.textContent)||"Tour")+(st&&/Step/.test(st.textContent)?" ("+st.textContent+")":""); }
+    else if(s==="wizard"){ var w=g("wizTitle"); n="Screen: Intake, "+((w&&w.textContent)||""); }
+    else if(s==="booking") n="Screen: Book your call";
+    else if(s==="home") n="Screen: Dashboard";
+    else n="Screen: "+s;
+    if(el.textContent!==n) el.textContent=n;
+  }, 400);
   ID.name="Jayme";          // demo personalization for the walkthrough
   show("onboard");          // start at the login HERO → Sign in → onboarding (full first-touch experience)
 }
