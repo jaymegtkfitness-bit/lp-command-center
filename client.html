@@ -7396,7 +7396,7 @@ function setupDemoBoot(){
   setInterval(function(){
     var el=g("demoScreen"); if(!el) return; var s=CUR_SECTION, n="";
     if(s==="onboard") n=(g("lgSignin")&&g("lgSignin").style.display!=="none")?"Screen: Sign in":"Screen: Welcome";
-    else if(s==="obtour"){ var t=document.querySelector("#obtourBody .obt-title"); var st=document.querySelector("#obtourBody .obt-step"); n="Screen: "+((t&&t.textContent)||"Tour")+(st&&/Step/.test(st.textContent)?" ("+st.textContent+")":""); }
+    else if(s==="obtour"){ var t=document.querySelector("#obtourBody .obt-title"); var st=document.querySelector("#obtourBody .obt-step"); n="Screen: "+((t&&t.innerText.replace(/\s+/g," ").trim())||"Tour")+(st&&/Step/.test(st.textContent)?" ("+st.textContent+")":""); }
     else if(s==="wizard"){ var w=g("wizTitle"); n="Screen: Intake, "+((w&&w.textContent)||""); }
     else if(s==="booking") n="Screen: Book your call";
     else if(s==="home") n="Screen: Dashboard";
