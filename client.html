@@ -4891,7 +4891,7 @@ function showPinStep(){
     +'<div class="obt-body">'
     +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
     +'<h2 class="obt-title">Pick your PIN</h2>'
-    +'<p class="obt-lead">Four numbers you\'ll remember. You\'ll use them with your email to sign in on your phone.</p>'
+    +'<p class="obt-lead">Pick 4 numbers. You\'ll sign in with your email and this PIN.</p>'
     +'<div class="field" style="margin-top:14px"><label>4-digit PIN</label><input class="input" id="pin_a" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••"></div>'
     +'<div class="field"><label>Type it again</label><input class="input" id="pin_b" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="4" autocomplete="new-password" placeholder="••••"></div>'
     +'<div class="status" id="pinStatus"></div>'
@@ -4926,7 +4926,7 @@ function showA2HS(){
     +'<div class="obt-body">'
     +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
     +'<h2 class="obt-title">Save your app</h2>'
-    +'<p class="obt-lead">Your setup is done. Put the app on your home screen so it opens like any other app. The first time you open it there, sign in once with your email and PIN, and it stays signed in.</p>'
+    +'<p class="obt-lead">Add the app to your home screen. Then open it and sign in with your email and PIN.</p>'
     +(ios&&inApp?'<p class="obt-desc"><b>First:</b> this opened inside another app. Tap the menu and choose <b>Open in Safari</b>, then follow the steps below.</p>':'')
     +'<div class="obt-pts">'+steps.map(function(t,n){ return '<div class="obt-pt"><span class="obt-ptn">'+(n+1)+'</span><span>'+t+'</span></div>'; }).join('')+'</div>'
     +'</div>'
