@@ -2655,6 +2655,7 @@ function editIdentity(){
   try{ if(window.__sb) window.__sb.auth.signOut(); }catch(e){}   // end the Supabase session too
   try{ localStorage.removeItem(LS_TOKEN); localStorage.removeItem('lp_preview_acct'); localStorage.removeItem(LS_ID); localStorage.removeItem('lp_prog_data'); }catch(e){}   // program is private to this member: never leave it for the next login on this device
   TOKEN=null; ID=null;
+  try{ if(getParam('k')) history.replaceState(null,'',location.pathname+(location.hash||'')); }catch(e){}
   ["ob_email"].forEach(function(id){ var el=g(id); if(el) el.value=""; });
   var st=g("obStatus"); if(st) st.textContent="";
   show("onboard");
@@ -4854,6 +4855,57 @@ function obTourBack(){ if(OB_TOUR_I<=0) return; OB_TOUR_I--; renderObTour(); }
 function obTourSkip(){ showWizard(); }
 function obTourDone(){ OB_MODE=false; try{ saveLS("lp_ob_tour_seen","1"); }catch(e){} showHome(); }
 
+/* ---- Last step of setup: save the app to the home screen (Nov 6 2026).
+   Comes AFTER the intake and the Read, never before. The saved icon must open THIS member's app:
+   on iPhone a home-screen app gets its own storage (it can't see the Safari sign-in), so the
+   address being saved has to carry their ?k= token. pinTokenToUrl() puts it there. ---- */
+function isStandaloneApp(){ try{ return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true; }catch(e){ return false; } }
+function personalAppUrl(){ return location.origin+location.pathname+(TOKEN?('?k='+encodeURIComponent(TOKEN)):''); }
+function pinTokenToUrl(){
+  try{ if(TOKEN && getParam('k')!==TOKEN && !getParam('preview') && !getParam('setupdemo') && !window.DEMO_NOSAVE){ history.replaceState(null,'',personalAppUrl()+(location.hash||'')); } }catch(e){}
+}
+var A2HS_PROMPT=null;
+window.addEventListener('beforeinstallprompt', function(e){ e.preventDefault(); A2HS_PROMPT=e; });
+function obExit(){
+  OB_MODE=false;
+  var seen=false; try{ seen=localStorage.getItem('lp_a2hs_seen')==='1'; }catch(e){}
+  if(isStandaloneApp() || seen){ showHome(); return; }
+  showA2HS();
+}
+function showA2HS(){
+  pinTokenToUrl();
+  var ua=navigator.userAgent||'', ios=/iphone|ipad|ipod/i.test(ua), android=/android/i.test(ua);
+  var inApp=/FBAN|FBAV|Instagram|GSA\/|Line\/|; wv\)/i.test(ua);
+  var steps;
+  if(ios) steps=['Tap the <b>Share</b> button (the square with an arrow) at the bottom of Safari.','Scroll down and tap <b>Add to Home Screen</b>.','Tap <b>Add</b>. From now on, open <b>Legacy</b> from your home screen.'];
+  else if(android && A2HS_PROMPT) steps=['Tap <b>Add to my home screen</b> below and confirm.','From now on, open <b>Legacy</b> from your home screen.'];
+  else if(android) steps=['Tap the <b>⋮</b> menu at the top right of Chrome.','Tap <b>Install app</b> (or <b>Add to Home screen</b>).','From now on, open <b>Legacy</b> from your home screen.'];
+  else steps=['Open this page <b>on your phone</b>, not your laptop.','iPhone: in Safari tap <b>Share</b>, then <b>Add to Home Screen</b>.','Android: in Chrome tap <b>⋮</b>, then <b>Install app</b>.'];
+  var h='<div class="obt-top"><span class="obt-step">Last step</span></div>'
+    +'<div class="obt-body">'
+    +'<div class="obt-hero"><img class="obt-shield" src="shield-white-gold.png" alt=""></div>'
+    +'<h2 class="obt-title">Save your app</h2>'
+    +'<p class="obt-lead">Your setup is done. Put the app on your home screen so it opens straight to your dashboard, signed in, like any other app.</p>'
+    +(ios&&inApp?'<p class="obt-desc"><b>First:</b> this opened inside another app. Tap the menu and choose <b>Open in Safari</b>, then follow the steps below.</p>':'')
+    +'<div class="obt-pts">'+steps.map(function(t,n){ return '<div class="obt-pt"><span class="obt-ptn">'+(n+1)+'</span><span>'+t+'</span></div>'; }).join('')+'</div>'
+    +'</div>'
+    +'<div class="obt-nav">'
+    +(android&&A2HS_PROMPT?'<button class="btn btn-ghost obt-back" onclick="a2hsDone()">Skip</button><button class="btn btn-primary obt-next" onclick="a2hsInstall()">Add to my home screen</button>'
+                          :'<button class="btn btn-primary obt-next" onclick="a2hsDone()">I saved it, take me in →</button>')
+    +'</div>';
+  g("obtourBody").innerHTML=h; show("obtour");
+}
+function a2hsInstall(){
+  if(!A2HS_PROMPT){ a2hsDone(); return; }
+  A2HS_PROMPT.prompt();
+  A2HS_PROMPT.userChoice.then(function(){ A2HS_PROMPT=null; a2hsDone(); }, function(){ A2HS_PROMPT=null; });
+}
+function a2hsDone(){
+  try{ localStorage.setItem('lp_a2hs_seen','1'); }catch(e){}
+  try{ if(M && M.onboardingDone && M.onboardingDone.indexOf('bookmark')<0){ M.onboardingDone.push('bookmark'); saveLS(LS_ONBOARD, M.onboardingDone); } }catch(e){}
+  showHome();
+}
+
 /* ============================ SETUP WIZARD ============================ */
 var WIZ = {}, WIZ_I = 0;
 /* Guided intake — one question per screen. Steps replaces "activity level"; band maps to a TDEE factor. */
@@ -6985,7 +7037,7 @@ function readinessRead(){
     var bookUrl=CONFIG.onboardCallUrl||CONFIG.bookCallUrl||"";
     oh+='<div class="actions" style="margin-top:16px">'
       +(bookUrl?'<a class="btn btn-primary btn-big" href="'+esc(bookUrl)+'" target="_blank" rel="noopener" onclick="raBookRoadmap()">Book my roadmap call →</a>':'')
-      +'<button class="btn btn-ghost" onclick="OB_MODE=false;showHome()">Enter my dashboard →</button></div>';
+      +'<button class="btn btn-ghost" onclick="obExit()">Enter my dashboard →</button></div>';
     oh+='</div>'; return oh;
   }
   var h='<div class="ra-read">';
@@ -7080,9 +7132,8 @@ function raBookRoadmap(){
   var win=(g("bk_win")&&g("bk_win").value)||"";
   postToSheet({type:"roadmapcall", email:(ID&&ID.email)||"", ts:new Date().toISOString(), win:win});
   M.booked=true; try{ saveLS("lp_client_booked","1"); }catch(e){}
-  // Booking is the last step now (the app tour + journey ran up front, after login). Land them in the app.
-  OB_MODE=false;
-  setTimeout(showHome, 400);
+  // Booking leads into the last step: save the app to the home screen, then land them in the app.
+  setTimeout(obExit, 400);
 }
 
 /* ============================ WRITE DOORWAY ============================ */
@@ -7330,6 +7381,7 @@ function setupDemoBoot(){
         var gsv = /^m/i.test(server.gender||"") ? "man" : (/^f/i.test(server.gender||"") ? "woman" : ((ID&&ID.gender)||"woman"));
         ID = { email:server.email, name:server.name||(ID&&ID.name)||"", gender:gsv };
         saveLS(LS_ID, ID);
+        pinTokenToUrl();   // so Add to Home Screen saves THEIR app, not a bare client.html
         if(server.active===false){ M.lite=true; buildModel(server); if(!M.intake && !M.checkins.length){ showWizard(); } else { showHome(); } return; }
         buildModel(server);
         if(window.FORCE_ONBOARD || (!M.intake && !M.checkins.length)){ obStart(); } else { showHome(); checkSetupParam(); }
