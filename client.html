@@ -854,6 +854,8 @@ h2,.sec-h h2{font-family:'Montserrat',system-ui,sans-serif!important;font-weight
 .logtile .rt2{font-weight:800;font-size:15px;color:#fff}
 .logtile .rs{font-size:11.5px;color:var(--ink-dim);margin-top:2px}
 .logtile .go{font-size:20px;flex:none}
+.logtile-sub{text-align:center;font-size:11.5px;color:var(--ink-dim);margin-top:7px;cursor:pointer;text-decoration:underline;text-underline-offset:2px;-webkit-tap-highlight-color:transparent}
+.logtile-sub b{color:var(--gold);font-weight:700}
 /* Nutrition: large centered avg-cal ring */
 .dt-ringwrap{display:flex;justify-content:center;padding:8px 0 2px}
 .dt-ringwrap .kring .rt b{font-size:32px}
@@ -1218,6 +1220,27 @@ header .brand.cb-lock .cb-lp{height:2.25rem!important;width:auto}
 .gb-nr span{color:var(--ink-soft);font-size:13px;line-height:1.45}
 .gb-nr .gb-add{color:var(--good-tx);font-weight:600}
 .gb-fine{margin:18px 0 0;font-size:11.5px;line-height:1.5;color:var(--muted)}
+/* Labs read (bwReportHtml): reuses the gb-* report pieces, plus one row per marker. */
+.bwr-grp{font-size:11px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin:14px 0 6px}
+.bwr-mk{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);margin-bottom:8px;overflow:hidden}
+.bwr-mk.flag{border-left:3px solid var(--stall-tx)}
+.bwr-top{display:flex;align-items:center;gap:10px;padding:11px 14px}
+.bwr-nm{flex:1;font-weight:700;color:var(--headline);font-size:14px}
+.bwr-v{font-weight:800;color:var(--headline);font-size:15px;white-space:nowrap}
+.bwr-v small{font-weight:600;color:var(--muted);font-size:11px;margin-left:2px}
+.bwr-chip{font-size:10px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:6px;white-space:nowrap}
+.bwr-chip.in{background:var(--good-bg);color:var(--good-tx)}
+.bwr-chip.high,.bwr-chip.low{background:var(--stall-bg);color:var(--stall-tx)}
+.bwr-chip.no-range{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+.bwr-body{padding:0 14px 12px}
+.bwr-body p{margin:0;color:var(--ink-soft);font-size:13px;line-height:1.5}
+.bwr-meta{font-size:11.5px;color:var(--muted);margin-top:4px}
+.bwr-mk.flag .bwr-top{cursor:pointer}
+.bwr-ex{display:none;margin-top:6px}
+.bwr-mk.open .bwr-ex{display:block}
+.bwr-ex p{color:var(--ink);font-size:13.5px}
+.bwr-src{margin:14px 0 0;padding-left:18px;font-size:11px;line-height:1.5;color:var(--muted)}
+.bwr-upd{margin-top:18px;padding-top:14px;border-top:1px solid var(--line)}
 </style>
 </head>
 <body>
@@ -1949,9 +1972,10 @@ var CONFIG = {
   completeSystemPrice: "$497",     // today's price shown on the upsell card
   completeSystemCompare: "$997",   // regular price, shown struck through next to it (leave "" for no comparison)
   bookCallUrl: "https://legacyperformance.co/coaching-call",  // coaching call (Built for More 1:1 / included). "" hides.
-  thorneUrl: "",  // your Thorne dispensary / affiliate link — the supplement tiles link here. "" = placeholder (#).
-  huelUrl: "",    // TODO: your Huel affiliate link.
-  equipUrl: "",   // TODO: your Equip Foods partner link.
+  thorneUrl: "https://www.thorne.com/u/legacy-performance",  // Thorne dispensary (affiliate) link — the supplement tiles link here.
+  huelUrl: "https://huel.com",    // Huel store. Huel is a refer-a-friend CODE, not an affiliate link.
+  huelCode: "REF-JAYMEO1381",     // copied to the clipboard when a member taps a Huel link (first-order discount, new customers)
+  equipUrl: "https://www.equipfoods.com/JAYMEOLSON",   // Equip Foods partner link (vanity path; deep links may not carry attribution)
   peptideOrderUrl: "",  // peptide order / reorder form (GHL). "" = "coming soon" alert until set.
   onboardCallUrl: "https://api.leadconnectorhq.com/widget/booking/OqTfr9WIrNoJVSrG3rfR",  // roadmap-call GHL form + booking (qualifier Qs + "interested in coaching?" live in this form)
   skoolAppUrl: "https://apps.apple.com/us/app/skool-communities/id6447270545",  // Skool app (iOS)
@@ -2160,6 +2184,27 @@ function openInAppPage(url, title){
   return false;
 }
 function closeInAppPage(){ var ov=g("pageOverlay"); if(ov)ov.classList.remove("open"); document.body.style.overflow=""; var fr=g("pageOverlayFrame"); if(fr) fr.src="about:blank"; }
+/* "Open the app first." The Nutrition log tile sends you STRAIGHT into the installed Cronometer
+   app instead of the interstitial page. There is no reliable web API to detect whether an app is
+   installed — iOS and Android both block it — so we open the app's own link directly; if it isn't
+   installed the phone lands on cronometer's site, and the small "Get Cronometer" link under the
+   tile opens the download page. iOS registers only /applinks/* as universal links (verified in its
+   apple-app-site-association, NOT /login); Android claims every cronometer.com URL (assetlinks
+   handle_all_urls), so /login opens the app there. A real anchor click carries the tap's user
+   gesture, which is the most reliable way to fire a universal/app link. */
+function openCronometerApp(){
+  var ua=navigator.userAgent||'';
+  var isIOS=/iPhone|iPad|iPod/i.test(ua), isAnd=/Android/i.test(ua);
+  var url = isIOS ? 'https://cronometer.com/applinks/' : 'https://cronometer.com/login/';
+  if(isIOS||isAnd){
+    var a=document.createElement('a'); a.href=url; a.rel='noopener';
+    document.body.appendChild(a); a.click();
+    setTimeout(function(){ try{ document.body.removeChild(a); }catch(e){} }, 0);
+  } else {
+    window.open(url,'_blank');   // desktop → web log in a new tab
+  }
+  return false;
+}
 /* RETIRED 2026-11-04. 'lp_target_override' was a SECOND, device-only target system with no
    'by' field and no sync, applied on top of the real one at render time. The real system is
    LS_TARGETS / postToSheet({type:"targets", by:...}) — server-authoritative, coach-aware.
@@ -2948,6 +2993,7 @@ function buildModel(server){
   M.requests       = (server && server.requests)       ? server.requests       : (M.requests||[]);
   M.bloodwork      = (server && server.bloodwork)       ? server.bloodwork      : (M.bloodwork||[]);
   M.geneticsreport = (server && server.geneticsreport)  ? server.geneticsreport : (M.geneticsreport||[]);   // Genetic Blueprint report (genetic-blueprint-manager skill), JSON in the Data col
+  M.bloodworkreport= (server && server.bloodworkreport) ? server.bloodworkreport: (M.bloodworkreport||[]);  // Labs read (bloodwork-analysis skill), JSON in the Data col
   M.orders         = (server && server.orders)          ? server.orders         : (M.orders||[]);
   M.doses          = (server && server.doses)           ? server.doses          : (M.doses||[]);
   // ---- tier + Complete Nutrition System entitlement ----
@@ -3221,6 +3267,8 @@ function renderProgressHero(){
    peptides route to the order-request; the customized stack unlocks with the Genetic Blueprint. */
 function wellOpen(id,msg){ var c=g(id); if(c){ c.classList.add('force-show'); c.scrollIntoView({behavior:'smooth',block:'start'}); } else if(msg){ alert(msg); } }
 function shopLink(u){ if(u){ window.open(u,'_blank','noopener'); } else { alert('Shop link coming soon.'); } }
+/* Huel: copy the referral code, tell them where to paste it, then open the store. */
+function huelShop(){ var c=CONFIG.huelCode||'', u=CONFIG.huelUrl||''; if(c){ try{ navigator.clipboard.writeText(c); }catch(e){} alert('Your Huel code: '+c+'\n\nIt\'s copied. Paste it at checkout for a discount on your first order.'); } shopLink(u); }
 function peptideOrder(){ var u=CONFIG.peptideOrderUrl||''; if(u){ window.open(u,'_blank','noopener'); } else { alert('Your order form is coming soon.\n\nHow it works: you place your order, the licensed provider group reviews your intake, and if approved it ships from the pharmacy. If it is not approved, you are refunded. Eligibility, prescriptions, and dosing are determined solely by the licensed provider group.\n\nFor now, tap Request a Consult to reorder.'); } }
 function renderWellnessTiles(){
   var box=g("wellTilesBox"); if(!box) return;
@@ -3234,9 +3282,10 @@ function renderWellnessTiles(){
     +'<div class="stack"><div class="sh"><div class="t">Foundational supplements</div></div>'
     +'<div class="suprow"><div class="si">🥛</div><div class="sb"><div class="sn">Whey Isolate</div><div class="sm">Daily protein anchor · Thorne</div></div><div class="lk" onclick="shopLink(\''+thorne+'\')">Shop ↗</div></div>'
     +'<div class="suprow"><div class="si">💪</div><div class="sb"><div class="sn">Creatine Monohydrate</div><div class="sm">5 g daily · Thorne</div></div><div class="lk" onclick="shopLink(\''+thorne+'\')">Shop ↗</div></div>'
-    +'<div class="suprow"><div class="si">🐟</div><div class="sb"><div class="sn">Fish Oil (Omega-3)</div><div class="sm">Recovery &amp; joints · Equip</div></div><div class="lk" onclick="shopLink(\''+equip+'\')">Shop ↗</div></div>'
-    +'<div class="suprow"><div class="si">✨</div><div class="sb"><div class="sn">'+esc(track)+' add-on</div><div class="sm">'+addon+'</div></div><div class="lk" onclick="shopLink(\''+huel+'\')">View →</div></div>'
-    +'</div>';
+    +'<div class="suprow"><div class="si">🐟</div><div class="sb"><div class="sn">Fish Oil (Omega-3)</div><div class="sm">Recovery &amp; joints · Thorne</div></div><div class="lk" onclick="shopLink(\''+thorne+'\')">Shop ↗</div></div>'
+    +'<div class="suprow"><div class="si">✨</div><div class="sb"><div class="sn">'+esc(track)+' add-on</div><div class="sm">'+addon+'</div></div><div class="lk" onclick="huelShop()">View →</div></div>'
+    +'</div>'
+    +'<p class="foot" style="margin:8px 2px 0;font-size:11px;color:var(--muted)">Equip and Thorne are partners and links may be affiliate. The Huel code gives you a discount on your first order. General wellness, not medical advice.</p>';
   // Labs & Genetics
   h+='<div class="k-slabel">Labs &amp; Genetics</div>'
     +'<div class="krow" onclick="wellOpen(\'bloodCard\')"><div class="ic blood">🩸</div><div class="rb"><div class="rt2">Bloodwork</div><div class="rs">Record your labs — informs nutrition &amp; lifestyle</div></div><div class="go">›</div></div>'
@@ -3379,7 +3428,7 @@ function renderSupplements(){
   var box=g("suppBox"); if(!box) return;
   var it=M.intake, track=(it&&it.track)||'';
   var thorne=CONFIG.thorneUrl||'#', huel=CONFIG.huelUrl||'#', equip=CONFIG.equipUrl||'#';
-  function row(tag,cls,nm,desc,brand,link){ return '<div class="wtile"><div class="wthumb '+cls+'">'+tag+'</div><div class="wbody"><div class="wt">'+esc(nm)+'</div><div class="wd">'+desc+'</div></div><a class="wgo" href="'+(link||'#')+'" target="_blank" rel="noopener">'+esc(brand)+' &rarr;</a></div>'; }
+  function row(tag,cls,nm,desc,brand,link){ return '<div class="wtile"><div class="wthumb '+cls+'">'+tag+'</div><div class="wbody"><div class="wt">'+esc(nm)+'</div><div class="wd">'+desc+'</div></div>'+(brand==='Huel'?'<a class="wgo" href="#" onclick="huelShop();return false">':'<a class="wgo" href="'+(link||'#')+'" target="_blank" rel="noopener">')+esc(brand)+' &rarr;</a></div>'; }
   function sub(t){ return '<div class="wsubh">'+esc(t)+'</div>'; }
   var h='<p class="empty" style="text-align:left;margin:0 0 8px">Simple, not a cabinet &mdash; this base is the whole stack most people ever need. General wellness, not medical advice.</p>';
   h+=sub('Your foundation');
@@ -3390,7 +3439,7 @@ function renderSupplements(){
   else if(/strong/i.test(track)){ h+=sub('For your Strong phase'); h+=row('PRO','tw-rust','Extra protein','Optional &mdash; an extra Huel or a dedicated protein for higher targets.','Equip',equip); }
   h+=sub('Skip these');
   h+='<div class="wtile"><div class="wthumb wlock">&times;</div><div class="wbody"><div class="wt dim">EAAs / BCAAs</div><div class="wd">Not necessary when your protein is on point. Save your money.</div></div></div>';
-  h+='<p class="foot" style="margin-top:12px">Huel, Thorne and Equip are partners; links may be affiliate. Your Genetic Blueprint personalizes this stack.</p>';
+  h+='<p class="foot" style="margin-top:12px">Equip and Thorne are partners and links may be affiliate. The Huel code gives you a discount on your first order. Your Genetic Blueprint personalizes this stack.</p>';
   box.innerHTML=h;
 }
 /* Bloodwork — the member records their OWN labs, on-device only. We read the trend to inform
@@ -3433,6 +3482,51 @@ function geneticsReport(){
   if(r && r['Data']){ try{ var o=JSON.parse(r['Data']); if(o && o.archetype) return o; }catch(e){} }
   return null;
 }
+/* Latest coach-built labs read (schema v1, written by the bloodwork-analysis skill), or null. */
+function bloodworkReport(){
+  var r=(M&&M.bloodworkreport&&M.bloodworkreport.length)?M.bloodworkreport[M.bloodworkreport.length-1]:null;
+  if(r && r['Data']){ try{ var o=JSON.parse(r['Data']); if(o && o.markers) return o; }catch(e){} }
+  return null;
+}
+/* The labs read in plain language: short version → markers by group (status is the LAB's own range;
+   flagged ones open to what research says + what we're building in) → nutrition → training →
+   provider questions → numbered sources. Compliance: general meaning, cited; the plan is personal. */
+var BWR_GROUPS=["Metabolic","Lipids","Inflammation & vitamins","Hormones","Thyroid","Other"];
+var BWR_CHIP={in:"Inside range",high:"Above range",low:"Below range","no-range":"No range given"};
+function bwrCite(a){ return (a&&a.length)?' <sup style="color:var(--accent);font-weight:700">['+a.join(',')+']</sup>':''; }
+function bwrDate(d){ if(!d) return ''; var x=new Date(d+'T12:00:00'); return isNaN(x)?d:x.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function bwReportHtml(r){
+  var h='<div class="gb-hero"><div class="gb-eye">Your labs, read</div><div class="gb-name">Drawn '+esc(bwrDate(r.drawDate))+'</div>'
+    +'<div class="gb-line">'+esc(r.lab||'Your lab report')+', read by '+esc(CONFIG.coachName)+(r.reportDate?' on '+esc(bwrDate(r.reportDate)):'')+'.</div></div>';
+  if(r.shortVersion&&r.shortVersion.length) h+='<div class="gb-h">The short version</div><ul class="gb-short">'+r.shortVersion.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('')+'</ul>';
+  h+='<div class="gb-h">Your markers</div>';
+  BWR_GROUPS.forEach(function(gname){
+    var ms=(r.markers||[]).filter(function(m){ return m.group===gname; });
+    if(!ms.length) return;
+    var fl=function(m){ return m.status==='high'||m.status==='low'; };
+    ms.sort(function(a,b){ return (fl(a)?0:1)-(fl(b)?0:1); });
+    h+='<div class="bwr-grp">'+esc(gname)+'</div>';
+    ms.forEach(function(m){
+      var f=fl(m), ex=f&&(m.research||m.doing);
+      h+='<div class="bwr-mk'+(f?' flag':'')+'"><div class="bwr-top"'+(ex?' onclick="this.parentNode.classList.toggle(\'open\')"':'')+'>'
+        +'<span class="bwr-nm">'+esc(m.name)+'</span><span class="bwr-v">'+esc(m.value)+'<small>'+esc(m.unit||'')+'</small></span>'
+        +'<span class="bwr-chip '+esc(m.status)+'">'+(BWR_CHIP[m.status]||'')+'</span>'+(ex?'<span class="gb-cv">›</span>':'')+'</div>'
+        +'<div class="bwr-body"><p>'+esc(m.plain||'')+'</p>'
+        +'<div class="bwr-meta">Lab range: '+esc(m.range||'none printed')+(m.prev!=null?' · Last time: '+esc(m.prev)+' '+esc(m.unit||'')+(m.prevDate?' ('+esc(bwrDate(m.prevDate))+')':''):'')+'</div>'
+        +(ex?'<div class="bwr-ex">'+(m.research?'<div class="gb-sub">What research says</div><p>'+esc(m.research)+bwrCite(m.src)+'</p>':'')
+          +(m.doing?'<div class="gb-sub">What we\'re building in</div><p>'+esc(m.doing)+'</p>':'')+'</div>':'')
+        +'</div></div>';
+    });
+  });
+  var li=function(x){ return '<div class="gb-li"><b>'+esc(x.t)+(x.rec?' <span class="gb-rec">Recommended</span>':'')+'</b><span>'+esc(x.why||'')+bwrCite(x.src)+'</span></div>'; };
+  if(r.nutrition&&r.nutrition.length){ h+='<div class="gb-h">Built into your nutrition</div>'; r.nutrition.forEach(function(x){ h+=li(x); }); }
+  if(r.training&&r.training.length){ h+='<div class="gb-h">Built into your training &amp; recovery</div>'; r.training.forEach(function(x){ h+=li(x); }); }
+  if(r.provider&&r.provider.length) h+='<div class="gb-h">Worth asking your provider</div><ul class="gb-short">'+r.provider.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('')+'</ul>';
+  if(r.sources&&r.sources.length) h+='<div class="gb-h">Sources</div><ol class="bwr-src">'+r.sources.map(function(s){ return '<li>'+esc(s)+'</li>'; }).join('')+'</ol>';
+  h+='<p class="gb-fine">This is general education to support your nutrition, training and lifestyle. It is not medical advice and does not diagnose or treat anything. The ranges and flags are your lab\'s own. Your provider reads your labs and makes every medical decision. Eligibility, prescriptions, and dosing are determined solely by the licensed provider group. Every client is unique, and results vary.</p>';
+  return h;
+}
+function bwToggleForm(){ var f=g("bwForm"), t=g("bwFormToggle"); if(!f) return; var open=f.style.display==="none"; f.style.display=open?"":"none"; if(t) t.textContent=open?"× Close":"＋ Add or update my numbers"; }
 function bwCustomRow(name,val){
   return '<div class="bw-row bw-custom"><input class="bw-cn" placeholder="Marker name" value="'+esc(name||'')+'">'
     +'<input class="bw-in" type="number" inputmode="decimal" step="any" placeholder="value" value="'+esc(val!=null?val:'')+'">'
@@ -3443,7 +3537,9 @@ function renderBloodwork(){
   var box=g("bloodBox"); if(!box) return;
   var data=bwData();
   var legacy=''; try{ legacy=localStorage.getItem('lp_client_labs')||''; }catch(e){}
-  var h='<p class="empty" style="text-align:left;margin:0 0 10px">Your labs are yours. Type your latest numbers so we can read the <b>trend over time</b> &mdash; we use it to inform your nutrition and lifestyle, never to diagnose or treat. Leave blank anything you don\'t have; anything medical goes to your provider.</p>'
+  var rep=bloodworkReport();
+  var h=rep?bwReportHtml(rep)+'<div class="bwr-upd"><div class="bw-add" id="bwFormToggle" onclick="bwToggleForm()">＋ Add or update my numbers</div></div><div id="bwForm" style="display:none;margin-top:10px">':'';
+  h+='<p class="empty" style="text-align:left;margin:0 0 10px">Your labs are yours. Type your latest numbers so we can read the <b>trend over time</b> &mdash; we use it to inform your nutrition and lifestyle, never to diagnose or treat. Leave blank anything you don\'t have; anything medical goes to your provider.</p>'
     +'<div class="field"><label>Date drawn</label><input class="input" type="date" id="bwDate" value="'+esc(data._date||'')+'"></div>';
   BLOOD_PANELS.forEach(function(pan){
     h+='<div class="bw-group">'+esc(pan.g)+'</div>';
@@ -3459,6 +3555,7 @@ function renderBloodwork(){
   h+='<div class="field" style="margin-top:14px"><label>Notes <span class="hint">anything else worth recording</span></label>'
     +'<textarea class="input" id="bwNotes" rows="2" placeholder="e.g. fasted, morning draw, symptoms…">'+esc(data._notes||legacy||'')+'</textarea></div>'
     +'<div class="actions"><button class="btn btn-primary" onclick="saveBloodwork()">Save my labs</button> <span class="status" id="labsStatus"></span></div>';
+  if(rep) h+='</div>';
   box.innerHTML=h;
 }
 function saveBloodwork(){
@@ -5682,9 +5779,10 @@ function renderNutritionHero(){
     +'<div class="mtile wide"><div class="k">600–800g</div><div class="l nowrap">Produce</div></div>'
     +'<div class="mtile"><div class="k">'+(water||'—')+' oz</div><div class="l nowrap">Water · ½ BW</div></div>'
     +'</div></div>';
-  // Cronometer log tile
-  h+='<div class="logtile" onclick="openInAppPage(\'cronometer.html\',\'Cronometer\')">'
+  // Cronometer log tile — tile opens the app directly; the sub-link opens the download/help page
+  h+='<div class="logtile" onclick="openCronometerApp()">'
     +'<img src="cronometer-icon.png" alt="Cronometer"><div class="rb"><div class="rt2">Log your food</div><div class="rs">Open Cronometer to track today</div></div><div class="go" style="color:var(--gold)">↗</div></div>';
+  h+='<div class="logtile-sub" onclick="openInAppPage(\'cronometer.html\',\'Cronometer\')">Don’t have Cronometer yet? <b>Get it →</b></div>';
   // Meal plan — the day's meals, each with its options viewable
   var mp=M.mealplan, meals=(mp&&mp.days&&mp.days[0]&&mp.days[0].meals)||[];
   h+='<div class="k-slabel">Your Nutrition System'+(meals.length?' <span class="va" onclick="nutForceShow(\'mealPlanCard\')">Full 7 days →</span>':'')+'</div>';
@@ -5969,7 +6067,7 @@ function renderCnsForm(){
     +'<div class="field"><label>Your typical eating schedule <span class="hint">— when do you usually eat?</span></label><textarea class="input" id="cns_sched" rows="2"></textarea></div>'
     +'<div class="field"><label>Allergies or foods you won\'t eat</label><textarea class="input" id="cns_allerg" rows="2"></textarea></div>'
     +'<div class="field"><label>Anything else I should know?</label><textarea class="input" id="cns_notes" rows="2"></textarea></div>'
-    +'<div class="actions"><button class="btn btn-primary" onclick="submitCns()">Submit — build my plan</button> <span class="status" id="cnsStatus"></span></div>';
+    +'<div class="actions"><button class="btn btn-primary" onclick="submitCns()">Build my plan</button> <span class="status" id="cnsStatus"></span></div>';
 }
 function showCnsSetup(){ renderCnsForm(); show("cnssetup"); }
 function submitCns(){

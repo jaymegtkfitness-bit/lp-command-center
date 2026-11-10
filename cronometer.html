@@ -54,7 +54,7 @@ ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top
     <p>It counts the water in your food, reads barcodes, and remembers your meals &mdash; so logging gets fast, and the number you land on is real. That number is what your coach reads.</p>
   </div>
 
-  <a class="btn" id="openCrono" href="https://cronometer.com/login/" target="_blank" rel="noopener">Open Cronometer &rarr;</a>
+  <a class="btn" id="openCrono" href="https://cronometer.com/login/" target="_top" rel="noopener">Open Cronometer &rarr;</a>
   <p style="text-align:center;font-size:.84rem;color:var(--soft);margin-top:12px">Have the app? That opens it. New here? Grab it &mdash;</p>
   <div class="stores">
     <a id="storeIos" href="https://apps.apple.com/us/app/cronometer-calorie-counter/id1145935738" target="_blank" rel="noopener"><small>iPhone</small>App Store</a>
@@ -74,23 +74,23 @@ ol li:before{counter-increment:c;content:counter(c);position:absolute;left:0;top
 <script>
 (function(){
   var ua=navigator.userAgent||'';
-  var IOS='https://apps.apple.com/us/app/cronometer-calorie-counter/id1145935738';
-  var AND='https://play.google.com/store/apps/details?id=com.cronometer.android.gold';
-  var WEB='https://cronometer.com/login/';
   var isIOS=/iPhone|iPad|iPod/i.test(ua), isAnd=/Android/i.test(ua);
   var mine = isIOS?document.getElementById('storeIos') : isAnd?document.getElementById('storeAnd') : null;
   if(mine){ mine.style.borderColor='var(--gold-dim)'; mine.style.background='rgba(193,173,114,.12)'; }
+
+  // This page is shown inside the app's in-app iframe, and cronometer.com refuses to be framed,
+  // so the "Open Cronometer" button MUST break out to the top window (target=_top, set on the
+  // anchor) — otherwise it just tries to load a blocked page inside the frame and nothing happens.
+  // A real anchor tap is also the most reliable way to trigger a universal/app link.
+  //   iOS  — cronometer registers ONLY /applinks/* as universal links (verified via its
+  //          apple-app-site-association), NOT /login — so iOS must point at /applinks/.
+  //   Android — the app claims every cronometer.com URL (assetlinks handle_all_urls), so the
+  //          default /login href already opens the installed app on tap.
+  //   Desktop — /login opens the web log in the top window.
   var open=document.getElementById('openCrono');
-  if(open && (isIOS||isAnd)){
-    var store = isIOS?IOS:AND;
-    open.addEventListener('click', function(e){
-      e.preventDefault();
-      var left=false, mark=function(){ left=true; };
-      document.addEventListener('visibilitychange', function(){ if(document.hidden) left=true; });
-      window.addEventListener('pagehide', mark); window.addEventListener('blur', mark);
-      setTimeout(function(){ if(!left) location.href=store; }, 1400);   // app didn't open -> store
-      location.href=WEB;   // opens the app if installed, else the web log
-    });
+  if(open){
+    open.setAttribute('target','_top');
+    if(isIOS){ open.setAttribute('href','https://cronometer.com/applinks/'); }
   }
 })();
 </script>
