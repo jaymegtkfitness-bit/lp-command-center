@@ -149,7 +149,8 @@ h1{font-weight:900;font-size:1.9rem;letter-spacing:-.01em;text-transform:upperca
 .kx{margin-top:12px;background:rgba(255,255,255,.02);border:1px solid var(--field-line);border-radius:18px;padding:14px}
 .kx.done{border-color:var(--olive-dim);background:rgba(84,106,70,.08)}
 .kx-top{display:flex;align-items:flex-start;gap:12px}
-.kx-thumb{width:46px;height:46px;border-radius:11px;flex:none;display:flex;align-items:center;justify-content:center;font-size:.95rem;color:var(--gold);background:linear-gradient(140deg,#2b3327,#14140f)}
+.kx-thumb{width:46px;height:46px;border-radius:11px;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;font-size:.95rem;color:var(--gold);background:linear-gradient(140deg,#2b3327,#14140f);text-decoration:none;cursor:pointer}
+.kx-thumb small{font-size:.48rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;opacity:.85}
 .kx-nm{flex:1;min-width:0;font-family:Montserrat,sans-serif;font-weight:800;font-size:1.02rem;color:#fff;line-height:1.2;align-self:center}
 .kx-tools{display:flex;flex-direction:column;gap:6px;flex:none}
 .kx-tool{display:flex;align-items:center;justify-content:center;gap:5px;background:rgba(255,255,255,.05);border:1px solid var(--field-line);color:var(--gold);border-radius:9px;font-family:inherit;font-weight:700;font-size:.74rem;padding:8px 10px;cursor:pointer;white-space:nowrap}
@@ -295,6 +296,11 @@ function delSet(ei,si){ var k=exKey(ei); var a=LOG[k]||[]; if(si<0||si>=a.length
   if(!confirm('Remove this set?  '+(s.bw?'BW':s.w+' lb')+' × '+s.r+' reps')) return;
   a.splice(si,1); if(a.length) LOG[k]=a; else delete LOG[k];
   try{ localStorage.setItem('lp_myprog', JSON.stringify(LOG)); }catch(e){} syncLog(); renderList(); }
+/* Demo video per exercise: use the baked-in catalog URL when the exercise is unchanged,
+   otherwise fall back to a YouTube search of the current name (covers swaps + added moves),
+   so every exercise has a working demo link. */
+function ytSearch(n){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent((n||'').replace(/\s+/g,' ').trim()+' exercise form'); }
+function demoUrl(ex,name){ try{ if(ex && ex.video && name===ex.exercise) return ex.video; }catch(e){} return ytSearch(name); }
 function renderList(){
   var d=currentDay(); if(!d){ document.getElementById('list').innerHTML='<div class="load">No day selected.</div>'; return; }
   var exs=dayExs();
@@ -318,7 +324,7 @@ function renderList(){
     var infoId='info'+ei;
     return '<div class="kx'+(done?' done':'')+((ssNext||ssPrev)?' ss':'')+(ssTop?' ss-top':'')+(ssMid?' ss-mid':'')+(ssBot?' ss-bot':'')+'">'
       +(ssTop?'<div class="kx-sshdr">⛓ Superset</div>':'')
-      +'<div class="kx-top"><div class="kx-thumb">▶</div><div class="kx-nm">'+esc(name)+'</div></div>'
+      +'<div class="kx-top"><a class="kx-thumb" href="'+demoUrl(ex,name)+'" target="_blank" rel="noopener" title="Watch a demo of this exercise">▶<small>Demo</small></a><div class="kx-nm">'+esc(name)+'</div></div>'
       +'<div class="kx-actions"><button class="kx-tool" onclick="toggleKxPanel('+ei+',\'swap\')">⇄ Switch</button>'
       +(ei<exs.length-1?'<button class="kx-tool'+(ssNext?' on':'')+'" onclick="toggleSS('+ei+')">⛓ Superset</button>':'')+'</div>'
       +(note?'<div class="kx-info clip" id="'+infoId+'"><span class="ii">ⓘ</span> '+esc(note)+'</div><span class="kx-more" id="more'+ei+'" onclick="toggleInfo('+ei+')">Show more ▾</span>':'')
