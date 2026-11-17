@@ -6665,9 +6665,13 @@ function renderMealPlan(){
     var done=(M.cnsintake&&M.cnsintake.length);
     var note=done ? "Your setup is in ✓ "+esc(CONFIG.coachName)+" is building your plan — or build your own right now from your favorites."
                   : "Your Complete Nutrition System is ready. Tell "+esc(CONFIG.coachName)+" your favorites in setup, or build a plan yourself right now.";
+    /* The setup link used to vanish the moment a member had ONE intake row, which left her with no
+       way back in when her foods, her numbers or her goal changed (Marnie Curl, 2026-11-17). It is
+       always offered now; the label says which of the two it is. A redo APPENDS a new row, so her
+       earlier answers are never overwritten. */
     box.innerHTML='<div class="empty" style="text-align:left;padding:2px 0">'+note+'</div>'
       +'<div class="actions no-print" style="margin-top:10px"><button class="btn btn-primary" onclick="showMealBuilder()">🍳 Build my meal plan</button> <button class="btn btn-ghost" onclick="openMySystem()">⬇ My full system (PDF)</button>'
-      +(done?'':' <button class="btn btn-ghost" onclick="showCnsSetup()">Do the full setup</button>')+'</div>';
+      +' <button class="btn btn-ghost" onclick="showCnsSetup()">'+(done?'Redo my setup':'Do the full setup')+'</button></div>';
     return;
   }
   var mpSeven=(mp.days.length===7), mpToday=(new Date().getDay()+6)%7;   // Mon=0 .. Sun=6
