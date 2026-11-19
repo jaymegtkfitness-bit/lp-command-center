@@ -58,6 +58,12 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
 .sb .t{color:#fff;font-weight:700}
 .sb .s{color:#9d978c;font-size:12px}
 .vids li{margin:6px 0}
+.demo{margin:12px 0 4px;background:#1a1a19;border:1px solid var(--line);border-radius:12px;padding:14px 12px 10px;text-align:center}
+.demo svg{width:100%;max-width:260px;height:auto;display:block;margin:0 auto}
+.demo-cap{display:block;font-size:12.5px;color:#9d978c;margin-top:8px;line-height:1.5}
+.demo-cap b{color:var(--gold)}
+.demovid{display:inline-flex;align-items:center;gap:7px;margin-top:10px;color:#fff;background:var(--olive);border:1px solid var(--olive-lt);font-weight:700;font-size:13px;text-decoration:none;border-radius:10px;padding:9px 14px}
+.demovid:hover{filter:brightness(1.08)}
 .btn{display:block;width:100%;background:var(--gold);color:#1c1c1c;border:0;border-radius:12px;padding:16px;font:800 15px Montserrat;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;margin-top:18px}
 .status{margin-top:12px;font-size:14px;font-weight:600}
 .sexpick{display:flex;gap:8px;margin:8px 0 2px}
@@ -70,7 +76,7 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
   <h1>Your BMW<span>Assessment.</span></h1>
   <p class="lede"><b>Body. Move. Work.</b> This is your starting line. It shows me how your body moves, where it's strong, and where we build first. We run it again every quarter so you can see the change.</p>
 
-  <div class="note"><b>What you need:</b> about 45 minutes, your phone to film, a little floor space, a bench or sturdy bed, a pull-up bar if you have one, and a friend if you can grab one (filming is easier with help). Do it in comfortable clothes you can move in.</div>
+  <div class="note"><b>What you need:</b> about 45 minutes, your phone to film, a little floor space, a bench or sturdy bed, a pull-up bar if you have one, an air/assault bike at the gym for the last test, and a friend if you can grab one (filming is easier with help). Do it in comfortable clothes you can move in.</div>
   <div class="note pain"><b>The one rule:</b> if anything hurts at any point, stop that test and score it <b>0</b>. Don't push through pain. Any 0 means check in with a doctor or physical therapist before we load that movement.</div>
 
   <div class="f"><label>I am</label></div>
@@ -118,6 +124,20 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
       <p><b>Set up:</b> sit on the floor with your legs straight. Put a marker at your hip and one at your feet. Stand up, put your front toes at one marker and your back toes at the other, then do a split squat.</p>
       <p><b>Film:</b> from the side, each side.</p>
       <p><b>What's scored:</b> back knee near the floor · front heel stays down · knee tracks over your toes · torso upright · no wobble.</p>
+      <div class="demo">
+        <svg viewBox="0 0 220 150" fill="none" stroke="#C1AD72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="35" y1="130" x2="190" y2="130" stroke="#8FA97A" stroke-width="2"/>
+          <line x1="95" y1="16" x2="95" y2="72" stroke="#8FA97A" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <circle cx="95" cy="28" r="9" fill="#C1AD72" stroke="none"/>
+          <line x1="95" y1="37" x2="95" y2="72"/>
+          <polyline points="95,72 70,96 70,128"/>
+          <polyline points="95,72 128,106 150,128"/>
+          <circle cx="70" cy="128" r="3.5" fill="#8FA97A" stroke="none"/>
+          <circle cx="150" cy="128" r="3.5" fill="#8FA97A" stroke="none"/>
+        </svg>
+        <span class="demo-cap">Side view. Front shin <b>vertical</b>, back knee nearly to the floor, chest <b>tall</b>. Dots = your foot markers.</span>
+        <a class="demovid" data-demo="split" target="_blank" rel="noopener" style="display:none">▶ Watch the demo</a>
+      </div>
       <div class="lbl">Left leg forward</div><div class="chips" data-k="mv_split_l"></div>
       <div class="lbl">Right leg forward</div><div class="chips" data-k="mv_split_r"></div>
     </div>
@@ -128,6 +148,19 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
       <p><b>Set up:</b> feet about shoulder width, arms straight overhead. Squat as deep as you can and stand back up.</p>
       <p><b>Film:</b> 3 reps from the side, then 3 reps facing the camera.</p>
       <p><b>What's scored:</b> thighs below parallel · heels stay down · knees over your feet · arms stay overhead.</p>
+      <div class="demo">
+        <svg viewBox="0 0 220 150" fill="none" stroke="#C1AD72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="35" y1="130" x2="185" y2="130" stroke="#8FA97A" stroke-width="2"/>
+          <line x1="52" y1="92" x2="122" y2="92" stroke="#8FA97A" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <line x1="80" y1="20" x2="112" y2="20"/>
+          <line x1="96" y1="22" x2="96" y2="48"/>
+          <circle cx="96" cy="56" r="9" fill="#C1AD72" stroke="none"/>
+          <line x1="96" y1="65" x2="104" y2="92"/>
+          <polyline points="104,92 72,95 80,128"/>
+        </svg>
+        <span class="demo-cap">Side view. Arms <b>locked overhead</b>, hips sink <b>below the dashed line</b> (thighs past parallel), heels down.</span>
+        <a class="demovid" data-demo="ohs" target="_blank" rel="noopener" style="display:none">▶ Watch the demo</a>
+      </div>
       <div class="lbl">Your score</div><div class="chips" data-k="mv_ohs"></div>
     </div>
 
@@ -137,6 +170,19 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
       <p><b>Set up:</b> make two fists. Reach one fist over your shoulder and down your back, and the other up your back from below. Try to bring them together. Then switch sides.</p>
       <p><b>Film:</b> from behind, 3 reps each side (right hand on top, then left hand on top).</p>
       <p><b>What's scored:</b> fists within about one hand-length = <b>3</b> · within one and a half = <b>2</b> · farther apart = <b>1</b>.</p>
+      <div class="demo">
+        <svg viewBox="0 0 220 150" fill="none" stroke="#C1AD72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="110" cy="26" r="10" fill="#C1AD72" stroke="none"/>
+          <polyline points="86,46 134,46 128,106 92,106 86,46"/>
+          <polyline points="134,48 142,30 120,76"/>
+          <polyline points="92,102 80,94 100,78"/>
+          <circle cx="120" cy="76" r="4.5" fill="#C1AD72" stroke="none"/>
+          <circle cx="100" cy="78" r="4.5" fill="#C1AD72" stroke="none"/>
+          <line x1="100" y1="78" x2="120" y2="76" stroke="#8FA97A" stroke-width="1.5" stroke-dasharray="4 4"/>
+        </svg>
+        <span class="demo-cap">View from <b>behind</b>. One hand reaches down the back, the other up. Score is the <b>gap between your fists</b>.</span>
+        <a class="demovid" data-demo="scratch" target="_blank" rel="noopener" style="display:none">▶ Watch the demo</a>
+      </div>
       <div class="lbl">Right hand on top</div><div class="chips" data-k="mv_scratch_r"></div>
       <div class="lbl">Left hand on top</div><div class="chips" data-k="mv_scratch_l"></div>
     </div>
@@ -147,6 +193,18 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
       <p><b>Set up:</b> feet together, knees straight. Reach down toward your toes, hold 3 seconds at the bottom, stand back up.</p>
       <p><b>Film:</b> from the side, 2 to 3 reps.</p>
       <p><b>What's scored:</b> fingertips pass your toes · knees stay straight · hips shift back · smooth spine.</p>
+      <div class="demo">
+        <svg viewBox="0 0 220 150" fill="none" stroke="#C1AD72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="70" y1="130" x2="152" y2="130" stroke="#8FA97A" stroke-width="2"/>
+          <line x1="96" y1="126" x2="120" y2="126" stroke="#8FA97A" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <line x1="112" y1="64" x2="108" y2="128"/>
+          <line x1="112" y1="64" x2="100" y2="86"/>
+          <line x1="100" y1="86" x2="106" y2="124"/>
+          <circle cx="90" cy="98" r="9" fill="#C1AD72" stroke="none"/>
+        </svg>
+        <span class="demo-cap">Side view. <b>Knees straight</b>, hinge at the hips, reach fingertips <b>past your toes</b> and hold 3 seconds.</span>
+        <a class="demovid" data-demo="toe" target="_blank" rel="noopener" style="display:none">▶ Watch the demo</a>
+      </div>
       <div class="lbl">Your score</div><div class="chips" data-k="mv_toe"></div>
     </div>
 
@@ -156,6 +214,19 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
       <p><b>Set up:</b> lie on your back, legs straight. Keeping one leg flat on the floor, lift the other leg as high as you can with the knee straight. Hold 2 seconds, lower it.</p>
       <p><b>Film:</b> from the side, 3 lifts each leg.</p>
       <p><b>What's scored:</b> raised ankle passes the middle of the thigh on the down leg = <b>3</b> · reaches the knee line = <b>2</b> · below the knee = <b>1</b>. The down leg has to stay flat.</p>
+      <div class="demo">
+        <svg viewBox="0 0 220 150" fill="none" stroke="#C1AD72" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="25" y1="122" x2="195" y2="122" stroke="#8FA97A" stroke-width="2"/>
+          <circle cx="40" cy="110" r="9" fill="#C1AD72" stroke="none"/>
+          <line x1="49" y1="113" x2="112" y2="116"/>
+          <line x1="112" y1="116" x2="178" y2="118"/>
+          <line x1="112" y1="116" x2="150" y2="56"/>
+          <line x1="150" y1="56" x2="150" y2="116" stroke="#8FA97A" stroke-width="1.5" stroke-dasharray="4 4"/>
+          <line x1="145" y1="110" x2="145" y2="124" stroke="#8FA97A" stroke-width="2.5"/>
+        </svg>
+        <span class="demo-cap">Side view, lying down. Both knees <b>straight</b>, down leg flat. Raised ankle should pass the <b>middle of the down-leg thigh</b> (the tick).</span>
+        <a class="demovid" data-demo="aslr" target="_blank" rel="noopener" style="display:none">▶ Watch the demo</a>
+      </div>
       <div class="lbl">Left leg up</div><div class="chips" data-k="mv_aslr_l"></div>
       <div class="lbl">Right leg up</div><div class="chips" data-k="mv_aslr_r"></div>
     </div>
@@ -165,7 +236,7 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
   <div class="sec">
     <div class="lt">W · Work</div>
     <h2>Work capacity</h2>
-    <p>Time each hold until your form breaks. Type it as minutes:seconds (like 1:15) or just seconds.</p>
+    <p>Four holds, then the bike. For the holds, time each one until your form breaks — type it as minutes:seconds (like 1:15) or just seconds.</p>
 
     <div class="card">
       <span class="tag vid">Video</span>
@@ -198,6 +269,23 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
       <div class="f"><label>Time held</label><input data-k="w_soren" placeholder="e.g. 1:20"></div>
       <p class="tg" data-tg="soren"></p>
     </div>
+
+    <div class="card">
+      <span class="tag">Photo</span>
+      <h3>10-minute assault bike</h3>
+      <p><b>The engine test.</b> An air/assault bike is a bike with a big fan on the front. The fan is the resistance, so the harder you go, the harder it pushes back.</p>
+      <p><b>Set it up:</b> seat height so your leg is almost straight at the bottom with a slight bend. On the console, hit <b>TARGET</b> (or Target Programs), choose <b>Time</b>, set <b>10:00</b>, press Enter. It counts down from ten minutes and stops on its own. There's no resistance to set.</p>
+      <p><b>The effort:</b> as many calories as you can in ten minutes. Go out a little <b>easier</b> than feels right — almost everyone buries themselves in the first two minutes and pays for it.</p>
+      <div class="note"><b>At the end, take a photo of the summary screen and text it to me.</b> It shows total calories, then your max and average watts. Don't write them down — just send the photo so I get all of it. If your bike doesn't show a summary at the end, just text me your <b>total calories</b>.</div>
+      <div class="lbl">And log it here (from that same screen)</div>
+      <div class="row f">
+        <div><label>Total calories</label><input inputmode="decimal" data-k="w_bike_cal" placeholder="e.g. 95"></div>
+        <div><label>Distance (optional)</label><input data-k="w_bike_dist" placeholder="if shown"></div>
+        <div><label>Max watts</label><input inputmode="decimal" data-k="w_bike_maxw" placeholder="peak"></div>
+        <div><label>Average watts</label><input inputmode="decimal" data-k="w_bike_avgw" placeholder="sustained"></div>
+      </div>
+      <p class="tg">This one's brand new, so there's no target yet. We set yours from this first result, then watch it climb when we retest in 3 months.</p>
+    </div>
   </div>
 
   <!-- ============ STRENGTH STANDARDS ============ -->
@@ -228,6 +316,7 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
         <li>Front plank</li>
         <li>Side plank, both sides</li>
       </ul>
+      <p style="margin-top:10px"><b>And one photo:</b> the assault bike summary screen (calories + watts).</p>
       <div class="f"><label>Your name</label><input data-k="name" autocomplete="name"></div>
       <div class="f"><label>Your email (the one you signed up with)</label><input data-k="email" type="email" autocomplete="email" inputmode="email"></div>
       <div class="f"><label>Anything I should know? Old injuries, anything that felt off</label><textarea data-k="notes" rows="3"></textarea></div>
@@ -240,6 +329,18 @@ table.sb{width:100%;border-collapse:collapse;font-size:13px;margin-top:6px}
 <script>
 var WRITE_URL="https://script.google.com/macros/s/AKfycbzawUtTobA9Jfne8Hot7K7AIgnMp4izfYUo773nSKOZN4Z5xFNf3d9hDY6B-FMGdgV-/exec";
 var LS="lp_bmw_v1";
+// Demo videos for the Move screens. Each card shows a clean diagram by default; paste a URL here and
+// that card gains a "▶ Watch the demo" button. Leave "" to show the diagram only. (Keys match data-demo.)
+var DEMOS={
+  split:"https://www.youtube.com/watch?v=uhXLk95w4tA",    // Bodyweight Split Squat (LP exercise-video catalog)
+  ohs:"https://www.youtube.com/watch?v=5ZvzRljycdk",       // Overhead Squat
+  scratch:"https://www.youtube.com/watch?v=BVCuggz2QzE",   // Alternating Scratch = the shoulder scratch test
+  toe:"",                                                  // no clean standing-toe-touch demo in the catalog yet
+  aslr:"https://www.youtube.com/watch?v=nz2-bMm1588"       // Active Straight Leg Raise
+};
+document.querySelectorAll("a.demovid[data-demo]").forEach(function(a){
+  var u=DEMOS[a.dataset.demo]; if(u){ a.href=u; a.style.display="inline-flex"; }
+});
 // Standard / Elite, format [M, F]. Work bands: BMW-Assessment-App-Spec.md (LOCKED 2026-11-06).
 var WORK={plank:{s:["2:00","2:00"],e:["4:00","4:00"]}, side:{s:["90s","60s"],e:["2:00","90s"]},
           hang:{s:["60s","45s"],e:["2:00","90s"]}, soren:{s:["90s","90s"],e:["2:30","3:00"]}};

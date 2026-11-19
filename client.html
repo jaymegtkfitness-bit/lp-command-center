@@ -2414,6 +2414,13 @@ function renderWorkouts(){
     h+='<div class="progcard" onclick="openWorkoutDay(0)"><div class="pcnow">Active</div><div class="progcard-body">'
       +'<div class="pcname">'+esc(ap.name)+'</div><div class="pcpills"><span class="pill">In progress</span><span class="pill">Tap to train →</span></div></div></div>';
   }
+  // BMW assessment — Body · Move · Work. In the Workouts tab for now (1:1 / Built 4 More);
+  // moves to a universal quarterly home for everyone later. Opens the standalone /bmw/ page framed in-app.
+  if(isOneToOne(M.tier)){
+    h+='<div class="k-slabel">Your Assessment</div>';
+    h+='<div class="progcard" style="cursor:pointer" onclick="openInAppPage(\'bmw/\',\'BMW Assessment\')"><div class="pcnow">Quarterly</div><div class="progcard-body">'
+      +'<div class="pcname">BMW Assessment</div><div class="pcpills"><span class="pill">Body · Move · Work</span><span class="pill">Tap to start →</span></div></div></div>';
+  }
   h+='<div class="k-slabel">Browse Programs</div>';
   var lib=[
     {n:'Lean Conditioning', m:['6 weeks','Lean'], c:''},
