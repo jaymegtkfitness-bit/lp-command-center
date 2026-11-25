@@ -59,7 +59,7 @@
           +'<label>Email</label><input id="lpaEmail" type="email" autocomplete="email" inputmode="email" value="'+(email||'')+'">'
           +'<label>PIN</label><input id="lpaPin" class="code" type="password" inputmode="numeric" autocomplete="current-password" maxlength="6" placeholder="••••••">'
           +'<button class="go" id="lpaGo">Sign in</button><div class="err"></div>'
-          +'<button class="lnk" id="lpaFirst">First time here, or forgot your PIN? Get a code by email</button>');
+          +'<button class="lnk" id="lpaFirst">First time here, or forgot your PIN? Get a sign-in email</button>');
         var go=document.getElementById('lpaGo');
         document.getElementById('lpaPin').addEventListener('keydown',function(e){ if(e.key==='Enter') go.click(); });
         go.onclick=function(){
@@ -79,14 +79,14 @@
       function codeRequestScreen(email){
         card('<h1>Get your code</h1><p>We’ll email you a 6-digit code. Use the email you bought with.</p>'
           +'<label>Email</label><input id="lpaEmail" type="email" autocomplete="email" inputmode="email" value="'+(email||'')+'">'
-          +'<button class="go" id="lpaGo">Email me a code</button><div class="err"></div>'
+          +'<button class="go" id="lpaGo">Email me a sign-in link</button><div class="err"></div>'
           +'<button class="lnk" id="lpaBack">I have a PIN. Sign in</button>');
         var go=document.getElementById('lpaGo');
         go.onclick=function(){
           var em=document.getElementById('lpaEmail').value.trim(); if(!em){ err('Enter your email.'); return; }
           busy(go,true,'Sending…');
-          sb.auth.signInWithOtp({ email:em, options:{ shouldCreateUser:true } }).then(function(r){
-            if(r.error){ busy(go,false,'Email me a code'); err(/rate|seconds/i.test(r.error.message)?'Hang on a minute, then try again.':r.error.message); return; }
+          sb.auth.signInWithOtp({ email:em, options:{ shouldCreateUser:true, emailRedirectTo: location.origin+location.pathname } }).then(function(r){
+            if(r.error){ busy(go,false,'Email me a sign-in link'); err(/rate|seconds/i.test(r.error.message)?'Hang on a minute, then try again.':r.error.message); return; }
             codeEnterScreen(em);
           });
         };
@@ -95,10 +95,10 @@
 
       /* ---- screen: enter the code ---- */
       function codeEnterScreen(email){
-        card('<h1>Check your email</h1><p>We sent a 6-digit code to <b>'+email.replace(/</g,'&lt;')+'</b>. It can take a minute. Check spam too.</p>'
-          +'<label>Code</label><input id="lpaCode" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">'
+        card('<h1>Check your email</h1><p>We sent a sign-in email to <b>'+email.replace(/</g,'&lt;')+'</b>. Tap <b>Sign in</b> in that email and you\u2019ll come right back here to set your PIN. It can take a minute. Check spam too.</p>'
+          +'<label>Or enter the code, if your email has one</label><input id="lpaCode" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">'
           +'<button class="go" id="lpaGo">Continue</button><div class="err"></div>'
-          +'<button class="lnk" id="lpaAgain">Send a new code</button>');
+          +'<button class="lnk" id="lpaAgain">Send a new email</button>');
         var go=document.getElementById('lpaGo');
         document.getElementById('lpaCode').addEventListener('keydown',function(e){ if(e.key==='Enter') go.click(); });
         go.onclick=function(){
