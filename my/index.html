@@ -56,6 +56,11 @@ a{color:inherit;text-decoration:none}
 .stat .v small{font-size:13px;font-weight:700;color:var(--muted);margin-left:2px}
 
 .row{display:flex;align-items:center;gap:12px}
+.row.atop{align-items:flex-start}
+.tg{font-size:12px;font-weight:700;color:var(--gold-text,#8A7638);margin-left:4px}
+.wt{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.wt span{font-size:12.5px;background:#F6F8F5;border:1px solid var(--line);border-radius:8px;padding:5px 9px;color:var(--body,#333)}
+.wt b{font-weight:800;margin-right:4px}
 .row+.row,.opts+.row{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
 .ico{width:40px;height:40px;border-radius:12px;background:var(--olive-soft);display:grid;place-items:center;flex:none;font-size:19px}
 .ico.gold{background:var(--gold-soft)}
@@ -185,12 +190,18 @@ a{color:inherit;text-decoration:none}
     <div id="portions">
       <div class="sec">Your plate, mapped to your goal</div>
       <div class="card">
-        <div class="row"><div class="ico">🍗</div><div class="grow"><div class="t">Protein</div><div class="d">2 palms per meal (about 45 g)</div></div></div>
-        <div class="row"><div class="ico">🍠</div><div class="grow"><div class="t">Carbs</div><div class="d">1 to 2 cupped hands per meal</div></div></div>
-        <div class="row"><div class="ico">🥑</div><div class="grow"><div class="t">Fats</div><div class="d">1 thumb per meal</div></div></div>
-        <div class="row"><div class="ico">🥦</div><div class="grow"><div class="t">Produce</div><div class="d">2 fists per meal</div></div></div>
+        <div class="row atop"><div class="ico">🍗</div><div class="grow"><div class="t">Protein <span class="tg">about 45 g protein</span></div><div class="d">2 palms per meal</div>
+          <div class="wt"><span><b>Cooked</b> 5 oz · 150 g</span><span><b>Raw</b> 7 oz · 200 g</span></div></div></div>
+        <div class="row atop"><div class="ico">🍠</div><div class="grow"><div class="t">Carbs <span class="tg">about 25 to 50 g carbs</span></div><div class="d">1 to 2 cupped hands per meal</div>
+          <div class="wt"><span><b>Cooked</b> 3 to 6 oz · 90 to 180 g</span><span><b>Dry</b> 1 to 2 oz · 30 to 60 g</span></div></div></div>
+        <div class="row atop"><div class="ico">🥑</div><div class="grow"><div class="t">Fats <span class="tg">about 12 g fat</span></div><div class="d">1 thumb per meal</div>
+          <div class="wt"><span><b>Oil, butter, nut butter</b> 1 tbsp · ½ oz · 15 g</span><span><b>Avocado</b> 1¾ oz · 50 g</span></div></div></div>
+        <div class="row atop"><div class="ico">🥦</div><div class="grow"><div class="t">Produce <span class="tg">175 g a meal</span></div><div class="d">2 fists per meal</div>
+          <div class="wt"><span><b>Raw</b> 6 oz · 175 g</span><span><b>Cooked</b> 4½ oz · 130 g</span></div></div></div>
+        <div class="d" style="margin-top:12px;font-size:12px">Weights use lean meats and fish, rice and oats, and mixed vegetables. Weigh raw when you can. Leafy greens shrink a lot when cooked, so weigh those raw.</div>
       </div>
     </div>
+    <div class="card" style="margin-top:14px"><a class="row" href="../power-food-list/"><div class="ico">🥗</div><div class="grow"><div class="t">The Power Food List</div><div class="d">The best foods to build every meal from.</div></div><div class="chev">›</div></a></div>
     <div class="card" style="background:var(--gold-soft);border-color:#ece2c3;margin-top:14px">
       <div class="t">Want every meal built for you?</div>
       <div class="d" style="margin:6px 0 14px;color:var(--body)">The custom nutrition system builds your meals from the food you eat, your restaurants, and your schedule, and it adjusts as you go.</div>
