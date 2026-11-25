@@ -151,6 +151,13 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
 .swrow small{display:block;color:var(--muted);font-size:12px;font-weight:600}
 .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);background:#1C1C1C;color:#fff;padding:10px 16px;border-radius:10px;font-size:13px;font-weight:700;z-index:40}
 .demo-note{font-size:12px;color:var(--gold-tx);background:var(--gold-soft);border-radius:10px;padding:8px 12px;margin-bottom:14px}
+
+.bl{display:block!important}
+.bl1{display:flex;justify-content:space-between;gap:8px;font-weight:700}
+.capt{font-size:11px;font-weight:800;color:var(--gold-tx);background:var(--gold-soft);border-radius:6px;padding:2px 6px;white-space:nowrap;height:fit-content}
+.have{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;margin-top:6px}
+.have .hv{width:72px;min-height:34px;padding:6px 8px;font-size:13px}
+.short{display:block!important;font-size:12.5px;font-weight:700;color:var(--red);background:var(--red-soft);border-radius:8px;padding:8px 10px;margin:6px 0;border-top:0!important}
 </style>
 </head>
 <body>
@@ -258,6 +265,7 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
     <div class="grid2">
       <div class="card bowlpick">
         <div class="grp"><span class="lbl">For which meal</span><div class="pills" id="bSlot"></div></div>
+        <p class="sub" style="font-size:12.5px;color:var(--muted);margin:0 0 12px">Pick up to 3 of each. We split the portion between them.</p>
         <div class="grp"><span class="lbl"><i class="dot" style="background:var(--red)"></i>Protein</span><div class="pills" id="bP"></div></div>
         <div class="grp"><span class="lbl"><i class="dot" style="background:var(--gold)"></i>Carb</span><div class="pills" id="bC"></div></div>
         <div class="grp"><span class="lbl"><i class="dot" style="background:var(--veg)"></i>Veggie</span><div class="pills" id="bV"></div></div>
@@ -526,55 +534,126 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
   }
   $('#gClear').addEventListener('click',function(){ try{localStorage.removeItem(GKEY)}catch(e){} renderGroceries(); });
 
-  /* ---------- build a bowl ---------- */
-  var BOWL={slot:null,p:null,c:null,v:null,f:null};
+  /* ---------- build a bowl ----------
+     Pick up to 3 of each. The portion is split evenly between what you pick. Tell us "I only have"
+     for any food and the others in that group make up the difference. Protein first, then carbs,
+     then veggies, then fat, so each group is sized to what is left. */
+  var BOWL={slot:null,p:[],c:[],v:[],f:[],caps:{}};
+  var MAXPICK=3;
   function bowlTarget(){
     if(!DECK) build();
     var sl=DECK.slots.filter(function(s){return !/shake/i.test(s.name)});
     if(!BOWL.slot) BOWL.slot=(sl[1]||sl[0]).name;
     return {slots:sl, t:(sl.filter(function(s){return s.name===BOWL.slot})[0]||sl[0]).target};
   }
+  var VEGK={kcal:0.3,p:0.02,c:0.06,f:0,fib:0.02};          // mixed vegetables, per gram
+  function isRaw(f){ return typeof rawCookOK==='function' && f.u==='oz' && rawCookOK(f.n, f.k); }
+  /* grams the member weighs (raw for meat and fish) <-> engine units */
+  function unitsFromWeight(f, g){
+    if(f.u==='oz') return (g/28.35)*(isRaw(f)?RAWCOOK_YIELD:1);
+    if(f.u==='g') return g;
+    var gpu=f.gpu||GRAMS_PER_UNIT[f.n]||0; return gpu? g/gpu : g;
+  }
+  function weightFromUnits(f, u){
+    if(f.u==='oz') return u*28.35/(isRaw(f)?RAWCOOK_YIELD:1);
+    if(f.u==='g') return u;
+    var gpu=f.gpu||GRAMS_PER_UNIT[f.n]||0; return gpu? u*gpu : u;
+  }
+  /* split one macro target across the picked foods, honoring "I only have" caps */
+  function allocate(foods, target, anchor){
+    var out=foods.map(function(f){ return {f:f, u:0, capped:false}; });
+    var left=Math.max(0,target), open=out.slice();
+    out.forEach(function(o){
+      var cg=BOWL.caps[o.f.n]; if(cg==null) return;
+      var cu=unitsFromWeight(o.f, cg), cm=cu*(o.f[anchor]||0);
+      o.capU=cu; o.capM=cm;
+    });
+    /* hand out evenly; anyone whose share is over their cap gets the cap, the rest is re-split */
+    for(var guard=0; guard<5 && open.length; guard++){
+      var share=left/open.length, again=false;
+      open.forEach(function(o){ if(o.capM!=null && o.capM<share){ o.u=o.capU; o.capped=true; left-=o.capM; again=true; } });
+      open=open.filter(function(o){ return !o.capped; });
+      if(!again) break;
+    }
+    open.forEach(function(o){ var per=(o.f[anchor]||1); o.u=(left/open.length)/per; });
+    var got=out.reduce(function(a,o){ return a+o.u*(o.f[anchor]||0); },0);
+    return {items:out, short:Math.max(0, target-got)};
+  }
   function renderBowl(){
     var bt=bowlTarget(), T=bt.t;
     var P=safeFoods('protein',ST.style,ST.allergies).filter(function(f){return !/powder|jerky/.test(f.n)});
     var C=(FOOD_DB.carb||[]).filter(function(f){return allowsFood(f,ST.style,ST.allergies)});
     var Fa=safeFoods('fat',ST.style,ST.allergies), V=FOOD_DB.veg||[];
-    if(!BOWL.p) BOWL.p=(P[0]||{}).n; if(!BOWL.c) BOWL.c=(C[0]||{}).n; if(!BOWL.v) BOWL.v=V[0]; if(!BOWL.f) BOWL.f=(Fa[0]||{}).n;
-    function pills(id,list,key){ $(id).innerHTML=list.map(function(x){var n=x.n||x; return '<button class="pill'+(BOWL[key]===n?' on':'')+'" data-b="'+key+'" data-n="'+esc(n)+'">'+esc(n.charAt(0).toUpperCase()+n.slice(1))+'</button>'}).join(''); }
+    if(!BOWL.p.length && P[0]) BOWL.p=[P[0].n]; if(!BOWL.c.length && C[0]) BOWL.c=[C[0].n];
+    if(!BOWL.v.length && V[0]) BOWL.v=[V[0]]; if(!BOWL.f.length && Fa[0]) BOWL.f=[Fa[0].n];
+    function cap1(n){ return n.charAt(0).toUpperCase()+n.slice(1); }
+    function pills(id,list,key){ $(id).innerHTML=list.map(function(x){var n=x.n||x, on=BOWL[key].indexOf(n)>=0; return '<button class="pill'+(on?' on':'')+'" data-b="'+key+'" data-n="'+esc(n)+'">'+esc(cap1(n))+'</button>'}).join(''); }
     $('#bSlot').innerHTML=bt.slots.map(function(s){return '<button class="pill'+(BOWL.slot===s.name?' on':'')+'" data-b="slot" data-n="'+esc(s.name)+'">'+esc(s.name)+'</button>'}).join('');
     pills('#bP',P,'p'); pills('#bC',C,'c'); pills('#bV',V,'v'); pills('#bF',Fa,'f');
-    var pf=P.filter(function(f){return f.n===BOWL.p})[0], cf=C.filter(function(f){return f.n===BOWL.c})[0], ff=Fa.filter(function(f){return f.n===BOWL.f})[0];
-    if(!pf||!cf||!ff){ $('#bowlOut').innerHTML=''; return; }
-    var vegG=Math.max(75,Math.round(((ST.veg||400)/Math.max(1,mealsCount()))/25)*25), vfib=0.02*vegG;
-    var vm={kcal:vegG*0.3, p:vegG*0.02, c:vegG*0.06, f:0};
-    var mp=macrosOf(pf, unitsFor(pf, Math.max(10, T.protein-vm.p-3)));
-    var remC=Math.max(0,T.carbs-mp.c-vm.c), mc=macrosOf(cf, unitsFor(cf, remC));
-    var remF=Math.max(0,T.fat-mp.f-mc.f), mf=macrosOf(ff, unitsFor(ff, Math.max(remF, ff.g*0.5)));
-    var m={name:mealNice(pf.n)+' '+(mealNice(cf.n)||cf.n).toLowerCase()+' bowl', slot:BOWL.slot,
-      cal:mp.kcal+mc.kcal+mf.kcal+vm.kcal, p:mp.p+mc.p+mf.p+vm.p, c:mp.c+mc.c+mf.c+vm.c, f:mp.f+mc.f+mf.f,
-      parts:[], how:'Cook the protein, warm the carb, pile it in a bowl with the veggies, and finish with the fat.'};
-    var lines=[[pf,mp.units,T.protein,'p'],[cf,mc.units,remC,'c'],[ff,mf.units,remF,'f']].map(function(x){return '<li><span>'+esc(x[0].n)+'</span><span class="q">'+esc(fmtQty(x[0], x[0][x[3]]*x[1]).replace(new RegExp('\\s*'+x[0].n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'.*$'),'').trim()||fmtQty(x[0], x[0][x[3]]*x[1]))+'</span></li>'});
-    lines.splice(2,0,'<li><span>'+esc(BOWL.v)+'</span><span class="q">'+fmtGrams(vegG)+'</span></li>');
-    $('#bowlOut').innerHTML='<div class="meal"><div class="top"><div><div class="slot">'+esc(BOWL.slot)+' · Your bowl</div><div class="nm">'+esc(m.name)+'</div></div>'
-      +'<button class="heart" id="bowlSave" aria-label="Save bowl">♡</button></div>'
-      +macroChips(m)+'<ul class="ings">'+lines.join('')+'</ul>'
-      +'<div class="how">Target for '+esc(BOWL.slot)+': '+r0(T.protein)+'g protein · '+r0(T.carbs)+'g carbs · '+r0(T.fat)+'g fat. About '+Math.round(vfib)+'g fiber from the veggies.</div>'
+    function pick(list,key){ return BOWL[key].map(function(n){return list.filter(function(f){return f.n===n})[0]}).filter(Boolean); }
+    var pf=pick(P,'p'), cf=pick(C,'c'), ff=pick(Fa,'f'), vn=BOWL.v.slice();
+    if(!pf.length||!cf.length||!ff.length||!vn.length){ $('#bowlOut').innerHTML='<div class="empty">Pick at least one of each.</div>'; return; }
+
+    /* veggies: grams, split, with caps */
+    var vegT=Math.max(75,Math.round(((ST.veg||400)/Math.max(1,mealsCount()))/25)*25);
+    var vegLeft=vegT, vOpen=vn.slice(), vg={};
+    vn.forEach(function(n){ if(BOWL.caps[n]!=null && BOWL.caps[n] < vegT/vn.length){ vg[n]=BOWL.caps[n]; vegLeft-=BOWL.caps[n]; vOpen=vOpen.filter(function(x){return x!==n}); } });
+    vOpen.forEach(function(n){ vg[n]=vegLeft/vOpen.length; });
+    var vegTot=vn.reduce(function(a,n){return a+vg[n]},0);
+    var vm={kcal:vegTot*VEGK.kcal, p:vegTot*VEGK.p, c:vegTot*VEGK.c, f:0};
+
+    var AP=allocate(pf, Math.max(10, T.protein-vm.p-3), 'p');
+    var mp=AP.items.reduce(function(a,o){var m=macrosOf(o.f,o.u); o.m=m; a.kcal+=m.kcal;a.p+=m.p;a.c+=m.c;a.f+=m.f; return a},{kcal:0,p:0,c:0,f:0});
+    var AC=allocate(cf, Math.max(0,T.carbs-mp.c-vm.c), 'c');
+    var mc=AC.items.reduce(function(a,o){var m=macrosOf(o.f,o.u); o.m=m; a.kcal+=m.kcal;a.p+=m.p;a.c+=m.c;a.f+=m.f; return a},{kcal:0,p:0,c:0,f:0});
+    var AF=allocate(ff, Math.max(ff[0].g*0.5, T.fat-mp.f-mc.f), 'f');
+    var mf=AF.items.reduce(function(a,o){var m=macrosOf(o.f,o.u); o.m=m; a.kcal+=m.kcal;a.p+=m.p;a.c+=m.c;a.f+=m.f; return a},{kcal:0,p:0,c:0,f:0});
+
+    var m={name:pf.map(function(f){return mealNice(f.n)}).join(' + ')+' bowl', slot:BOWL.slot,
+      cal:mp.kcal+mc.kcal+mf.kcal+vm.kcal, p:mp.p+mc.p+mf.p+vm.p, c:mp.c+mc.c+mf.c+vm.c, f:mp.f+mc.f+mf.f};
+    function capBox(f, name, raw){
+      var oz=(f && f.u==='oz') || ST.units==='oz', g=BOWL.caps[name], v=g==null?'':(oz?Math.round(g/28.35*4)/4:Math.round(g));
+      return '<label class="have">I only have <input class="in hv" data-cap="'+esc(name)+'" data-oz="'+(oz?1:0)+'" inputmode="decimal" placeholder="any" value="'+v+'"> '+(oz?'oz':'g')+(raw?' raw':'')+'</label>';
+    }
+    function groupRows(A, anchor, label, color){
+      return A.items.map(function(o){
+        var txt=fmtQty(o.f, (o.f[anchor]||0)*o.u);
+        return '<li class="bl"><div class="bl1"><span><i class="dot" style="background:'+color+'"></i>'+esc(txt)+'</span>'+(o.capped?'<span class="capt">your max</span>':'')+'</div>'+capBox(o.f, o.f.n, isRaw(o.f))+'</li>';
+      }).join('')+(A.short>1?'<li class="short">You are about '+Math.round(A.short)+'g '+label+' short. Add another '+(label==='protein'?'protein':label==='carbs'?'carb':'fat')+' above to make up the difference.</li>':'');
+    }
+    var vegRows=vn.map(function(n){
+      return '<li class="bl"><div class="bl1"><span><i class="dot" style="background:var(--veg)"></i>'+fmtGrams(vg[n])+' '+esc(n)+'</span>'+(BOWL.caps[n]!=null && vg[n]===BOWL.caps[n]?'<span class="capt">your max</span>':'')+'</div>'+capBox(null, n, false)+'</li>';
+    }).join('')+(vegLeft<0 || (vOpen.length===0 && vegTot<vegT-5)?'<li class="short">About '+fmtGrams(vegT-vegTot)+' of veggies short. Add another veggie above.</li>':'');
+
+    $('#bowlOut').innerHTML='<div class="meal"><div class="top"><div><div class="slot">'+esc(BOWL.slot)+' · Your bowl</div><div class="nm">'+esc(m.name)+'</div></div></div>'
+      +macroChips(m)+'<ul class="ings">'+groupRows(AP,'p','protein','var(--red)')+groupRows(AC,'c','carbs','var(--gold)')+vegRows+groupRows(AF,'f','fat','var(--blue)')+'</ul>'
+      +'<div class="how">Target for '+esc(BOWL.slot)+': '+r0(T.protein)+'g protein · '+r0(T.carbs)+'g carbs · '+r0(T.fat)+'g fat. Pick two or three of anything and we split the portion. Tell us how much you have and the rest makes up the difference.</div>'
       +'<div class="acts"><button class="btn sm" id="bowlSave2">♡ Save to My meals</button></div></div>';
-    var doSave=function(){
-      var snap={name:m.name, slot:m.slot, cal:m.cal, p:m.p, c:m.c, f:m.f, how:m.how, parts:[
-        {n:pf.n, units:partFromMacro(pf,mp.units), u:pf.u==='oz'?'oz':'g', gpe:0},{n:cf.n, units:partFromMacro(cf,mc.units), u:cf.u==='oz'?'oz':'g', gpe:0},
-        {n:BOWL.v, units:vegG, u:'g', gpe:0},{n:ff.n, units:partFromMacro(ff,mf.units), u:ff.u==='oz'?'oz':'g', gpe:0}]};
-      ST.saved.unshift({id:String(Date.now()), from:'bowl', meal:snap, mod:{}}); ST.built=ST.built||false; save(); toast('Bowl saved to My meals');
+
+    $all('#bowlOut [data-cap]').forEach(function(inp){ inp.addEventListener('change',function(){
+      var v=parseFloat(inp.value); var n=inp.dataset.cap;
+      if(!(v>0)) delete BOWL.caps[n]; else BOWL.caps[n]=inp.dataset.oz==='1'? v*28.35 : v;
+      renderBowl();
+    }); });
+    $('#bowlSave2').onclick=function(){
+      var parts=[];
+      AP.items.concat(AC.items, AF.items).forEach(function(o){ var w=weightFromUnits(o.f, o.m.units); parts.push({n:o.f.n+(isRaw(o.f)?' (raw)':''), units:w, u:'g', gpe:0}); });
+      vn.forEach(function(n){ parts.push({n:n, units:vg[n], u:'g', gpe:0}); });
+      var snap={name:m.name, slot:m.slot, cal:m.cal, p:m.p, c:m.c, f:m.f, how:'Cook the protein, warm the carb, pile it in a bowl with the veggies, and finish with the fat.', parts:parts};
+      ST.saved.unshift({id:String(Date.now()), from:'bowl', meal:snap, mod:{}}); save(); toast('Bowl saved to My meals');
     };
-    $('#bowlSave').onclick=doSave; $('#bowlSave2').onclick=doSave;
   }
-  /* grams (or oz) a bowl portion weighs, for saving it as a meal */
-  function partFromMacro(f, units){
-    if(f.u==='oz') return units;
-    if(f.u==='g') return units;
-    var gpu=f.gpu||GRAMS_PER_UNIT[f.n]||0; return gpu? units*gpu : units;
-  }
-  document.addEventListener('click',function(e){ var b=e.target.closest('[data-b]'); if(!b) return; BOWL[b.dataset.b]=b.dataset.n; renderBowl(); });
+  document.addEventListener('click',function(e){
+    var b=e.target.closest('[data-b]'); if(!b) return;
+    var k=b.dataset.b, n=b.dataset.n;
+    if(k==='slot'){ BOWL.slot=n; }
+    else {
+      var arr=BOWL[k], i=arr.indexOf(n);
+      if(i>=0){ if(arr.length>1) arr.splice(i,1); }
+      else { if(arr.length>=MAXPICK) arr.shift(); arr.push(n); }
+    }
+    renderBowl();
+  });
 
   /* ---------- setup screen ---------- */
   var FIELDS={tCal:'cal',tPro:'pro',tCarb:'carb',tFat:'fat',tFib:'fib',tFruit:'fruit',tVeg:'veg'};
