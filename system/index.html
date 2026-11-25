@@ -295,6 +295,8 @@ html.lp .cover .mark{display:none}
   html.lp .num b{font-size:1.85rem}
   html.lp .weektbl td,html.lp .weektbl th{font-size:10px}
 }
+html.door #lpToggle, html.door #builder, html.door .tools-head > img{display:none!important}
+html.door .tools-actions #btn-edit{display:none!important}
 </style>
 </head>
 <body>
@@ -307,6 +309,9 @@ function lpSyncLogo(on){ try{ document.querySelectorAll('.cover img.logo').forEa
 function lpSet(on){ document.documentElement.classList.toggle('lp',on); var b=document.getElementById('lpToggle'); if(b) b.textContent=on?'◼ Standard view':'🔆 Large print'; lpSyncLogo(on); }
 function lpFlip(){ lpSet(!document.documentElement.classList.contains('lp')); }
 try{ if(/[?&]light=1\b/.test(location.search)) lpSet(true); }catch(e){}
+/* Opened inside the buyer door (dashboard/nutrition/): that page carries the logo and the
+   "Update my answers" path, so the coach builder, the print toggle and the tools logo step aside. */
+try{ if(/[?&]door=nutrition\b/.test(location.search)) document.documentElement.classList.add('door'); }catch(e){}
 try{ new MutationObserver(function(){ lpSyncLogo(document.documentElement.classList.contains('lp')); }).observe(document.body,{childList:true,subtree:true}); }catch(e){}
 </script>
 

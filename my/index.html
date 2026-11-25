@@ -1,0 +1,425 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>Legacy Performance Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<!--
+  SHELL v0.1 (Nov 24, 2026). Mockup for Jayme's review. DEMO DATA ONLY, nothing is wired yet.
+  One link for everyone, opened from a resource inside Everfit. Light, Everfit-like, no bottom nav.
+  Tabs: Nutrition · Labs · Wellness. Access is decided by tier:
+    standard   = $39.99 Standard, no nutrition system  -> Nutrition shows the buy cards
+    standard+  = Standard who bought the nutrition system -> Nutrition open, Labs/Wellness = upgrade card
+    wellness   = $97/mo or $579/yr -> everything open
+  Preview a tier with ?tier=standard | system | wellness  (default wellness)
+-->
+<style>
+:root{
+  --bg:#F6F8F5; --card:#fff; --ink:#1C1C1C; --body:#3d3f3b; --muted:#7a7e76; --line:#E4E8E1;
+  --olive:#4A5C3E; --olive-dk:#3c4b32; --olive-soft:#EEF2EA; --gold-tx:#8A7638; --gold:#C1AD72; --gold-soft:#F7F2E3;
+  --warn:#A8642A; --warn-soft:#FBF1E7; --good:#4A5C3E;
+  --r:16px; --shadow:0 1px 2px rgba(28,28,28,.04),0 4px 14px rgba(28,28,28,.05);
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font-family:Montserrat,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;-webkit-font-smoothing:antialiased}
+body{overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px 48px}
+
+/* header: small, quiet, Everfit-like */
+.top{position:sticky;top:0;z-index:5;background:rgba(246,248,245,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.top-in{max-width:760px;margin:0 auto;padding:12px 16px 0}
+.brand{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.brand img{height:22px;display:block}
+.who{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;color:var(--body)}
+.tier{font-size:10.5px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:99px;background:var(--olive-soft);color:var(--olive)}
+.tier.std{background:#EFEFEC;color:var(--muted)}
+.tabs{display:flex;gap:4px;margin-top:12px}
+.tab{flex:1;appearance:none;border:0;background:none;font:inherit;font-size:14px;font-weight:700;color:var(--muted);padding:10px 0 12px;border-bottom:2.5px solid transparent;cursor:pointer}
+.tab.on{color:var(--ink);border-bottom-color:var(--olive)}
+
+/* page titles */
+.h1{font-size:26px;font-weight:900;letter-spacing:-.01em;margin:22px 0 4px}
+.sub{font-size:14px;color:var(--muted);margin:0 0 16px;line-height:1.45}
+.sec{font-size:12px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:26px 0 10px}
+
+/* cards */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:16px;margin-bottom:12px}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(min-width:640px){.grid.g4{grid-template-columns:repeat(4,1fr)}}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;box-shadow:var(--shadow)}
+.stat .k{font-size:11.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.stat .v{font-size:24px;font-weight:900;margin-top:4px}
+.stat .v small{font-size:13px;font-weight:700;color:var(--muted);margin-left:2px}
+
+.row{display:flex;align-items:center;gap:12px}
+.row+.row,.opts+.row{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+.ico{width:40px;height:40px;border-radius:12px;background:var(--olive-soft);display:grid;place-items:center;flex:none;font-size:19px}
+.ico.gold{background:var(--gold-soft)}
+.grow{flex:1;min-width:0}
+.t{font-size:15px;font-weight:800}
+.d{font-size:13px;color:var(--muted);margin-top:2px;line-height:1.4}
+.chev{color:#b6bab2;font-size:20px;font-weight:700}
+.pill{display:inline-block;font-size:11px;font-weight:800;padding:3px 8px;border-radius:99px;background:var(--olive-soft);color:var(--olive);white-space:nowrap}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.gold{background:var(--gold-soft);color:var(--gold-tx)}
+
+.btn{display:block;width:100%;text-align:center;text-decoration:none;border:0;border-radius:12px;padding:14px;font:inherit;font-size:15px;font-weight:800;cursor:pointer;background:var(--olive);color:#fff}
+.btn:active{background:var(--olive-dk)}
+.btn.ghost{background:#fff;color:var(--olive);border:1.5px solid var(--olive)}
+.btn+.btn{margin-top:8px}
+.grid .btn,.grid .btn+.btn{margin:0;display:flex;align-items:center;justify-content:center}
+
+/* phase banner */
+.phase{background:var(--olive);color:#fff;border:0}
+.phase .eb{font-size:11px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#d9e2d0}
+.phase .pt{font-size:22px;font-weight:900;margin:4px 0 6px}
+.phase .pd{font-size:13.5px;line-height:1.45;color:#eef2ea}
+.phase .bar{height:6px;border-radius:99px;background:rgba(255,255,255,.22);margin-top:12px;overflow:hidden}
+.phase .bar i{display:block;height:100%;background:var(--gold);border-radius:99px}
+
+/* meals */
+.meal{cursor:pointer}
+.opts{display:none;margin-top:10px;padding-left:52px}
+.meal.open .opts{display:block}
+.opt{font-size:13.5px;color:var(--body);padding:7px 0;border-top:1px dashed var(--line)}
+.opt b{color:var(--ink)}
+
+/* labs */
+.upload{border:1.5px dashed #c9d2c1;background:var(--olive-soft);text-align:center;padding:18px;border-radius:var(--r);margin-bottom:12px}
+.upload .t{margin-bottom:4px}
+.marker{cursor:pointer}
+.marker .val{font-size:17px;font-weight:900;text-align:right}
+.marker .val small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+.spark{width:70px;height:28px;flex:none}
+.mx{display:none;margin-top:12px;background:var(--bg);border-radius:12px;padding:12px;font-size:13.5px;line-height:1.5;color:var(--body)}
+.marker.open .mx{display:block}
+.mx b{color:var(--ink)}
+.mx .do{margin-top:8px}
+.mx .do li{margin:4px 0}
+
+/* lock / upgrade */
+.lock{text-align:center;padding:26px 18px;margin-top:22px}
+.lock .big{font-size:34px}
+.lock .t{font-size:18px;margin:8px 0 6px}
+.lock .d{font-size:14px;margin-bottom:16px}
+.lock ul{text-align:left;font-size:14px;color:var(--body);padding-left:20px;margin:0 0 18px;line-height:1.7}
+.price{font-size:13px;color:var(--muted);margin-top:10px}
+
+.ckbar{height:6px;border-radius:99px;background:var(--olive-soft);margin-top:12px;overflow:hidden}
+.ckbar i{display:block;height:100%;background:var(--olive);border-radius:99px;transition:width .3s}
+.ck{display:flex;align-items:center;gap:12px}
+.ck+.ck{border-top:1px solid var(--line);margin-top:12px;padding-top:12px}
+.ck .box{width:28px;height:28px;border-radius:50%;border:2px solid #c9d2c1;flex:none;display:grid;place-items:center;color:#fff;font-weight:900;font-size:14px;cursor:pointer;background:#fff}
+.ck.done .box{background:var(--olive);border-color:var(--olive)}
+.ck.done .t{color:var(--muted);text-decoration:line-through}
+.ck.locked{opacity:.55}
+.ck a.grow{display:block}
+.works{border-left:4px solid var(--gold)}
+.works .step{display:flex;gap:10px;align-items:center;font-size:14px;margin-top:10px;color:var(--body)}
+.works .dot{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:900;flex:none;background:var(--olive-soft);color:var(--olive)}
+.works .dot.ok{background:var(--olive);color:#fff}
+.fine{font-size:11.5px;color:var(--muted);line-height:1.5;margin-top:18px}
+.demo{position:fixed;right:10px;bottom:10px;z-index:9;background:#1C1C1C;color:#fff;border-radius:12px;padding:8px;font-size:11px;font-weight:700;display:flex;gap:4px;box-shadow:0 6px 20px rgba(0,0,0,.25)}
+.demo button{font:inherit;border:0;border-radius:8px;padding:6px 8px;background:#333;color:#ddd;cursor:pointer}
+.demo button.on{background:var(--gold);color:#1C1C1C}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <img src="../logo.png" alt="Legacy Performance">
+      <div class="who"><span id="whoName">Jayme</span><span class="tier" id="tierChip">Wellness</span></div>
+    </div>
+    <nav class="tabs" role="tablist">
+      <button class="tab on" data-tab="start">Start</button>
+      <button class="tab" data-tab="nutrition">Nutrition</button>
+      <button class="tab" data-tab="labs">Labs</button>
+      <button class="tab" data-tab="wellness">Wellness</button>
+    </nav>
+  </div>
+</header>
+
+<main class="wrap">
+
+<!-- ============ START HERE (onboarding checklist) ============ -->
+<section id="t-start">
+  <h1 class="h1">Start here</h1>
+  <p class="sub">Your first steps, in order. Tap a step to do it. Tap the circle when it's done.</p>
+  <div class="card" style="padding:14px 16px">
+    <div class="row" style="border:0;margin:0;padding:0"><div class="grow"><div class="t" id="ckCount">0 of 6 done</div></div><span class="pill" id="ckPct">0%</span></div>
+    <div class="ckbar"><i id="ckBar" style="width:0%"></i></div>
+  </div>
+  <div class="card" id="ckList"></div>
+</section>
+
+<!-- ============ NUTRITION ============ -->
+<section id="t-nutrition" hidden>
+  <div id="nutWorks" hidden>
+    <h1 class="h1">Your nutrition</h1>
+    <div class="card works">
+      <div class="t">Your nutrition system is in the works</div>
+      <div class="d" style="margin-top:4px">I'm reviewing your answers and building it now. You'll get a message in the app when it's ready.</div>
+      <div class="step"><span class="dot ok">✓</span>Intake received</div>
+      <div class="step"><span class="dot">2</span>I review it and build your system</div>
+      <div class="step"><span class="dot">3</span>Your system shows up right here</div>
+    </div>
+    <div class="card"><a class="row" href="#" data-go="labs"><div class="ico">🩸</div><div class="grow"><div class="t">While you wait: add your labs</div><div class="d">Upload your latest blood work so it's ready when we talk.</div></div><div class="chev">›</div></a></div>
+  </div>
+
+  <div id="nutStarter" hidden>
+    <h1 class="h1">Your nutrition</h1>
+    <p class="sub">Your starting numbers, from your intake.</p>
+    <div class="grid g4">
+      <div class="stat"><div class="k">Calories</div><div class="v">2,405</div></div>
+      <div class="stat"><div class="k">Protein</div><div class="v">185<small>g</small></div></div>
+      <div class="stat"><div class="k">Produce</div><div class="v">700<small>g</small></div></div>
+      <div class="stat"><div class="k">Water</div><div class="v">100<small>oz</small></div></div>
+    </div>
+    <div id="portions">
+      <div class="sec">Your plate, mapped to your goal</div>
+      <div class="card">
+        <div class="row"><div class="ico">🍗</div><div class="grow"><div class="t">Protein</div><div class="d">2 palms per meal (about 45 g)</div></div></div>
+        <div class="row"><div class="ico">🍠</div><div class="grow"><div class="t">Carbs</div><div class="d">1 to 2 cupped hands per meal</div></div></div>
+        <div class="row"><div class="ico">🥑</div><div class="grow"><div class="t">Fats</div><div class="d">1 thumb per meal</div></div></div>
+        <div class="row"><div class="ico">🥦</div><div class="grow"><div class="t">Produce</div><div class="d">2 fists per meal</div></div></div>
+      </div>
+    </div>
+    <div class="card" style="background:var(--gold-soft);border-color:#ece2c3;margin-top:14px">
+      <div class="t">Want every meal built for you?</div>
+      <div class="d" style="margin:6px 0 14px;color:var(--body)">The custom nutrition system builds your meals from the food you eat, your restaurants, and your schedule, and it adjusts as you go.</div>
+      <a class="btn" href="#">Get my custom system</a>
+    </div>
+  </div>
+
+  <div id="nutOpen">
+    <h1 class="h1">Your nutrition system</h1>
+    <p class="sub">Your numbers, your phase, and your meals. When your check-ins say it's time, your numbers change here.</p>
+
+    <div class="card phase">
+      <div class="eb">Your phase</div>
+      <div class="pt">Lean · Week 3 of 12</div>
+      <div class="pd">Goal-weight calories. Keep protein first, hit your produce, and let the check-ins decide the next move.</div>
+      <div class="bar"><i style="width:25%"></i></div>
+    </div>
+
+    <div class="sec">Today's targets</div>
+    <div class="grid g4">
+      <div class="stat"><div class="k">Calories</div><div class="v">2,405</div></div>
+      <div class="stat"><div class="k">Protein</div><div class="v">185<small>g</small></div></div>
+      <div class="stat"><div class="k">Produce</div><div class="v">700<small>g</small></div></div>
+      <div class="stat"><div class="k">Water</div><div class="v">100<small>oz</small></div></div>
+    </div>
+
+    <div class="sec">Your meals</div>
+    <div class="card">
+      <div class="row meal"><div class="ico">🍳</div><div class="grow"><div class="t">Breakfast</div><div class="d">3 options · about 600 cal</div></div><div class="chev">›</div></div>
+      <div class="opts"><div class="opt"><b>Egg + turkey sausage scramble</b>, berries</div><div class="opt"><b>Greek yogurt bowl</b>, granola, banana</div><div class="opt"><b>Protein shake</b> + oats</div></div>
+      <div class="row meal"><div class="ico">🥗</div><div class="grow"><div class="t">Lunch</div><div class="d">3 options · about 700 cal</div></div><div class="chev">›</div></div>
+      <div class="opts"><div class="opt"><b>Chicken rice bowl</b>, peppers, salsa</div><div class="opt"><b>Turkey wrap</b>, side salad</div><div class="opt"><b>Eating out:</b> Chipotle double-chicken bowl</div></div>
+      <div class="row meal"><div class="ico">🍽️</div><div class="grow"><div class="t">Dinner</div><div class="d">3 options · about 750 cal</div></div><div class="chev">›</div></div>
+      <div class="opts"><div class="opt"><b>Salmon</b>, potatoes, green beans</div><div class="opt"><b>Lean beef tacos</b>, slaw</div><div class="opt"><b>Sheet-pan chicken</b> + veggies</div></div>
+      <div class="row meal"><div class="ico">🍎</div><div class="grow"><div class="t">Snacks</div><div class="d">Fill the gap · about 350 cal</div></div><div class="chev">›</div></div>
+      <div class="opts"><div class="opt"><b>Protein shake</b></div><div class="opt"><b>Cottage cheese</b> + fruit</div><div class="opt"><b>Jerky</b> + an apple</div></div>
+    </div>
+
+    <div class="sec">Tools</div>
+    <div class="card">
+      <a class="row" href="#"><div class="ico">🧮</div><div class="grow"><div class="t">Open the full system</div><div class="d">Swap foods, build a day, see every option</div></div><div class="chev">›</div></a>
+      <a class="row" href="#"><div class="ico">🍔</div><div class="grow"><div class="t">Eating out</div><div class="d">High-protein picks at 48 chains</div></div><div class="chev">›</div></a>
+      <a class="row" href="#"><div class="ico">🥦</div><div class="grow"><div class="t">Power Food List</div><div class="d">The foods that do the heavy lifting</div></div><div class="chev">›</div></a>
+      <a class="row" href="#"><div class="ico">📝</div><div class="grow"><div class="t">Update my intake</div><div class="d">Something changed? Tell me here</div></div><div class="chev">›</div></a>
+    </div>
+  </div>
+
+  <!-- Standard, no system yet -->
+  <div id="nutLocked" hidden>
+    <h1 class="h1">Nutrition</h1>
+    <p class="sub">Two ways to get your food built around you.</p>
+    <div class="card">
+      <div class="row"><div class="ico gold">📋</div><div class="grow"><div class="t">Custom meal plan</div><div class="d">A week of meals built from the food you already eat.</div></div><span class="pill gold">$150</span></div>
+      <div class="row"><div class="ico">🧮</div><div class="grow"><div class="t">The nutrition system</div><div class="d">Your numbers, your phase, your meals, and it adjusts as you go. Yours to keep.</div></div><span class="pill">$497</span></div>
+      <div style="margin-top:16px"><a class="btn" href="#">Build my nutrition system</a><a class="btn ghost" href="#">Start with a meal plan</a></div>
+      <div class="price">Already bought a meal plan? Your answers carry over. No new forms.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ LABS ============ -->
+<section id="t-labs" hidden>
+  <div id="labsOpen">
+    <h1 class="h1">Your labs</h1>
+    <p class="sub">Every draw in one place, so you can see the trend, what it means, and what to do next.</p>
+
+    <div class="upload">
+      <div class="t">Add new results</div>
+      <div class="d" style="margin-bottom:12px">Upload the PDF from your lab, or type the numbers in.</div>
+      <div class="grid"><a class="btn" href="#">Upload PDF</a><a class="btn ghost" href="#">Type them in</a></div>
+    </div>
+
+    <div class="card row" style="margin-bottom:0;border-bottom-left-radius:0;border-bottom-right-radius:0">
+      <div class="grow"><div class="t">Latest draw · Nov 4, 2026</div><div class="d">3 draws on file · 14 markers</div></div><span class="pill warn">2 to watch</span>
+    </div>
+    <div class="card" id="markerList" style="border-top-left-radius:0;border-top-right-radius:0;border-top:0"></div>
+
+    <p class="fine">This is education to support your nutrition, training and lifestyle. It is not medical advice and does not diagnose or treat anything. The ranges are your lab's own. Your provider reads your labs and makes every medical decision.</p>
+  </div>
+  <div id="labsLocked" hidden></div>
+</section>
+
+<!-- ============ WELLNESS ============ -->
+<section id="t-wellness" hidden>
+  <div id="wellOpen">
+    <h1 class="h1">Wellness</h1>
+    <p class="sub">Testing and support at member pricing, plus a direct line to book a consult.</p>
+
+    <div class="sec">Testing</div>
+    <div class="card">
+      <a class="row" href="#"><div class="ico">🩸</div><div class="grow"><div class="t">Comprehensive blood panel</div><div class="d">At-home kit or lab draw. Results land in your Labs tab.</div></div><span class="pill">Member price</span></a>
+      <a class="row" href="#"><div class="ico">🧬</div><div class="grow"><div class="t">Genetic test</div><div class="d">A one-time test. Your report shapes your nutrition and training.</div></div><span class="pill">Member price</span></a>
+    </div>
+
+    <div class="sec">Support</div>
+    <div class="card">
+      <a class="row" href="#"><div class="ico">💊</div><div class="grow"><div class="t">Supplements</div><div class="d">The foundational stack, at member pricing.</div></div><div class="chev">›</div></a>
+      <a class="row" href="#"><div class="ico">⚕️</div><div class="grow"><div class="t">Provider-guided protocols</div><div class="d">Start with a licensed provider consult. Your provider decides what's right for you.</div></div><span class="pill">Member price</span></a>
+    </div>
+
+    <div class="card" style="background:var(--gold-soft);border-color:#ece2c3">
+      <div class="t">Turn your results into a plan</div>
+      <div class="d" style="margin:6px 0 14px;color:var(--body)">Information is one step. What separates people who get results is how they apply it. I'll read your labs with you and build the plan.</div>
+      <a class="btn" href="#">Book a consult</a>
+    </div>
+    <p class="fine">Eligibility, prescriptions and dosing are decided only by the licensed provider group. Every client is unique, and results vary.</p>
+  </div>
+  <div id="wellLocked" hidden></div>
+</section>
+
+</main>
+
+<div class="demo" id="demo"><span style="padding:6px 4px;color:#999">Preview:</span>
+  <button data-t="lite">Lite</button><button data-t="wellness">Wellness</button><button data-t="system">+ Custom system</button><button data-t="works">In the works</button>
+</div>
+
+<script>
+(function(){
+  var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
+
+  /* ---------- demo labs (3 draws) ---------- */
+  var MARKERS=[
+    {n:'Vitamin D (25-OH)',u:'ng/mL',v:[22,26,24],lo:30,hi:100,
+     m:'Supports bone, muscle and immune health. Most people who work indoors run low.',
+     d:['Get 10 to 20 minutes of midday sun when you can','Add fatty fish and eggs to your week','Ask your provider whether a supplement makes sense for you']},
+    {n:'HbA1c',u:'%',v:[5.8,5.7,5.6],lo:4,hi:5.6,
+     m:'Your average blood sugar over the last 2 to 3 months. Yours is trending the right way.',
+     d:['Keep protein first at every meal','A 10-minute walk after your biggest meal','Your nutrition system already shifts carbs toward your training days']},
+    {n:'Total Testosterone',u:'ng/dL',v:[410,455,520],lo:264,hi:916,
+     m:'Within your lab\'s range and climbing across three draws. Sleep, training and body fat all move this number.',
+     d:['Protect 7+ hours of sleep','Keep lifting 3 to 4 days a week','Anything beyond lifestyle is your provider\'s call']},
+    {n:'ApoB',u:'mg/dL',v:[112,104,98],lo:0,hi:90,
+     m:'The number of particles that carry cholesterol. Lower over time is the goal.',
+     d:['More fiber: oats, beans, produce (your 700g target helps)','Swap some saturated fat for olive oil, nuts and fish','Bring this one to your provider at your next visit']},
+    {n:'Ferritin',u:'ng/mL',v:[95,102,110],lo:30,hi:400,
+     m:'Your iron stores. Right where they should be.',
+     d:['Nothing to change. Keep doing what you\'re doing']}
+  ];
+  function spark(v,lo,hi){
+    var w=70,h=28,p=3,mn=Math.min.apply(0,v.concat([lo])),mx=Math.max.apply(0,v.concat([hi]));
+    if(hi>mx*1.6) mx=Math.max.apply(0,v)*1.25; if(lo<mn*.4) mn=Math.min.apply(0,v)*.75;
+    var x=function(i){return p+i*(w-2*p)/(v.length-1)}, y=function(val){return h-p-(val-mn)/(mx-mn||1)*(h-2*p)};
+    var band='';var y1=Math.max(p,Math.min(h-p,y(hi))),y2=Math.max(p,Math.min(h-p,y(lo)));
+    band='<rect x="0" y="'+y1+'" width="'+w+'" height="'+Math.max(0,y2-y1)+'" fill="#EEF2EA"/>';
+    var pts=v.map(function(val,i){return x(i)+','+y(val)}).join(' ');
+    var last=v[v.length-1], ok=last>=lo&&last<=hi;
+    return '<svg class="spark" viewBox="0 0 '+w+' '+h+'">'+band+'<polyline points="'+pts+'" fill="none" stroke="'+(ok?'#4A5C3E':'#A8642A')+'" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+x(v.length-1)+'" cy="'+y(last)+'" r="3" fill="'+(ok?'#4A5C3E':'#A8642A')+'"/></svg>';
+  }
+  $('#markerList').innerHTML=MARKERS.map(function(k){
+    var last=k.v[k.v.length-1], ok=last>=k.lo&&last<=k.hi;
+    return '<div class="marker"><div class="row" style="border:0;margin:0;padding:0"><div class="grow"><div class="t">'+k.n+'</div><div class="d">'+(ok?'<span class="pill">In range</span>':'<span class="pill warn">Outside your lab\'s range</span>')+'</div></div>'+spark(k.v,k.lo,k.hi)+'<div class="val">'+last+'<small>'+k.u+'</small></div></div>'
+      +'<div class="mx"><b>What it means.</b> '+k.m+'<div class="do"><b>What to do</b><ul>'+k.d.map(function(s){return '<li>'+s+'</li>'}).join('')+'</ul></div></div></div>';
+  }).join('<div style="border-top:1px solid var(--line);margin:12px 0"></div>');
+  $$('.marker').forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('open')})});
+  $$('.meal').forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('open');var o=el.nextElementSibling;o.style.display=el.classList.contains('open')?'block':'none'})});
+
+  /* ---------- upgrade card (Standard) ---------- */
+  var UPG='<div class="card lock"><div class="big">🔒</div><div class="t">Part of Legacy Performance Wellness</div>'
+    +'<div class="d">Your labs, your trends, and what to do about them, in one place.</div>'
+    +'<ul><li>Upload every lab and see your trend lines</li><li>What each number means, and what to do next</li><li>Blood work, genetics and supplements at member pricing</li><li>Book a consult with me</li><li>Your food portions mapped to your goal</li></ul>'
+    +'<a class="btn" href="#">Upgrade to Wellness</a><div class="price">$97 a month</div></div>';
+  $('#labsLocked').innerHTML=UPG; $('#wellLocked').innerHTML=UPG;
+
+  /* ---------- tier ----------
+     lite     = Standard ($39.99): dashboard Lite. Starting numbers + upgrade cards.
+     wellness = Wellness ($97): labs, member pricing, portions mapped to goal.
+     system   = bought the custom nutrition system: the full generator.
+     works    = intake submitted, system not marked ready yet (Roster "Complete" = blank). */
+  var q=new URLSearchParams(location.search), tier=q.get('tier')||'wellness';
+  if(q.get('intake')==='done' && !q.get('tier')) tier='works';
+  function applyTier(t){
+    tier=t;
+    var well=(t!=='lite');
+    $('#nutOpen').hidden=(t!=='system');
+    $('#nutWorks').hidden=(t!=='works');
+    $('#nutStarter').hidden=(t!=='lite' && t!=='wellness');
+    $('#nutLocked').hidden=true;
+    $('#portions').hidden=(t==='lite');
+    $('#labsOpen').hidden=!well; $('#labsLocked').hidden=well;
+    $('#wellOpen').hidden=!well; $('#wellLocked').hidden=well;
+    var chip=$('#tierChip'); chip.textContent=well?'Wellness':'Lite'; chip.className='tier'+(well?'':' std');
+    $$('#demo button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});
+    renderChecklist();
+  }
+
+  /* ---------- Start here checklist ---------- */
+  var CK_KEY='lp_my_checklist_v1', ck={};
+  try{ ck=JSON.parse(localStorage.getItem(CK_KEY)||'{}')||{}; }catch(e){ ck={}; }
+  var hasIntake=false; try{ hasIntake=!!localStorage.getItem('lp_nutrition_me_v1'); }catch(e){}
+  if(q.get('intake')==='done') hasIntake=true;
+  var STEPS=[
+    {k:'app',   ic:'📱', t:'Download the app and sign in', d:'You did it. You are here.', auto:function(){return true}},
+    {k:'intake',ic:'🧮', t:'Build your nutrition system', d:'About 10 minutes. Your answers set your numbers.', href:'../nutrition/?from=my', auto:function(){return hasIntake}},
+    {k:'bmw',   ic:'🏋️', t:'Do your BMW assessment', d:'Body, Move, Work. Shows where to start your training.', href:'../bmw/'},
+    {k:'skool', ic:'👥', t:'Join the community', d:'Say hi, and catch the weekly Q&A.', href:'https://www.skool.com/legacy-performance/about'},
+    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'In the app: Coaching tab, then Sessions.'},
+    {k:'labs',  ic:'🩸', t:'Upload your labs', d:'Your blood work, so we can read the trend.', go:'labs', well:true}
+  ];
+  function renderChecklist(){
+    var done=0, well=(tier!=='lite');
+    $('#ckList').innerHTML=STEPS.map(function(st){
+      var locked=st.well && !well, isDone=!locked && (ck[st.k] || (st.auto && st.auto()));
+      if(isDone) done++;
+      var inner='<div class="t">'+st.t+(locked?' <span class="pill gold">Wellness</span>':'')+'</div><div class="d">'+st.d+'</div>';
+      var body=st.href?'<a class="grow" href="'+st.href+'"'+(/^http/.test(st.href)?' target="_blank" rel="noopener"':'')+'>'+inner+'</a>'
+             :st.go?'<a class="grow" href="#" data-go="'+st.go+'">'+inner+'</a>':'<div class="grow">'+inner+'</div>';
+      return '<div class="ck'+(isDone?' done':'')+(locked?' locked':'')+'" data-k="'+st.k+'"><span class="box">'+(isDone?'✓':'')+'</span><span class="ico">'+st.ic+'</span>'+body+'</div>';
+    }).join('');
+    var pct=Math.round(done/STEPS.length*100);
+    $('#ckCount').textContent=done+' of '+STEPS.length+' done'; $('#ckPct').textContent=pct+'%'; $('#ckBar').style.width=pct+'%';
+    $$('#ckList .box').forEach(function(b){ b.addEventListener('click',function(){
+      var k=b.parentNode.dataset.k; if(b.parentNode.classList.contains('locked')) return;
+      ck[k]=!ck[k]; try{localStorage.setItem(CK_KEY,JSON.stringify(ck))}catch(e){} renderChecklist();
+    })});
+  }
+  document.addEventListener('click',function(e){ var a=e.target.closest&&e.target.closest('[data-go]'); if(a){ e.preventDefault(); show(a.dataset.go); } });
+
+  $$('#demo button').forEach(function(b){b.addEventListener('click',function(){applyTier(b.dataset.t)})});
+
+  /* ---------- tabs ---------- */
+  function show(t){
+    $$('.tab').forEach(function(b){b.classList.toggle('on',b.dataset.tab===t)});
+    ['start','nutrition','labs','wellness'].forEach(function(n){$('#t-'+n).hidden=(n!==t)});
+    window.scrollTo(0,0);
+  }
+  $$('.tab').forEach(function(b){b.addEventListener('click',function(){show(b.dataset.tab)})});
+  applyTier(tier);
+  show(q.get('tab') || (q.get('intake')==='done' ? 'nutrition' : 'start'));
+})();
+</script>
+</body>
+</html>
