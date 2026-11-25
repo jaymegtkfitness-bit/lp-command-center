@@ -155,8 +155,14 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
 .bl{display:block!important}
 .bl1{display:flex;justify-content:space-between;gap:8px;font-weight:700}
 .capt{font-size:11px;font-weight:800;color:var(--gold-tx);background:var(--gold-soft);border-radius:6px;padding:2px 6px;white-space:nowrap;height:fit-content}
-.have{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--muted);font-weight:600;margin-top:6px}
-.have .hv{width:72px;min-height:34px;padding:6px 8px;font-size:13px}
+.amt{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.amt .hv{width:68px;min-height:36px;padding:6px 8px;font-size:14px;text-align:right}
+.amt .hv.ed{border-color:var(--gold);background:var(--gold-soft)}
+.amt .ul{font-weight:800;font-size:13px}
+.amt .fn{font-weight:600}
+.cooked{font-size:12px;color:var(--muted);margin:3px 0 0 22px}
+.adj .sw{border:0;background:none;color:var(--olive);font-weight:800;text-decoration:underline;cursor:pointer;padding:0;font-size:12.5px}
+.adj{font-size:12.5px;font-weight:700;color:var(--gold-tx);background:var(--gold-soft);border-radius:8px;padding:8px 10px;margin-bottom:8px}
 .short{display:block!important;font-size:12.5px;font-weight:700;color:var(--red);background:var(--red-soft);border-radius:8px;padding:8px 10px;margin:6px 0;border-top:0!important}
 </style>
 </head>
@@ -535,7 +541,7 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
   $('#gClear').addEventListener('click',function(){ try{localStorage.removeItem(GKEY)}catch(e){} renderGroceries(); });
 
   /* ---------- build a bowl ----------
-     Pick up to 3 of each. The portion is split evenly between what you pick. Tell us "I only have"
+     Pick up to 3 of each. The portion is split evenly between what you pick. Edit any amount
      for any food and the others in that group make up the difference. Protein first, then carbs,
      then veggies, then fat, so each group is sized to what is left. */
   var BOWL={slot:null,p:[],c:[],v:[],f:[],caps:{}};
@@ -559,25 +565,24 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
     if(f.u==='g') return u;
     var gpu=f.gpu||GRAMS_PER_UNIT[f.n]||0; return gpu? u*gpu : u;
   }
-  /* split one macro target across the picked foods, honoring "I only have" caps */
+  /* split one macro target across the picked foods, honoring amounts the member edited */
+  /* Amount boxes are editable. An edited food keeps exactly what the member typed (BOWL.caps holds
+     engine units); the other picks in that group split what is left. */
+  function inputSpec(f){
+    var raw=isRaw(f), gpu=f.gpu||GRAMS_PER_UNIT[f.n]||0;
+    if(f.u==='oz') return {lbl:'oz'+(raw?' raw':''), to:function(v){return v*(raw?RAWCOOK_YIELD:1)}, from:function(u){return Math.round(u/(raw?RAWCOOK_YIELD:1)*4)/4}};
+    if(f.u==='g')  return {lbl:'g', to:function(v){return v}, from:function(u){return Math.round(u)}};
+    if(f.whole)    return {lbl:f.u||'each', to:function(v){return v}, from:function(u){return Math.round(u*2)/2}};
+    if(gpu)        return {lbl:'g', to:function(v){return v/gpu}, from:function(u){return Math.round(u*gpu)}};
+    return {lbl:f.u||'', to:function(v){return v}, from:function(u){return Math.round(u*4)/4}};
+  }
   function allocate(foods, target, anchor){
-    var out=foods.map(function(f){ return {f:f, u:0, capped:false}; });
-    var left=Math.max(0,target), open=out.slice();
-    out.forEach(function(o){
-      var cg=BOWL.caps[o.f.n]; if(cg==null) return;
-      var cu=unitsFromWeight(o.f, cg), cm=cu*(o.f[anchor]||0);
-      o.capU=cu; o.capM=cm;
-    });
-    /* hand out evenly; anyone whose share is over their cap gets the cap, the rest is re-split */
-    for(var guard=0; guard<5 && open.length; guard++){
-      var share=left/open.length, again=false;
-      open.forEach(function(o){ if(o.capM!=null && o.capM<share){ o.u=o.capU; o.capped=true; left-=o.capM; again=true; } });
-      open=open.filter(function(o){ return !o.capped; });
-      if(!again) break;
-    }
-    open.forEach(function(o){ var per=(o.f[anchor]||1); o.u=(left/open.length)/per; });
+    var out=foods.map(function(f){ var c=BOWL.caps[f.n]; return {f:f, u:c!=null?c:0, fixed:c!=null}; });
+    var fixedM=out.filter(function(o){return o.fixed}).reduce(function(a,o){return a+o.u*(o.f[anchor]||0)},0);
+    var open=out.filter(function(o){return !o.fixed}), left=Math.max(0,target-fixedM);
+    open.forEach(function(o){ o.u=(left/open.length)/(o.f[anchor]||1); });
     var got=out.reduce(function(a,o){ return a+o.u*(o.f[anchor]||0); },0);
-    return {items:out, short:Math.max(0, target-got)};
+    return {items:out, short:open.length?0:Math.max(0, target-got)};
   }
   function renderBowl(){
     var bt=bowlTarget(), T=bt.t;
@@ -597,8 +602,8 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
     /* veggies: grams, split, with caps */
     var vegT=Math.max(75,Math.round(((ST.veg||400)/Math.max(1,mealsCount()))/25)*25);
     var vegLeft=vegT, vOpen=vn.slice(), vg={};
-    vn.forEach(function(n){ if(BOWL.caps[n]!=null && BOWL.caps[n] < vegT/vn.length){ vg[n]=BOWL.caps[n]; vegLeft-=BOWL.caps[n]; vOpen=vOpen.filter(function(x){return x!==n}); } });
-    vOpen.forEach(function(n){ vg[n]=vegLeft/vOpen.length; });
+    vn.forEach(function(n){ if(BOWL.caps[n]!=null){ vg[n]=BOWL.caps[n]; vegLeft-=BOWL.caps[n]; vOpen=vOpen.filter(function(x){return x!==n}); } });
+    vOpen.forEach(function(n){ vg[n]=Math.max(0,vegLeft)/vOpen.length; });
     var vegTot=vn.reduce(function(a,n){return a+vg[n]},0);
     var vm={kcal:vegTot*VEGK.kcal, p:vegTot*VEGK.p, c:vegTot*VEGK.c, f:0};
 
@@ -611,30 +616,37 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
 
     var m={name:pf.map(function(f){return mealNice(f.n)}).join(' + ')+' bowl', slot:BOWL.slot,
       cal:mp.kcal+mc.kcal+mf.kcal+vm.kcal, p:mp.p+mc.p+mf.p+vm.p, c:mp.c+mc.c+mf.c+vm.c, f:mp.f+mc.f+mf.f};
-    function capBox(f, name, raw){
-      var oz=(f && f.u==='oz') || ST.units==='oz', g=BOWL.caps[name], v=g==null?'':(oz?Math.round(g/28.35*4)/4:Math.round(g));
-      return '<label class="have">I only have <input class="in hv" data-cap="'+esc(name)+'" data-oz="'+(oz?1:0)+'" inputmode="decimal" placeholder="any" value="'+v+'"> '+(oz?'oz':'g')+(raw?' raw':'')+'</label>';
+    function amtRow(name, val, lbl, color, edited, sub){
+      return '<li class="bl"><div class="amt"><i class="dot" style="background:'+color+'"></i>'
+        +'<input class="in hv'+(edited?' ed':'')+'" data-cap="'+esc(name)+'" inputmode="decimal" value="'+val+'">'
+        +'<span class="ul">'+esc(lbl)+'</span><span class="fn">'+esc(name)+'</span></div>'
+        +(sub?'<div class="cooked">'+esc(sub)+'</div>':'')+'</li>';
     }
-    function groupRows(A, anchor, label, color){
+    function groupRows(A, label, color){
       return A.items.map(function(o){
-        var txt=fmtQty(o.f, (o.f[anchor]||0)*o.u);
-        return '<li class="bl"><div class="bl1"><span><i class="dot" style="background:'+color+'"></i>'+esc(txt)+'</span>'+(o.capped?'<span class="capt">your max</span>':'')+'</div>'+capBox(o.f, o.f.n, isRaw(o.f))+'</li>';
-      }).join('')+(A.short>1?'<li class="short">You are about '+Math.round(A.short)+'g '+label+' short. Add another '+(label==='protein'?'protein':label==='carbs'?'carb':'fat')+' above to make up the difference.</li>':'');
+        var sp=inputSpec(o.f), u=o.fixed?o.u:o.m.units;
+        var sub=isRaw(o.f)?'about '+fracText(Math.round(u*2)/2)+' oz cooked':'';
+        return amtRow(o.f.n, sp.from(u), sp.lbl, color, o.fixed, sub);
+      }).join('')+(A.short>1?'<li class="short">About '+Math.round(A.short)+'g '+label+' short. Add another '+(label==='protein'?'protein':label==='carbs'?'carb':'fat')+' above, or bump an amount up.</li>':'');
     }
     var vegRows=vn.map(function(n){
-      return '<li class="bl"><div class="bl1"><span><i class="dot" style="background:var(--veg)"></i>'+fmtGrams(vg[n])+' '+esc(n)+'</span>'+(BOWL.caps[n]!=null && vg[n]===BOWL.caps[n]?'<span class="capt">your max</span>':'')+'</div>'+capBox(null, n, false)+'</li>';
-    }).join('')+(vegLeft<0 || (vOpen.length===0 && vegTot<vegT-5)?'<li class="short">About '+fmtGrams(vegT-vegTot)+' of veggies short. Add another veggie above.</li>':'');
-
+      return amtRow(n, Math.round(vg[n]), 'g', 'var(--veg)', BOWL.caps[n]!=null, '');
+    }).join('');
+    var anyEdit=Object.keys(BOWL.caps).length>0;
     $('#bowlOut').innerHTML='<div class="meal"><div class="top"><div><div class="slot">'+esc(BOWL.slot)+' · Your bowl</div><div class="nm">'+esc(m.name)+'</div></div></div>'
-      +macroChips(m)+'<ul class="ings">'+groupRows(AP,'p','protein','var(--red)')+groupRows(AC,'c','carbs','var(--gold)')+vegRows+groupRows(AF,'f','fat','var(--blue)')+'</ul>'
-      +'<div class="how">Target for '+esc(BOWL.slot)+': '+r0(T.protein)+'g protein · '+r0(T.carbs)+'g carbs · '+r0(T.fat)+'g fat. Pick two or three of anything and we split the portion. Tell us how much you have and the rest makes up the difference.</div>'
+      +macroChips(m)+'<div class="adj">✏️ Adjust any amount as desired. We rebalance the rest.'+(anyEdit?' <button class="sw" id="bowlReset">Reset</button>':'')+'</div>'
+      +'<ul class="ings">'+groupRows(AP,'protein','var(--red)')+groupRows(AC,'carbs','var(--gold)')+vegRows+groupRows(AF,'fat','var(--blue)')+'</ul>'
+      +'<div class="how">Target for '+esc(BOWL.slot)+': '+r0(T.protein)+'g protein · '+r0(T.carbs)+'g carbs · '+r0(T.fat)+'g fat. Pick two or three of anything and we split the portion.</div>'
       +'<div class="acts"><button class="btn sm" id="bowlSave2">♡ Save to My meals</button></div></div>';
 
     $all('#bowlOut [data-cap]').forEach(function(inp){ inp.addEventListener('change',function(){
-      var v=parseFloat(inp.value); var n=inp.dataset.cap;
-      if(!(v>0)) delete BOWL.caps[n]; else BOWL.caps[n]=inp.dataset.oz==='1'? v*28.35 : v;
+      var v=parseFloat(inp.value), n=inp.dataset.cap;
+      var f=[].concat(FOOD_DB.protein||[],FOOD_DB.carb||[],FOOD_DB.fat||[]).filter(function(x){return x.n===n})[0];
+      if(!(v>=0) || inp.value==='') delete BOWL.caps[n];
+      else BOWL.caps[n]= f? inputSpec(f).to(v) : v;      // veggies are plain grams
       renderBowl();
     }); });
+    var rs=$('#bowlReset'); if(rs) rs.onclick=function(){ BOWL.caps={}; renderBowl(); };
     $('#bowlSave2').onclick=function(){
       var parts=[];
       AP.items.concat(AC.items, AF.items).forEach(function(o){ var w=weightFromUnits(o.f, o.m.units); parts.push({n:o.f.n+(isRaw(o.f)?' (raw)':''), units:w, u:'g', gpe:0}); });
