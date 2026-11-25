@@ -58,6 +58,10 @@ a{color:inherit;text-decoration:none}
 .row{display:flex;align-items:center;gap:12px}
 .row.atop{align-items:flex-start}
 .tg{font-size:12px;font-weight:700;color:var(--gold-text,#8A7638);margin-left:4px}
+.plate svg{display:block;width:100%;max-width:300px;margin:0 auto}
+.plate .pl{font:800 11px Montserrat,sans-serif;letter-spacing:.06em;fill:#1C1C1C}
+.plate .ps{font:600 11px Montserrat,sans-serif;fill:#1C1C1C}
+.plate text[fill="#fff"]{fill:#fff}
 .wt{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
 .wt span{font-size:12.5px;background:#F6F8F5;border:1px solid var(--line);border-radius:8px;padding:5px 9px;color:var(--body,#333)}
 .wt b{font-weight:800;margin-right:4px}
@@ -187,8 +191,29 @@ a{color:inherit;text-decoration:none}
       <div class="stat"><div class="k">Produce</div><div class="v">700<small>g</small></div></div>
       <div class="stat"><div class="k">Water</div><div class="v">100<small>oz</small></div></div>
     </div>
+    <div id="plate">
+      <div class="sec">Build every plate like this</div>
+      <div class="card plate">
+        <svg viewBox="0 0 272 220" role="img" aria-label="Plate guide: half produce, a quarter protein, a quarter carbs, a thumb of fat">
+          <circle cx="110" cy="110" r="104" fill="#fff" stroke="#E4E8E1" stroke-width="3"/>
+          <circle cx="110" cy="110" r="90" fill="#F6F8F5"/>
+          <path d="M110,110 L110,22 A88,88 0 0 0 110,198 Z" fill="#8DB07A"/>
+          <path d="M110,110 L110,22 A88,88 0 0 1 198,110 Z" fill="#4A5C3E"/>
+          <path d="M110,110 L198,110 A88,88 0 0 1 110,198 Z" fill="#C1AD72"/>
+          <line x1="110" y1="22" x2="110" y2="198" stroke="#fff" stroke-width="3"/>
+          <line x1="110" y1="110" x2="198" y2="110" stroke="#fff" stroke-width="3"/>
+          <text x="66" y="104" text-anchor="middle" class="pl">PRODUCE</text><text x="66" y="122" text-anchor="middle" class="ps">2 fists</text>
+          <text x="152" y="72" text-anchor="middle" class="pl" fill="#fff">PROTEIN</text><text x="152" y="88" text-anchor="middle" class="ps" fill="#fff">2 palms</text>
+          <text x="152" y="140" text-anchor="middle" class="pl">CARBS</text><text x="152" y="156" text-anchor="middle" class="ps">1–2 hands</text>
+          <circle cx="244" cy="36" r="20" fill="#fff" stroke="#E4E8E1" stroke-width="2"/>
+          <circle cx="244" cy="36" r="13" fill="#E9D9A6"/>
+          <text x="244" y="72" text-anchor="middle" class="pl">FAT</text><text x="244" y="86" text-anchor="middle" class="ps">1 thumb</text>
+        </svg>
+        <div class="d" style="text-align:center;margin-top:6px">Half produce. A quarter protein. A quarter carbs. A thumb of fat. Same shape, every meal.</div>
+      </div>
+    </div>
     <div id="portions">
-      <div class="sec">Your plate, mapped to your goal</div>
+      <div class="sec">Your portions, mapped to your goal</div>
       <div class="card">
         <div class="row atop"><div class="ico">🍗</div><div class="grow"><div class="t">Protein <span class="tg">about 45 g protein</span></div><div class="d">2 palms per meal</div>
           <div class="wt"><span><b>Cooked</b> 5 oz · 150 g</span><span><b>Raw</b> 7 oz · 200 g</span></div></div></div>
