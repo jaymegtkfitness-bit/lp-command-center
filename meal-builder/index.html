@@ -288,7 +288,7 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
 <script src="../recipe-data.js?v=6"></script>
 <script src="../nutrition-engine.js?v=76"></script>
 <script>
-(function(){
+window.MB_BOOT=function(){
   var $=function(s,r){return (r||document).querySelector(s)};
   var $all=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
   function esc(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
@@ -297,15 +297,18 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
 
   /* ---------- state ----------
      Demo numbers until sign-in is wired; ?cal=&pro= overrides for testing. */
-  var KEY='lp_mealbuilder_v1', GKEY='lp_mealbuilder_groc_v1';
+  var MB=window.MB_MEMBER||null, SUFFIX=MB&&MB.id?'_'+MB.id:'';
+  var KEY='lp_mealbuilder_v1'+SUFFIX, GKEY='lp_mealbuilder_groc_v1'+SUFFIX;
   var q=new URLSearchParams(location.search);
-  var M0=macrosFrom(+q.get('cal')||2405, +q.get('pro')||185, 'm');
+  var M0=macrosFrom(+q.get('cal')||(MB&&MB.cal)||2405, +q.get('pro')||(MB&&MB.pro)||185, (MB&&MB.sex)||'m');
   var PS0=produceSplit(M0.calories,'Lean',{});
   var DEF={cal:M0.calories, pro:M0.protein, carb:M0.carbs, fat:M0.fat, fib:fiberTarget(M0.calories), fruit:PS0.fruit, veg:PS0.veg,
     per:'day', flex:0, freq:'3 + shake', shakeG:30, split:'auto', pct:[], style:'', allergies:[], dislikes:[],
     days:3, cook:'any', units:'g', missing:[], coec:true, abund:true, seed:0, saved:[], mods:{}, picks:{}, built:false};
   var ST; try{ ST=Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}')); }catch(e){ ST=Object.assign({},DEF); }
   if(q.get('cal')){ ST.cal=M0.calories; ST.pro=M0.protein; ST.carb=M0.carbs; ST.fat=M0.fat; }
+  /* When the coach changes a member's numbers, the new numbers win over what was saved on this device. */
+  if(MB && MB.cal && ST.fromPlan!==MB.cal+'/'+MB.pro){ ST.cal=M0.calories; ST.pro=M0.protein; ST.carb=M0.carbs; ST.fat=M0.fat; ST.fromPlan=MB.cal+'/'+MB.pro; ST.built=false; }
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); }catch(e){} }
 
   /* ---------- views ---------- */
@@ -741,6 +744,42 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
   $all('#perSeg button').forEach(function(x){x.classList.toggle('on',x.dataset.per===ST.per)});
   $all('#splitSeg button').forEach(function(x){x.classList.toggle('on',x.dataset.split===ST.split)});
   show(q.get('v') || (ST.built?'meals':'setup'));
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../lp-auth.js?v=1"></script>
+<script>
+/* Sign-in gate. ?demo=1 = Jayme's preview: sample numbers, the 36 public recipes, no account.
+   Everyone else signs in; the full library comes from Supabase, readable only if entitled. */
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get('demo')==='1'){ window.MB_BOOT(); return; }
+  document.getElementById('demoNote').hidden=true;
+  function num(o,keys){ for(var i=0;i<keys.length;i++){ var k=keys[i].split('.'), v=o; for(var j=0;j<k.length&&v!=null;j++) v=v[k[j]]; if(+v>0) return +v; } return 0; }
+  LPAuth.start({
+    feature:'meal_builder', title:'your Meal Builder', logo:'../logo.png',
+    lockedTitle:'The Meal Builder comes with the Legacy Nutrition System',
+    lockedText:'Every meal built from the foods you actually eat, 1,400+ recipes, swaps, and your grocery list.',
+    onReady:function(sb, access){
+      var plan=access.plan||{}, c=access.client||{};
+      window.MB_MEMBER={id:c.id, name:c.name, sex:c.sex,
+        cal:num(plan,['calories','cal','pfs.calories','targets.calories']), pro:num(plan,['protein','pro','pfs.protein','targets.protein'])};
+      var note=document.getElementById('demoNote');
+      note.hidden=false; note.innerHTML='Signed in'+(c.name?' as <b>'+String(c.name).replace(/</g,'&lt;')+'</b>':'')+'. <a href="#" id="mbOut" style="text-decoration:underline">Sign out</a>';
+      document.getElementById('mbOut').onclick=function(e){ e.preventDefault(); LPAuth.signOut(); };
+      /* the full library, 1,000 rows a page */
+      var all=[];
+      (function page(from){
+        sb.from('recipes').select('data').order('id').range(from, from+999).then(function(r){
+          if(r.error){ console.error(r.error); window.MB_BOOT(); return; }
+          all=all.concat((r.data||[]).map(function(x){return x.data}));
+          if(r.data && r.data.length===1000) return page(from+1000);
+          if(all.length) window.RECIPE_LIBRARY=all;
+          window.MB_BOOT();
+        });
+      })(0);
+    }
+  });
 })();
 </script>
 </body>
