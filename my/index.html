@@ -149,8 +149,8 @@ a{color:inherit;text-decoration:none}
     <nav class="tabs" role="tablist">
       <button class="tab on" data-tab="start">Onboarding</button>
       <button class="tab" data-tab="nutrition">Nutrition</button>
-      <button class="tab" data-tab="labs">Labs</button>
       <button class="tab" data-tab="wellness">Wellness</button>
+      <button class="tab" data-tab="labs">Labs</button>
     </nav>
   </div>
 </header>
@@ -232,8 +232,9 @@ a{color:inherit;text-decoration:none}
     </div>
     <div class="card" style="margin-top:14px"><a class="row" href="../power-food-list/"><div class="ico">🥗</div><div class="grow"><div class="t">The Power Food List</div><div class="d">The best foods to build every meal from.</div></div><div class="chev">›</div></a></div>
     <div class="card" style="background:var(--gold-soft);border-color:#ece2c3;margin-top:14px">
+      <div class="pill gold" style="margin-bottom:8px">Legacy Nutrition System</div>
       <div class="t">Want every meal built for you?</div>
-      <div class="d" style="margin:6px 0 14px;color:var(--body)">The custom nutrition system builds your meals from the food you eat, your restaurants, and your schedule, and it adjusts as you go.</div>
+      <div class="d" style="margin:6px 0 14px;color:var(--body)">Your custom nutrition system builds every meal from the foods you actually eat, your favorite restaurants, and your real schedule. No more guessing what to eat or how much. And it adjusts as you progress.</div>
       <a class="btn" href="#">Get my custom system</a>
     </div>
   </div>
@@ -423,10 +424,10 @@ a{color:inherit;text-decoration:none}
   if(q.get('intake')==='done') hasIntake=true;
   var STEPS=[
     {k:'app',   ic:'📱', t:'Download the app and sign in', d:'You did it. You are here.', auto:function(){return true}},
+    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'In the app: Coaching tab, then Sessions.'},
+    {k:'skool', ic:'👥', t:'Join the community', d:'Say hi, and catch the weekly Q&A.', href:'https://www.skool.com/legacy-performance/about'},
     {k:'intake',ic:'🧮', t:'Build your nutrition system', d:'About 10 minutes. Your answers set your numbers.', href:'../nutrition/?from=my', auto:function(){return hasIntake}},
     {k:'bmw',   ic:'🏋️', t:'Do your BMW assessment', d:'Body, Move, Work. Shows where to start your training.', href:'../bmw/'},
-    {k:'skool', ic:'👥', t:'Join the community', d:'Say hi, and catch the weekly Q&A.', href:'https://www.skool.com/legacy-performance/about'},
-    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'In the app: Coaching tab, then Sessions.'},
     {k:'labs',  ic:'🩸', t:'Upload your labs', d:'Your blood work, so we can read the trend.', go:'labs', well:true}
   ];
   function renderChecklist(){
