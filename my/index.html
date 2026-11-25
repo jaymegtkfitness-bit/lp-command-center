@@ -136,6 +136,37 @@ a{color:inherit;text-decoration:none}
 .demo button{font:inherit;border:0;border-radius:8px;padding:6px 8px;background:#333;color:#ddd;cursor:pointer}
 .demo button.on{background:var(--gold);color:#1C1C1C}
 [hidden]{display:none!important}
+
+/* plates carousel */
+.plates{display:flex;gap:12px;overflow-x:auto;scroll-snap-type:x mandatory;-webkit-overflow-scrolling:touch;scrollbar-width:none;margin:0 -16px;padding:0 16px 4px}
+.plates::-webkit-scrollbar{display:none}
+.pcard{flex:0 0 88%;max-width:420px;scroll-snap-align:center;background:#fff;border:1px solid var(--line);border-radius:16px;padding:16px}
+.pcard .ph{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.pcard .pn{font-size:16px;font-weight:900}
+.pcard .pw{font-size:11px;font-weight:800;color:var(--gold-tx);text-transform:uppercase;letter-spacing:.05em}
+.pcard svg{display:block;width:100%;max-width:300px;margin:6px auto 0}
+.pcard .pl{font:800 10.5px Montserrat,sans-serif;letter-spacing:.05em;fill:#1C1C1C}
+.pcard .ps{font:600 10px Montserrat,sans-serif;fill:#1C1C1C}
+.pcard .wh{fill:#fff}
+.pcard .pd{font-size:13px;color:var(--muted);line-height:1.45;margin-top:6px;text-align:center}
+.pcard.gen{background:var(--gold-soft);border-color:#ece2c3;display:flex;flex-direction:column;justify-content:center;text-align:center}
+.pcard.gen .btn{margin-top:14px}
+.pdots{display:flex;justify-content:center;gap:6px;margin-top:10px}
+.pdots i{width:7px;height:7px;border-radius:50%;background:#cfd6c9}
+.pdots i.on{background:var(--olive);width:18px;border-radius:4px}
+/* Legacy Nutrition System card */
+.nscard{display:block;margin-top:14px;background:var(--gold-soft);border:2px solid var(--gold);border-radius:16px;padding:18px;box-shadow:0 4px 18px rgba(193,173,114,.25)}
+.nslabel{display:inline-block;font-size:15px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#1C1C1C;background:var(--gold);padding:6px 12px;border-radius:8px;margin-bottom:12px}
+/* locked step sheet */
+.sheetbg{position:fixed;inset:0;background:rgba(28,28,28,.45);z-index:20;display:flex;align-items:flex-end;justify-content:center}
+.sheetbg[hidden]{display:none}
+.sheet{background:#fff;width:100%;max-width:520px;border-radius:20px 20px 0 0;padding:22px 20px 28px}
+.sheet .x{float:right;border:0;background:none;font-size:22px;color:var(--muted);cursor:pointer}
+.sheet ul{padding-left:18px;margin:10px 0 16px;color:var(--body);font-size:14px;line-height:1.6}
+.ck.locked .box{border-style:dashed}
+.ck .lockp{margin-left:4px}
+.demo{flex-wrap:wrap;max-width:calc(100% - 20px)}
+.demo .row2{display:flex;gap:4px;width:100%}
 </style>
 </head>
 <body>
@@ -193,28 +224,8 @@ a{color:inherit;text-decoration:none}
     </div>
     <div id="plate">
       <div class="sec">Build every plate like this</div>
-      <div class="card plate">
-        <svg viewBox="0 0 272 220" role="img" aria-label="Plate guide: half produce, a quarter protein, a quarter carbs, a thumb of fat">
-          <circle cx="110" cy="110" r="104" fill="#fff" stroke="#E4E8E1" stroke-width="3"/>
-          <circle cx="110" cy="110" r="90" fill="#F6F8F5"/>
-          <path d="M110,110 L110,22 A88,88 0 0 0 110,198 Z" fill="#8DB07A"/>
-          <path d="M110,110 L110,22 A88,88 0 0 1 198,110 Z" fill="#9A4A3A"/>
-          <path d="M110,110 L198,110 A88,88 0 0 1 110,198 Z" fill="#C1AD72"/>
-          <line x1="110" y1="22" x2="110" y2="198" stroke="#fff" stroke-width="3"/>
-          <line x1="110" y1="110" x2="198" y2="110" stroke="#fff" stroke-width="3"/>
-          <text x="66" y="104" text-anchor="middle" class="pl">PRODUCE</text><text x="66" y="122" text-anchor="middle" class="ps">2 fists</text>
-          <text x="152" y="72" text-anchor="middle" class="pl" fill="#fff">PROTEIN</text><text x="152" y="88" text-anchor="middle" class="ps" fill="#fff">2 palms</text>
-          <text x="152" y="140" text-anchor="middle" class="pl">CARBS</text><text x="152" y="156" text-anchor="middle" class="ps">1–2 hands</text>
-          <circle cx="244" cy="36" r="20" fill="#fff" stroke="#E4E8E1" stroke-width="2"/>
-          <circle cx="244" cy="36" r="13" fill="#4A7A9A"/>
-          <text x="244" y="72" text-anchor="middle" class="pl">FAT</text><text x="244" y="86" text-anchor="middle" class="ps">1 thumb</text>
-          <circle cx="244" cy="146" r="13" fill="#E39A3B"/>
-          <path d="M244,133 q2,-7 7,-9" stroke="#5b4a32" stroke-width="2" fill="none" stroke-linecap="round"/>
-          <ellipse cx="250" cy="127" rx="5" ry="2.6" fill="#8DB07A" transform="rotate(-25 250 127)"/>
-          <text x="244" y="176" text-anchor="middle" class="pl">FRUIT</text><text x="244" y="190" text-anchor="middle" class="ps">1 piece</text>
-        </svg>
-        <div class="d" style="text-align:center;margin-top:6px">Half produce. A quarter protein. A quarter carbs. A thumb of fat. A piece of fruit on the side. Same shape, every meal.</div>
-      </div>
+      <div class="plates" id="plates"></div>
+      <div class="pdots" id="pdots"></div>
     </div>
     <div id="portions">
       <div class="sec">Your portions, mapped to your goal</div>
@@ -231,12 +242,12 @@ a{color:inherit;text-decoration:none}
       </div>
     </div>
     <div class="card" style="margin-top:14px"><a class="row" href="../power-food-list/"><div class="ico">🥗</div><div class="grow"><div class="t">The Power Food List</div><div class="d">The best foods to build every meal from.</div></div><div class="chev">›</div></a></div>
-    <div class="card" style="background:var(--gold-soft);border-color:#ece2c3;margin-top:14px">
-      <div class="pill gold" style="margin-bottom:8px">Legacy Nutrition System</div>
-      <div class="t">Want every meal built for you?</div>
-      <div class="d" style="margin:6px 0 14px;color:var(--body)">Your custom nutrition system builds every meal from the foods you actually eat, your favorite restaurants, and your real schedule. No more guessing what to eat or how much. And it adjusts as you progress.</div>
-      <a class="btn" href="#">Get my custom system</a>
-    </div>
+    <a class="nscard" id="nsCard" href="#" data-ns>
+      <div class="nslabel">Legacy Nutrition System</div>
+      <div class="t" style="font-size:18px">Want every meal built for you?</div>
+      <div class="d" style="margin:6px 0 14px;color:var(--body);font-size:14px">Your custom nutrition system builds every meal from the foods you actually eat, your favorite restaurants, and your real schedule. No more guessing what to eat or how much. And it adjusts as you progress.</div>
+      <span class="btn">Get my nutrition system</span>
+    </a>
   </div>
 
   <div id="nutOpen">
@@ -344,8 +355,11 @@ a{color:inherit;text-decoration:none}
 
 </main>
 
-<div class="demo" id="demo"><span style="padding:6px 4px;color:#999">Preview:</span>
-  <button data-t="lite">Lite</button><button data-t="wellness">Wellness</button><button data-t="system">+ Custom system</button><button data-t="works">In the works</button>
+<div class="sheetbg" id="sheetBg" hidden><div class="sheet" id="sheet"></div></div>
+
+<div class="demo" id="demo">
+  <div class="row2"><span style="padding:6px 4px;color:#999">Plan:</span><button data-p="nutrition">Nutrition only</button><button data-p="lite">Lite</button><button data-p="wellness">Wellness</button><button data-p="coaching">Coaching</button></div>
+  <div class="row2"><span style="padding:6px 4px;color:#999">Nutrition:</span><button data-n="starter">Starter</button><button data-n="works">In the works</button><button data-n="system">System built</button></div>
 </div>
 
 <script>
@@ -395,61 +409,156 @@ a{color:inherit;text-decoration:none}
     +'<a class="btn" href="#">Upgrade to Wellness</a><div class="price">$97 a month</div></div>';
   $('#labsLocked').innerHTML=UPG; $('#wellLocked').innerHTML=UPG;
 
-  /* ---------- tier ----------
-     lite     = Standard ($39.99): dashboard Lite. Starting numbers + upgrade cards.
-     wellness = Wellness ($97): labs, member pricing, portions mapped to goal.
-     system   = bought the custom nutrition system: the full generator.
-     works    = intake submitted, system not marked ready yet (Roster "Complete" = blank). */
-  var q=new URLSearchParams(location.search), tier=q.get('tier')||'wellness';
-  if(q.get('intake')==='done' && !q.get('tier')) tier='works';
-  function applyTier(t){
-    tier=t;
-    var well=(t!=='lite');
-    $('#nutOpen').hidden=(t!=='system');
-    $('#nutWorks').hidden=(t!=='works');
-    $('#nutStarter').hidden=(t!=='lite' && t!=='wellness');
+  /* ---------- plan + nutrition state ----------
+     PLAN (what they bought; from the Roster Tier column, set by the GHL purchase tag):
+       nutrition = bought the Legacy Nutrition System outright (no membership)
+       lite      = Join Legacy Performance, Standard ($39.99)
+       wellness  = Legacy Performance Wellness ($97)
+       coaching  = Legacy Performance Coaching (1:1)
+     NUT (nutrition tab state):
+       starter = starting numbers + plates (no custom system)
+       works   = intake in, Jayme hasn't approved it yet (Roster "Complete" blank)
+       system  = custom system built and approved */
+  var NS_CHECKOUT = '';   /* TODO: member checkout for the Legacy Nutrition System (to build in GHL) */
+  var CALL_URL = 'https://legacyperformance.co/onboarding-call';   /* GHL onboarding call; TODO embed the calendar widget */
+  var AGREEMENT_URL = '';  /* TODO: GHL Documents & Contracts link, one per plan */
+  var RANK={nutrition:0,lite:1,wellness:2,coaching:3};
+  var PLAN_NAME={nutrition:'Nutrition System',lite:'Lite',wellness:'Wellness',coaching:'Coaching'};
+  var q=new URLSearchParams(location.search);
+  var legacy=q.get('tier');  /* old ?tier= links still work */
+  var plan=q.get('plan')||(legacy==='lite'?'lite':'wellness');
+  var nut=q.get('nut')||(legacy==='system'?'system':legacy==='works'?'works':(q.get('intake')==='done'?'works':'starter'));
+  if(!RANK.hasOwnProperty(plan)) plan='wellness';
+  function has(n){return RANK[plan]>=n}
+
+  function apply(){
+    var well=has(2);
+    $('#nutOpen').hidden=(nut!=='system');
+    $('#nutWorks').hidden=(nut!=='works');
+    $('#nutStarter').hidden=(nut!=='starter');
     $('#nutLocked').hidden=true;
-    $('#portions').hidden=(t==='lite');
+    $('#portions').hidden=!well;
+    $('#nsCard').hidden=(nut==='system');
     $('#labsOpen').hidden=!well; $('#labsLocked').hidden=well;
     $('#wellOpen').hidden=!well; $('#wellLocked').hidden=well;
-    var chip=$('#tierChip'); chip.textContent=well?'Wellness':'Lite'; chip.className='tier'+(well?'':' std');
-    $$('#demo button').forEach(function(b){b.classList.toggle('on',b.dataset.t===t)});
+    var chip=$('#tierChip'); chip.textContent=PLAN_NAME[plan]; chip.className='tier'+(well?'':' std');
+    $$('#demo [data-p]').forEach(function(b){b.classList.toggle('on',b.dataset.p===plan)});
+    $$('#demo [data-n]').forEach(function(b){b.classList.toggle('on',b.dataset.n===nut)});
     renderChecklist();
   }
 
-  /* ---------- Start here checklist ---------- */
+  /* ---------- Onboarding checklist ----------
+     Every step shows for everyone. A step above their plan shows locked; tapping it explains
+     what it is and which plan includes it. */
   var CK_KEY='lp_my_checklist_v1', ck={};
   try{ ck=JSON.parse(localStorage.getItem(CK_KEY)||'{}')||{}; }catch(e){ ck={}; }
   var hasIntake=false; try{ hasIntake=!!localStorage.getItem('lp_nutrition_me_v1'); }catch(e){}
   if(q.get('intake')==='done') hasIntake=true;
+  var GATES={
+    1:{name:'Join Legacy Performance',price:'$39.99 a month',
+       pts:['The Legacy Performance app: training, check-ins and messaging','The community program and leaderboards','The resource vault: recipes, guides and tools'],cta:'Join Legacy Performance'},
+    2:{name:'Legacy Performance Wellness',price:'$97 a month',
+       pts:['Upload every lab and see your trend lines','What each number means, and what to do next','Blood work, genetics and supplements at member pricing','Your food portions mapped to your goal'],cta:'Upgrade to Wellness'},
+    3:{name:'Legacy Performance Coaching',price:'1:1 with Jayme',
+       pts:['Your BMW assessment: Body, Move, Work','I watch how you move and build your training around it','A plan built for you, and adjusted with you every week'],cta:'Apply for coaching'}
+  };
   var STEPS=[
-    {k:'app',   ic:'📱', t:'Download the app and sign in', d:'You did it. You are here.', auto:function(){return true}},
-    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'In the app: Coaching tab, then Sessions.'},
-    {k:'skool', ic:'👥', t:'Join the community', d:'Say hi, and catch the weekly Q&A.', href:'https://www.skool.com/legacy-performance/about'},
-    {k:'intake',ic:'🧮', t:'Build your nutrition system', d:'About 10 minutes. Your answers set your numbers.', href:'../nutrition/?from=my', auto:function(){return hasIntake}},
-    {k:'bmw',   ic:'🏋️', t:'Do your BMW assessment', d:'Body, Move, Work. Shows where to start your training.', href:'../bmw/'},
-    {k:'labs',  ic:'🩸', t:'Upload your labs', d:'Your blood work, so we can read the trend.', go:'labs', well:true}
+    {k:'agree', ic:'✍️', t:'Sign your agreement', d:'Takes a minute. It covers what is included in your plan.', need:0, href:AGREEMENT_URL||null},
+    {k:'app',   ic:'📱', t:'Download the app and sign in', d:'Training, check-ins and messaging all live in the app.', ld:'Training, check-ins and messaging, all in one app.', need:1, auto:function(){return has(1)}},
+    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'Pick a time that works. We set up your first weeks together.', need:0, href:CALL_URL},
+    {k:'skool', ic:'👥', t:'Join the community', d:'Say hi, and catch the weekly Q&A.', need:0, href:'https://www.skool.com/legacy-performance/about'},
+    {k:'intake',ic:'🧮', t:'Build your nutrition system', d:'About 10 minutes. Your answers set your numbers.', need:0, href:'../nutrition/?from=my', auto:function(){return hasIntake}},
+    {k:'bmw',   ic:'🏋️', t:'Do your BMW assessment', d:'Body, Move, Work. In the app: Vault, then Workouts, then BMW Assessment.', ld:'Body, Move, Work. Tap to see what it is.', need:3},
+    {k:'labs',  ic:'🩸', t:'Upload your labs', d:'Your blood work, so we can read the trend.', ld:'See your trend lines and what to do next. Tap to see more.', need:2, go:'labs'}
   ];
   function renderChecklist(){
-    var done=0, well=(tier!=='lite');
+    var done=0, open=0;
     $('#ckList').innerHTML=STEPS.map(function(st){
-      var locked=st.well && !well, isDone=!locked && (ck[st.k] || (st.auto && st.auto()));
+      var locked=!has(st.need), isDone=!locked && (ck[st.k] || (st.auto && st.auto()));
+      if(!locked) open++;
       if(isDone) done++;
-      var inner='<div class="t">'+st.t+(locked?' <span class="pill gold">Wellness</span>':'')+'</div><div class="d">'+st.d+'</div>';
-      var body=st.href?'<a class="grow" href="'+st.href+'"'+(/^http/.test(st.href)?' target="_blank" rel="noopener"':'')+'>'+inner+'</a>'
+      var pill=locked?' <span class="pill gold lockp">🔒 '+GATES[st.need].name.replace('Legacy Performance ','').replace('Join Legacy Performance','Membership')+'</span>':'';
+      var inner='<div class="t">'+st.t+pill+'</div><div class="d">'+(locked&&st.ld?st.ld:st.d)+'</div>';
+      var body=locked?'<a class="grow" href="#" data-gate="'+st.need+'" data-step="'+st.k+'">'+inner+'</a>'
+             :st.href?'<a class="grow" href="'+st.href+'"'+(/^http/.test(st.href)?' target="_blank" rel="noopener"':'')+'>'+inner+'</a>'
              :st.go?'<a class="grow" href="#" data-go="'+st.go+'">'+inner+'</a>':'<div class="grow">'+inner+'</div>';
       return '<div class="ck'+(isDone?' done':'')+(locked?' locked':'')+'" data-k="'+st.k+'"><span class="box">'+(isDone?'✓':'')+'</span><span class="ico">'+st.ic+'</span>'+body+'</div>';
     }).join('');
-    var pct=Math.round(done/STEPS.length*100);
-    $('#ckCount').textContent=done+' of '+STEPS.length+' done'; $('#ckPct').textContent=pct+'%'; $('#ckBar').style.width=pct+'%';
+    var pct=open?Math.round(done/open*100):0;
+    $('#ckCount').textContent=done+' of '+open+' done'; $('#ckPct').textContent=pct+'%'; $('#ckBar').style.width=pct+'%';
     $$('#ckList .box').forEach(function(b){ b.addEventListener('click',function(){
       var k=b.parentNode.dataset.k; if(b.parentNode.classList.contains('locked')) return;
       ck[k]=!ck[k]; try{localStorage.setItem(CK_KEY,JSON.stringify(ck))}catch(e){} renderChecklist();
     })});
   }
-  document.addEventListener('click',function(e){ var a=e.target.closest&&e.target.closest('[data-go]'); if(a){ e.preventDefault(); show(a.dataset.go); } });
+  function openGate(n,stepKey){
+    var g=GATES[n], st=STEPS.filter(function(x){return x.k===stepKey})[0];
+    $('#sheet').innerHTML='<button class="x" aria-label="Close">×</button>'
+      +'<div class="pill gold">Part of '+g.name+'</div>'
+      +'<div class="t" style="font-size:19px;margin-top:10px">'+(st?st.t:g.name)+'</div>'
+      +'<ul>'+g.pts.map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul>'
+      +'<a class="btn" href="#">'+g.cta+'</a><div class="d" style="text-align:center;margin-top:8px">'+g.price+'</div>';
+    $('#sheetBg').hidden=false;
+  }
+  $('#sheetBg').addEventListener('click',function(e){ if(e.target.id==='sheetBg'||e.target.classList.contains('x')) $('#sheetBg').hidden=true; });
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('[data-go]'); if(a){ e.preventDefault(); show(a.dataset.go); return; }
+    var g=e.target.closest&&e.target.closest('[data-gate]'); if(g){ e.preventDefault(); openGate(+g.dataset.gate,g.dataset.step); return; }
+    var n=e.target.closest&&e.target.closest('[data-ns]'); if(n && !NS_CHECKOUT){ e.preventDefault(); alert('Preview: the Nutrition System checkout is not built yet.'); }
+  });
+  if(NS_CHECKOUT) $('#nsCard').href=NS_CHECKOUT;
 
-  $$('#demo button').forEach(function(b){b.addEventListener('click',function(){applyTier(b.dataset.t)})});
+  /* ---------- plates ----------
+     Colors (Jayme, Nov 25): vegetables green, protein Lean red, carbs gold, fat Legacy blue, fruit orange.
+     Fruit counts as a carb (the engine already does this). */
+  var COL={veg:'#8DB07A',fruit:'#E39A3B',protein:'#9A4A3A',carbs:'#C1AD72'};
+  var PLATES=[
+    {n:'Balanced',w:'Start here',
+     seg:[['veg',90,'VEGGIES','1–2 fists'],['fruit',90,'FRUIT','1 piece'],['protein',90,'PROTEIN','2 palms'],['carbs',90,'CARBS','1 cupped hand']],
+     fat:'1–2 thumbs',
+     d:'Half produce, split between veggies and fruit. A quarter protein. A quarter carbs. Your other calories split evenly between carbs and fat.'},
+    {n:'Performance',w:'Building muscle',
+     seg:[['veg',90,'VEGGIES','1 fist'],['protein',90,'PROTEIN','2 palms'],['carbs',120,'CARBS','2 cupped hands'],['fruit',60,'FRUIT','1–2']],
+     fat:'1 thumb',
+     d:'For when you eat above maintenance to build. Same protein. Half the plate is carbs and fruit to fuel training. Fat stays at the minimum.'}
+  ];
+  function wedge(cx,cy,r,a0,a1){
+    var rad=function(a){return (a-90)*Math.PI/180};
+    var x0=cx+r*Math.cos(rad(a0)),y0=cy+r*Math.sin(rad(a0)),x1=cx+r*Math.cos(rad(a1)),y1=cy+r*Math.sin(rad(a1));
+    return 'M'+cx+','+cy+' L'+x0.toFixed(1)+','+y0.toFixed(1)+' A'+r+','+r+' 0 '+((a1-a0)>180?1:0)+' 1 '+x1.toFixed(1)+','+y1.toFixed(1)+' Z';
+  }
+  function plateSVG(pl){
+    var cx=110,cy=110,r=88,a=0,out='',lab='';
+    /* start veggies on the left side: rotate so the first wedge ends at 360 */
+    var start=360-pl.seg[0][1]-(pl.seg[1]?pl.seg[1][1]:0);
+    if(pl.n==='Performance') start=270;
+    a=start;
+    pl.seg.forEach(function(sg){
+      var a0=a,a1=a+sg[1]; out+='<path d="'+wedge(cx,cy,r,a0,a1)+'" fill="'+COL[sg[0]]+'" stroke="#fff" stroke-width="3"/>';
+      var mid=(a0+a1)/2, rr=sg[1]<=60?60:52, mx=cx+rr*Math.cos((mid-90)*Math.PI/180), my=cy+rr*Math.sin((mid-90)*Math.PI/180);
+      var wh=(sg[0]==='protein')?' wh':'';
+      lab+='<text x="'+mx.toFixed(0)+'" y="'+(my-2).toFixed(0)+'" text-anchor="middle" class="pl'+wh+'">'+sg[2]+'</text><text x="'+mx.toFixed(0)+'" y="'+(my+12).toFixed(0)+'" text-anchor="middle" class="ps'+wh+'">'+sg[3]+'</text>';
+      a=a1;
+    });
+    return '<svg viewBox="0 0 286 220" role="img" aria-label="'+pl.n+' plate">'
+      +'<circle cx="110" cy="110" r="104" fill="#fff" stroke="#E4E8E1" stroke-width="3"/>'
+      +out+lab
+      +'<circle cx="252" cy="60" r="20" fill="#fff" stroke="#E4E8E1" stroke-width="2"/><circle cx="252" cy="60" r="13" fill="#4A7A9A"/>'
+      +'<text x="252" y="96" text-anchor="middle" class="pl">FAT</text><text x="252" y="110" text-anchor="middle" class="ps">'+pl.fat+'</text>'
+      +'</svg>';
+  }
+  $('#plates').innerHTML=PLATES.map(function(pl){
+      return '<div class="pcard"><div class="ph"><span class="pn">'+pl.n+' plate</span><span class="pw">'+pl.w+'</span></div>'+plateSVG(pl)+'<div class="pd">'+pl.d+'</div></div>';
+    }).join('')
+    +'<div class="pcard gen"><div class="pn">Higher carb or lower carb?</div><div class="pd" style="color:var(--body)">Some bodies run better on more carbs, some on more fat. Your genetics answer which one is you, so you stop guessing.</div><a class="btn" href="#">See the genetic test</a></div>';
+  $('#pdots').innerHTML=PLATES.concat([0]).map(function(_,i){return '<i'+(i?'':' class="on"')+'></i>'}).join('');
+  $('#plates').addEventListener('scroll',function(){
+    var el=this, w=el.firstElementChild.offsetWidth+12, i=Math.round(el.scrollLeft/w);
+    $$('#pdots i').forEach(function(d,j){d.classList.toggle('on',j===i)});
+  },{passive:true});
+
+  $$('#demo [data-p]').forEach(function(b){b.addEventListener('click',function(){plan=b.dataset.p;apply()})});
+  $$('#demo [data-n]').forEach(function(b){b.addEventListener('click',function(){nut=b.dataset.n;apply()})});
 
   /* ---------- tabs ---------- */
   function show(t){
@@ -458,7 +567,7 @@ a{color:inherit;text-decoration:none}
     window.scrollTo(0,0);
   }
   $$('.tab').forEach(function(b){b.addEventListener('click',function(){show(b.dataset.tab)})});
-  applyTier(tier);
+  apply();
   show(q.get('tab') || (q.get('intake')==='done' ? 'nutrition' : 'start'));
 })();
 </script>
