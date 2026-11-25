@@ -177,6 +177,14 @@ a{color:inherit;text-decoration:none}
 .mac .m1{color:var(--gold-tx)}
 .ptot{text-align:center;font-size:13px;font-weight:800;color:var(--ink);padding:12px 0 2px}
 .plock{display:none;margin-top:10px;font-size:12.5px;font-weight:700;color:var(--gold-tx);text-align:center;background:var(--gold-soft);border-radius:10px;padding:10px}
+
+.mbopen{display:flex;align-items:center;gap:14px;background:#fff;color:var(--ink);border:2px solid var(--olive);border-radius:16px;padding:14px 16px;margin:4px 0 16px}
+.mbopen:active{background:var(--olive-soft)}
+.mbopen .mbi{width:44px;height:44px;border-radius:12px;background:var(--olive);display:grid;place-items:center;font-size:22px;flex:none}
+.mbopen .grow{flex:1;min-width:0}
+.mbopen .mbt{display:block;font-size:16px;font-weight:900;color:var(--olive)}
+.mbopen .mbd{display:block;font-size:12.5px;color:var(--muted);margin-top:2px}
+.mbopen .mba{font-size:26px;font-weight:400;color:var(--olive)}
 </style>
 </head>
 <body>
@@ -249,6 +257,11 @@ a{color:inherit;text-decoration:none}
   <div id="nutOpen">
     <h1 class="h1">Your nutrition system</h1>
     <p class="sub">Your numbers, your phase, and your meals. When your check-ins say it's time, your numbers change here.</p>
+    <a class="mbopen" href="../meal-builder/">
+      <span class="mbi">🍽️</span>
+      <span class="grow"><span class="mbt">Open my Meal Builder</span><span class="mbd">Your meals, recipes, swaps and grocery list</span></span>
+      <span class="mba">›</span>
+    </a>
 
     <div class="card phase">
       <div class="eb">Your phase</div>
