@@ -167,6 +167,18 @@ a{color:inherit;text-decoration:none}
 .ck .lockp{margin-left:4px}
 .demo{flex-wrap:wrap;max-width:calc(100% - 20px)}
 .demo .row2{display:flex;gap:4px;width:100%}
+
+.pcard{align-self:flex-start}
+.prows{margin-top:14px;border-top:1px solid var(--line)}
+.prow{display:flex;gap:12px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}
+.prow .t{font-size:15px;font-weight:800}
+.prow .hand{font-size:13px;font-weight:600;color:var(--muted);margin-left:4px}
+.mac{display:flex;flex-wrap:wrap;gap:4px 10px;margin-top:3px;font-size:12.5px;font-weight:700;color:var(--body)}
+.mac .m1{color:var(--gold-tx)}
+.ptot{text-align:center;font-size:13px;font-weight:800;color:var(--ink);padding:12px 0 2px}
+.plock{display:none;margin-top:10px;font-size:12.5px;font-weight:700;color:var(--gold-tx);text-align:center;background:var(--gold-soft);border-radius:10px;padding:10px}
+.plates.lite .mac,.plates.lite .wt,.plates.lite .ptot{display:none}
+.plates.lite .plock{display:block}
 </style>
 </head>
 <body>
@@ -226,10 +238,6 @@ a{color:inherit;text-decoration:none}
       <div class="sec">Build every plate like this</div>
       <div class="plates" id="plates"></div>
       <div class="pdots" id="pdots"></div>
-    </div>
-    <div id="portions">
-      <div class="sec" id="porHead">Your portions, mapped to your goal</div>
-      <div class="card" id="porCard"></div>
     </div>
     <div class="card" style="margin-top:14px"><a class="row" href="../power-food-list/"><div class="ico">🥗</div><div class="grow"><div class="t">The Power Food List</div><div class="d">The best foods to build every meal from.</div></div><div class="chev">›</div></a></div>
     <a class="nscard" id="nsCard" href="#" data-ns>
@@ -427,7 +435,7 @@ a{color:inherit;text-decoration:none}
     $('#nutWorks').hidden=(nut!=='works');
     $('#nutStarter').hidden=(nut!=='starter');
     $('#nutLocked').hidden=true;
-    $('#portions').hidden=!well;
+    $('#plates').classList.toggle('lite',!well);
     $('#nsCard').hidden=(nut==='system');
     $('#labsOpen').hidden=!well; $('#labsLocked').hidden=well;
     $('#wellOpen').hidden=!well; $('#wellLocked').hidden=well;
@@ -502,26 +510,47 @@ a{color:inherit;text-decoration:none}
      Colors (Jayme, Nov 25): vegetables green, protein Lean red, carbs gold, fat Legacy blue, fruit orange.
      Fruit counts as a carb (the engine already does this). */
   var COL={veg:'#8DB07A',fruit:'#E39A3B',protein:'#9A4A3A',carbs:'#C1AD72'};
+  /* Per-meal portions for the demo member (2,405 cal, 185 g protein, 4 meals a day).
+     When real data is wired, these come from the member's own numbers.
+     Calories/fiber: lean meats + fish (~4.4 cal per g protein), cooked white rice (USDA), oil,
+     mixed fruit ~55 cal + ~2.5 g fiber per 100 g, mixed vegetables ~30 cal + ~2.5 g fiber per 100 g. */
   var PLATES=[
-    {n:'Balanced',w:'Start here',
+    {n:'Balanced',w:'Start here',kcal:'about 600 calories a meal',
      seg:[['veg',90,'VEGGIES','1 fist'],['fruit',90,'FRUIT','1 small piece'],['protein',90,'PROTEIN','2 palms'],['carbs',90,'CARBS','1 cupped hand']],
-     fat:'1–2 thumbs',
-     por:{protein:['about 45 g protein',[['Cooked','5 oz · 150 g'],['Raw','7 oz · 200 g']]],
-          fat:['about 20 g fat',[['Oil or butter','1½ tbsp · 20 g'],['Avocado','1 small · 4½ oz · 130 g']]],
-          carbs:['about 40 g carbs',[['Cooked','5 oz · 145 g'],['Dry','1¾ oz · 50 g']]],
-          fruit:['about 13 g carbs',[['Fruit','1 small piece · 3½ oz · 100 g'],['Berries','¾ cup · 100 g']]],
-          veg:['100 g a meal',[['Raw','3½ oz · 100 g'],['Cooked','2½ oz · 75 g']]]},
-     d:'Half produce, split between veggies and fruit. A quarter protein. A quarter carbs. Your other calories split evenly between carbs and fat.'},
-    {n:'Performance',w:'Building muscle',
+     fat:'1 thumb',
+     rows:[
+       ['protein','🍗','Protein','2 palms',['45 g protein','about 200 cal'],[['Cooked','5 oz · 150 g'],['Raw','7 oz · 200 g']]],
+       ['fat','🥑','Fat','1 thumb',['15 g fat','about 135 cal'],[['Oil or butter','1 tbsp · ½ oz · 15 g'],['Avocado','⅔ · 3½ oz · 100 g']]],
+       ['carbs','🍠','Carbs','1 cupped hand',['40 g carbs','about 185 cal'],[['Cooked','5 oz · 145 g'],['Dry','1¾ oz · 50 g']]],
+       ['fruit','🍎','Fruit','1 small piece',['13 g carbs','about 55 cal','2 to 3 g fiber'],[['Whole fruit','3½ oz · 100 g'],['Berries','¾ cup · 100 g']]],
+       ['veg','🥦','Vegetables','1 fist',['6 g carbs','about 30 cal','2 to 3 g fiber'],[['Raw','3½ oz · 100 g'],['Cooked','2½ oz · 75 g']]]
+     ],
+     d:'Half produce, split between veggies and fruit. A quarter protein. A quarter carbs. A thumb of fat.'},
+    {n:'Performance',w:'Building muscle',kcal:'about 655 calories a meal',
      seg:[['veg',90,'VEGGIES','1 fist'],['protein',90,'PROTEIN','2 palms'],['carbs',120,'CARBS','2 cupped hands'],['fruit',60,'FRUIT','1–2']],
      fat:'1 thumb',
-     por:{protein:['about 45 g protein',[['Cooked','5 oz · 150 g'],['Raw','7 oz · 200 g']]],
-          fat:['about 10 g fat',[['Oil or butter','2 tsp · 10 g'],['Avocado','⅓ · 2½ oz · 70 g']]],
-          carbs:['about 55 g carbs',[['Cooked','7 oz · 200 g'],['Dry','2½ oz · 70 g']]],
-          fruit:['about 20 g carbs',[['Fruit','1 to 2 pieces · 5 oz · 150 g'],['Berries','1 cup · 150 g']]],
-          veg:['100 g a meal',[['Raw','3½ oz · 100 g'],['Cooked','2½ oz · 75 g']]]},
+     rows:[
+       ['protein','🍗','Protein','2 palms',['45 g protein','about 200 cal'],[['Cooked','5 oz · 150 g'],['Raw','7 oz · 200 g']]],
+       ['fat','🥑','Fat','1 small thumb',['10 g fat','about 90 cal'],[['Oil or butter','2 tsp · ⅓ oz · 10 g'],['Avocado','⅓ · 2½ oz · 70 g']]],
+       ['carbs','🍠','Carbs','2 cupped hands',['55 g carbs','about 255 cal'],[['Cooked','7 oz · 200 g'],['Dry','2½ oz · 70 g']]],
+       ['fruit','🍎','Fruit','1 to 2 pieces',['20 g carbs','about 80 cal','3 to 4 g fiber'],[['Whole fruit','5 oz · 150 g'],['Berries','1 cup · 150 g']]],
+       ['veg','🥦','Vegetables','1 fist',['6 g carbs','about 30 cal','2 to 3 g fiber'],[['Raw','3½ oz · 100 g'],['Cooked','2½ oz · 75 g']]]
+     ],
      d:'For when you eat above maintenance to build. Same protein. Half the plate is carbs and fruit to fuel training. Fat stays at the minimum.'}
   ];
+  var COLSOFT={protein:'#F3E4E0',fat:'#E1EAF1',carbs:'#F6F0E0',fruit:'#FBEBD9',veg:'#E8F0E3'};
+  function plateRows(pl){
+    return '<div class="prows">'+pl.rows.map(function(r){
+      return '<div class="prow"><div class="ico" style="background:'+COLSOFT[r[0]]+'">'+r[1]+'</div><div class="grow">'
+        +'<div class="t">'+r[2]+' <span class="hand">'+r[3]+'</span></div>'
+        +'<div class="mac">'+r[4].map(function(x,i){return '<span'+(i===0?' class="m1"':'')+'>'+x+'</span>'}).join('')+'</div>'
+        +'<div class="wt">'+r[5].map(function(w){return '<span><b>'+w[0]+'</b> '+w[1]+'</span>'}).join('')+'</div>'
+        +'</div></div>';
+    }).join('')
+    +'<div class="ptot">'+pl.kcal+'</div>'
+    +'<a class="plock" href="#" data-gate="2" data-step="labs">🔒 Your exact grams, ounces and calories for your goal come with Wellness</a>'
+    +'</div>';
+  }
   function wedge(cx,cy,r,a0,a1){
     var rad=function(a){return (a-90)*Math.PI/180};
     var x0=cx+r*Math.cos(rad(a0)),y0=cy+r*Math.sin(rad(a0)),x1=cx+r*Math.cos(rad(a1)),y1=cy+r*Math.sin(rad(a1));
@@ -548,36 +577,16 @@ a{color:inherit;text-decoration:none}
       +'</svg>';
   }
   $('#plates').innerHTML=PLATES.map(function(pl){
-      return '<div class="pcard"><div class="ph"><span class="pn">'+pl.n+' plate</span><span class="pw">'+pl.w+'</span></div>'+plateSVG(pl)+'<div class="pd">'+pl.d+'</div></div>';
+      return '<div class="pcard"><div class="ph"><span class="pn">'+pl.n+' plate</span><span class="pw">'+pl.w+'</span></div>'+plateSVG(pl)+'<div class="pd">'+pl.d+'</div>'+plateRows(pl)+'</div>';
     }).join('')
     +'<div class="pcard gen"><div class="pn">Higher carb or lower carb?</div><div class="pd" style="color:var(--body)">Some bodies run better on more carbs, some on more fat. Your genetics answer which one is you, so you stop guessing.</div><a class="btn" href="#">See the genetic test</a></div>';
   $('#pdots').innerHTML=PLATES.concat([0]).map(function(_,i){return '<i'+(i?'':' class="on"')+'></i>'}).join('');
 
-  /* portions follow the plate on screen (Wellness and up) */
-  var POR_ROWS=[['protein','🍗','Protein'],['fat','🥑','Fat'],['carbs','🍠','Carbs'],['fruit','🍎','Fruit'],['veg','🥦','Vegetables']];
-  var COLSOFT={protein:'#F3E4E0',fat:'#E1EAF1',carbs:'#F6F0E0',fruit:'#FBEBD9',veg:'#E8F0E3'};
-  var curPlate=-1;
-  function renderPortions(i){
-    var pl=PLATES[Math.min(i,PLATES.length-1)]; if(!pl||!pl.por) return;
-    var hand={};
-    pl.seg.forEach(function(sg){hand[sg[0]]=/^[\d–]+$/.test(sg[3])?sg[3]+' pieces':sg[3]}); hand.fat=pl.fat;
-    $('#porHead').textContent='Your portions: '+pl.n+' plate';
-    $('#porCard').innerHTML=POR_ROWS.map(function(r){
-      var d=pl.por[r[0]];
-      return '<div class="row atop"><div class="ico" style="background:'+COLSOFT[r[0]]+'">'+r[1]+'</div><div class="grow"><div class="t">'+r[2]+' <span class="tg">'+d[0]+'</span></div><div class="d">'+hand[r[0]]+' per meal</div>'
-        +'<div class="wt">'+d[1].map(function(w){return '<span><b>'+w[0]+'</b> '+w[1]+'</span>'}).join('')+'</div></div></div>';
-    }).join('')
-    +'<div class="d" style="margin-top:12px;font-size:12px">Per meal, for your goal and 4 meals a day. Swipe the plate above and these change with it. Weights use lean meats and fish, rice, and mixed vegetables. Weigh leafy greens raw, they shrink a lot when cooked.</div>';
-  }
-  function plateIndex(){ var el=$('#plates'), w=el.firstElementChild.offsetWidth+12; return Math.round(el.scrollLeft/w); }
   function syncPlate(){
-    var i=plateIndex();
+    var el=$('#plates'), w=el.firstElementChild.offsetWidth+12, i=Math.round(el.scrollLeft/w);
     $$('#pdots i').forEach(function(d,j){d.classList.toggle('on',j===i)});
-    var pi=Math.min(i,PLATES.length-1);
-    if(pi!==curPlate){ curPlate=pi; renderPortions(pi); }
   }
   $('#plates').addEventListener('scroll',syncPlate,{passive:true});
-  renderPortions(0); curPlate=0;
 
   $$('#demo [data-p]').forEach(function(b){b.addEventListener('click',function(){plan=b.dataset.p;apply()})});
   $$('#demo [data-n]').forEach(function(b){b.addEventListener('click',function(){nut=b.dataset.n;apply()})});
