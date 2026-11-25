@@ -455,7 +455,7 @@ a{color:inherit;text-decoration:none}
   var STEPS=[
     {k:'agree', ic:'✍️', t:'Sign your agreement', d:'Takes a minute. It covers what is included in your plan.', need:0, href:AGREEMENT_URL||null},
     {k:'app',   ic:'📱', t:'Download the app and sign in', d:'Training, check-ins and messaging all live in the app.', ld:'Training, check-ins and messaging, all in one app.', need:1, auto:function(){return has(1)}},
-    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'Pick a time that works. We set up your first weeks together.', need:0, href:CALL_URL},
+    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'In the app: Coaching tab, then Sessions. We set up your first weeks together.', ld:'We set up your first weeks together. Tap to see more.', need:1},
     {k:'skool', ic:'👥', t:'Join the community', d:'Say hi, and catch the weekly Q&A.', need:0, href:'https://www.skool.com/legacy-performance/about'},
     {k:'intake',ic:'🧮', t:'Build your nutrition system', d:'About 10 minutes. Your answers set your numbers.', need:0, href:'../nutrition/?from=my', auto:function(){return hasIntake}},
     {k:'bmw',   ic:'🏋️', t:'Do your BMW assessment', d:'Body, Move, Work. In the app: Vault, then Workouts, then BMW Assessment.', ld:'Body, Move, Work. Tap to see what it is.', need:3},
