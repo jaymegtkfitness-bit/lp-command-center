@@ -37,6 +37,7 @@
   function failTry(){ try{ var o=JSON.parse(localStorage.getItem(LOCK_KEY)||'{}'); o.n=(o.n||0)+1; if(o.n>=MAX_TRIES){ o.until=Date.now()+LOCK_MIN*60000; o.n=0; } localStorage.setItem(LOCK_KEY,JSON.stringify(o)); }catch(e){} }
   function clearTries(){ try{ localStorage.removeItem(LOCK_KEY); }catch(e){} }
   function sixDigits(v){ return /^\d{6}$/.test(String(v||'').trim()); }
+  function codeDigits(v){ return /^\d{6,8}$/.test(String(v||'').trim()); }
 
   var LPAuth = {
     sb: null,
@@ -79,7 +80,7 @@
 
       /* ---- screen: get a code ---- */
       function codeRequestScreen(email){
-        card('<h1>Get your code</h1><p>We’ll email you a 6-digit code. Use the email you bought with.</p>'
+        card('<h1>Get your code</h1><p>We’ll email you a code. Use the email you bought with.</p>'
           +'<label>Email</label><input id="lpaEmail" type="email" autocomplete="email" inputmode="email" value="'+(email||'')+'">'
           +'<button class="go" id="lpaGo">Email me a code</button><div class="err"></div>'
           +'<button class="lnk" id="lpaBack">I have a PIN. Sign in</button>');
@@ -101,14 +102,14 @@
 
       /* ---- screen: enter the code ---- */
       function codeEnterScreen(email){
-        card('<h1>Check your email</h1><p>If <b>'+email.replace(/</g,'&lt;')+'</b> has a Legacy Performance plan, a 6-digit code is on its way from Legacy Performance. It can take a minute. Check spam too.</p>'
-          +'<label>Code</label><input id="lpaCode" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">'
+        card('<h1>Check your email</h1><p>If <b>'+email.replace(/</g,'&lt;')+'</b> has a Legacy Performance plan, a code is on its way from Legacy Performance. It can take a minute. Check spam too.</p>'
+          +'<label>Code</label><input id="lpaCode" class="code" inputmode="numeric" autocomplete="one-time-code" maxlength="8" placeholder="code">'
           +'<button class="go" id="lpaGo">Continue</button><div class="err"></div>'
           +'<button class="lnk" id="lpaAgain">Send a new code</button>');
         var go=document.getElementById('lpaGo');
         document.getElementById('lpaCode').addEventListener('keydown',function(e){ if(e.key==='Enter') go.click(); });
         go.onclick=function(){
-          var code=document.getElementById('lpaCode').value.trim(); if(!sixDigits(code)){ err('The code is 6 numbers.'); return; }
+          var code=document.getElementById('lpaCode').value.trim(); if(!codeDigits(code)){ err('Enter the code from your email.'); return; }
           busy(go,true,'Checking…');
           sb.auth.verifyOtp({ email:email, token:code, type:'email' }).then(function(r){
             return r.error ? sb.auth.verifyOtp({ email:email, token:code, type:'magiclink' }) : r;
