@@ -413,6 +413,45 @@ window.MY_BOOT=function(LIVE){
   $$('.marker').forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('open')})});
   $$('.meal').forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('open');var o=el.nextElementSibling;o.style.display=el.classList.contains('open')?'block':'none'})});
 
+  /* ---------- live labs ----------
+     Education only: the value, whether the LAB flagged it, and the trend. No diagnosis, no dosing. */
+  function line(v){
+    var w=70,h=28,p=3,mn=Math.min.apply(0,v),mx=Math.max.apply(0,v); if(mx===mn){mx+=1;mn-=1;}
+    var x=function(i){return p+i*(w-2*p)/(v.length-1)}, y=function(val){return h-p-(val-mn)/(mx-mn)*(h-2*p)};
+    return '<svg class="spark" viewBox="0 0 '+w+' '+h+'"><polyline points="'+v.map(function(val,i){return x(i)+','+y(val)}).join(' ')+'" fill="none" stroke="#4A5C3E" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="'+x(v.length-1)+'" cy="'+y(v[v.length-1])+'" r="3" fill="#4A5C3E"/></svg>';
+  }
+  function renderLiveLabs(rows, cat){
+    var esc=function(x){return String(x==null?'':x).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]})};
+    var fmtD=function(d){var t=new Date(d+'T12:00:00');return t.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})};
+    var unitOf={}; rows.forEach(function(r){ if(r.unit && (!unitOf[r.marker_key] || r.source==='function')) unitOf[r.marker_key]=r.unit; });
+    rows=rows.map(function(r){ return r.unit||r.value==null ? r : Object.assign({},r,{unit:unitOf[r.marker_key]||null}); });
+    var by={}; rows.forEach(function(r){ var k=r.marker_key; (by[k]=by[k]||{})[r.drawn_on]=(by[k][r.drawn_on]&&by[k][r.drawn_on].source==='function')?by[k][r.drawn_on]:r; });
+    var ORDER=['Thyroid','Heart','Metabolic','Hormones','Blood','Nutrients','Inflammation','Liver','Kidney','Immune','Urine','Other'];
+    var groups={}, dates={}, watch=0, latest='';
+    Object.keys(by).forEach(function(k){
+      var hist=Object.keys(by[k]).sort().map(function(d){return by[k][d]}), last=hist[hist.length-1];
+      hist.forEach(function(h){dates[h.drawn_on]=1}); if(last.drawn_on>latest) latest=last.drawn_on;
+      if(last.flag && last.flag!=='in') watch++;
+      var c=(cat[k]&&cat[k].category)||'Other'; (groups[c]=groups[c]||[]).push({k:k,name:(cat[k]&&cat[k].name)||last.marker,hist:hist,last:last});
+    });
+    var pill=function(f){return f==='high'?'<span class="pill warn">Above the lab\'s range</span>':f==='low'?'<span class="pill warn">Below the lab\'s range</span>':f==='abnormal'?'<span class="pill warn">Flagged by the lab</span>':f==='in'?'<span class="pill">In range</span>':''};
+    var html='<h1 class="h1">Your labs</h1><p class="sub">Every draw in one place, so you can see the trend. Tap any marker for its history.</p>'
+      +'<div class="card row"><div class="grow"><div class="t">Latest draw · '+fmtD(latest)+'</div><div class="d">'+Object.keys(dates).length+' draws on file · '+Object.keys(by).length+' markers</div></div>'+(watch?'<span class="pill warn">'+watch+' to watch</span>':'<span class="pill">All in range</span>')+'</div>';
+    ORDER.concat(Object.keys(groups).filter(function(g){return ORDER.indexOf(g)<0})).forEach(function(g){
+      if(!groups[g]) return;
+      var list=groups[g].sort(function(a,b){ var fa=a.last.flag&&a.last.flag!=='in'?0:1, fb=b.last.flag&&b.last.flag!=='in'?0:1; return fa-fb || (b.hist.length-a.hist.length); });
+      html+='<div class="sec">'+esc(g)+'</div><div class="card">'+list.map(function(m){
+        var nums=m.hist.filter(function(h){return h.value!=null}).map(function(h){return +h.value});
+        var val=m.last.value!=null?esc(m.last.value)+'<small>'+esc(m.last.unit||'')+'</small>':'<span style="font-size:14px">'+esc(m.last.value_text)+'</span>';
+        return '<div class="marker"><div class="row" style="border:0;margin:0;padding:0"><div class="grow"><div class="t">'+esc(m.name)+'</div><div class="d">'+pill(m.last.flag)+' <span style="color:var(--muted);font-size:12px">'+fmtD(m.last.drawn_on)+(m.hist.length>1?' · '+m.hist.length+' draws':'')+'</span></div></div>'+(nums.length>1?line(nums):'')+'<div class="val">'+val+'</div></div>'
+          +'<div class="mx"><b>History</b><div class="do">'+m.hist.slice().reverse().map(function(h){return '<div style="display:flex;justify-content:space-between;padding:3px 0;border-bottom:1px solid var(--line)"><span>'+fmtD(h.drawn_on)+'</span><b>'+(h.value!=null?esc(h.value)+' '+esc(h.unit||''):esc(h.value_text))+'</b></div>'}).join('')+'</div></div></div>';
+      }).join('<div style="border-top:1px solid var(--line);margin:12px 0"></div>')+'</div>';
+    });
+    html+='<p class="fine">This is education to support your nutrition, training and lifestyle. It is not medical advice and does not diagnose or treat anything. "In range" and "above" or "below" are your lab\'s own flags. Your provider reads your labs and makes every medical decision.</p>';
+    $('#labsOpen').innerHTML=html;
+    $$('#labsOpen .marker').forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('open')})});
+  }
+
   /* ---------- upgrade card (Standard) ---------- */
   var UPG='<div class="card lock"><div class="big">🔒</div><div class="t">Part of Legacy Performance Wellness</div>'
     +'<div class="d">Your labs, your trends, and what to do about them, in one place.</div>'
@@ -671,6 +710,8 @@ window.MY_BOOT=function(LIVE){
     $('#labsOpen').innerHTML='<h1 class="h1">Your labs</h1><p class="sub">Every draw in one place, so you can see the trend, what it means, and what to do next.</p>'
       +'<div class="card"><div class="t">No labs on file yet</div><div class="d" style="margin-top:6px">Send your latest blood work to Jayme in the app, or bring it to your call. Your trend lines show up here once they are in.</div></div>'
       +'<p class="fine">This is education to support your nutrition, training and lifestyle. It is not medical advice and does not diagnose or treat anything. Your provider reads your labs and makes every medical decision.</p>';
+    /* her real labs: one row per marker per draw (lab_results), newest value + trend + history */
+    if(LIVE.labs && LIVE.labs.length) renderLiveLabs(LIVE.labs, LIVE.markers||{});
     /* links that aren't live yet don't pretend to be */
     $$('#t-wellness a[href="#"]').forEach(function(a){ if(a.classList.contains('btn')){ a.href=CALL_URL; a.target='_blank'; } else { a.removeAttribute('href'); a.style.cursor='default'; } });
     if(window.console) console.log('LP dashboard: live', {plan:plan, nut:nut, targets:T});
@@ -702,8 +743,20 @@ window.MY_BOOT=function(LIVE){
       return;
     }
     var mb=in_('meal_builder',F), meta=(user&&user.user_metadata)||{};
-    window.MY_BOOT({plan:plan, nut:mb?'system':'starter', T:LPAuth.targets(access.plan), client:access.client||{},
-      ck:meta.onboarding||{}, saveCk:function(ck){ sb.auth.updateUser({data:{onboarding:ck}}); }, signOut:LPAuth.signOut});
+    function boot(labs, markers){
+      window.MY_BOOT({plan:plan, nut:mb?'system':'starter', T:LPAuth.targets(access.plan), client:access.client||{},
+        labs:labs||[], markers:markers||{},
+        ck:meta.onboarding||{}, saveCk:function(ck){ sb.auth.updateUser({data:{onboarding:ck}}); }, signOut:LPAuth.signOut});
+    }
+    /* labs only for plans that include them (Wellness and up); the database enforces it too */
+    if(plan!=='wellness' && plan!=='coaching'){ boot(); return; }
+    sb.from('lab_results').select('drawn_on,marker_key,marker,value,value_text,unit,flag,source').order('drawn_on').limit(5000).then(function(r){
+      var labs=(r&&r.data)||[]; if(!labs.length){ boot(); return; }
+      var keys=labs.map(function(x){return x.marker_key}).filter(function(k,i,a){return a.indexOf(k)===i});
+      sb.from('lab_markers').select('key,name,category').in('key',keys).then(function(m){
+        var cat={}; ((m&&m.data)||[]).forEach(function(x){cat[x.key]=x}); boot(labs,cat);
+      });
+    });
   }});
 })();
 </script>
