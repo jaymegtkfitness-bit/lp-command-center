@@ -192,7 +192,7 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
       <div class="card">
         <div class="chead"><h2>Daily targets</h2>
           <div class="seg" id="perSeg"><button data-per="day" class="on">Per day</button><button data-per="meal">Per meal</button></div></div>
-        <p class="sub">Your numbers from your nutrition system. Change any of them and rebuild.</p>
+        <p class="sub">Set your calories and protein. Change carbs and fat adjusts to keep your calories right. Fiber, fruit and veggies follow on their own.</p>
         <div class="fields">
           <div><span class="lbl">Calories</span><input class="in" id="tCal" inputmode="numeric"></div>
           <div><span class="lbl"><i class="dot" style="background:var(--red)"></i>Protein g</span><input class="in" id="tPro" inputmode="numeric"></div>
@@ -309,7 +309,7 @@ window.MB_BOOT=function(){
   var ST; try{ ST=Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}')); }catch(e){ ST=Object.assign({},DEF); }
   if(q.get('cal')){ ST.cal=M0.calories; ST.pro=M0.protein; ST.carb=M0.carbs; ST.fat=M0.fat; }
   /* When the coach changes a member's numbers, the new numbers win over what was saved on this device. */
-  if(MB && MB.cal && ST.fromPlan!==MB.cal+'/'+MB.pro){ ST.cal=M0.calories; ST.pro=M0.protein; ST.carb=M0.carbs; ST.fat=M0.fat; ST.fromPlan=MB.cal+'/'+MB.pro; ST.built=false; }
+  if(MB && MB.cal && ST.fromPlan!==MB.cal+'/'+MB.pro){ ST.cal=M0.calories; ST.pro=M0.protein; ST.carb=M0.carbs; ST.fat=M0.fat; ST.fromPlan=MB.cal+'/'+MB.pro; ST.built=false; ST._needAuto=true; }
   /* coach-set meals a day ("3 + snack" = 4 meals, the 4th a Snack) */
   if(MB && MB.freq && ST.freqFrom!==MB.freq){ var cf=/snack/i.test(MB.freq)?String(parseInt(MB.freq,10)+1):MB.freq; if(FREQUENCY_ORDER.indexOf(cf)>=0){ ST.freq=cf; if(cf==='4' && /snack/i.test(MB.freq) && !MB.names) ST.names=['Breakfast','Lunch','Dinner','Snack']; } ST.freqFrom=MB.freq; }
   if(MB && MB.names && ST.namesFrom!==MB.names.join('|')){ ST.names=MB.names.slice(); ST.namesFrom=MB.names.join('|'); }
@@ -679,19 +679,54 @@ window.MB_BOOT=function(){
 
   /* ---------- setup screen ---------- */
   var FIELDS={tCal:'cal',tPro:'pro',tCarb:'carb',tFat:'fat',tFib:'fib',tFruit:'fruit',tVeg:'veg'};
+  /* AUTO-ADJUST (Jayme 2026-11-25). Members set calories + protein; everything else follows:
+       calories / protein -> carbs + fat re-split (macrosFrom)
+       carbs              -> fat fills whatever calories are left (and the reverse)
+       calories           -> fiber target (14 g per 1,000 cal, never under 25 g)
+       fiber              -> fruit + veggie grams sized so produce carries ~60% of it
+       fruit / veggies    -> the fiber line re-estimates from what they set.
+     Protein never moves. Fat never drops under the essential floor (40 g women / 55 g men). */
+  function fatFloor(){ return /^m/i.test((MB&&MB.sex)||'f')?55:40; }
+  var PRODUCE_FIBER_SHARE=0.6, FRUIT_PART=0.4;
+  function fib100(){ return {f:avgFiber100(null,'fruit'), v:avgFiber100(null,'veg')}; }
+  function produceFor(fib){
+    var a=fib100(), perG=(FRUIT_PART*a.f+(1-FRUIT_PART)*a.v)/100;
+    var total=Math.max(400, Math.min(1200, Math.round(fib*PRODUCE_FIBER_SHARE/perG/50)*50));
+    var fruit=Math.round(total*FRUIT_PART/25)*25; return {fruit:fruit, veg:total-fruit};
+  }
+  function produceFiber(){ var a=fib100(); return Math.round((ST.fruit||0)/100*a.f + (ST.veg||0)/100*a.v); }
+  function autoAdjust(k){
+    var left=ST.cal-ST.pro*4, floor=fatFloor();
+    if(k==='cal'||k==='pro'){
+      var m=macrosFrom(ST.cal,ST.pro,(MB&&MB.sex)||'f'); ST.carb=m.carbs; ST.fat=m.fat;
+    } else if(k==='carb'){
+      var fat=Math.round((left-ST.carb*4)/9);
+      if(fat<floor){ fat=floor; ST.carb=Math.max(0,Math.round((left-floor*9)/4)); ST.capNote='Carbs capped at '+ST.carb+' g so fat stays at its '+floor+' g minimum.'; }
+      ST.fat=fat;
+    } else if(k==='fat'){
+      if(ST.fat<floor){ ST.fat=floor; ST.capNote='Fat can\'t go under '+floor+' g. That\'s the essential minimum.'; }
+      ST.carb=Math.max(0,Math.round((left-ST.fat*9)/4));
+    }
+    if(k==='cal'||k==='pro'||k==='carb'||k==='fat'){ ST.fib=Math.max(25,fiberTarget(ST.cal)); }
+    if(k!=='fruit'&&k!=='veg'){ var pr=produceFor(ST.fib); ST.fruit=pr.fruit; ST.veg=pr.veg; }
+  }
+  if(ST._needAuto){ delete ST._needAuto; autoAdjust('cal'); try{ localStorage.setItem(KEY,JSON.stringify(ST)); }catch(e){} }
   function fillTargets(){
     var div=(ST.per==='meal')?mealsCount():1;
     Object.keys(FIELDS).forEach(function(id){ $('#'+id).value=r0(ST[FIELDS[id]]/div); });
     var sum=ST.pro*4+ST.carb*4+ST.fat*9, off=Math.abs(sum-ST.cal);
     $('#kcalCheck').className='check'+(off>60?' bad':'');
-    $('#kcalCheck').innerHTML='Macros add up to <b>'+sum.toLocaleString()+' cal</b>'+(off>60?' · '+(sum>ST.cal?'over':'under')+' your calories by '+off:'')+(div>1?' · showing per meal ('+div+' meals)':'');
+    var pf=produceFiber();
+    $('#kcalCheck').innerHTML='Macros add up to <b>'+sum.toLocaleString()+' cal</b>'+(off>60?' · '+(sum>ST.cal?'over':'under')+' your calories by '+off:'')+(div>1?' · showing per meal ('+div+' meals)':'')
+      +'<br>Fruit and veggies give about <b>'+pf+' g</b> of your '+ST.fib+' g fiber'+(pf<ST.fib?'. Oats, beans, potatoes and whole grains cover the rest.':'.')
+      +(ST.capNote?'<br><b>'+esc(ST.capNote)+'</b>':'');
     $('#flex').value=ST.flex; $('#flexVal').textContent=ST.flex+'%';
     var F=flexed(); $('#flexNote').innerHTML=ST.flex?'<b>'+F.room+' cal a day</b> set aside for foods you enjoy. Your meals are built on '+F.calories.toLocaleString()+'. Protein never moves.':'Every calorie goes into your meals.';
   }
   Object.keys(FIELDS).forEach(function(id){ $('#'+id).addEventListener('change',function(){
     var div=(ST.per==='meal')?mealsCount():1, v=Math.max(0,+this.value||0)*div, k=FIELDS[id];
-    ST[k]=Math.round(v);
-    if(k==='cal'||k==='pro'){ var m=macrosFrom(ST.cal,ST.pro,'m'); ST.carb=m.carbs; ST.fat=m.fat; }
+    ST[k]=Math.round(v); ST.capNote='';
+    autoAdjust(k);
     save(); fillTargets(); renderMealTable(); DECK=null;
   })});
   $all('#perSeg button').forEach(function(b){b.addEventListener('click',function(){ST.per=b.dataset.per; $all('#perSeg button').forEach(function(x){x.classList.toggle('on',x===b)}); save(); fillTargets();})});
