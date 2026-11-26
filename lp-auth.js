@@ -181,7 +181,7 @@
     var t=(plan&&(plan.targets||plan))||{}, c=+t.calories||+t.cal||0, p=+t.protein||+t.pro||0;
     if(!(c>0&&p>0)) return null;
     var f=String(t.frequency||(plan&&plan.frequency)||''), m=+t.meals||parseInt(f,10)||4;
-    return {cal:Math.round(c), pro:Math.round(p), meals:m, shake:/shake/i.test(f), produce:+t.produce||0, water:+t.water||0};
+    return {cal:Math.round(c), pro:Math.round(p), meals:m, shake:/shake/i.test(f), produce:+t.produce||0, water:+t.water||0, names:Array.isArray(t.mealNames)?t.mealNames:null};
   };
   window.LPAuth = LPAuth;
 })();

@@ -78,6 +78,7 @@ table.meals th{font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transf
 table.meals th:first-child{text-align:left}
 table.meals td{padding:8px 4px;border-top:1px solid var(--line);text-align:right;font-weight:700}
 table.meals td:first-child{text-align:left;font-weight:700}
+table.meals select.mk{width:auto;min-width:112px;padding:6px 8px;font-weight:700;font-size:13.5px}
 table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;font-size:13px}
 .sel{appearance:none;-webkit-appearance:none;border:1px solid var(--line);background:#fbfcfa url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%237a7e76'/%3E%3C/svg%3E") no-repeat right 12px center;border-radius:10px;padding:10px 30px 10px 11px;font-weight:700;width:100%;min-height:44px}
 
@@ -286,7 +287,7 @@ table.meals input{width:56px;text-align:right;padding:6px 6px;min-height:36px;fo
 
 <script src="../restaurant-data.js?v=9bbbcd2f"></script>
 <script src="../recipe-data.js?v=6"></script>
-<script src="../nutrition-engine.js?v=76"></script>
+<script src="../nutrition-engine.js?v=77"></script>
 <script>
 window.MB_BOOT=function(){
   var $=function(s,r){return (r||document).querySelector(s)};
@@ -303,12 +304,15 @@ window.MB_BOOT=function(){
   var M0=macrosFrom(+q.get('cal')||(MB&&MB.cal)||2405, +q.get('pro')||(MB&&MB.pro)||185, (MB&&MB.sex)||'m');
   var PS0=produceSplit(M0.calories,'Lean',{});
   var DEF={cal:M0.calories, pro:M0.protein, carb:M0.carbs, fat:M0.fat, fib:fiberTarget(M0.calories), fruit:PS0.fruit, veg:PS0.veg,
-    per:'day', flex:0, freq:'3 + shake', shakeG:30, split:'auto', pct:[], style:'', allergies:[], dislikes:[],
+    per:'day', flex:0, names:null, freq:'3 + shake', shakeG:30, split:'auto', pct:[], style:'', allergies:[], dislikes:[],
     days:3, cook:'any', units:'g', missing:[], coec:true, abund:true, seed:0, saved:[], mods:{}, picks:{}, built:false};
   var ST; try{ ST=Object.assign({},DEF,JSON.parse(localStorage.getItem(KEY)||'{}')); }catch(e){ ST=Object.assign({},DEF); }
   if(q.get('cal')){ ST.cal=M0.calories; ST.pro=M0.protein; ST.carb=M0.carbs; ST.fat=M0.fat; }
   /* When the coach changes a member's numbers, the new numbers win over what was saved on this device. */
   if(MB && MB.cal && ST.fromPlan!==MB.cal+'/'+MB.pro){ ST.cal=M0.calories; ST.pro=M0.protein; ST.carb=M0.carbs; ST.fat=M0.fat; ST.fromPlan=MB.cal+'/'+MB.pro; ST.built=false; }
+  /* coach-set meals a day ("3 + snack" = 4 meals, the 4th a Snack) */
+  if(MB && MB.freq && ST.freqFrom!==MB.freq){ var cf=/snack/i.test(MB.freq)?String(parseInt(MB.freq,10)+1):MB.freq; if(FREQUENCY_ORDER.indexOf(cf)>=0){ ST.freq=cf; if(cf==='4' && /snack/i.test(MB.freq) && !MB.names) ST.names=['Breakfast','Lunch','Dinner','Snack']; } ST.freqFrom=MB.freq; }
+  if(MB && MB.names && ST.namesFrom!==MB.names.join('|')){ ST.names=MB.names.slice(); ST.namesFrom=MB.names.join('|'); }
   function save(){ try{ localStorage.setItem(KEY,JSON.stringify(ST)); }catch(e){} }
 
   /* ---------- views ---------- */
@@ -325,6 +329,9 @@ window.MB_BOOT=function(){
 
   /* ---------- engine wiring ---------- */
   function mealsCount(){ return mealsPerDay(ST.freq); }
+  /* Which meal is which (Jayme 2026-11-25). Only used when it matches today's meal count. */
+  var MEAL_KINDS=['Breakfast','Lunch','Dinner','Snack'];
+  function mealNames(){ var n=mealsCount(); return (ST.names && ST.names.length===n) ? ST.names.slice() : null; }
   function flexed(){
     /* Flex room comes out of carbs and fat. Protein never moves. */
     var room=Math.round(ST.cal*ST.flex/100), cal=ST.cal-room;
@@ -335,7 +342,7 @@ window.MB_BOOT=function(){
   function selObj(){
     var have=APPLIANCES.map(function(a){return a.k}).filter(function(k){return ST.missing.indexOf(k)<0});
     return {protein:[],carb:[],fruit:[],fat:[],veg:[],style:ST.style,allergies:ST.allergies,dislikes:dislikeStr(),
-      frequency:ST.freq, shakeGrams:ST.shakeG, appliances:have.length===APPLIANCES.length?null:have,
+      frequency:ST.freq, shakeGrams:ST.shakeG, mealNames:mealNames(), appliances:have.length===APPLIANCES.length?null:have,
       mealPct:(ST.split==='custom'&&ST.pct.length)?ST.pct:null, abundance:ST.abund?'abundance':'rich',
       produce:{fruit:ST.fruit, veg:ST.veg}, seed:String(ST.seed)};
   }
@@ -695,17 +702,21 @@ window.MB_BOOT=function(){
   }
   $('#freqPills').addEventListener('click',function(e){var b=e.target.closest('[data-freq]'); if(!b) return; ST.freq=b.dataset.freq; ST.pct=[]; save(); renderFreq(); renderMealTable(); fillTargets(); DECK=null;});
   function renderMealTable(){
-    var F=flexed(), S=mealSplit({calories:F.calories,protein:F.protein,carbs:F.carbs,fat:F.fat}, ST.freq, ST.shakeG);
+    var F=flexed(), S=mealSplit({calories:F.calories,protein:F.protein,carbs:F.carbs,fat:F.fat}, ST.freq, ST.shakeG, null, mealNames());
     var n=S.meals, base=mealSplitPct(n, null);
     if(ST.split==='custom' && ST.pct.length!==n) ST.pct=base.map(function(b){return Math.round(b.e*100)});
     var d=build(), rows=d.slots.map(function(s){
       var t=s.target, kc=(t.protein||0)*4+(t.carbs||0)*4+(t.fat||0)*9, i=d.slots.indexOf(s), isShake=/shake/i.test(s.name);
       var pct=(!isShake && ST.split==='custom')?'<input class="in" data-pct="'+i+'" inputmode="numeric" value="'+(ST.pct[i]||0)+'">':'';
-      return '<tr><td>'+esc(s.name)+'</td>'+(ST.split==='custom'?'<td>'+pct+'</td>':'')+'<td>'+r0(kc)+'</td><td>'+r0(t.protein)+'</td><td>'+(t.carbs!=null?r0(t.carbs):'–')+'</td><td>'+(t.fat!=null?r0(t.fat):'–')+'</td></tr>';
+      var nmCell=isShake?esc(s.name):'<select class="in mk" data-mk="'+d.slots.filter(function(x){return !/shake/i.test(x.name)}).indexOf(s)+'">'+MEAL_KINDS.concat(MEAL_KINDS.indexOf(s.name)<0?[s.name]:[]).map(function(k){return '<option'+(k===s.name?' selected':'')+'>'+esc(k)+'</option>'}).join('')+'</select>';
+      return '<tr><td>'+nmCell+'</td>'+(ST.split==='custom'?'<td>'+pct+'</td>':'')+'<td>'+r0(kc)+'</td><td>'+r0(t.protein)+'</td><td>'+(t.carbs!=null?r0(t.carbs):'–')+'</td><td>'+(t.fat!=null?r0(t.fat):'–')+'</td></tr>';
     }).join('');
     $('#mealTbl').innerHTML='<tr><th>Meal</th>'+(ST.split==='custom'?'<th>%</th>':'')+'<th>Cal</th><th>P</th><th>C</th><th>F</th></tr>'+rows;
     var sum=ST.pct.reduce(function(a,b){return a+(+b||0)},0);
     $('#pctCheck').innerHTML=ST.split==='custom'?'Your split adds to <b>'+sum+'%</b>'+(sum!==100?' · we scale it to 100 for you':''):'Automatic: a lighter breakfast and a bigger dinner, the way most people actually eat.';
+    $all('#mealTbl [data-mk]').forEach(function(sel){ sel.addEventListener('change',function(){
+      var cur=build().slots.filter(function(x){return !/shake/i.test(x.name)}).map(function(x){return x.name});
+      cur[+sel.dataset.mk]=sel.value; ST.names=cur; ST.built=false; save(); renderMealTable(); }); });
     $all('#mealTbl [data-pct]').forEach(function(inp){ inp.addEventListener('change',function(){ ST.pct[+inp.dataset.pct]=Math.max(0,+inp.value||0); save(); renderMealTable(); }); });
   }
   $all('#splitSeg button').forEach(function(b){b.addEventListener('click',function(){ST.split=b.dataset.split; $all('#splitSeg button').forEach(function(x){x.classList.toggle('on',x===b)}); save(); renderMealTable();})});
@@ -747,7 +758,7 @@ window.MB_BOOT=function(){
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="../lp-auth.js?v=5"></script>
+<script src="../lp-auth.js?v=6"></script>
 <script>
 /* Sign-in gate. ?demo=1 = Jayme's preview: sample numbers, the 36 public recipes, no account.
    Everyone else signs in; the full library comes from Supabase, readable only if entitled. */
@@ -763,7 +774,9 @@ window.MB_BOOT=function(){
     onReady:function(sb, access){
       var plan=access.plan||{}, c=access.client||{};
       window.MB_MEMBER={id:c.id, name:c.name, sex:c.sex,
-        cal:num(plan,['calories','cal','pfs.calories','targets.calories']), pro:num(plan,['protein','pro','pfs.protein','targets.protein'])};
+        cal:num(plan,['calories','cal','pfs.calories','targets.calories']), pro:num(plan,['protein','pro','pfs.protein','targets.protein']),
+        names:(plan.targets&&Array.isArray(plan.targets.mealNames)&&plan.targets.mealNames.length)?plan.targets.mealNames:null,
+        freq:(plan.targets&&plan.targets.frequency)||null};
       var note=document.getElementById('demoNote');
       note.hidden=false; note.innerHTML='Signed in'+(c.name?' as <b>'+String(c.name).replace(/</g,'&lt;')+'</b>':'')+'. <a href="#" id="mbOut" style="text-decoration:underline">Sign out</a>';
       document.getElementById('mbOut').onclick=function(e){ e.preventDefault(); LPAuth.signOut(); };

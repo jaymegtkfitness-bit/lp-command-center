@@ -1766,7 +1766,9 @@ function generateMealOptions(it, sel, name){
   var usedRecipes={};
   var slots=S.names.map(function(nm,k){
     var w=split[k]||split[split.length-1];
-    var slot=(nm==='Breakfast')?'am':'pm';
+    /* The meal's NAME picks its food (Jayme 2026-11-25: members choose which meal is which).
+       Breakfast and Snack draw breakfast-style foods; a Snack pulls from the snack recipes. */
+    var slot=(nm==='Breakfast'||nm==='Snack')?'am':'pm', rslot=(nm==='Snack')?'snack':slot;
     var target={protein:Math.round(base.protein*w.pro),
                 carbs:Math.round(base.carbs*w.e),
                 fat:Math.round(base.fat*w.e)};
@@ -1782,7 +1784,7 @@ function generateMealOptions(it, sel, name){
     /* NAMED MEALS FIRST. Every template her pools can actually make, ranked by how many of her own
        (and starred) foods it uses, rotated per slot so lunch and dinner do not open on the same meal. */
     /* RECIPES FIRST: the licensed library, portioned to this slot's numbers. */
-    var rc=recipeCandidates(slot, sel, k, usedRecipes, nm, SEED);
+    var rc=recipeCandidates(rslot, sel, k, usedRecipes, nm, SEED);
     /* RULE (Jayme 2026-09-19): every meal has at least one recipe AND at least one no-cook option.
        Recipes fill first but leave one seat for a no-cook meal unless a recipe is itself no-cook. */
     var hasNoCook=function(){ return options.some(function(o){ return o.nocook; }); };
@@ -1798,8 +1800,8 @@ function generateMealOptions(it, sel, name){
     if(!options.some(function(o){ return o.recipe; })){
       /* Still no recipe (her proteins match none at this meal, like a steak-only list at breakfast):
          any recipe for this meal that her style and allergies allow. */
-      var anyR=rc.length ? rc : (typeof RECIPE_LIBRARY!=='undefined' ? RECIPE_LIBRARY.filter(function(r){ return r.slot===slot; }) : []);
-      if(rc.length && !rc.some(function(r){ return recipeOption(r, target, sel, slot); })) anyR=RECIPE_LIBRARY.filter(function(r){ return r.slot===slot; });
+      var anyR=rc.length ? rc : (typeof RECIPE_LIBRARY!=='undefined' ? RECIPE_LIBRARY.filter(function(r){ return r.slot===rslot; }) : []);
+      if(rc.length && !rc.some(function(r){ return recipeOption(r, target, sel, slot); })) anyR=RECIPE_LIBRARY.filter(function(r){ return r.slot===rslot; });
       anyR.some(function(r){
         if(options.length>=n) return true;
         var ro=recipeOption(r, target, sel, slot); if(!ro) return false;
