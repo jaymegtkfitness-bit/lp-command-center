@@ -151,6 +151,12 @@ a{color:inherit;text-decoration:none}
 .pcard .pd{font-size:13px;color:var(--muted);line-height:1.45;margin-top:6px;text-align:center}
 .pcard.gen{background:var(--gold-soft);border-color:#ece2c3;display:flex;flex-direction:column;justify-content:center;text-align:center}
 .pcard.gen .btn{margin-top:14px}
+.snk{margin-top:14px;background:#fff;border:1px solid var(--line,#E4E8E1);border-radius:14px;padding:12px 14px}
+.snk-t{font-size:12px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--ink)}
+.snk-c{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 6px}
+.snk-c button{font:inherit;font-size:13px;font-weight:700;padding:7px 11px;border-radius:999px;border:1px solid #cfd6c9;background:#fff;color:var(--ink);cursor:pointer}
+.snk-c button.on{background:var(--olive);border-color:var(--olive);color:#fff}
+.snk-d{font-size:13px;color:var(--body)}
 .pdots{display:flex;justify-content:center;gap:6px;margin-top:10px}
 .pdots i{width:7px;height:7px;border-radius:50%;background:#cfd6c9}
 .pdots i.on{background:var(--olive);width:18px;border-radius:4px}
@@ -245,6 +251,7 @@ a{color:inherit;text-decoration:none}
       <div class="sec">Build every plate like this</div>
       <div class="plates" id="plates"></div>
       <div class="pdots" id="pdots"></div>
+      <div class="snk" id="snk" hidden><div class="snk-t">Your snacks</div><div class="snk-c" id="snkC"></div><div class="snk-d" id="snkD"></div></div>
     </div>
     <div class="card" style="margin-top:14px"><a class="row" href="../power-food-list/"><div class="ico">🥗</div><div class="grow"><div class="t">The Power Food List</div><div class="d">The best foods to build every meal from.</div></div><div class="chev">›</div></a></div>
     <a class="nscard" id="nsCard" href="#" data-ns>
@@ -641,10 +648,10 @@ window.MY_BOOT=function(LIVE){
   function sized(T){
     /* Shake and snacks come off the top first; what's left splits across the real meals.
        A snack = 15% of the day's calories and protein (2,100/160 -> about 315 cal, 24 g). */
-    var sn=T.snacks||0, sCal=r5(T.cal*0.15), sPro=Math.round(T.pro*0.15);
+    var sn=T.snacks||0, sp=T.snackPct||0.15, sCal=r5(T.cal*sp), sPro=Math.round(T.pro*sp);
     var meals=T.plateMeals||T.meals||4, pm=(T.pro-(T.shake?30:0)-sn*sPro)/meals, cm=(T.cal-(T.shake?150:0)-sn*sCal)/meals, fp=pm/45;
-    var extra=sn?' · plus '+(sn>1?sn+' snacks':'a snack')+' of about '+sCal+' cal and '+sPro+' g protein':'';
-    return PLATES.map(function(pl){
+    var extra=sn?' · plus '+(sn>1?sn+' snacks':'a snack')+' of about '+sCal+' cal and '+sPro+' g protein'+(sn>1?' each':''):'';
+    return BASE_PLATES.map(function(pl){
       var perf=pl.n==='Performance', base=perf?425:375, fo=Math.max(0.5,Math.min(2.5,(cm-pm*4.44-30)/base));
       var fatG=(perf?10:15)*fo, carbG=(perf?55:40)*fo, fruitC=(perf?20:13)*fo, fruitG=(perf?150:100)*fo;
       var oil=fatG/14>=0.9?frac(fatG/14,0.5)+' tbsp':Math.max(1,Math.round(fatG/4.7))+' tsp';
@@ -659,12 +666,30 @@ window.MY_BOOT=function(LIVE){
       return {n:pl.n,w:pl.w,seg:pl.seg,fat:pl.fat,d:pl.d,rows:rows,kcal:'about '+r5(tot)+' calories a meal'+extra};
     });
   }
-  if(LIVE && LIVE.T) PLATES=sized(LIVE.T);
+  var BASE_PLATES=PLATES;
+  /* Snacks are the member's call: size and count, saved to their account. Plates re-size around it. */
+  var SNACKS=[['none','No snack',0,0],['small','1 small',1,0.10],['regular','1 regular',1,0.15],['big','1 big',1,0.20],['two','2 snacks',2,0.10]];
+  if(LIVE && LIVE.T){
+    var sk=LIVE.snack||(LIVE.T.snacks?(LIVE.T.snacks>1?'two':'regular'):'none');
+    var setSnack=function(k){
+      var o=SNACKS.filter(function(x){return x[0]===k})[0]||SNACKS[2]; sk=o[0];
+      LIVE.T.snacks=o[2]; LIVE.T.snackPct=o[3];
+      PLATES=sized(LIVE.T); drawPlates();
+      $$('#snkC button').forEach(function(b){b.classList.toggle('on',b.dataset.k===sk)});
+      $('#snkD').textContent=o[2]?(o[2]>1?'Two snacks':'Your snack')+' of about '+r5(LIVE.T.cal*o[3])+' cal and '+Math.round(LIVE.T.pro*o[3])+' g protein'+(o[2]>1?' each':'')+'. Your plates shrink to make room. A shake and an apple, Greek yogurt, jerky, or cottage cheese and fruit all work.':'No snack. All of your food goes on your plates.';
+    };
+    $('#snk').hidden=false;
+    $('#snkC').innerHTML=SNACKS.map(function(o){return '<button type="button" data-k="'+o[0]+'">'+o[1]+'</button>'}).join('');
+    $$('#snkC button').forEach(function(b){b.addEventListener('click',function(){ setSnack(b.dataset.k); if(LIVE.saveSnack) LIVE.saveSnack(sk); })});
+  }
+  function drawPlates(){
   $('#plates').innerHTML=PLATES.map(function(pl){
       return '<div class="pcard"><div class="ph"><span class="pn">'+pl.n+' plate</span><span class="pw">'+pl.w+'</span></div>'+plateSVG(pl)+'<div class="pd">'+pl.d+'</div>'+plateRows(pl)+'</div>';
     }).join('')
     +'<div class="pcard gen"><div class="pn">Higher carb or lower carb?</div><div class="pd" style="color:var(--body)">Some bodies run better on more carbs, some on more fat. Your genetics answer which one is you, so you stop guessing.</div><a class="btn" href="#">See the genetic test</a></div>';
   $('#pdots').innerHTML=PLATES.concat([0]).map(function(_,i){return '<i'+(i?'':' class="on"')+'></i>'}).join('');
+  }
+  if(LIVE && LIVE.T) setSnack(sk); else drawPlates();
 
   function syncPlate(){
     var el=$('#plates'), w=el.firstElementChild.offsetWidth+12, i=Math.round(el.scrollLeft/w);
@@ -750,7 +775,8 @@ window.MY_BOOT=function(LIVE){
     function boot(labs, markers){
       window.MY_BOOT({plan:plan, nut:mb?'system':'starter', T:LPAuth.targets(access.plan), client:access.client||{},
         labs:labs||[], markers:markers||{},
-        ck:meta.onboarding||{}, saveCk:function(ck){ sb.auth.updateUser({data:{onboarding:ck}}); }, signOut:LPAuth.signOut});
+        ck:meta.onboarding||{}, saveCk:function(ck){ sb.auth.updateUser({data:{onboarding:ck}}); },
+        snack:meta.snack||null, saveSnack:function(k){ sb.auth.updateUser({data:{snack:k}}); }, signOut:LPAuth.signOut});
     }
     /* labs only for plans that include them (Wellness and up); the database enforces it too */
     if(plan!=='wellness' && plan!=='coaching'){ boot(); return; }
