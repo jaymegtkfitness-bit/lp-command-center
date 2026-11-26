@@ -639,7 +639,11 @@ window.MY_BOOT=function(LIVE){
   function wt(g){ g=Math.max(5,Math.round(g/5)*5); return frac(g/28.35,0.5)+' oz · '+g+' g'; }
   function r5(x){ return Math.round(x/5)*5; }
   function sized(T){
-    var meals=T.meals||4, pm=(T.pro-(T.shake?30:0))/meals, cm=(T.cal-(T.shake?150:0))/meals, fp=pm/45;
+    /* Shake and snacks come off the top first; what's left splits across the real meals.
+       A snack = 15% of the day's calories and protein (2,100/160 -> about 315 cal, 24 g). */
+    var sn=T.snacks||0, sCal=r5(T.cal*0.15), sPro=Math.round(T.pro*0.15);
+    var meals=T.plateMeals||T.meals||4, pm=(T.pro-(T.shake?30:0)-sn*sPro)/meals, cm=(T.cal-(T.shake?150:0)-sn*sCal)/meals, fp=pm/45;
+    var extra=sn?' · plus '+(sn>1?sn+' snacks':'a snack')+' of about '+sCal+' cal and '+sPro+' g protein':'';
     return PLATES.map(function(pl){
       var perf=pl.n==='Performance', base=perf?425:375, fo=Math.max(0.5,Math.min(2.5,(cm-pm*4.44-30)/base));
       var fatG=(perf?10:15)*fo, carbG=(perf?55:40)*fo, fruitC=(perf?20:13)*fo, fruitG=(perf?150:100)*fo;
@@ -652,7 +656,7 @@ window.MY_BOOT=function(LIVE){
         ['fruit','🍎','Fruit',pl.rows[3][3],[Math.round(fruitC)+' g carbs','about '+kFr+' cal',pl.rows[3][4][2]],[['Whole fruit',wt(fruitG)],['Berries',frac(fruitG/135,0.25)+' cup · '+r5(fruitG)+' g']]],
         pl.rows[4]
       ];
-      return {n:pl.n,w:pl.w,seg:pl.seg,fat:pl.fat,d:pl.d,rows:rows,kcal:'about '+r5(tot)+' calories a meal'};
+      return {n:pl.n,w:pl.w,seg:pl.seg,fat:pl.fat,d:pl.d,rows:rows,kcal:'about '+r5(tot)+' calories a meal'+extra};
     });
   }
   if(LIVE && LIVE.T) PLATES=sized(LIVE.T);
@@ -721,7 +725,7 @@ window.MY_BOOT=function(LIVE){
 };
 </script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
-<script src="../lp-auth.js?v=6"></script>
+<script src="../lp-auth.js?v=7"></script>
 <script>
 /* Sign-in. ?demo=1 = Jayme's preview with the plan switcher and sample numbers.
    Everyone else signs in; what they see comes from what they bought (Supabase), never from the link. */
