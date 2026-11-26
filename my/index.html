@@ -104,17 +104,6 @@ a{color:inherit;text-decoration:none}
 .marker .val{font-size:17px;font-weight:900;text-align:right}
 .marker .val small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
 .spark{width:70px;height:28px;flex:none}
-.bigline{width:100%;height:120px;display:block;margin:8px 0 2px}
-.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.kpis div{background:var(--bg);border-radius:12px;padding:10px;text-align:center}
-.kpis b{display:block;font-size:18px;font-weight:900;color:var(--ink)}
-.kpis span{font-size:11.5px;color:var(--muted)}
-.mtab{width:100%;border-collapse:collapse;font-size:14px}
-.mtab th{font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);text-align:right;padding:4px 0}
-.mtab th:first-child,.mtab td:first-child{text-align:left}
-.mtab td{text-align:right;padding:7px 0;border-top:1px solid var(--line);color:var(--ink)}
-.ci .bf{display:grid;grid-template-columns:1fr auto;gap:2px 12px;margin-top:6px}
-.ci .q{margin-top:10px}
 .mx{display:none;margin-top:12px;background:var(--bg);border-radius:12px;padding:12px;font-size:13.5px;line-height:1.5;color:var(--body)}
 .marker.open .mx{display:block}
 .mx b{color:var(--ink)}
@@ -216,7 +205,6 @@ a{color:inherit;text-decoration:none}
     <nav class="tabs" role="tablist">
       <button class="tab on" data-tab="start">Onboarding</button>
       <button class="tab" data-tab="nutrition">Nutrition</button>
-      <button class="tab" data-tab="progress">Progress</button>
       <button class="tab" data-tab="wellness">Wellness</button>
       <button class="tab" data-tab="labs">Labs</button>
     </nav>
@@ -329,15 +317,6 @@ a{color:inherit;text-decoration:none}
       <div style="margin-top:16px"><a class="btn" href="#">Build my nutrition system</a><a class="btn ghost" href="#">Start with a meal plan</a></div>
       <div class="price">Already bought a meal plan? Your answers carry over. No new forms.</div>
     </div>
-  </div>
-</section>
-
-<!-- ============ PROGRESS ============ -->
-<section id="t-progress" hidden>
-  <div id="progOpen">
-    <h1 class="h1">Your progress</h1>
-    <p class="sub">Your weight, your measurements and every check-in, in one place. Your weekly check-ins land here.</p>
-    <div class="card"><div class="d">Nothing here yet. Your first check-in starts the trend.</div></div>
   </div>
 </section>
 
@@ -478,49 +457,6 @@ window.MY_BOOT=function(LIVE){
     html+='<p class="fine">This is education to support your nutrition, training and lifestyle. It is not medical advice and does not diagnose or treat anything. "In range" and "above" or "below" are your lab\'s own flags. Your provider reads your labs and makes every medical decision.</p>';
     $('#labsOpen').innerHTML=html;
     $$('#labsOpen .marker').forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('open')})});
-  }
-
-  /* ---------- live progress: weight trend, measurements, every check-in ---------- */
-  function renderProgress(bm, cis){
-    var esc=function(x){return String(x==null?'':x).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]})};
-    var fmtD=function(d){var t=new Date(String(d).length===10?d+'T12:00:00':d);return t.toLocaleDateString('en-US',{month:'short',day:'numeric'})};
-    var r1=function(v){return Math.round(v*10)/10};
-    if(!(bm&&bm.length) && !(cis&&cis.length)) return;
-    var html='<h1 class="h1">Your progress</h1><p class="sub">Your weight, your measurements and every check-in, in one place. Judge the trend, not one day.</p>';
-    /* weight: one number per day */
-    var W={}; (bm||[]).filter(function(r){return r.metric==='weight'}).forEach(function(r){W[r.measured_on]=+r.value});
-    var wd=Object.keys(W).sort();
-    if(wd.length){
-      var v=wd.map(function(d){return W[d]}), first=v[0], last=v[v.length-1], low=Math.min.apply(0,v), ch=r1(last-first);
-      var w=320,h=120,p=8,mn=low,mx=Math.max.apply(0,v); if(mx===mn){mx+=1;mn-=1;}
-      var x=function(i){return p+(v.length>1?i*(w-2*p)/(v.length-1):(w-2*p)/2)}, y=function(val){return h-p-(val-mn)/(mx-mn)*(h-2*p)};
-      html+='<div class="sec">Weight</div><div class="card"><div class="row" style="border:0;margin:0;padding:0"><div class="grow"><div class="t">'+r1(last)+' lb</div><div class="d">'+fmtD(wd[wd.length-1])+' · '+wd.length+' weigh-ins since '+fmtD(wd[0])+'</div></div></div>'
-        +'<svg class="bigline" viewBox="0 0 '+w+' '+h+'" preserveAspectRatio="none"><polyline points="'+v.map(function(val,i){return x(i)+','+y(val)}).join(' ')+'" fill="none" stroke="#4A5C3E" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"/></svg>'
-        +'<div class="kpis"><div><b>'+r1(first)+'</b><span>start</span></div><div><b>'+r1(low)+'</b><span>low</span></div><div><b>'+(ch>0?'+':'')+ch+'</b><span>change</span></div></div></div>';
-    }
-    /* measurements: first vs latest */
-    var M={}, KEYS=['waist','chest','arm','thigh','calf'];
-    (bm||[]).filter(function(r){return KEYS.indexOf(r.metric)>=0}).forEach(function(r){(M[r.metric]=M[r.metric]||{})[r.measured_on]=+r.value});
-    var mk=KEYS.filter(function(k){return M[k]});
-    if(mk.length){
-      html+='<div class="sec">Measurements (inches)</div><div class="card"><table class="mtab"><tr><th></th><th>First</th><th>Latest</th><th>Change</th></tr>'
-        +mk.map(function(k){ var d=Object.keys(M[k]).sort(), a=M[k][d[0]], b=M[k][d[d.length-1]], c=r1(b-a);
-          return '<tr><td>'+k.charAt(0).toUpperCase()+k.slice(1)+'</td><td>'+a+'</td><td>'+b+'</td><td>'+(c>0?'+':'')+c+'</td></tr>'; }).join('')
-        +'</table><div class="d" style="margin-top:8px">'+fmtD(Object.keys(M[mk[0]]).sort()[0])+' to '+fmtD(Object.keys(M[mk[0]]).sort().pop())+'</div></div>';
-    }
-    /* check-ins, newest first, tap to open */
-    var BF=['Energy','Sleep quality','Mental acuity & focus','Strength & performance','Digestion','Hunger & cravings','Inflammation','Mood & resilience','Training recovery','Stress','Libido','Food quality'];
-    if(cis&&cis.length){
-      html+='<div class="sec">Check-ins ('+cis.length+')</div><div class="card">'+cis.slice().sort(function(a,b){return a.created_at<b.created_at?1:-1}).map(function(c,i){
-        var d=c.data||{}, nums=[c.avg_calories?Number(c.avg_calories).toLocaleString()+' cal':'', c.avg_protein?c.avg_protein+' g protein':'', c.avg_steps?Number(c.avg_steps).toLocaleString()+' steps':'', c.workouts!=null?c.workouts+' workouts':''].filter(Boolean).join(' · ');
-        var bf=BF.filter(function(k){return d[k]!==''&&d[k]!=null}).map(function(k){return '<span>'+esc(k)+'</span><b>'+esc(d[k])+(k==='Food quality'?'/10':'/5')+'</b>'}).join('');
-        var qa=[['Win this week',d['Non-scale victory']],['Focus next week',d['Focus next week']],['Anything else',d['Anything else']],['Digestion',d['Digestion direction']]].filter(function(x){return x[1]});
-        return (i?'<div style="border-top:1px solid var(--line);margin:12px 0"></div>':'')+'<div class="marker ci"><div class="row" style="border:0;margin:0;padding:0"><div class="grow"><div class="t">'+fmtD(c.created_at)+(c.weight?' · '+r1(+c.weight)+' lb':'')+'</div><div class="d">'+esc(nums)+(d.Consistency?' · '+esc(d.Consistency)+' consistent':'')+'</div></div><div class="chev">›</div></div>'
-          +'<div class="mx">'+(bf?'<b>How you felt</b><div class="bf">'+bf+'</div>':'')+qa.map(function(x){return '<div class="q"><b>'+x[0]+'</b><div>'+esc(x[1])+'</div></div>'}).join('')+'</div></div>';
-      }).join('')+'</div>';
-    }
-    $('#progOpen').innerHTML=html;
-    $$('#progOpen .marker').forEach(function(el){el.addEventListener('click',function(){el.classList.toggle('open')})});
   }
 
   /* ---------- upgrade card (Standard) ---------- */
@@ -767,7 +703,7 @@ window.MY_BOOT=function(LIVE){
   /* ---------- tabs ---------- */
   function show(t){
     $$('.tab').forEach(function(b){b.classList.toggle('on',b.dataset.tab===t)});
-    ['start','nutrition','progress','labs','wellness'].forEach(function(n){$('#t-'+n).hidden=(n!==t)});
+    ['start','nutrition','labs','wellness'].forEach(function(n){$('#t-'+n).hidden=(n!==t)});
     window.scrollTo(0,0);
   }
   $$('.tab').forEach(function(b){b.addEventListener('click',function(){show(b.dataset.tab)})});
@@ -805,7 +741,6 @@ window.MY_BOOT=function(LIVE){
       +'<p class="fine">This is education to support your nutrition, training and lifestyle. It is not medical advice and does not diagnose or treat anything. Your provider reads your labs and makes every medical decision.</p>';
     /* her real labs: one row per marker per draw (lab_results), newest value + trend + history */
     if(LIVE.labs && LIVE.labs.length) renderLiveLabs(LIVE.labs, LIVE.markers||{});
-    renderProgress(LIVE.metrics||[], LIVE.checkins||[]);
     /* links that aren't live yet don't pretend to be */
     $$('#t-wellness a[href="#"]').forEach(function(a){ if(a.classList.contains('btn')){ a.href=CALL_URL; a.target='_blank'; } else { a.removeAttribute('href'); a.style.cursor='default'; } });
     if(window.console) console.log('LP dashboard: live', {plan:plan, nut:nut, targets:T});
@@ -837,19 +772,12 @@ window.MY_BOOT=function(LIVE){
       return;
     }
     var mb=in_('meal_builder',F), meta=(user&&user.user_metadata)||{};
-    var PROG={metrics:[],checkins:[]};
     function boot(labs, markers){
-      window.MY_BOOT({plan:plan, metrics:PROG.metrics, checkins:PROG.checkins, nut:mb?'system':'starter', T:LPAuth.targets(access.plan), client:access.client||{},
+      window.MY_BOOT({plan:plan, nut:mb?'system':'starter', T:LPAuth.targets(access.plan), client:access.client||{},
         labs:labs||[], markers:markers||{},
         ck:meta.onboarding||{}, saveCk:function(ck){ sb.auth.updateUser({data:{onboarding:ck}}); },
         snack:meta.snack||null, saveSnack:function(k){ sb.auth.updateUser({data:{snack:k}}); }, signOut:LPAuth.signOut});
     }
-    /* progress for every plan (their own rows only; RLS), then labs for Wellness and up */
-    Promise.all([
-      sb.from('body_metrics').select('measured_on,metric,value,unit,source').order('measured_on').limit(5000),
-      sb.from('check_ins').select('created_at,weight,avg_calories,avg_protein,avg_steps,workouts,data').order('created_at').limit(1000)
-    ]).then(function(r){ PROG.metrics=(r[0]&&r[0].data)||[]; PROG.checkins=(r[1]&&r[1].data)||[]; labsThenBoot(); }, labsThenBoot);
-    function labsThenBoot(){
     /* labs only for plans that include them (Wellness and up); the database enforces it too */
     if(plan!=='wellness' && plan!=='coaching'){ boot(); return; }
     sb.from('lab_results').select('drawn_on,marker_key,marker,value,value_text,unit,flag,source').order('drawn_on').limit(5000).then(function(r){
@@ -859,7 +787,6 @@ window.MY_BOOT=function(LIVE){
         var cat={}; ((m&&m.data)||[]).forEach(function(x){cat[x.key]=x}); boot(labs,cat);
       });
     });
-    }
   }});
 })();
 </script>
