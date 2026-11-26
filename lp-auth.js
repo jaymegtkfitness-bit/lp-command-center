@@ -165,7 +165,7 @@
             if(!access.client){ noClientScreen(user&&user.email); return; }
             if(opts.feature && (access.features||[]).indexOf(opts.feature)<0){ lockedScreen(access); return; }
             hide();
-            if(opts.onReady) opts.onReady(sb, access);
+            if(opts.onReady) opts.onReady(sb, access, user);
           });
         });
       }
@@ -173,6 +173,15 @@
       LPAuth.signOut=function(){ return sb.auth.signOut().then(function(){ location.reload(); }); };
       sb.auth.getSession().then(function(r){ if(r.data && r.data.session) afterSignIn(); else signInScreen(''); });
     }
+  };
+  /* A member's daily numbers. Jayme sets them per client as plan.targets
+     {calories, protein, produce?, water?, meals?, frequency?} on their latest nutrition plan.
+     No guessing from meal lists: if targets aren't set, this returns null and pages say so. */
+  LPAuth.targets = function(plan){
+    var t=(plan&&(plan.targets||plan))||{}, c=+t.calories||+t.cal||0, p=+t.protein||+t.pro||0;
+    if(!(c>0&&p>0)) return null;
+    var f=String(t.frequency||(plan&&plan.frequency)||''), m=+t.meals||parseInt(f,10)||4;
+    return {cal:Math.round(c), pro:Math.round(p), meals:m, shake:/shake/i.test(f), produce:+t.produce||0, water:+t.water||0};
   };
   window.LPAuth = LPAuth;
 })();

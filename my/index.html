@@ -178,6 +178,7 @@ a{color:inherit;text-decoration:none}
 .ptot{text-align:center;font-size:13px;font-weight:800;color:var(--ink);padding:12px 0 2px}
 .plock{display:none;margin-top:10px;font-size:12.5px;font-weight:700;color:var(--gold-tx);text-align:center;background:var(--gold-soft);border-radius:10px;padding:10px}
 
+.who .signout{font-size:11px;font-weight:700;color:var(--muted);text-decoration:underline;margin-left:8px}
 .mbopen{display:flex;align-items:center;gap:14px;background:#fff;color:var(--ink);border:2px solid var(--olive);border-radius:16px;padding:14px 16px;margin:4px 0 16px}
 .mbopen:active{background:var(--olive-soft)}
 .mbopen .mbi{width:44px;height:44px;border-radius:12px;background:var(--olive);display:grid;place-items:center;font-size:22px;flex:none}
@@ -372,7 +373,8 @@ a{color:inherit;text-decoration:none}
 </div>
 
 <script>
-(function(){
+/* LIVE = null in ?demo=1 preview; otherwise the signed-in member (see the boot script at the bottom). */
+window.MY_BOOT=function(LIVE){
   var $=function(s,r){return (r||document).querySelector(s)}, $$=function(s,r){return Array.prototype.slice.call((r||document).querySelectorAll(s))};
 
   /* ---------- demo labs (3 draws) ---------- */
@@ -439,6 +441,7 @@ a{color:inherit;text-decoration:none}
   var nut=q.get('nut')||(legacy==='system'?'system':legacy==='works'?'works':(q.get('intake')==='done'?'works':'starter'));
   if(!RANK.hasOwnProperty(plan)) plan='wellness';
   function has(n){return RANK[plan]>=n}
+  if(LIVE){ plan=LIVE.plan; nut=LIVE.nut; }
 
   function apply(){
     var well=has(2);
@@ -461,6 +464,8 @@ a{color:inherit;text-decoration:none}
      what it is and which plan includes it. */
   var CK_KEY='lp_my_checklist_v1', ck={};
   try{ ck=JSON.parse(localStorage.getItem(CK_KEY)||'{}')||{}; }catch(e){ ck={}; }
+  if(LIVE) ck=LIVE.ck||{};
+  function saveCk(){ if(LIVE){ LIVE.saveCk(ck); return; } try{localStorage.setItem(CK_KEY,JSON.stringify(ck))}catch(e){} }
   var hasIntake=false; try{ hasIntake=!!localStorage.getItem('lp_nutrition_me_v1'); }catch(e){}
   if(q.get('intake')==='done') hasIntake=true;
   var GATES={
@@ -474,7 +479,9 @@ a{color:inherit;text-decoration:none}
   var STEPS=[
     {k:'agree', ic:'✍️', t:'Sign your agreement', d:'Takes a minute. It covers what is included in your plan.', need:0, href:AGREEMENT_URL||null},
     {k:'app',   ic:'📱', t:'Download the app and sign in', d:'Training, check-ins and messaging all live in the app.', ld:'Training, check-ins and messaging, all in one app.', need:1, auto:function(){return has(1)}},
-    {k:'call',  ic:'📅', t:'Book your onboarding call', d:'In the app: Coaching tab, then Sessions. We set up your first weeks together.', ld:'We set up your first weeks together. Tap to see more.', need:1},
+    (plan==='nutrition'
+      ? {k:'call', ic:'📅', t:'Book your install call', d:'We walk through your nutrition system together and set it up around your week.', need:0, href:CALL_URL}
+      : {k:'call', ic:'📅', t:'Book your onboarding call', d:'In the app: Coaching tab, then Sessions. We set up your first weeks together.', ld:'We set up your first weeks together. Tap to see more.', need:1}),
     {k:'skool', ic:'👥', t:'Join the community', d:'Say hi, and catch the weekly Q&A.', need:0, href:'https://www.skool.com/legacy-performance/about'},
     {k:'intake',ic:'🧮', t:'Build your nutrition system', d:'About 10 minutes. Your answers set your numbers.', need:0, href:'../nutrition/?from=my', auto:function(){return hasIntake}},
     {k:'bmw',   ic:'🏋️', t:'Do your BMW assessment', d:'Body, Move, Work. In the app: Vault, then Workouts, then BMW Assessment.', ld:'Body, Move, Work. Tap to see what it is.', need:3},
@@ -497,7 +504,7 @@ a{color:inherit;text-decoration:none}
     $('#ckCount').textContent=done+' of '+open+' done'; $('#ckPct').textContent=pct+'%'; $('#ckBar').style.width=pct+'%';
     $$('#ckList .box').forEach(function(b){ b.addEventListener('click',function(){
       var k=b.parentNode.dataset.k; if(b.parentNode.classList.contains('locked')) return;
-      ck[k]=!ck[k]; try{localStorage.setItem(CK_KEY,JSON.stringify(ck))}catch(e){} renderChecklist();
+      ck[k]=!ck[k]; saveCk(); renderChecklist();
     })});
   }
   function openGate(n,stepKey){
@@ -586,6 +593,30 @@ a{color:inherit;text-decoration:none}
       +'<text x="252" y="96" text-anchor="middle" class="pl">FAT</text><text x="252" y="110" text-anchor="middle" class="ps">'+pl.fat+'</text>'
       +'</svg>';
   }
+  /* Signed-in member: same plates, portions sized to THEIR calories, protein and meals a day.
+     Hand measures stay the same (they're the quick guide); the ounces and grams are theirs. */
+  function frac(x,step){ var n=Math.round(x/step)*step, w=Math.floor(n+1e-9), r=n-w, F={0.25:'¼',0.5:'½',0.75:'¾'};
+    var fr=F[Math.round(r*4)/4]||''; return (w||!fr?String(w||(fr?'':'0')):'')+fr; }
+  function wt(g){ g=Math.max(5,Math.round(g/5)*5); return frac(g/28.35,0.5)+' oz · '+g+' g'; }
+  function r5(x){ return Math.round(x/5)*5; }
+  function sized(T){
+    var meals=T.meals||4, pm=(T.pro-(T.shake?30:0))/meals, cm=(T.cal-(T.shake?150:0))/meals, fp=pm/45;
+    return PLATES.map(function(pl){
+      var perf=pl.n==='Performance', base=perf?425:375, fo=Math.max(0.5,Math.min(2.5,(cm-pm*4.44-30)/base));
+      var fatG=(perf?10:15)*fo, carbG=(perf?55:40)*fo, fruitC=(perf?20:13)*fo, fruitG=(perf?150:100)*fo;
+      var oil=fatG/14>=0.9?frac(fatG/14,0.5)+' tbsp':Math.max(1,Math.round(fatG/4.7))+' tsp';
+      var kP=r5(pm*4.44), kF=r5(fatG*9), kC=r5(carbG*4.6), kFr=r5(fruitC*4.2), tot=kP+kF+kC+kFr+30;
+      var rows=[
+        ['protein','🍗','Protein',pl.rows[0][3],[Math.round(pm)+' g protein','about '+kP+' cal'],[['Cooked',wt(150*fp)],['Raw',wt(200*fp)]]],
+        ['fat','🥑','Fat',pl.rows[1][3],[Math.round(fatG)+' g fat','about '+kF+' cal'],[['Oil or butter',oil+' · '+Math.round(fatG)+' g'],['Avocado',wt((perf?70:100)*fo)]]],
+        ['carbs','🍠','Carbs',pl.rows[2][3],[Math.round(carbG)+' g carbs','about '+kC+' cal'],[['Cooked',wt((perf?200:145)*fo)],['Dry',wt((perf?70:50)*fo)]]],
+        ['fruit','🍎','Fruit',pl.rows[3][3],[Math.round(fruitC)+' g carbs','about '+kFr+' cal',pl.rows[3][4][2]],[['Whole fruit',wt(fruitG)],['Berries',frac(fruitG/135,0.25)+' cup · '+r5(fruitG)+' g']]],
+        pl.rows[4]
+      ];
+      return {n:pl.n,w:pl.w,seg:pl.seg,fat:pl.fat,d:pl.d,rows:rows,kcal:'about '+r5(tot)+' calories a meal'};
+    });
+  }
+  if(LIVE && LIVE.T) PLATES=sized(LIVE.T);
   $('#plates').innerHTML=PLATES.map(function(pl){
       return '<div class="pcard"><div class="ph"><span class="pn">'+pl.n+' plate</span><span class="pw">'+pl.w+'</span></div>'+plateSVG(pl)+'<div class="pd">'+pl.d+'</div>'+plateRows(pl)+'</div>';
     }).join('')
@@ -608,8 +639,72 @@ a{color:inherit;text-decoration:none}
     window.scrollTo(0,0);
   }
   $$('.tab').forEach(function(b){b.addEventListener('click',function(){show(b.dataset.tab)})});
+  if(LIVE){
+    var c=LIVE.client||{}, T=LIVE.T, esc=function(x){return String(x==null?'':x).replace(/[&<>"]/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[ch]})};
+    $('#demo').hidden=true;
+    $('#whoName').textContent=(String(c.name||'').trim().split(/\s+/)[0])||'Welcome';
+    var so=document.createElement('a'); so.href='#'; so.textContent='Sign out'; so.className='signout';
+    so.onclick=function(e){e.preventDefault(); LIVE.signOut();}; $('.who').appendChild(so);
+    /* their numbers, or an honest "not set yet" */
+    $$('.stat').forEach(function(st){
+      var k=st.querySelector('.k').textContent, v=st.querySelector('.v');
+      if(k==='Calories') v.innerHTML=T?T.cal.toLocaleString():'—';
+      if(k==='Protein')  v.innerHTML=T?T.pro+'<small>g</small>':'—';
+      if(k==='Produce')  v.innerHTML=T&&T.produce?T.produce+'<small>g</small>':'600<small>g+</small>';
+      if(k==='Water')    v.innerHTML=T&&T.water?T.water+'<small>oz</small>':'—';
+    });
+    if(!T){
+      $$('#nutStarter .sub, #nutOpen .sub').forEach(function(x){ x.textContent='Your numbers get set with you on your call. They show up right here.'; });
+      $('#plate').hidden=true;
+    } else {
+      $$('#nutStarter .sub, #nutOpen .sub').forEach(function(x){ x.textContent='Your numbers, and every plate sized to them. When your check-ins say it is time, your numbers change here.'; });
+    }
+    /* the built view: drop the sample phase + sample meals, keep the Meal Builder */
+    var ph=$('#nutOpen .phase'); if(c.phase){ ph.querySelector('.pt').textContent=c.phase; ph.querySelector('.pd').textContent='Your current phase. Your check-ins decide the next move.'; var b=ph.querySelector('.bar'); if(b) b.remove(); } else ph.remove();
+    var secs=$$('#nutOpen .sec'); secs.forEach(function(sc){ if(sc.textContent==='Your meals' || sc.textContent==='Tools'){ var nx=sc.nextElementSibling; if(nx) nx.remove(); sc.remove(); } });
+    var tools=document.createElement('div'); tools.innerHTML='<div class="sec">Tools</div><div class="card">'
+      +'<a class="row" href="../power-food-list/"><div class="ico">🥦</div><div class="grow"><div class="t">Power Food List</div><div class="d">The foods that do the heavy lifting</div></div><div class="chev">›</div></a>'
+      +'<a class="row" href="../nutrition/?from=my"><div class="ico">📝</div><div class="grow"><div class="t">Update my intake</div><div class="d">Something changed? Tell me here</div></div><div class="chev">›</div></a></div>';
+    $('#nutOpen').appendChild(tools);
+    if(T){ var pw=$('#plate'); $('#nutOpen').insertBefore(pw, tools); }
+    /* labs: no sample data on a real account */
+    $('#labsOpen').innerHTML='<h1 class="h1">Your labs</h1><p class="sub">Every draw in one place, so you can see the trend, what it means, and what to do next.</p>'
+      +'<div class="card"><div class="t">No labs on file yet</div><div class="d" style="margin-top:6px">Send your latest blood work to Jayme in the app, or bring it to your call. Your trend lines show up here once they are in.</div></div>'
+      +'<p class="fine">This is education to support your nutrition, training and lifestyle. It is not medical advice and does not diagnose or treat anything. Your provider reads your labs and makes every medical decision.</p>';
+    /* links that aren't live yet don't pretend to be */
+    $$('#t-wellness a[href="#"]').forEach(function(a){ if(a.classList.contains('btn')){ a.href=CALL_URL; a.target='_blank'; } else { a.removeAttribute('href'); a.style.cursor='default'; } });
+    if(window.console) console.log('LP dashboard: live', {plan:plan, nut:nut, targets:T});
+  }
   apply();
   show(q.get('tab') || (q.get('intake')==='done' ? 'nutrition' : 'start'));
+};
+</script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="../lp-auth.js?v=5"></script>
+<script>
+/* Sign-in. ?demo=1 = Jayme's preview with the plan switcher and sample numbers.
+   Everyone else signs in; what they see comes from what they bought (Supabase), never from the link. */
+(function(){
+  var q=new URLSearchParams(location.search);
+  if(q.get('demo')==='1'){ window.MY_BOOT(null); return; }
+  var main=document.querySelector('main'), top=document.querySelector('header.top');
+  document.getElementById('demo').hidden=true; main.style.visibility='hidden'; top.style.visibility='hidden';
+  LPAuth.start({title:'your dashboard', logo:'../logo.png', onReady:function(sb, access, user){
+    var P=access.plans||[], A=access.addons||[], F=access.features||[], in_=function(x,a){return a.indexOf(x)>=0};
+    var plan = (in_('coaching',P)||in_('install',P)||in_('b4m',P)) ? 'coaching'
+             : (in_('wellness',P)||in_('membership_97',P)) ? 'wellness'
+             : in_('lite',P) ? 'lite'
+             : (in_('nutrition_system',P)||in_('nutrition_system',A)) ? 'nutrition' : null;
+    main.style.visibility=''; top.style.visibility='';
+    if(!plan){
+      main.innerHTML='<section><h1 class="h1">Almost there</h1><p class="sub">We found your account, but no active plan on it yet. If you just bought, give it a minute and reload. Still stuck? Message Jayme and he will sort it out.</p><a class="btn" href="#" id="mySo">Sign out</a></section>';
+      document.getElementById('mySo').onclick=function(e){e.preventDefault(); LPAuth.signOut();};
+      return;
+    }
+    var mb=in_('meal_builder',F), meta=(user&&user.user_metadata)||{};
+    window.MY_BOOT({plan:plan, nut:mb?'system':'starter', T:LPAuth.targets(access.plan), client:access.client||{},
+      ck:meta.onboarding||{}, saveCk:function(ck){ sb.auth.updateUser({data:{onboarding:ck}}); }, signOut:LPAuth.signOut});
+  }});
 })();
 </script>
 </body>
